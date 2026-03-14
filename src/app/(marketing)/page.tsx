@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import styles from "./page.module.css"
 import { Navbar } from "@/components/landing/Navbar"
 import { Hero } from "@/components/landing/Hero"
@@ -12,24 +13,21 @@ const testimonials = [
       "Before Agentis, we missed dozens of WhatsApp messages every day. Now our agent handles everything while we sleep. Sales have gone up 40% since we launched.",
     name: "Tunde Adeyemi",
     role: "CEO, QuickStyle Lagos",
-    initials: "TA",
-    color: "#00a862",
+    avatar: "https://i.pravatar.cc/64?img=12",
   },
   {
     quote:
       "Our customers love that they get instant responses even at midnight. The agent knows our entire product catalogue and handles orders perfectly. Worth every kobo.",
     name: "Ngozi Okonkwo",
     role: "Founder, Mama's Kitchen Abuja",
-    initials: "NO",
-    color: "#00c8b4",
+    avatar: "https://i.pravatar.cc/64?img=47",
   },
   {
     quote:
       "We run a real estate agency and clients ask lots of questions. Agentis handles the initial enquiries so my team only speaks to serious buyers. Game changer.",
     name: "Emeka Okafor",
     role: "MD, HomeFind Realty",
-    initials: "EO",
-    color: "#00dc82",
+    avatar: "https://i.pravatar.cc/64?img=68",
   },
 ]
 
@@ -61,12 +59,13 @@ export default function LandingPage() {
                 </div>
                 <p className={styles.testimonialQuote}>"{t.quote}"</p>
                 <div className={styles.testimonialAuthor}>
-                  <div
+                  <Image
+                    src={t.avatar}
+                    alt={t.name}
+                    width={44}
+                    height={44}
                     className={styles.testimonialAvatar}
-                    style={{ background: `linear-gradient(135deg, ${t.color}, var(--teal))` }}
-                  >
-                    {t.initials}
-                  </div>
+                  />
                   <div>
                     <div className={styles.testimonialName}>{t.name}</div>
                     <div className={styles.testimonialRole}>{t.role}</div>

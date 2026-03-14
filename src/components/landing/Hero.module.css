@@ -130,20 +130,20 @@
   font-size: 0.875rem;
 }
 
-.trustDots {
+.trustAvatars {
   display: flex;
 }
 
-.trustDot {
-  width: 28px;
-  height: 28px;
+.trustAvatar {
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   border: 2px solid var(--bg-primary);
-  background: linear-gradient(135deg, var(--accent-dim), var(--teal));
-  margin-left: -6px;
+  object-fit: cover;
+  margin-left: -8px;
 }
 
-.trustDot:first-child {
+.trustAvatar:first-child {
   margin-left: 0;
 }
 

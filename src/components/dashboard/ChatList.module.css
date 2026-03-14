@@ -38,6 +38,10 @@
   transition: border-color var(--transition), background var(--transition);
   text-decoration: none;
   display: block;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  color: inherit;
 }
 
 .chatCard:hover {
@@ -58,6 +62,52 @@
   font-weight: 600;
   color: var(--text-primary);
   font-family: monospace;
+}
+
+.titleGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.callerName {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.callerSub {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: monospace;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 100px;
+  border: 1px solid transparent;
+  flex-shrink: 0;
+}
+
+.badgeSuccess {
+  background: var(--success-light);
+  color: var(--success);
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.badgeFailure {
+  background: var(--danger-light);
+  color: var(--danger);
+  border-color: rgba(239, 68, 68, 0.3);
 }
 
 .chatTime {
@@ -100,7 +150,24 @@
   animation: pulse 1.5s ease-in-out infinite;
 }
 
-/* Transcript view */
+.previewText {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0.5rem 0 0.875rem;
+  line-height: 1.5;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.viewLink {
+  margin-left: auto;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Transcript view (legacy, kept for reference) */
 .transcript {
   display: flex;
   flex-direction: column;

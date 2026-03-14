@@ -1,13 +1,21 @@
+"use client"
+
 import styles from "./ChatList.module.css"
-import { formatTime } from "@/lib/utils"
+import { formatTime, formatDuration, getCallerIdentifier, cn } from "@/lib/utils"
 import type { Conversation } from "@/types"
-import { cn } from "@/lib/utils"
 
 interface ChatListProps {
   conversations: Conversation[]
+  onSelect: (id: string) => void
 }
 
-export function ChatList({ conversations }: ChatListProps) {
+function SuccessBadge({ result }: { result: string }) {
+  if (result === "success") return <span className={cn(styles.badge, styles.badgeSuccess)}>✓ Resolved</span>
+  if (result === "failure") return <span className={cn(styles.badge, styles.badgeFailure)}>✗ Unresolved</span>
+  return null
+}
+
+export function ChatList({ conversations, onSelect }: ChatListProps) {
   if (conversations.length === 0) {
     return (
       <div className={styles.empty}>
@@ -23,71 +31,46 @@ export function ChatList({ conversations }: ChatListProps) {
   return (
     <div className={styles.container}>
       {conversations.map((conv) => {
-        const durationMins = Math.floor(conv.call_duration_secs / 60)
-        const durationSecs = conv.call_duration_secs % 60
-        const isActive = conv.status === "in-progress"
+        const isActive = conv.status === "in-progress" || conv.status === "initiated"
+        const title = conv.call_summary_title || conv.user_id || getCallerIdentifier(conv)
+        const subtitle = conv.call_summary_title && conv.user_id ? conv.user_id : null
+        const preview = conv.transcript_summary
 
         return (
-          <div key={conv.conversation_id} className={styles.chatCard}>
+          <button
+            key={conv.conversation_id}
+            className={styles.chatCard}
+            onClick={() => onSelect(conv.conversation_id)}
+          >
             <div className={styles.chatHeader}>
-              <div>
-                <div className={styles.chatId}>
-                  #{conv.conversation_id.slice(0, 12)}...
-                </div>
+              <div className={styles.titleGroup}>
+                <div className={styles.callerName}>{title}</div>
+                {subtitle && <div className={styles.callerSub}>{subtitle}</div>}
               </div>
-              <div className={styles.chatTime}>
-                {formatTime(conv.start_time_unix_secs)}
-              </div>
+              <div className={styles.chatTime}>{formatTime(conv.start_time_unix_secs)}</div>
             </div>
+
+            {preview && (
+              <p className={styles.previewText}>{preview}</p>
+            )}
 
             <div className={styles.chatMeta}>
               <div className={styles.metaItem}>
-                <span
-                  className={cn(
-                    styles.statusDot,
-                    isActive ? styles.active : styles.done
-                  )}
-                />
+                <span className={cn(styles.statusDot, isActive ? styles.active : styles.done)} />
                 {isActive ? "In progress" : "Completed"}
               </div>
               <div className={styles.metaItem}>
                 <span className={styles.metaIcon}>⏱</span>
-                {durationMins > 0 ? `${durationMins}m ` : ""}
-                {durationSecs}s
+                {formatDuration(conv.call_duration_secs)}
               </div>
-              {conv.transcript && (
-                <div className={styles.metaItem}>
-                  <span className={styles.metaIcon}>💬</span>
-                  {conv.transcript.length} messages
-                </div>
-              )}
+              <div className={styles.metaItem}>
+                <span className={styles.metaIcon}>💬</span>
+                {conv.message_count} {conv.message_count === 1 ? "msg" : "msgs"}
+              </div>
+              {conv.call_successful && <SuccessBadge result={conv.call_successful} />}
+              <div className={cn(styles.metaItem, styles.viewLink)}>View →</div>
             </div>
-
-            {conv.transcript && conv.transcript.length > 0 && (
-              <div className={styles.transcript}>
-                {conv.transcript.slice(0, 4).map((msg, i) => (
-                  <div
-                    key={i}
-                    className={cn(
-                      styles.message,
-                      msg.role === "user" ? styles.user : styles.agent
-                    )}
-                  >
-                    <div className={styles.bubble}>{msg.message}</div>
-                    <div className={styles.msgTime}>
-                      {Math.floor(msg.time_in_call_secs / 60)}:
-                      {String(msg.time_in_call_secs % 60).padStart(2, "0")}
-                    </div>
-                  </div>
-                ))}
-                {conv.transcript.length > 4 && (
-                  <div className={styles.metaItem} style={{ padding: "0.25rem 0" }}>
-                    +{conv.transcript.length - 4} more messages
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+          </button>
         )
       })}
     </div>

@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { signOut } from "next-auth/react"
+import { LogoIcon } from "@/components/landing/Logo"
 import styles from "./Sidebar.module.css"
 import { cn } from "@/lib/utils"
 
@@ -28,7 +29,7 @@ export function Sidebar({ userName, businessName }: SidebarProps) {
   return (
     <aside className={styles.sidebar}>
       <Link href="/dashboard" className={styles.logo}>
-        <span className={styles.logoIcon}>A</span>
+        <LogoIcon size={30} />
         Agentis
       </Link>
 

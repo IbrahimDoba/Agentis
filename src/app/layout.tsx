@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { Space_Grotesk } from "next/font/google"
 import { ThemeProvider } from "@/components/ThemeProvider"
+import { QueryProvider } from "@/components/QueryProvider"
 import "./globals.css"
 
 const spaceGrotesk = Space_Grotesk({
@@ -13,6 +14,10 @@ export const metadata: Metadata = {
   title: "Agentis — WhatsApp AI Agents for Business",
   description:
     "Automate your customer conversations on WhatsApp with AI. Never miss a lead, always respond instantly.",
+  icons: {
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
+  },
 }
 
 export default function RootLayout({
@@ -23,7 +28,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={spaceGrotesk.variable}>
       <body className={spaceGrotesk.className}>
-        <ThemeProvider>{children}</ThemeProvider>
+        <QueryProvider>
+          <ThemeProvider>{children}</ThemeProvider>
+        </QueryProvider>
       </body>
     </html>
   )

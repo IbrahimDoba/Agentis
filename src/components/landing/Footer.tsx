@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { LogoIcon } from "@/components/landing/Logo"
 import styles from "./Footer.module.css"
 
 export function Footer() {
@@ -7,7 +8,7 @@ export function Footer() {
       <div className={styles.inner}>
         <div className={styles.brand}>
           <Link href="/" className={styles.logo}>
-            <span className={styles.logoDot} />
+            <LogoIcon size={28} />
             Agentis
           </Link>
           <p className={styles.desc}>

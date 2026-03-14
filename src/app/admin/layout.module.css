@@ -31,17 +31,6 @@
   letter-spacing: -0.02em;
 }
 
-.logoIcon {
-  width: 32px;
-  height: 32px;
-  background: var(--accent);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  flex-shrink: 0;
-}
 
 .adminBadge {
   font-size: 10px;

@@ -9,7 +9,7 @@ function headers() {
 
 export async function getConversations(agentId: string) {
   const res = await fetch(
-    `${BASE_URL}/convai/conversations?agent_id=${agentId}`,
+    `${BASE_URL}/convai/conversations?agent_id=${agentId}&summary_mode=include&page_size=50`,
     { headers: headers() }
   )
   if (!res.ok) throw new Error("Failed to fetch conversations")

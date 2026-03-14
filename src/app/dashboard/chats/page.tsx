@@ -2,8 +2,7 @@ import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
 import styles from "./page.module.css"
-import { ChatList } from "@/components/dashboard/ChatList"
-import { getConversations } from "@/lib/elevenlabs"
+import { ChatsClient } from "@/components/dashboard/ChatsClient"
 import Link from "next/link"
 import Button from "@/components/ui/Button"
 
@@ -15,18 +14,6 @@ export default async function ChatsPage() {
     where: { userId: session.user.id },
   })
 
-  let conversations: any[] = []
-  let error = ""
-
-  if (agent?.elevenlabsAgentId) {
-    try {
-      const data = await getConversations(agent.elevenlabsAgentId)
-      conversations = data.conversations ?? []
-    } catch {
-      error = "Failed to load conversations. Please try again later."
-    }
-  }
-
   return (
     <div className={styles.page}>
       <div className={styles.header}>
@@ -34,7 +21,7 @@ export default async function ChatsPage() {
           <h1 className={styles.title}>Conversations</h1>
           <p className={styles.subtitle}>
             {agent?.elevenlabsAgentId
-              ? `${conversations.length} conversation${conversations.length !== 1 ? "s" : ""} found`
+              ? "All conversations with your AI agent"
               : "Connect your agent to see conversations"}
           </p>
         </div>
@@ -61,13 +48,7 @@ export default async function ChatsPage() {
         </div>
       )}
 
-      {error && (
-        <div className={styles.errorBox}>{error}</div>
-      )}
-
-      {agent?.elevenlabsAgentId && !error && (
-        <ChatList conversations={conversations} />
-      )}
+      {agent?.elevenlabsAgentId && <ChatsClient />}
     </div>
   )
 }

@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import Link from "next/link"
+import { LogoIcon } from "@/components/landing/Logo"
 import styles from "./layout.module.css"
 
 const navItems = [
@@ -20,7 +21,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <div className={styles.layout}>
       <aside className={styles.sidebar}>
         <Link href="/admin" className={styles.logo}>
-          <span className={styles.logoIcon}>A</span>
+          <LogoIcon size={30} />
           Agentis
           <span className={styles.adminBadge}>Admin</span>
         </Link>

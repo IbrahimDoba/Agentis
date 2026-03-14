@@ -30,13 +30,6 @@
   flex-shrink: 0;
 }
 
-.logoDot {
-  width: 8px;
-  height: 8px;
-  background: var(--accent);
-  border-radius: 50%;
-  box-shadow: 0 0 10px var(--accent);
-}
 
 .links {
   display: flex;

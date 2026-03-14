@@ -1,51 +1,57 @@
-import { auth } from "@/lib/auth"
-import { redirect, notFound } from "next/navigation"
-import { db } from "@/lib/db"
+"use client"
+
+import { useParams } from "next/navigation"
 import styles from "./page.module.css"
 import { AgentForm } from "@/components/dashboard/AgentForm"
 import { StatusBadge } from "@/components/ui/Badge"
 import { AgentCard } from "@/components/dashboard/AgentCard"
+import { useAgent } from "@/hooks/useAgent"
 
-interface PageProps {
-  params: Promise<{ id: string }>
+function Skeleton({ height, width }: { height: number; width?: string }) {
+  return (
+    <div style={{
+      height,
+      width: width ?? "100%",
+      borderRadius: 12,
+      background: "var(--bg-card)",
+      border: "1px solid var(--border)",
+      animation: "pulse 1.5s ease-in-out infinite",
+    }} />
+  )
 }
 
-export default async function AgentDetailPage({ params }: PageProps) {
-  const session = await auth()
-  if (!session) redirect("/login")
+export default function AgentDetailPage() {
+  useParams() // keep for potential future use
+  const { data, isLoading, error } = useAgent()
+  const agent = data?.agent ?? null
 
-  const { id } = await params
-
-  const agent = await db.agent.findUnique({
-    where: { id },
-  })
-
-  if (!agent) notFound()
-
-  // Only owner or admin can view
-  if (agent.userId !== session.user.id && session.user.role !== "ADMIN") {
-    redirect("/dashboard")
+  if (isLoading) {
+    return (
+      <div className={styles.page}>
+        <div className={styles.header}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <Skeleton height={32} width="240px" />
+            <Skeleton height={16} width="180px" />
+          </div>
+        </div>
+        <div className={styles.statusSection}>
+          <Skeleton height={160} />
+        </div>
+        <div className={styles.formSection}>
+          <Skeleton height={400} />
+        </div>
+      </div>
+    )
   }
 
-  const agentPublic = {
-    id: agent.id,
-    userId: agent.userId,
-    businessName: agent.businessName,
-    businessDescription: agent.businessDescription,
-    productsServices: agent.productsServices,
-    faqs: agent.faqs,
-    operatingHours: agent.operatingHours,
-    websiteLinks: agent.websiteLinks ?? undefined,
-    responseGuidelines: agent.responseGuidelines ?? undefined,
-    profileImageUrl: agent.profileImageUrl ?? undefined,
-    whatsappBusinessName: agent.whatsappBusinessName ?? undefined,
-    whatsappAgentLink: agent.whatsappAgentLink ?? undefined,
-    whatsappPhoneNumber: agent.whatsappPhoneNumber ?? undefined,
-    qrCodeUrl: agent.qrCodeUrl ?? undefined,
-    elevenlabsAgentId: agent.elevenlabsAgentId ?? undefined,
-    status: agent.status as any,
-    createdAt: agent.createdAt.toISOString(),
-    updatedAt: agent.updatedAt.toISOString(),
+  if (error || !agent) {
+    return (
+      <div className={styles.page}>
+        <p style={{ color: "var(--danger)", fontSize: 14 }}>
+          {error ? "Failed to load agent." : "Agent not found."}
+        </p>
+      </div>
+    )
   }
 
   return (
@@ -58,18 +64,16 @@ export default async function AgentDetailPage({ params }: PageProps) {
         <StatusBadge status={agent.status} />
       </div>
 
-      {/* Status Card */}
       <div className={styles.statusSection}>
-        <AgentCard agent={agentPublic} />
+        <AgentCard agent={agent} />
       </div>
 
-      {/* Edit Form */}
       <div className={styles.formSection}>
         <h2 className={styles.formTitle}>Edit Agent Details</h2>
         <p className={styles.formSubtitle}>
           Update your agent&apos;s configuration. Changes will be reviewed by our team.
         </p>
-        <AgentForm initialData={agentPublic} agentId={agent.id} />
+        <AgentForm initialData={agent} agentId={agent.id} />
       </div>
     </div>
   )

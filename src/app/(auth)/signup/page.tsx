@@ -4,6 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { signIn } from "next-auth/react"
+import { LogoIcon } from "@/components/landing/Logo"
 import styles from "./page.module.css"
 import { Input } from "@/components/ui/Input"
 import Button from "@/components/ui/Button"
@@ -75,7 +76,7 @@ export default function SignupPage() {
   return (
     <div className={styles.container}>
       <Link href="/" className={styles.logo}>
-        <span className={styles.logoIcon}>A</span>
+        <LogoIcon size={32} />
         Agentis
       </Link>
 

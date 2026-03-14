@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Sun, Moon } from "lucide-react"
 import { useTheme } from "@/components/ThemeProvider"
+import { LogoIcon } from "@/components/landing/Logo"
 import styles from "./Navbar.module.css"
 
 export function Navbar() {
@@ -21,7 +22,7 @@ export function Navbar() {
   return (
     <nav className={`${styles.nav} ${scrolled ? styles.navScrolled : ""}`}>
       <Link href="/" className={styles.logo}>
-        <span className={styles.logoDot} />
+        <LogoIcon size={32} />
         Agentis
       </Link>
 

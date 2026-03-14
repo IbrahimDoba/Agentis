@@ -1,7 +1,5 @@
 import { Resend } from "resend"
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-
 export async function sendDemoRequest(data: {
   name: string
   email: string
@@ -10,6 +8,7 @@ export async function sendDemoRequest(data: {
   preferredTime: string
   message?: string
 }) {
+  const resend = new Resend(process.env.RESEND_API_KEY)
   await resend.emails.send({
     from: "Agentis <noreply@agentis.io>",
     to: process.env.DEMO_EMAIL!,

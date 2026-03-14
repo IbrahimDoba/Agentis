@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useQueryClient } from "@tanstack/react-query"
 import styles from "./AgentForm.module.css"
 import { Input, Textarea } from "@/components/ui/Input"
 import Button from "@/components/ui/Button"
@@ -14,6 +15,7 @@ interface AgentFormProps {
 
 export function AgentForm({ initialData, agentId }: AgentFormProps) {
   const router = useRouter()
+  const queryClient = useQueryClient()
   const [form, setForm] = useState({
     businessName: initialData?.businessName ?? "",
     businessDescription: initialData?.businessDescription ?? "",
@@ -99,6 +101,8 @@ export function AgentForm({ initialData, agentId }: AgentFormProps) {
       }
 
       setSuccess(agentId ? "Agent updated successfully!" : "Agent created! Our team will review and set it up.")
+      // Invalidate cached agent/dashboard data so they reflect changes on next visit
+      queryClient.invalidateQueries({ queryKey: ["me"] })
       if (!agentId) {
         router.push(`/dashboard/agent/${data.id}`)
       }

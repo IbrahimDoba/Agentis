@@ -12,6 +12,7 @@
     "@neondatabase/serverless": "^1.0.2",
     "@prisma/adapter-neon": "^7.5.0",
     "@prisma/client": "^7.5.0",
+    "@tanstack/react-query": "^5.90.21",
     "@types/three": "^0.183.1",
     "bcryptjs": "^3.0.3",
     "lucide-react": "^0.577.0",

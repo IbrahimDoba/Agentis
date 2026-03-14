@@ -20,10 +20,14 @@
   --teal: #00c8b4;
   --teal-light: rgba(0, 200, 180, 0.1);
 
+  --success: #22c55e;
+  --success-light: rgba(34, 197, 94, 0.12);
   --danger: #ff4757;
   --danger-light: rgba(255, 71, 87, 0.1);
-  --warning: #ffd32a;
-  --warning-light: rgba(255, 211, 42, 0.1);
+  --warning: #f59e0b;
+  --warning-light: rgba(245, 158, 11, 0.12);
+  --info: #3b82f6;
+  --info-light: rgba(59, 130, 246, 0.12);
 
   --radius-sm: 6px;
   --radius-md: 10px;
@@ -59,10 +63,14 @@
   --teal: #0099a0;
   --teal-light: rgba(0, 153, 160, 0.1);
 
+  --success: #16a34a;
+  --success-light: rgba(22, 163, 74, 0.12);
   --danger: #d93025;
   --danger-light: rgba(217, 48, 37, 0.1);
-  --warning: #d4780a;
-  --warning-light: rgba(212, 120, 10, 0.1);
+  --warning: #b45309;
+  --warning-light: rgba(180, 83, 9, 0.12);
+  --info: #1d4ed8;
+  --info-light: rgba(29, 78, 216, 0.1);
 
   --shadow-glow: 0 0 40px rgba(0, 168, 94, 0.12);
   --shadow-card: 0 2px 16px rgba(0, 0, 0, 0.08);

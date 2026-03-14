@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useElevenLabsAgents } from "@/hooks/useElevenLabsAgents"
 import styles from "./AgentSetupForm.module.css"
 import { Input } from "@/components/ui/Input"
 import Button from "@/components/ui/Button"
@@ -23,6 +24,9 @@ export function AgentSetupForm({ agent }: AgentSetupFormProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
+
+  const { data: elAgents = [], isLoading: elLoading, error: elQueryError } = useElevenLabsAgents()
+  const elError = elQueryError ? (elQueryError as Error).message : ""
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -66,14 +70,31 @@ export function AgentSetupForm({ agent }: AgentSetupFormProps) {
       <div className={styles.section}>
         <div className={styles.sectionTitle}>ElevenLabs Configuration</div>
         <div className={styles.fields}>
-          <Input
-            label="ElevenLabs Agent ID"
-            name="elevenlabsAgentId"
-            placeholder="agent_..."
-            value={form.elevenlabsAgentId}
-            onChange={handleChange}
-            hint="The agent ID from the ElevenLabs Conversational AI dashboard"
-          />
+          <div className={styles.selectGroup}>
+            <label className={styles.selectLabel}>ElevenLabs Agent</label>
+            {elLoading ? (
+              <div className={styles.selectLoading}>Loading agents…</div>
+            ) : elError ? (
+              <div className={styles.selectErr}>{elError}</div>
+            ) : (
+              <select
+                name="elevenlabsAgentId"
+                value={form.elevenlabsAgentId}
+                onChange={handleChange}
+                className={styles.statusSelect}
+              >
+                <option value="">— Select an agent —</option>
+                {elAgents.map((a) => (
+                  <option key={a.agent_id} value={a.agent_id}>
+                    {a.name} ({a.agent_id})
+                  </option>
+                ))}
+              </select>
+            )}
+            {form.elevenlabsAgentId && (
+              <span className={styles.selectedId}>ID: {form.elevenlabsAgentId}</span>
+            )}
+          </div>
         </div>
       </div>
 

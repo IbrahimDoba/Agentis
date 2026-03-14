@@ -57,6 +57,25 @@
   flex-direction: column;
 }
 
+.selectLoading {
+  font-size: 13px;
+  color: var(--text-muted);
+  padding: 0.625rem 0;
+}
+
+.selectErr {
+  font-size: 13px;
+  color: var(--danger);
+  padding: 0.625rem 0;
+}
+
+.selectedId {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 0.375rem;
+  font-family: monospace;
+}
+
 .actions {
   display: flex;
   gap: 0.75rem;
