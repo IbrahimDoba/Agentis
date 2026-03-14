@@ -1,0 +1,579 @@
+.main {
+  min-height: 100vh;
+}
+
+/* Hero */
+.hero {
+  padding: 9rem 2rem 4rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 600px;
+  height: 400px;
+  background: radial-gradient(ellipse, rgba(0, 220, 130, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.heroInner {
+  max-width: 680px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.heroBadge {
+  display: inline-flex;
+  align-items: center;
+  background: var(--accent-light);
+  border: 1px solid rgba(0, 220, 130, 0.2);
+  border-radius: 100px;
+  padding: 6px 16px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 1.5rem;
+}
+
+.heroTitle {
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+
+.heroSubtitle {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-bottom: 2rem;
+}
+
+/* Toggle */
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.toggleLabel {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.toggleLabelActive {
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.toggleBtn {
+  width: 44px;
+  height: 24px;
+  border-radius: 100px;
+  background: var(--border);
+  border: none;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.toggleBtn:has(.toggleThumbOn) {
+  background: var(--accent);
+}
+
+.toggleThumb {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  top: 3px;
+  left: 3px;
+  transition: all 0.3s ease;
+}
+
+.toggleThumbOn {
+  left: 23px;
+  background: #050c08;
+}
+
+.saveBadge {
+  display: inline-block;
+  background: var(--accent-light);
+  border: 1px solid rgba(0, 220, 130, 0.2);
+  color: var(--accent);
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 8px;
+  border-radius: 100px;
+  margin-left: 0.5rem;
+  vertical-align: middle;
+}
+
+/* Plans */
+.plansSection {
+  padding: 2rem 2rem 4rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.plansGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  align-items: start;
+}
+
+.planCard {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 2rem;
+  position: relative;
+}
+
+.planCardPro {
+  border-color: var(--accent);
+  box-shadow: 0 0 50px rgba(0, 220, 130, 0.12);
+}
+
+.planPopularBadge {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--accent);
+  color: #050c08;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 4px 14px;
+  border-radius: 100px;
+  white-space: nowrap;
+}
+
+.planName {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  margin-bottom: 0.625rem;
+}
+
+.planPrice {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  margin-bottom: 0.375rem;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.planPriceNote {
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--text-muted);
+  letter-spacing: 0;
+}
+
+.planDesc {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  min-height: 56px;
+}
+
+.planBtn {
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: 0.75rem;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  font-size: 0.9rem;
+  transition: all var(--transition);
+  cursor: pointer;
+}
+
+.planBtnOutline {
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  background: transparent;
+}
+
+.planBtnOutline:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.planBtnSolid {
+  background: var(--accent);
+  color: #050c08;
+  border: none;
+  box-shadow: 0 0 20px var(--accent-glow);
+}
+
+.planBtnSolid:hover {
+  background: var(--accent-hover);
+  box-shadow: 0 0 35px var(--accent-glow);
+  transform: translateY(-1px);
+  color: #050c08;
+}
+
+.planDivider {
+  height: 1px;
+  background: var(--border-subtle);
+  margin: 1.5rem 0;
+}
+
+.planFeatures {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.planFeature {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.planFeatureDimmed {
+  color: var(--text-muted);
+  opacity: 0.5;
+  text-decoration: line-through;
+  text-decoration-color: var(--border);
+}
+
+.planCheck {
+  color: var(--accent);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.planCross {
+  color: var(--text-muted);
+  font-weight: 400;
+  flex-shrink: 0;
+}
+
+/* Enterprise card */
+.enterpriseCard {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 1.5rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.enterpriseLeft {}
+
+.enterpriseTitle {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.375rem;
+}
+
+.enterpriseDesc {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  max-width: 540px;
+}
+
+.enterpriseBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 0.875rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-md);
+  transition: all var(--transition);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.enterpriseBtn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Comparison table */
+.comparisonSection {
+  padding: 4rem 2rem;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.comparisonInner {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.comparisonTitle {
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  margin-bottom: 2rem;
+}
+
+.comparisonTable {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.comparisonHeader {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  background: var(--bg-hover);
+  border-bottom: 1px solid var(--border);
+}
+
+.comparisonRow {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  border-bottom: 1px solid var(--border-subtle);
+  transition: background var(--transition);
+}
+
+.comparisonRow:last-child {
+  border-bottom: none;
+}
+
+.comparisonRow:hover {
+  background: var(--bg-hover);
+}
+
+.comparisonFeatureCol {
+  padding: 0.875rem 1.25rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  border-right: 1px solid var(--border-subtle);
+}
+
+.comparisonHeader .comparisonFeatureCol,
+.comparisonHeader .comparisonPlanCol {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.comparisonPlanCol {
+  padding: 0.875rem 1.25rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.comparisonPlanColPro {
+  color: var(--accent);
+  background: rgba(0, 220, 130, 0.03);
+  font-weight: 500;
+}
+
+.comparisonHeader .comparisonPlanColPro {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* FAQ */
+.faqSection {
+  padding: 6rem 2rem;
+}
+
+.faqInner {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.faqLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 0.75rem;
+}
+
+.faqTitle {
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  margin-bottom: 2.5rem;
+}
+
+.faqList {
+  display: flex;
+  flex-direction: column;
+}
+
+.faqItem {
+  border-bottom: 1px solid var(--border-subtle);
+  cursor: pointer;
+  padding: 1.25rem 0;
+}
+
+.faqItem:first-child {
+  border-top: 1px solid var(--border-subtle);
+}
+
+.faqItemOpen .faqQ {
+  color: var(--accent);
+}
+
+.faqQ {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  gap: 1rem;
+  transition: color var(--transition);
+}
+
+.faqChevron {
+  font-size: 1.25rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  font-weight: 300;
+}
+
+.faqItemOpen .faqChevron {
+  color: var(--accent);
+}
+
+.faqA {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-top: 0.875rem;
+  padding-right: 2rem;
+}
+
+/* Bottom CTA */
+.ctaSection {
+  padding: 6rem 2rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.ctaGlow {
+  position: absolute;
+  width: 500px;
+  height: 400px;
+  background: radial-gradient(ellipse, rgba(0, 220, 130, 0.1) 0%, transparent 70%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.ctaInner {
+  position: relative;
+  z-index: 1;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.ctaTitle {
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  margin-bottom: 1rem;
+}
+
+.ctaDesc {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-bottom: 2rem;
+}
+
+.ctaBtn {
+  display: inline-flex;
+  align-items: center;
+  background: var(--accent);
+  color: #050c08;
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 0.875rem 2rem;
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+  box-shadow: 0 0 25px rgba(0, 220, 130, 0.3);
+}
+
+.ctaBtn:hover {
+  background: var(--accent-hover);
+  transform: translateY(-2px);
+  color: #050c08;
+}
+
+@media (max-width: 700px) {
+  .plansGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .comparisonHeader,
+  .comparisonRow {
+    grid-template-columns: 1.5fr 1fr 1fr;
+  }
+
+  .comparisonFeatureCol,
+  .comparisonPlanCol {
+    padding: 0.625rem 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .enterpriseCard {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .enterpriseBtn {
+    width: 100%;
+    justify-content: center;
+  }
+}

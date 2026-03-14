@@ -1,0 +1,164 @@
+"use client"
+
+import { useState } from "react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { signIn } from "next-auth/react"
+import styles from "./page.module.css"
+import { Input } from "@/components/ui/Input"
+import Button from "@/components/ui/Button"
+
+export default function SignupPage() {
+  const router = useRouter()
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    businessName: "",
+    password: "",
+  })
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [error, setError] = useState("")
+  const [loading, setLoading] = useState(false)
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setForm((f) => ({ ...f, [name]: value }))
+    setErrors((prev) => ({ ...prev, [name]: "" }))
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError("")
+    setErrors({})
+
+    try {
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        if (data.errors) {
+          setErrors(data.errors)
+        } else {
+          setError(data.error || "Something went wrong")
+        }
+        return
+      }
+
+      // Auto sign-in after signup
+      const result = await signIn("credentials", {
+        email: form.email,
+        password: form.password,
+        redirect: false,
+      })
+
+      if (result?.error) {
+        router.push("/login")
+        return
+      }
+
+      router.push("/dashboard/pending")
+      router.refresh()
+    } catch {
+      setError("Something went wrong. Please try again.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className={styles.container}>
+      <Link href="/" className={styles.logo}>
+        <span className={styles.logoIcon}>A</span>
+        Agentis
+      </Link>
+
+      <div className={styles.card}>
+        <h1 className={styles.title}>Create your account</h1>
+        <p className={styles.subtitle}>Start automating your WhatsApp customer support</p>
+
+        <form className={styles.form} onSubmit={handleSubmit}>
+          {error && <div className={styles.error}>{error}</div>}
+
+          <div className={styles.row}>
+            <Input
+              label="Full Name"
+              name="name"
+              placeholder="John Doe"
+              value={form.name}
+              onChange={handleChange}
+              error={errors.name}
+              required
+            />
+            <Input
+              label="Phone Number"
+              name="phone"
+              type="tel"
+              placeholder="+1 (555) 000-0000"
+              value={form.phone}
+              onChange={handleChange}
+              error={errors.phone}
+              required
+            />
+          </div>
+
+          <Input
+            label="Business Name"
+            name="businessName"
+            placeholder="Your Company Ltd"
+            value={form.businessName}
+            onChange={handleChange}
+            error={errors.businessName}
+            required
+          />
+
+          <Input
+            label="Email Address"
+            name="email"
+            type="email"
+            placeholder="you@company.com"
+            value={form.email}
+            onChange={handleChange}
+            error={errors.email}
+            required
+            autoComplete="email"
+          />
+
+          <Input
+            label="Password"
+            name="password"
+            type="password"
+            placeholder="At least 8 characters"
+            value={form.password}
+            onChange={handleChange}
+            error={errors.password}
+            required
+            autoComplete="new-password"
+          />
+
+          <Button type="submit" fullWidth loading={loading}>
+            Create Account
+          </Button>
+        </form>
+
+        <div className={styles.note}>
+          Your account will be reviewed by our team before activation.
+          You&apos;ll be notified within 24 hours.
+        </div>
+
+        <div className={styles.footer}>
+          Already have an account?{" "}
+          <Link href="/login" className={styles.link}>
+            Sign in
+          </Link>
+        </div>
+      </div>
+    </div>
+  )
+}

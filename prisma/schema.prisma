@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id             String     @id @default(cuid())
+  name           String
+  email          String     @unique
+  phone          String
+  businessName   String
+  passwordHash   String
+  role           Role       @default(USER)
+  status         UserStatus @default(PENDING)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  agents         Agent[]
+}
+
+model Agent {
+  id                   String      @id @default(cuid())
+  userId               String
+  user                 User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessName         String
+  businessDescription  String      @db.Text
+  productsServices     String      @db.Text
+  faqs                 String      @db.Text
+  operatingHours       String
+  websiteLinks         String?
+  responseGuidelines   String?     @db.Text
+  profileImageUrl      String?
+  whatsappBusinessName String?
+  whatsappAgentLink    String?
+  whatsappPhoneNumber  String?
+  qrCodeUrl            String?
+  elevenlabsAgentId    String?
+  status               AgentStatus @default(PENDING_REVIEW)
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum UserStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum AgentStatus {
+  PENDING_REVIEW
+  SETTING_UP
+  ACTIVE
+  INACTIVE
+}
