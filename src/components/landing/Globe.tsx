@@ -1,5 +1,5 @@
 "use client"
-import { useRef, useState } from "react"
+import { useRef, useState, useEffect } from "react"
 import dynamic from "next/dynamic"
 
 const GlobeGL = dynamic(() => import("react-globe.gl"), { ssr: false })
@@ -40,10 +40,22 @@ const ARCS = [
   { startLat: -33.8688, startLng: 151.2093, endLat: 35.6762, endLng: 139.6503, color: "#00c8b4" },
 ]
 
-const GLOBE_SIZE = 560
+function getSize() {
+  if (typeof window === "undefined") return 560
+  const vw = window.innerWidth
+  if (vw < 400) return 300
+  if (vw < 600) return 340
+  if (vw < 900) return 420
+  return 560
+}
 
 export default function Globe() {
   const globeRef = useRef<any>(null)
+  const [size, setSize] = useState(560)
+
+  useEffect(() => {
+    setSize(getSize())
+  }, [])
 
   function onGlobeReady() {
     if (!globeRef.current) return
@@ -61,8 +73,8 @@ export default function Globe() {
     <GlobeGL
       ref={globeRef}
       onGlobeReady={onGlobeReady}
-      width={GLOBE_SIZE}
-      height={GLOBE_SIZE}
+      width={size}
+      height={size}
       backgroundColor="rgba(0,0,0,0)"
       globeImageUrl="//unpkg.com/three-globe/example/img/earth-night.jpg"
       bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
