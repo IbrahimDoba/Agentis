@@ -3,7 +3,16 @@ import dynamic from "next/dynamic"
 import Link from "next/link"
 import styles from "./Hero.module.css"
 
-const Globe = dynamic(() => import("./Globe"), { ssr: false })
+const Globe = dynamic(() => import("./Globe"), {
+  ssr: false,
+  loading: () => (
+    <div className={styles.globeSkeleton}>
+      <div className={styles.globeSkeletonCircle} />
+      <div className={styles.globeSkeletonRing} />
+      <div className={styles.globeSkeletonRing2} />
+    </div>
+  ),
+})
 
 export function Hero() {
   return (

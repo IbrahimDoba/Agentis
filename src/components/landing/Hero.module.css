@@ -173,6 +173,48 @@
   50% { transform: scale(1.05); opacity: 0.7; }
 }
 
+/* Globe skeleton loader */
+.globeSkeleton {
+  width: 560px;
+  height: 560px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.globeSkeletonCircle {
+  width: 380px;
+  height: 380px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, rgba(0, 220, 130, 0.08), rgba(0, 220, 130, 0.02) 60%, transparent);
+  border: 1px solid rgba(0, 220, 130, 0.12);
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+.globeSkeletonRing {
+  position: absolute;
+  width: 440px;
+  height: 440px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 220, 130, 0.07);
+  animation: shimmer 2s ease-in-out infinite 0.3s;
+}
+
+.globeSkeletonRing2 {
+  position: absolute;
+  width: 510px;
+  height: 510px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 220, 130, 0.04);
+  animation: shimmer 2s ease-in-out infinite 0.6s;
+}
+
+@keyframes shimmer {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
 .stats {
   max-width: 1200px;
   margin: 3rem auto 0;
