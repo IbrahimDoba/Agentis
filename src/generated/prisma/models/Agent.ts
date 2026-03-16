@@ -32,6 +32,8 @@ export type AgentMinAggregateOutputType = {
   productsServices: string | null
   faqs: string | null
   operatingHours: string | null
+  contactEmail: string | null
+  contactPhone: string | null
   websiteLinks: string | null
   responseGuidelines: string | null
   profileImageUrl: string | null
@@ -53,6 +55,8 @@ export type AgentMaxAggregateOutputType = {
   productsServices: string | null
   faqs: string | null
   operatingHours: string | null
+  contactEmail: string | null
+  contactPhone: string | null
   websiteLinks: string | null
   responseGuidelines: string | null
   profileImageUrl: string | null
@@ -74,6 +78,8 @@ export type AgentCountAggregateOutputType = {
   productsServices: number
   faqs: number
   operatingHours: number
+  contactEmail: number
+  contactPhone: number
   websiteLinks: number
   responseGuidelines: number
   profileImageUrl: number
@@ -97,6 +103,8 @@ export type AgentMinAggregateInputType = {
   productsServices?: true
   faqs?: true
   operatingHours?: true
+  contactEmail?: true
+  contactPhone?: true
   websiteLinks?: true
   responseGuidelines?: true
   profileImageUrl?: true
@@ -118,6 +126,8 @@ export type AgentMaxAggregateInputType = {
   productsServices?: true
   faqs?: true
   operatingHours?: true
+  contactEmail?: true
+  contactPhone?: true
   websiteLinks?: true
   responseGuidelines?: true
   profileImageUrl?: true
@@ -139,6 +149,8 @@ export type AgentCountAggregateInputType = {
   productsServices?: true
   faqs?: true
   operatingHours?: true
+  contactEmail?: true
+  contactPhone?: true
   websiteLinks?: true
   responseGuidelines?: true
   profileImageUrl?: true
@@ -233,6 +245,8 @@ export type AgentGroupByOutputType = {
   productsServices: string
   faqs: string
   operatingHours: string
+  contactEmail: string | null
+  contactPhone: string | null
   websiteLinks: string | null
   responseGuidelines: string | null
   profileImageUrl: string | null
@@ -275,6 +289,8 @@ export type AgentWhereInput = {
   productsServices?: Prisma.StringFilter<"Agent"> | string
   faqs?: Prisma.StringFilter<"Agent"> | string
   operatingHours?: Prisma.StringFilter<"Agent"> | string
+  contactEmail?: Prisma.StringNullableFilter<"Agent"> | string | null
+  contactPhone?: Prisma.StringNullableFilter<"Agent"> | string | null
   websiteLinks?: Prisma.StringNullableFilter<"Agent"> | string | null
   responseGuidelines?: Prisma.StringNullableFilter<"Agent"> | string | null
   profileImageUrl?: Prisma.StringNullableFilter<"Agent"> | string | null
@@ -297,6 +313,8 @@ export type AgentOrderByWithRelationInput = {
   productsServices?: Prisma.SortOrder
   faqs?: Prisma.SortOrder
   operatingHours?: Prisma.SortOrder
+  contactEmail?: Prisma.SortOrderInput | Prisma.SortOrder
+  contactPhone?: Prisma.SortOrderInput | Prisma.SortOrder
   websiteLinks?: Prisma.SortOrderInput | Prisma.SortOrder
   responseGuidelines?: Prisma.SortOrderInput | Prisma.SortOrder
   profileImageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -322,6 +340,8 @@ export type AgentWhereUniqueInput = Prisma.AtLeast<{
   productsServices?: Prisma.StringFilter<"Agent"> | string
   faqs?: Prisma.StringFilter<"Agent"> | string
   operatingHours?: Prisma.StringFilter<"Agent"> | string
+  contactEmail?: Prisma.StringNullableFilter<"Agent"> | string | null
+  contactPhone?: Prisma.StringNullableFilter<"Agent"> | string | null
   websiteLinks?: Prisma.StringNullableFilter<"Agent"> | string | null
   responseGuidelines?: Prisma.StringNullableFilter<"Agent"> | string | null
   profileImageUrl?: Prisma.StringNullableFilter<"Agent"> | string | null
@@ -344,6 +364,8 @@ export type AgentOrderByWithAggregationInput = {
   productsServices?: Prisma.SortOrder
   faqs?: Prisma.SortOrder
   operatingHours?: Prisma.SortOrder
+  contactEmail?: Prisma.SortOrderInput | Prisma.SortOrder
+  contactPhone?: Prisma.SortOrderInput | Prisma.SortOrder
   websiteLinks?: Prisma.SortOrderInput | Prisma.SortOrder
   responseGuidelines?: Prisma.SortOrderInput | Prisma.SortOrder
   profileImageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -371,6 +393,8 @@ export type AgentScalarWhereWithAggregatesInput = {
   productsServices?: Prisma.StringWithAggregatesFilter<"Agent"> | string
   faqs?: Prisma.StringWithAggregatesFilter<"Agent"> | string
   operatingHours?: Prisma.StringWithAggregatesFilter<"Agent"> | string
+  contactEmail?: Prisma.StringNullableWithAggregatesFilter<"Agent"> | string | null
+  contactPhone?: Prisma.StringNullableWithAggregatesFilter<"Agent"> | string | null
   websiteLinks?: Prisma.StringNullableWithAggregatesFilter<"Agent"> | string | null
   responseGuidelines?: Prisma.StringNullableWithAggregatesFilter<"Agent"> | string | null
   profileImageUrl?: Prisma.StringNullableWithAggregatesFilter<"Agent"> | string | null
@@ -391,6 +415,8 @@ export type AgentCreateInput = {
   productsServices: string
   faqs: string
   operatingHours: string
+  contactEmail?: string | null
+  contactPhone?: string | null
   websiteLinks?: string | null
   responseGuidelines?: string | null
   profileImageUrl?: string | null
@@ -413,6 +439,8 @@ export type AgentUncheckedCreateInput = {
   productsServices: string
   faqs: string
   operatingHours: string
+  contactEmail?: string | null
+  contactPhone?: string | null
   websiteLinks?: string | null
   responseGuidelines?: string | null
   profileImageUrl?: string | null
@@ -433,6 +461,8 @@ export type AgentUpdateInput = {
   productsServices?: Prisma.StringFieldUpdateOperationsInput | string
   faqs?: Prisma.StringFieldUpdateOperationsInput | string
   operatingHours?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   websiteLinks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responseGuidelines?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -455,6 +485,8 @@ export type AgentUncheckedUpdateInput = {
   productsServices?: Prisma.StringFieldUpdateOperationsInput | string
   faqs?: Prisma.StringFieldUpdateOperationsInput | string
   operatingHours?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   websiteLinks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responseGuidelines?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -476,6 +508,8 @@ export type AgentCreateManyInput = {
   productsServices: string
   faqs: string
   operatingHours: string
+  contactEmail?: string | null
+  contactPhone?: string | null
   websiteLinks?: string | null
   responseGuidelines?: string | null
   profileImageUrl?: string | null
@@ -496,6 +530,8 @@ export type AgentUpdateManyMutationInput = {
   productsServices?: Prisma.StringFieldUpdateOperationsInput | string
   faqs?: Prisma.StringFieldUpdateOperationsInput | string
   operatingHours?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   websiteLinks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responseGuidelines?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -517,6 +553,8 @@ export type AgentUncheckedUpdateManyInput = {
   productsServices?: Prisma.StringFieldUpdateOperationsInput | string
   faqs?: Prisma.StringFieldUpdateOperationsInput | string
   operatingHours?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   websiteLinks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responseGuidelines?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -548,6 +586,8 @@ export type AgentCountOrderByAggregateInput = {
   productsServices?: Prisma.SortOrder
   faqs?: Prisma.SortOrder
   operatingHours?: Prisma.SortOrder
+  contactEmail?: Prisma.SortOrder
+  contactPhone?: Prisma.SortOrder
   websiteLinks?: Prisma.SortOrder
   responseGuidelines?: Prisma.SortOrder
   profileImageUrl?: Prisma.SortOrder
@@ -569,6 +609,8 @@ export type AgentMaxOrderByAggregateInput = {
   productsServices?: Prisma.SortOrder
   faqs?: Prisma.SortOrder
   operatingHours?: Prisma.SortOrder
+  contactEmail?: Prisma.SortOrder
+  contactPhone?: Prisma.SortOrder
   websiteLinks?: Prisma.SortOrder
   responseGuidelines?: Prisma.SortOrder
   profileImageUrl?: Prisma.SortOrder
@@ -590,6 +632,8 @@ export type AgentMinOrderByAggregateInput = {
   productsServices?: Prisma.SortOrder
   faqs?: Prisma.SortOrder
   operatingHours?: Prisma.SortOrder
+  contactEmail?: Prisma.SortOrder
+  contactPhone?: Prisma.SortOrder
   websiteLinks?: Prisma.SortOrder
   responseGuidelines?: Prisma.SortOrder
   profileImageUrl?: Prisma.SortOrder
@@ -660,6 +704,8 @@ export type AgentCreateWithoutUserInput = {
   productsServices: string
   faqs: string
   operatingHours: string
+  contactEmail?: string | null
+  contactPhone?: string | null
   websiteLinks?: string | null
   responseGuidelines?: string | null
   profileImageUrl?: string | null
@@ -680,6 +726,8 @@ export type AgentUncheckedCreateWithoutUserInput = {
   productsServices: string
   faqs: string
   operatingHours: string
+  contactEmail?: string | null
+  contactPhone?: string | null
   websiteLinks?: string | null
   responseGuidelines?: string | null
   profileImageUrl?: string | null
@@ -730,6 +778,8 @@ export type AgentScalarWhereInput = {
   productsServices?: Prisma.StringFilter<"Agent"> | string
   faqs?: Prisma.StringFilter<"Agent"> | string
   operatingHours?: Prisma.StringFilter<"Agent"> | string
+  contactEmail?: Prisma.StringNullableFilter<"Agent"> | string | null
+  contactPhone?: Prisma.StringNullableFilter<"Agent"> | string | null
   websiteLinks?: Prisma.StringNullableFilter<"Agent"> | string | null
   responseGuidelines?: Prisma.StringNullableFilter<"Agent"> | string | null
   profileImageUrl?: Prisma.StringNullableFilter<"Agent"> | string | null
@@ -750,6 +800,8 @@ export type AgentCreateManyUserInput = {
   productsServices: string
   faqs: string
   operatingHours: string
+  contactEmail?: string | null
+  contactPhone?: string | null
   websiteLinks?: string | null
   responseGuidelines?: string | null
   profileImageUrl?: string | null
@@ -770,6 +822,8 @@ export type AgentUpdateWithoutUserInput = {
   productsServices?: Prisma.StringFieldUpdateOperationsInput | string
   faqs?: Prisma.StringFieldUpdateOperationsInput | string
   operatingHours?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   websiteLinks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responseGuidelines?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -790,6 +844,8 @@ export type AgentUncheckedUpdateWithoutUserInput = {
   productsServices?: Prisma.StringFieldUpdateOperationsInput | string
   faqs?: Prisma.StringFieldUpdateOperationsInput | string
   operatingHours?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   websiteLinks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responseGuidelines?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -810,6 +866,8 @@ export type AgentUncheckedUpdateManyWithoutUserInput = {
   productsServices?: Prisma.StringFieldUpdateOperationsInput | string
   faqs?: Prisma.StringFieldUpdateOperationsInput | string
   operatingHours?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   websiteLinks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responseGuidelines?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -833,6 +891,8 @@ export type AgentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   productsServices?: boolean
   faqs?: boolean
   operatingHours?: boolean
+  contactEmail?: boolean
+  contactPhone?: boolean
   websiteLinks?: boolean
   responseGuidelines?: boolean
   profileImageUrl?: boolean
@@ -855,6 +915,8 @@ export type AgentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   productsServices?: boolean
   faqs?: boolean
   operatingHours?: boolean
+  contactEmail?: boolean
+  contactPhone?: boolean
   websiteLinks?: boolean
   responseGuidelines?: boolean
   profileImageUrl?: boolean
@@ -877,6 +939,8 @@ export type AgentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   productsServices?: boolean
   faqs?: boolean
   operatingHours?: boolean
+  contactEmail?: boolean
+  contactPhone?: boolean
   websiteLinks?: boolean
   responseGuidelines?: boolean
   profileImageUrl?: boolean
@@ -899,6 +963,8 @@ export type AgentSelectScalar = {
   productsServices?: boolean
   faqs?: boolean
   operatingHours?: boolean
+  contactEmail?: boolean
+  contactPhone?: boolean
   websiteLinks?: boolean
   responseGuidelines?: boolean
   profileImageUrl?: boolean
@@ -912,7 +978,7 @@ export type AgentSelectScalar = {
   updatedAt?: boolean
 }
 
-export type AgentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "businessName" | "businessDescription" | "productsServices" | "faqs" | "operatingHours" | "websiteLinks" | "responseGuidelines" | "profileImageUrl" | "whatsappBusinessName" | "whatsappAgentLink" | "whatsappPhoneNumber" | "qrCodeUrl" | "elevenlabsAgentId" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["agent"]>
+export type AgentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "businessName" | "businessDescription" | "productsServices" | "faqs" | "operatingHours" | "contactEmail" | "contactPhone" | "websiteLinks" | "responseGuidelines" | "profileImageUrl" | "whatsappBusinessName" | "whatsappAgentLink" | "whatsappPhoneNumber" | "qrCodeUrl" | "elevenlabsAgentId" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["agent"]>
 export type AgentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
@@ -936,6 +1002,8 @@ export type $AgentPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     productsServices: string
     faqs: string
     operatingHours: string
+    contactEmail: string | null
+    contactPhone: string | null
     websiteLinks: string | null
     responseGuidelines: string | null
     profileImageUrl: string | null
@@ -1378,6 +1446,8 @@ export interface AgentFieldRefs {
   readonly productsServices: Prisma.FieldRef<"Agent", 'String'>
   readonly faqs: Prisma.FieldRef<"Agent", 'String'>
   readonly operatingHours: Prisma.FieldRef<"Agent", 'String'>
+  readonly contactEmail: Prisma.FieldRef<"Agent", 'String'>
+  readonly contactPhone: Prisma.FieldRef<"Agent", 'String'>
   readonly websiteLinks: Prisma.FieldRef<"Agent", 'String'>
   readonly responseGuidelines: Prisma.FieldRef<"Agent", 'String'>
   readonly profileImageUrl: Prisma.FieldRef<"Agent", 'String'>

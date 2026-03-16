@@ -95,6 +95,8 @@ export const AgentScalarFieldEnum = {
   productsServices: 'productsServices',
   faqs: 'faqs',
   operatingHours: 'operatingHours',
+  contactEmail: 'contactEmail',
+  contactPhone: 'contactPhone',
   websiteLinks: 'websiteLinks',
   responseGuidelines: 'responseGuidelines',
   profileImageUrl: 'profileImageUrl',
