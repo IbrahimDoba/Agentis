@@ -10,7 +10,7 @@ import { Footer } from "@/components/landing/Footer"
 const testimonials = [
   {
     quote:
-      "Before Agentis, we missed dozens of WhatsApp messages every day. Now our agent handles everything while we sleep. Sales have gone up 40% since we launched.",
+      "Before D-Zero AI, we missed dozens of WhatsApp messages every day. Now our agent handles everything while we sleep. Sales have gone up 40% since we launched.",
     name: "Tunde Adeyemi",
     role: "CEO, QuickStyle Lagos",
     avatar: "https://i.pravatar.cc/64?img=12",
@@ -24,7 +24,7 @@ const testimonials = [
   },
   {
     quote:
-      "We run a real estate agency and clients ask lots of questions. Agentis handles the initial enquiries so my team only speaks to serious buyers. Game changer.",
+      "We run a real estate agency and clients ask lots of questions. D-Zero AI handles the initial enquiries so my team only speaks to serious buyers. Game changer.",
     name: "Emeka Okafor",
     role: "MD, HomeFind Realty",
     avatar: "https://i.pravatar.cc/64?img=68",
@@ -44,7 +44,7 @@ export default function LandingPage() {
         <div className={styles.testimonialsInner}>
           <div className={styles.testimonialsHeader}>
             <div className={styles.sectionLabel}>Testimonials</div>
-            <h2 className={styles.sectionTitle}>Businesses that trust Agentis</h2>
+            <h2 className={styles.sectionTitle}>Businesses that trust D-Zero AI</h2>
             <p className={styles.sectionSubtitle}>
               Real results from real businesses across Nigeria.
             </p>

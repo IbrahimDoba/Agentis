@@ -21,7 +21,7 @@ export async function POST(req: Request) {
       const { Resend } = await import("resend")
       const resend = new Resend(RESEND_KEY)
       await resend.emails.send({
-        from: "Agentis Contact <noreply@agentis.io>",
+        from: "D-Zero AI Contact <noreply@dailzero.com>",
         to: TO,
         replyTo: data.email,
         subject: `[Contact] ${data.subject} — ${data.businessName}`,

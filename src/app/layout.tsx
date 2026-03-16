@@ -11,7 +11,7 @@ const spaceGrotesk = Space_Grotesk({
 })
 
 export const metadata: Metadata = {
-  title: "Agentis — WhatsApp AI Agents for Business",
+  title: "D-Zero AI — WhatsApp AI Agents for Business",
   description:
     "Automate your customer conversations on WhatsApp with AI. Never miss a lead, always respond instantly.",
   icons: {

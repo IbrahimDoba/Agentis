@@ -32,7 +32,7 @@ export default function DashboardPage() {
           Welcome back{firstName ? `, ${firstName}` : ""} 👋
         </h1>
         <p className={styles.subtitle}>
-          Here&apos;s an overview of your Agentis account — {formatDate(new Date().toISOString())}
+          Here&apos;s an overview of your D-Zero AI account — {formatDate(new Date().toISOString())}
         </p>
       </div>
 

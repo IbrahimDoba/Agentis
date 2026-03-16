@@ -52,12 +52,12 @@ function LoginForm() {
     <div className={styles.container}>
       <Link href="/" className={styles.logo}>
         <LogoIcon size={32} />
-        Agentis
+        D-Zero AI
       </Link>
 
       <div className={styles.card}>
         <h1 className={styles.title}>Welcome back</h1>
-        <p className={styles.subtitle}>Sign in to your Agentis account</p>
+        <p className={styles.subtitle}>Sign in to your D-Zero AI account</p>
 
         {errorParam === "rejected" && (
           <div className={styles.errorParam}>

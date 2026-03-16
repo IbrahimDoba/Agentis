@@ -30,7 +30,7 @@ export function Sidebar({ userName, businessName }: SidebarProps) {
     <aside className={styles.sidebar}>
       <Link href="/dashboard" className={styles.logo}>
         <LogoIcon size={30} />
-        Agentis
+        D-Zero AI
       </Link>
 
       <nav className={styles.nav}>

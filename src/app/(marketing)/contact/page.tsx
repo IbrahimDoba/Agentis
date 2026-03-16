@@ -70,7 +70,7 @@ export default function ContactPage() {
               Let&apos;s <span>start a conversation</span>
             </h1>
             <p className={styles.subtitle}>
-              Have questions about Agentis? Want to see it in action? Reach out and we&apos;ll get back to you within 24 hours.
+              Have questions about D-Zero AI? Want to see it in action? Reach out and we&apos;ll get back to you within 24 hours.
             </p>
           </div>
 
@@ -81,7 +81,7 @@ export default function ContactPage() {
                 <div className={styles.infoIconWrap}><Mail size={20} /></div>
                 <div>
                   <div className={styles.infoTitle}>Email</div>
-                  <div className={styles.infoValue}>ibrahimdoba55@gmail.com</div>
+                  <div className={styles.infoValue}>support@dailzero.com</div>
                   <div className={styles.infoSub}>For all enquiries</div>
                 </div>
               </div>
@@ -105,7 +105,7 @@ export default function ContactPage() {
               </div>
 
               <div className={styles.demoBanner}>
-                <div className={styles.demoBannerTitle}>Want to see Agentis in action?</div>
+                <div className={styles.demoBannerTitle}>Want to see D-Zero AI in action?</div>
                 <div className={styles.demoBannerText}>
                   Book a free 30-minute demo and watch an AI agent handle real customer conversations live.
                 </div>

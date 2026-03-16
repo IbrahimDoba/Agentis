@@ -77,7 +77,7 @@ export default function SignupPage() {
     <div className={styles.container}>
       <Link href="/" className={styles.logo}>
         <LogoIcon size={32} />
-        Agentis
+        D-Zero AI
       </Link>
 
       <div className={styles.card}>

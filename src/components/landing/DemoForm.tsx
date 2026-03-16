@@ -52,7 +52,7 @@ export function DemoForm() {
       <div className={styles.inner}>
         <div className={styles.left}>
           <div className={styles.label}>Book a Demo</div>
-          <h2 className={styles.title}>See Agentis in action — for free</h2>
+          <h2 className={styles.title}>See D-Zero AI in action — for free</h2>
           <p className={styles.desc}>
             Let us show you how an AI agent can transform your customer service.
             We&apos;ll walk you through a live demo tailored to your business.

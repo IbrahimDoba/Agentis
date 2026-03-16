@@ -8,7 +8,7 @@ function PhoneMockup() {
         <div className={styles.phoneHeaderLeft}>
           <div className={styles.phoneAvatar}>W</div>
           <div>
-            <div className={styles.phoneContact}>Agentis AI</div>
+            <div className={styles.phoneContact}>D-Zero AI</div>
             <div className={styles.phoneStatus}>
               <span className={styles.onlineDot} />
               Online

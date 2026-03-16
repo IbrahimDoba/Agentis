@@ -256,7 +256,7 @@ export default function FeaturesPage() {
               <span>never miss a customer</span>
             </h1>
             <p className={styles.heroSubtitle}>
-              From instant responses to deep analytics, Agentis gives you the complete toolkit
+              From instant responses to deep analytics, D-Zero AI gives you the complete toolkit
               to automate your WhatsApp customer service and grow your business on autopilot.
             </p>
             <Link href="/signup" className={styles.heroCta}>
@@ -299,7 +299,7 @@ export default function FeaturesPage() {
           <div className={styles.ctaInner}>
             <h2 className={styles.ctaTitle}>Ready to automate your customer service?</h2>
             <p className={styles.ctaDesc}>
-              Join businesses across Nigeria using Agentis to handle WhatsApp conversations 24/7.
+              Join businesses across Nigeria using D-Zero AI to handle WhatsApp conversations 24/7.
             </p>
             <div className={styles.ctaButtons}>
               <Link href="/signup" className={styles.ctaPrimary}>Start Free Trial</Link>

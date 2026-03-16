@@ -10,7 +10,7 @@ export async function sendDemoRequest(data: {
 }) {
   const resend = new Resend(process.env.RESEND_API_KEY)
   await resend.emails.send({
-    from: "Agentis <noreply@agentis.io>",
+    from: "D-Zero AI <noreply@dailzero.com>",
     to: process.env.DEMO_EMAIL!,
     subject: `Demo Request from ${data.businessName}`,
     html: `

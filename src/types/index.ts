@@ -21,6 +21,8 @@ export interface AgentPublic {
   productsServices: string
   faqs: string
   operatingHours: string
+  contactEmail?: string
+  contactPhone?: string
   websiteLinks?: string
   responseGuidelines?: string
   profileImageUrl?: string

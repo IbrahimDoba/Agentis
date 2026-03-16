@@ -23,7 +23,7 @@ export function Navbar() {
     <nav className={`${styles.nav} ${scrolled ? styles.navScrolled : ""}`}>
       <Link href="/" className={styles.logo}>
         <LogoIcon size={32} />
-        Agentis
+        D-Zero AI
       </Link>
 
       <ul className={styles.links}>

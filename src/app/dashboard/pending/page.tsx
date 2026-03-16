@@ -46,8 +46,8 @@ export default async function PendingPage() {
         <p className={styles.note}>
           We&apos;ll send a confirmation email to your registered address once approved.
           Have questions? Contact us at{" "}
-          <a href="mailto:support@agentis.io" className={styles.emailLink}>
-            support@agentis.io
+          <a href="mailto:support@dailzero.com" className={styles.emailLink}>
+            support@dailzero.com
           </a>
         </p>
 

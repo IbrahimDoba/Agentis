@@ -12,7 +12,7 @@ function SignupIllustration() {
         <div className={styles.signupHeader}>
           <div className={styles.signupLogo}>
             <span className={styles.signupLogoDot} />
-            Agentis
+            D-Zero AI
           </div>
           <div className={styles.signupTitle}>Create your account</div>
         </div>
@@ -157,7 +157,7 @@ const steps = [
     number: "01",
     title: "Sign Up & Apply",
     description:
-      "Create your Agentis account in under 2 minutes. Tell us about your business — name, industry, and the WhatsApp number you want to automate. We review applications within 24 hours.",
+      "Create your D-Zero AI account in under 2 minutes. Tell us about your business — name, industry, and the WhatsApp number you want to automate. We review applications within 24 hours.",
     details: [
       "Simple signup form — no technical knowledge needed",
       "Tell us about your business type and goals",
@@ -251,7 +251,7 @@ export default function HowItWorksPage() {
               <span>Minutes, Not Months</span>
             </h1>
             <p className={styles.heroSubtitle}>
-              Agentis is designed for busy business owners. No developers, no complex integrations,
+              D-Zero AI is designed for busy business owners. No developers, no complex integrations,
               no long onboarding. Just four simple steps to a fully automated WhatsApp agent.
             </p>
           </div>
@@ -315,7 +315,7 @@ export default function HowItWorksPage() {
           <div className={styles.ctaInner}>
             <h2 className={styles.ctaTitle}>Ready to get started?</h2>
             <p className={styles.ctaDesc}>
-              Join businesses across Nigeria automating their WhatsApp customer service with Agentis.
+              Join businesses across Nigeria automating their WhatsApp customer service with D-Zero AI.
             </p>
             <div className={styles.ctaButtons}>
               <Link href="/signup" className={styles.ctaPrimary}>

@@ -19,12 +19,13 @@ export function AgentForm({ initialData, agentId }: AgentFormProps) {
   const [form, setForm] = useState({
     businessName: initialData?.businessName ?? "",
     businessDescription: initialData?.businessDescription ?? "",
+    contactEmail: initialData?.contactEmail ?? "",
+    contactPhone: initialData?.contactPhone ?? "",
     productsServices: initialData?.productsServices ?? "",
     faqs: initialData?.faqs ?? "",
     operatingHours: initialData?.operatingHours ?? "",
     websiteLinks: initialData?.websiteLinks ?? "",
     responseGuidelines: initialData?.responseGuidelines ?? "",
-    whatsappBusinessName: initialData?.whatsappBusinessName ?? "",
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [error, setError] = useState("")
@@ -101,7 +102,6 @@ export function AgentForm({ initialData, agentId }: AgentFormProps) {
       }
 
       setSuccess(agentId ? "Agent updated successfully!" : "Agent created! Our team will review and set it up.")
-      // Invalidate cached agent/dashboard data so they reflect changes on next visit
       queryClient.invalidateQueries({ queryKey: ["me"] })
       if (!agentId) {
         router.push(`/dashboard/agent/${data.id}`)
@@ -118,11 +118,11 @@ export function AgentForm({ initialData, agentId }: AgentFormProps) {
       {error && <div className={styles.error}>{error}</div>}
       {success && <div className={styles.success}>{success}</div>}
 
-      {/* Business Info */}
+      {/* Business Information */}
       <div className={styles.section}>
         <div className={styles.sectionHeader}>
           <div className={styles.sectionTitle}>Business Information</div>
-          <div className={styles.sectionDesc}>Tell us about your business so the AI agent can represent you accurately.</div>
+          <div className={styles.sectionDesc}>Basic details so the AI agent can represent your business accurately.</div>
         </div>
         <div className={styles.fields}>
           <div className={styles.row}>
@@ -136,12 +136,35 @@ export function AgentForm({ initialData, agentId }: AgentFormProps) {
               required
             />
             <Input
-              label="WhatsApp Business Name (optional)"
-              name="whatsappBusinessName"
-              placeholder="Name on WhatsApp profile"
-              value={form.whatsappBusinessName}
+              label="Contact Phone"
+              name="contactPhone"
+              type="tel"
+              placeholder="e.g. +234 801 234 5678"
+              value={form.contactPhone}
               onChange={handleChange}
-              error={errors.whatsappBusinessName}
+              error={errors.contactPhone}
+              required
+            />
+          </div>
+
+          <div className={styles.row}>
+            <Input
+              label="Contact Email"
+              name="contactEmail"
+              type="email"
+              placeholder="e.g. hello@yourbusiness.com"
+              value={form.contactEmail}
+              onChange={handleChange}
+              error={errors.contactEmail}
+              required
+            />
+            <Input
+              label="Website (optional)"
+              name="websiteLinks"
+              placeholder="https://yourwebsite.com"
+              value={form.websiteLinks}
+              onChange={handleChange}
+              error={errors.websiteLinks}
             />
           </div>
 
@@ -153,9 +176,18 @@ export function AgentForm({ initialData, agentId }: AgentFormProps) {
             onChange={handleChange}
             error={errors.businessDescription}
             required
-            style={{ minHeight: 120 }}
+            style={{ minHeight: 110 }}
           />
+        </div>
+      </div>
 
+      {/* Services & Availability */}
+      <div className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <div className={styles.sectionTitle}>Services & Availability</div>
+          <div className={styles.sectionDesc}>What you offer, common questions, and when you&apos;re open.</div>
+        </div>
+        <div className={styles.fields}>
           <Textarea
             label="Products & Services"
             name="productsServices"
@@ -166,16 +198,7 @@ export function AgentForm({ initialData, agentId }: AgentFormProps) {
             required
             style={{ minHeight: 100 }}
           />
-        </div>
-      </div>
 
-      {/* FAQs and Hours */}
-      <div className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <div className={styles.sectionTitle}>FAQs & Operating Hours</div>
-          <div className={styles.sectionDesc}>Common questions your customers ask and when you&apos;re available.</div>
-        </div>
-        <div className={styles.fields}>
           <Textarea
             label="Frequently Asked Questions"
             name="faqs"
@@ -184,7 +207,7 @@ export function AgentForm({ initialData, agentId }: AgentFormProps) {
             onChange={handleChange}
             error={errors.faqs}
             required
-            style={{ minHeight: 140 }}
+            style={{ minHeight: 120 }}
           />
 
           <Input
@@ -196,64 +219,41 @@ export function AgentForm({ initialData, agentId }: AgentFormProps) {
             error={errors.operatingHours}
             required
           />
-
-          <Input
-            label="Website Links (optional)"
-            name="websiteLinks"
-            placeholder="https://yourwebsite.com, https://yourshop.com"
-            value={form.websiteLinks}
-            onChange={handleChange}
-            error={errors.websiteLinks}
-          />
         </div>
       </div>
 
-      {/* AI Enhancement */}
+      {/* Response Guidelines */}
       <div className={styles.section}>
         <div className={styles.sectionHeader}>
           <div className={styles.sectionTitle}>Response Guidelines</div>
-          <div className={styles.sectionDesc}>
-            Define how your agent should respond. Use our AI to generate optimized instructions automatically.
-          </div>
+          <div className={styles.sectionDesc}>How your agent should communicate. Use AI to generate these from your info above.</div>
         </div>
-
         <div className={styles.fields}>
-          <div className={styles.enhanceBar}>
-            <div className={styles.enhanceInfo}>
-              <span className={styles.enhanceIcon}>✨</span>
-              <div>
-                <div className={styles.enhanceTitle}>AI Enhancement</div>
-                <div className={styles.enhanceDesc}>
-                  Let GPT-4o mini generate professional agent instructions based on your business info.
-                </div>
+          <div>
+            <div className={styles.guidelinesHeader}>
+              <span className={styles.guidelinesLabel}>Guidelines</span>
+              <div className={styles.guidelinesActions}>
+                {enhanced && <span className={styles.enhancedBadge}>✓ AI Enhanced</span>}
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleEnhance}
+                  loading={enhancing}
+                >
+                  ✨ Enhance with AI
+                </Button>
               </div>
             </div>
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={handleEnhance}
-              loading={enhancing}
-            >
-              Enhance with AI
-            </Button>
+            <Textarea
+              name="responseGuidelines"
+              placeholder="Be friendly and professional. Always greet customers by name. Escalate complaints to a human agent..."
+              value={form.responseGuidelines}
+              onChange={handleChange}
+              error={errors.responseGuidelines}
+              style={{ minHeight: 160 }}
+            />
           </div>
-
-          {enhanced && (
-            <div className={styles.enhancedBadge}>
-              ✓ AI Enhanced
-            </div>
-          )}
-
-          <Textarea
-            label="Response Guidelines"
-            name="responseGuidelines"
-            placeholder="Be friendly and professional. Always greet customers by name. Escalate complaints to a human agent..."
-            value={form.responseGuidelines}
-            onChange={handleChange}
-            error={errors.responseGuidelines}
-            style={{ minHeight: 160 }}
-          />
         </div>
       </div>
 

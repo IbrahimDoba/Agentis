@@ -16,6 +16,8 @@ export const loginSchema = z.object({
 export const agentSchema = z.object({
   businessName: z.string().min(2),
   businessDescription: z.string().min(20, "Please describe your business (min 20 chars)"),
+  contactEmail: z.string().email("Enter a valid contact email"),
+  contactPhone: z.string().min(7, "Enter a valid contact phone number"),
   productsServices: z.string().min(10),
   faqs: z.string().min(10),
   operatingHours: z.string().min(3),

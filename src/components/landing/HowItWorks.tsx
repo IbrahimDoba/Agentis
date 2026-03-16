@@ -6,7 +6,7 @@ const steps = [
     number: "01",
     title: "Sign Up & Apply",
     description:
-      "Create your Agentis account and submit basic business information. Approval takes less than 24 hours.",
+      "Create your D-Zero AI account and submit basic business information. Approval takes less than 24 hours.",
     accent: true,
   },
   {

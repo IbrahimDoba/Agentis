@@ -22,7 +22,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <aside className={styles.sidebar}>
         <Link href="/admin" className={styles.logo}>
           <LogoIcon size={30} />
-          Agentis
+          D-Zero AI
           <span className={styles.adminBadge}>Admin</span>
         </Link>
 

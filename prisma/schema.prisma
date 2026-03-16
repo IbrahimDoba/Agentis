@@ -30,6 +30,8 @@ model Agent {
   productsServices     String      @db.Text
   faqs                 String      @db.Text
   operatingHours       String
+  contactEmail         String?
+  contactPhone         String?
   websiteLinks         String?
   responseGuidelines   String?     @db.Text
   profileImageUrl      String?
