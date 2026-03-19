@@ -1,7 +1,6 @@
 "use client"
 import dynamic from "next/dynamic"
 import Link from "next/link"
-import Image from "next/image"
 import styles from "./Hero.module.css"
 
 const Globe = dynamic(() => import("./Globe"), {
@@ -54,15 +53,10 @@ export function Hero() {
 
           <div className={styles.trust}>
             <div className={styles.trustAvatars}>
-              {[10, 20, 30, 40, 50].map((n) => (
-                <Image
-                  key={n}
-                  src={`https://i.pravatar.cc/40?img=${n}`}
-                  alt="Business owner"
-                  width={32}
-                  height={32}
-                  className={styles.trustAvatar}
-                />
+              {["A", "K", "C", "B", "E"].map((initial) => (
+                <div key={initial} className={styles.trustAvatar}>
+                  {initial}
+                </div>
               ))}
             </div>
             <span>Trusted by 10+ businesses across Nigeria</span>

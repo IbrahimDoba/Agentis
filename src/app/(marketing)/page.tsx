@@ -1,5 +1,4 @@
 import Link from "next/link"
-import Image from "next/image"
 import styles from "./page.module.css"
 import { Navbar } from "@/components/landing/Navbar"
 import { Hero } from "@/components/landing/Hero"
@@ -13,21 +12,21 @@ const testimonials = [
       "Before D-Zero AI, we missed dozens of WhatsApp messages every day. Now our agent handles everything while we sleep. Sales have gone up 40% since we launched.",
     name: "Tunde Adeyemi",
     role: "CEO, QuickStyle Lagos",
-    avatar: "https://i.pravatar.cc/64?img=12",
+    initials: "TA",
   },
   {
     quote:
       "Our customers love that they get instant responses even at midnight. The agent knows our entire product catalogue and handles orders perfectly. Worth every kobo.",
     name: "Ngozi Okonkwo",
     role: "Founder, Mama's Kitchen Abuja",
-    avatar: "https://i.pravatar.cc/64?img=47",
+    initials: "NO",
   },
   {
     quote:
       "We run a real estate agency and clients ask lots of questions. D-Zero AI handles the initial enquiries so my team only speaks to serious buyers. Game changer.",
     name: "Emeka Okafor",
     role: "MD, HomeFind Realty",
-    avatar: "https://i.pravatar.cc/64?img=68",
+    initials: "EO",
   },
 ]
 
@@ -59,13 +58,7 @@ export default function LandingPage() {
                 </div>
                 <p className={styles.testimonialQuote}>"{t.quote}"</p>
                 <div className={styles.testimonialAuthor}>
-                  <Image
-                    src={t.avatar}
-                    alt={t.name}
-                    width={44}
-                    height={44}
-                    className={styles.testimonialAvatar}
-                  />
+                  <div className={styles.testimonialAvatar}>{t.initials}</div>
                   <div>
                     <div className={styles.testimonialName}>{t.name}</div>
                     <div className={styles.testimonialRole}>{t.role}</div>
