@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { agentSchema, adminAgentUpdateSchema } from "@/lib/validations"
+import { sendAgentApprovedEmail } from "@/lib/email"
 
 interface Params {
   params: Promise<{ id: string }>
@@ -90,7 +91,18 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       const updated = await db.agent.update({
         where: { id },
         data: parsed.data,
+        include: { user: { select: { name: true, email: true } } },
       })
+
+      if (parsed.data.status === "ACTIVE") {
+        sendAgentApprovedEmail({
+          userName: updated.user.name,
+          userEmail: updated.user.email,
+          businessName: updated.businessName,
+          whatsappPhoneNumber: updated.whatsappPhoneNumber,
+          whatsappAgentLink: updated.whatsappAgentLink,
+        }).catch((err) => console.error("[PATCH /api/agents/:id] approved email error:", err))
+      }
 
       return NextResponse.json({
         ...updated,

@@ -1,7 +1,6 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
-import { Sidebar } from "@/components/dashboard/Sidebar"
-import styles from "./layout.module.css"
+import { DashboardShell } from "@/components/dashboard/DashboardShell"
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await auth()
@@ -11,14 +10,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
   }
 
   return (
-    <div className={styles.layout}>
-      <Sidebar
-        userName={session.user.name ?? "User"}
-        businessName={session.user.businessName ?? ""}
-      />
-      <main className={styles.main}>
-        {children}
-      </main>
-    </div>
+    <DashboardShell
+      userName={session.user.name ?? "User"}
+      businessName={session.user.businessName ?? ""}
+    >
+      {children}
+    </DashboardShell>
   )
 }

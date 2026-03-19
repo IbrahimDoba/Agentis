@@ -419,3 +419,29 @@
 .docLink:hover {
   opacity: 1;
 }
+
+@media (max-width: 540px) {
+  .drawerHeader {
+    padding: 1rem;
+  }
+
+  .body {
+    padding: 1rem 1rem 2rem;
+    gap: 1rem;
+  }
+
+  .summaryHeader {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .message {
+    max-width: 90%;
+  }
+
+  .mediaImage,
+  .mediaVideo,
+  .audioPlayer {
+    max-width: 100%;
+  }
+}

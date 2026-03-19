@@ -1,0 +1,106 @@
+.shell {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg-primary);
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  padding: 2rem 2.5rem;
+  overflow-y: auto;
+  width: 100%;
+}
+
+/* Mobile top bar — hidden on desktop */
+.mobileHeader {
+  display: none;
+}
+
+.backdrop {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .shell {
+    flex-direction: column;
+  }
+
+  .main {
+    padding: 1.25rem 1rem;
+  }
+
+  /* Sticky top bar */
+  .mobileHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-subtle);
+    padding: 0.75rem 1rem;
+    height: 56px;
+  }
+
+  .mobileLogo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text-primary);
+    text-decoration: none;
+    letter-spacing: -0.02em;
+  }
+
+  .hamburger {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    width: 36px;
+    height: 36px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: var(--radius-md);
+    transition: background var(--transition);
+  }
+
+  .hamburger:hover {
+    background: var(--bg-hover);
+  }
+
+  .hamburger span {
+    display: block;
+    height: 2px;
+    width: 100%;
+    background: var(--text-primary);
+    border-radius: 2px;
+    transition: background var(--transition);
+  }
+
+  /* Spacer mirrors hamburger so logo stays centred */
+  .hamburgerSpacer {
+    width: 36px;
+  }
+
+  /* Dim backdrop */
+  .backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+    animation: fadeIn 0.2s ease;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}

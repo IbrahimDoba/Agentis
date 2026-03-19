@@ -689,10 +689,6 @@ export type AgentUncheckedUpdateManyWithoutUserNestedInput = {
   deleteMany?: Prisma.AgentScalarWhereInput | Prisma.AgentScalarWhereInput[]
 }
 
-export type NullableStringFieldUpdateOperationsInput = {
-  set?: string | null
-}
-
 export type EnumAgentStatusFieldUpdateOperationsInput = {
   set?: $Enums.AgentStatus
 }

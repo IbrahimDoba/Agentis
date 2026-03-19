@@ -16,13 +16,18 @@
   text-decoration: none;
 }
 
-
 .card {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
   padding: 2.5rem;
   box-shadow: var(--shadow-lg);
+}
+
+.successIcon {
+  font-size: 2.5rem;
+  text-align: center;
+  margin-bottom: 1rem;
 }
 
 .title {
@@ -37,6 +42,7 @@
   font-size: 14px;
   color: var(--text-secondary);
   margin-bottom: 2rem;
+  line-height: 1.6;
 }
 
 .form {
@@ -54,16 +60,10 @@
   color: var(--danger);
 }
 
-.forgotPassword {
-  text-align: right;
-  font-size: 13px;
-}
-
 .footer {
   margin-top: 1.5rem;
   text-align: center;
   font-size: 13px;
-  color: var(--text-secondary);
 }
 
 .link {
@@ -76,14 +76,4 @@
 .link:hover {
   color: var(--accent-hover);
   text-decoration: underline;
-}
-
-.errorParam {
-  background: var(--warning-light);
-  border: 1px solid rgba(245, 158, 11, 0.3);
-  border-radius: var(--radius-md);
-  padding: 0.75rem 1rem;
-  font-size: 13px;
-  color: var(--warning);
-  margin-bottom: 1rem;
 }

@@ -4,6 +4,8 @@
   border-radius: var(--radius-lg);
   padding: 1.5rem;
   transition: border-color var(--transition);
+  overflow: hidden;
+  min-width: 0;
 }
 
 .card:hover {
@@ -48,6 +50,18 @@
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   padding: 0.875rem;
+  min-width: 0;
+  overflow: hidden;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  font-family: inherit;
+  transition: border-color var(--transition), background var(--transition);
+}
+
+.detail:hover {
+  border-color: var(--accent);
+  background: var(--bg-hover);
 }
 
 .detailLabel {
@@ -65,6 +79,14 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.modalValue {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .waSection {
@@ -96,17 +118,29 @@
   align-items: center;
   gap: 0.75rem;
   font-size: 13px;
+  min-width: 0;
+  font-family: inherit;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  padding: 0;
 }
 
 .waLabel {
   color: var(--text-muted);
-  min-width: 80px;
+  min-width: 70px;
+  flex-shrink: 0;
   font-size: 12px;
 }
 
 .waValue {
   color: var(--text-primary);
   font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .waLink {
@@ -117,6 +151,10 @@
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .waLink:hover {
@@ -162,6 +200,7 @@
   display: flex;
   gap: 0.75rem;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .updatedAt {
@@ -171,7 +210,21 @@
 }
 
 @media (max-width: 600px) {
+  .card {
+    padding: 1rem;
+  }
+
   .body {
     grid-template-columns: 1fr;
+  }
+
+  .actions {
+    gap: 0.5rem;
+  }
+
+  .updatedAt {
+    width: 100%;
+    margin-left: 0;
+    margin-top: 0.25rem;
   }
 }

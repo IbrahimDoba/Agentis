@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { z } from "zod"
+import { sendAccountApprovedEmail, sendAccountRejectedEmail } from "@/lib/email"
 
 const updateSchema = z.object({
   status: z.enum(["PENDING", "APPROVED", "REJECTED"]).optional(),
@@ -36,6 +37,14 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       where: { id },
       data: parsed.data,
     })
+
+    if (parsed.data.status === "APPROVED") {
+      sendAccountApprovedEmail({ name: user.name, email: user.email })
+        .catch((err) => console.error("[PATCH /api/users/:id] approved email error:", err))
+    } else if (parsed.data.status === "REJECTED") {
+      sendAccountRejectedEmail({ name: user.name, email: user.email })
+        .catch((err) => console.error("[PATCH /api/users/:id] rejected email error:", err))
+    }
 
     const { passwordHash, ...safeUser } = user
     return NextResponse.json({

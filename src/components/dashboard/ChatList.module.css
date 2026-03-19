@@ -222,3 +222,24 @@
   0%, 100% { opacity: 1; }
   50% { opacity: 0.4; }
 }
+
+@media (max-width: 600px) {
+  .chatCard {
+    padding: 1rem;
+  }
+
+  .chatHeader {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .chatTime {
+    width: 100%;
+    order: 3;
+  }
+
+  .chatMeta {
+    gap: 0.625rem;
+    flex-wrap: wrap;
+  }
+}

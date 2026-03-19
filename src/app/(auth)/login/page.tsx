@@ -90,6 +90,12 @@ function LoginForm() {
             autoComplete="current-password"
           />
 
+          <div className={styles.forgotPassword}>
+            <Link href="/forgot-password" className={styles.link}>
+              Forgot your password?
+            </Link>
+          </div>
+
           <Button type="submit" fullWidth loading={loading}>
             Sign In
           </Button>

@@ -39,3 +39,9 @@
   text-shadow: 0 0 8px rgba(0, 220, 130, 0.7), 0 0 16px rgba(0, 220, 130, 0.35);
   font-variant-numeric: tabular-nums;
 }
+
+@media (max-width: 768px) {
+  .clock {
+    display: none;
+  }
+}

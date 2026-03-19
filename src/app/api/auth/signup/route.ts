@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
 import { db } from "@/lib/db"
 import { signupSchema } from "@/lib/validations"
+import { sendWelcomeEmail, sendNewSignupNotification } from "@/lib/email"
 
 export async function POST(req: NextRequest) {
   try {
@@ -39,6 +40,17 @@ export async function POST(req: NextRequest) {
         passwordHash,
       },
     })
+
+    // Fire emails in background — don't block the response
+    Promise.all([
+      sendWelcomeEmail({ name: user.name, email: user.email }),
+      sendNewSignupNotification({
+        name: user.name,
+        email: user.email,
+        businessName: user.businessName,
+        phone: user.phone,
+      }),
+    ]).catch((err) => console.error("[SIGNUP] email error:", err))
 
     return NextResponse.json(
       { id: user.id, name: user.name, email: user.email },
