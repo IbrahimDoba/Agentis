@@ -364,3 +364,82 @@ export async function sendDemoRequest(data: {
     `),
   })
 }
+
+// ---------------------------------------------------------------------------
+// 10. Data deletion request — sent to admin + confirmation to user
+// ---------------------------------------------------------------------------
+
+const REQUEST_TYPE_LABELS: Record<string, string> = {
+  full_account: "Delete entire account and all associated data",
+  conversation_data: "Delete WhatsApp conversation data only",
+  business_data: "Delete business configuration and profile data",
+  all_personal: "Delete all personal data (retain anonymised analytics)",
+}
+
+export async function sendDataDeletionRequest(data: {
+  fullName: string
+  email: string
+  phone?: string
+  requestType: string
+  additionalInfo?: string
+  ref: string
+}) {
+  const requestLabel = REQUEST_TYPE_LABELS[data.requestType] ?? data.requestType
+
+  // Notify admin
+  await resend().emails.send({
+    from: FROM,
+    to: ADMIN_EMAIL,
+    subject: `Data Deletion Request [${data.ref}] — ${data.fullName}`,
+    html: baseTemplate(`
+      <h2 style="margin:0 0 8px;font-size:20px;color:#111111;">Data Deletion Request</h2>
+      <p style="margin:0 0 24px;color:#4b5563;">
+        A user has submitted a data deletion request. Please verify their identity and process within <strong>30 days</strong>.
+      </p>
+      ${divider()}
+      <table cellpadding="0" cellspacing="0" style="width:100%;">
+        ${infoRow("Reference", `<strong>${data.ref}</strong>`)}
+        ${infoRow("Name", data.fullName)}
+        ${infoRow("Email", data.email)}
+        ${data.phone ? infoRow("Phone", data.phone) : ""}
+        ${infoRow("Request type", requestLabel)}
+        ${data.additionalInfo ? infoRow("Additional info", data.additionalInfo) : ""}
+      </table>
+      ${divider()}
+      <p style="margin:0;font-size:13px;color:#6b7280;">
+        Reply to this email to contact the requester directly at ${data.email}.
+      </p>
+    `),
+    replyTo: data.email,
+  })
+
+  // Send confirmation to the requester
+  await resend().emails.send({
+    from: FROM,
+    to: data.email,
+    subject: `Data Deletion Request Received [${data.ref}]`,
+    html: baseTemplate(`
+      <h2 style="margin:0 0 8px;font-size:22px;color:#111111;">Request Received</h2>
+      <p style="margin:0 0 20px;color:#4b5563;">
+        Hi ${data.fullName}, we have received your data deletion request and will process it within <strong>30 days</strong>.
+        We may contact you to verify your identity before proceeding.
+      </p>
+      ${divider()}
+      <table cellpadding="0" cellspacing="0" style="width:100%;">
+        ${infoRow("Reference number", `<strong style="font-family:monospace;font-size:16px;">${data.ref}</strong>`)}
+        ${infoRow("Request type", requestLabel)}
+        ${infoRow("Processing time", "Up to 30 days")}
+      </table>
+      ${divider()}
+      <p style="margin:0;color:#4b5563;font-size:14px;">
+        Keep your reference number safe — you can use it to follow up on your request by emailing
+        <a href="mailto:support@dailzero.com" style="color:#00dc82;text-decoration:none;">support@dailzero.com</a>
+        with the subject line <em>"Data Deletion Follow-up [${data.ref}]"</em>.
+      </p>
+      <p style="margin:12px 0 0;color:#6b7280;font-size:13px;">
+        Note: Data held by Meta/WhatsApp must be requested separately via
+        <a href="https://www.facebook.com/help/contact/540977946302970" style="color:#00dc82;text-decoration:none;">Meta's privacy portal</a>.
+      </p>
+    `),
+  })
+}
