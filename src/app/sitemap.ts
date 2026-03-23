@@ -1,4 +1,5 @@
 import { MetadataRoute } from "next"
+import { blogPosts } from "@/data/blog-posts"
 
 const BASE_URL = process.env.NEXTAUTH_URL?.startsWith("http://localhost")
   ? "https://www.dailzero.com"
@@ -86,5 +87,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "yearly",
       priority: 0.7,
     },
+    ...blogPosts.map((post) => ({
+      url: `${BASE_URL}/blog/${post.slug}`,
+      lastModified: new Date(post.publishedAt),
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    })),
   ]
 }
