@@ -6,11 +6,16 @@ export interface UserPublic {
   id: string
   name: string
   email: string
-  phone: string
+  phone?: string | null
   businessName: string
   role: Role
   status: UserStatus
   createdAt: string
+  businessCategory?: string | null
+  businessDescription?: string | null
+  businessAddress?: string | null
+  businessEmail?: string | null
+  businessWebsite?: string | null
 }
 
 export interface AgentPublic {

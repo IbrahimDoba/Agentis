@@ -1,6 +1,6 @@
 "use client"
 
-import { forwardRef, InputHTMLAttributes, TextareaHTMLAttributes, useState } from "react"
+import { forwardRef, InputHTMLAttributes, SelectHTMLAttributes, TextareaHTMLAttributes, useState } from "react"
 import styles from "./Input.module.css"
 import { cn } from "@/lib/utils"
 
@@ -97,5 +97,47 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
 )
 
 Textarea.displayName = "Textarea"
+
+interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
+  label?: string
+  error?: string
+  hint?: string
+  required?: boolean
+  options: { value: string; label: string }[]
+  placeholder?: string
+}
+
+export const Select = forwardRef<HTMLSelectElement, SelectProps>(
+  ({ label, error, hint, required, options, placeholder, className, id, ...props }, ref) => {
+    const inputId = id || label?.toLowerCase().replace(/\s+/g, "-")
+    return (
+      <div className={styles.group}>
+        {label && (
+          <label htmlFor={inputId} className={styles.label}>
+            {label}
+            {required && <span className={styles.required}>*</span>}
+          </label>
+        )}
+        <select
+          ref={ref}
+          id={inputId}
+          className={cn(styles.input, error ? styles.inputError : undefined, className)}
+          {...props}
+        >
+          {placeholder && <option value="">{placeholder}</option>}
+          {options.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+        {error && <span className={styles.error}>{error}</span>}
+        {hint && !error && <span className={styles.hint}>{hint}</span>}
+      </div>
+    )
+  }
+)
+
+Select.displayName = "Select"
 
 export default Input

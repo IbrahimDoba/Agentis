@@ -35,6 +35,11 @@ export type UserMinAggregateOutputType = {
   status: $Enums.UserStatus | null
   resetToken: string | null
   resetTokenExpiry: Date | null
+  businessCategory: string | null
+  businessDescription: string | null
+  businessAddress: string | null
+  businessEmail: string | null
+  businessWebsite: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -50,6 +55,11 @@ export type UserMaxAggregateOutputType = {
   status: $Enums.UserStatus | null
   resetToken: string | null
   resetTokenExpiry: Date | null
+  businessCategory: string | null
+  businessDescription: string | null
+  businessAddress: string | null
+  businessEmail: string | null
+  businessWebsite: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -65,6 +75,11 @@ export type UserCountAggregateOutputType = {
   status: number
   resetToken: number
   resetTokenExpiry: number
+  businessCategory: number
+  businessDescription: number
+  businessAddress: number
+  businessEmail: number
+  businessWebsite: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -82,6 +97,11 @@ export type UserMinAggregateInputType = {
   status?: true
   resetToken?: true
   resetTokenExpiry?: true
+  businessCategory?: true
+  businessDescription?: true
+  businessAddress?: true
+  businessEmail?: true
+  businessWebsite?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -97,6 +117,11 @@ export type UserMaxAggregateInputType = {
   status?: true
   resetToken?: true
   resetTokenExpiry?: true
+  businessCategory?: true
+  businessDescription?: true
+  businessAddress?: true
+  businessEmail?: true
+  businessWebsite?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -112,6 +137,11 @@ export type UserCountAggregateInputType = {
   status?: true
   resetToken?: true
   resetTokenExpiry?: true
+  businessCategory?: true
+  businessDescription?: true
+  businessAddress?: true
+  businessEmail?: true
+  businessWebsite?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -193,13 +223,18 @@ export type UserGroupByOutputType = {
   id: string
   name: string
   email: string
-  phone: string
+  phone: string | null
   businessName: string
   passwordHash: string
   role: $Enums.Role
   status: $Enums.UserStatus
   resetToken: string | null
   resetTokenExpiry: Date | null
+  businessCategory: string | null
+  businessDescription: string | null
+  businessAddress: string | null
+  businessEmail: string | null
+  businessWebsite: string | null
   createdAt: Date
   updatedAt: Date
   _count: UserCountAggregateOutputType | null
@@ -229,13 +264,18 @@ export type UserWhereInput = {
   id?: Prisma.StringFilter<"User"> | string
   name?: Prisma.StringFilter<"User"> | string
   email?: Prisma.StringFilter<"User"> | string
-  phone?: Prisma.StringFilter<"User"> | string
+  phone?: Prisma.StringNullableFilter<"User"> | string | null
   businessName?: Prisma.StringFilter<"User"> | string
   passwordHash?: Prisma.StringFilter<"User"> | string
   role?: Prisma.EnumRoleFilter<"User"> | $Enums.Role
   status?: Prisma.EnumUserStatusFilter<"User"> | $Enums.UserStatus
   resetToken?: Prisma.StringNullableFilter<"User"> | string | null
   resetTokenExpiry?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  businessCategory?: Prisma.StringNullableFilter<"User"> | string | null
+  businessDescription?: Prisma.StringNullableFilter<"User"> | string | null
+  businessAddress?: Prisma.StringNullableFilter<"User"> | string | null
+  businessEmail?: Prisma.StringNullableFilter<"User"> | string | null
+  businessWebsite?: Prisma.StringNullableFilter<"User"> | string | null
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   agents?: Prisma.AgentListRelationFilter
@@ -245,13 +285,18 @@ export type UserOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   email?: Prisma.SortOrder
-  phone?: Prisma.SortOrder
+  phone?: Prisma.SortOrderInput | Prisma.SortOrder
   businessName?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   role?: Prisma.SortOrder
   status?: Prisma.SortOrder
   resetToken?: Prisma.SortOrderInput | Prisma.SortOrder
   resetTokenExpiry?: Prisma.SortOrderInput | Prisma.SortOrder
+  businessCategory?: Prisma.SortOrderInput | Prisma.SortOrder
+  businessDescription?: Prisma.SortOrderInput | Prisma.SortOrder
+  businessAddress?: Prisma.SortOrderInput | Prisma.SortOrder
+  businessEmail?: Prisma.SortOrderInput | Prisma.SortOrder
+  businessWebsite?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   agents?: Prisma.AgentOrderByRelationAggregateInput
@@ -265,12 +310,17 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.UserWhereInput[]
   NOT?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
   name?: Prisma.StringFilter<"User"> | string
-  phone?: Prisma.StringFilter<"User"> | string
+  phone?: Prisma.StringNullableFilter<"User"> | string | null
   businessName?: Prisma.StringFilter<"User"> | string
   passwordHash?: Prisma.StringFilter<"User"> | string
   role?: Prisma.EnumRoleFilter<"User"> | $Enums.Role
   status?: Prisma.EnumUserStatusFilter<"User"> | $Enums.UserStatus
   resetTokenExpiry?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  businessCategory?: Prisma.StringNullableFilter<"User"> | string | null
+  businessDescription?: Prisma.StringNullableFilter<"User"> | string | null
+  businessAddress?: Prisma.StringNullableFilter<"User"> | string | null
+  businessEmail?: Prisma.StringNullableFilter<"User"> | string | null
+  businessWebsite?: Prisma.StringNullableFilter<"User"> | string | null
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   agents?: Prisma.AgentListRelationFilter
@@ -280,13 +330,18 @@ export type UserOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   email?: Prisma.SortOrder
-  phone?: Prisma.SortOrder
+  phone?: Prisma.SortOrderInput | Prisma.SortOrder
   businessName?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
   role?: Prisma.SortOrder
   status?: Prisma.SortOrder
   resetToken?: Prisma.SortOrderInput | Prisma.SortOrder
   resetTokenExpiry?: Prisma.SortOrderInput | Prisma.SortOrder
+  businessCategory?: Prisma.SortOrderInput | Prisma.SortOrder
+  businessDescription?: Prisma.SortOrderInput | Prisma.SortOrder
+  businessAddress?: Prisma.SortOrderInput | Prisma.SortOrder
+  businessEmail?: Prisma.SortOrderInput | Prisma.SortOrder
+  businessWebsite?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.UserCountOrderByAggregateInput
@@ -301,13 +356,18 @@ export type UserScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"User"> | string
   name?: Prisma.StringWithAggregatesFilter<"User"> | string
   email?: Prisma.StringWithAggregatesFilter<"User"> | string
-  phone?: Prisma.StringWithAggregatesFilter<"User"> | string
+  phone?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   businessName?: Prisma.StringWithAggregatesFilter<"User"> | string
   passwordHash?: Prisma.StringWithAggregatesFilter<"User"> | string
   role?: Prisma.EnumRoleWithAggregatesFilter<"User"> | $Enums.Role
   status?: Prisma.EnumUserStatusWithAggregatesFilter<"User"> | $Enums.UserStatus
   resetToken?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   resetTokenExpiry?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
+  businessCategory?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  businessDescription?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  businessAddress?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  businessEmail?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  businessWebsite?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
 }
@@ -316,13 +376,18 @@ export type UserCreateInput = {
   id?: string
   name: string
   email: string
-  phone: string
+  phone?: string | null
   businessName: string
   passwordHash: string
   role?: $Enums.Role
   status?: $Enums.UserStatus
   resetToken?: string | null
   resetTokenExpiry?: Date | string | null
+  businessCategory?: string | null
+  businessDescription?: string | null
+  businessAddress?: string | null
+  businessEmail?: string | null
+  businessWebsite?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   agents?: Prisma.AgentCreateNestedManyWithoutUserInput
@@ -332,13 +397,18 @@ export type UserUncheckedCreateInput = {
   id?: string
   name: string
   email: string
-  phone: string
+  phone?: string | null
   businessName: string
   passwordHash: string
   role?: $Enums.Role
   status?: $Enums.UserStatus
   resetToken?: string | null
   resetTokenExpiry?: Date | string | null
+  businessCategory?: string | null
+  businessDescription?: string | null
+  businessAddress?: string | null
+  businessEmail?: string | null
+  businessWebsite?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   agents?: Prisma.AgentUncheckedCreateNestedManyWithoutUserInput
@@ -348,13 +418,18 @@ export type UserUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
   resetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetTokenExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  businessCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   agents?: Prisma.AgentUpdateManyWithoutUserNestedInput
@@ -364,13 +439,18 @@ export type UserUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
   resetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetTokenExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  businessCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   agents?: Prisma.AgentUncheckedUpdateManyWithoutUserNestedInput
@@ -380,13 +460,18 @@ export type UserCreateManyInput = {
   id?: string
   name: string
   email: string
-  phone: string
+  phone?: string | null
   businessName: string
   passwordHash: string
   role?: $Enums.Role
   status?: $Enums.UserStatus
   resetToken?: string | null
   resetTokenExpiry?: Date | string | null
+  businessCategory?: string | null
+  businessDescription?: string | null
+  businessAddress?: string | null
+  businessEmail?: string | null
+  businessWebsite?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -395,13 +480,18 @@ export type UserUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
   resetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetTokenExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  businessCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -410,13 +500,18 @@ export type UserUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
   resetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetTokenExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  businessCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -432,6 +527,11 @@ export type UserCountOrderByAggregateInput = {
   status?: Prisma.SortOrder
   resetToken?: Prisma.SortOrder
   resetTokenExpiry?: Prisma.SortOrder
+  businessCategory?: Prisma.SortOrder
+  businessDescription?: Prisma.SortOrder
+  businessAddress?: Prisma.SortOrder
+  businessEmail?: Prisma.SortOrder
+  businessWebsite?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -447,6 +547,11 @@ export type UserMaxOrderByAggregateInput = {
   status?: Prisma.SortOrder
   resetToken?: Prisma.SortOrder
   resetTokenExpiry?: Prisma.SortOrder
+  businessCategory?: Prisma.SortOrder
+  businessDescription?: Prisma.SortOrder
+  businessAddress?: Prisma.SortOrder
+  businessEmail?: Prisma.SortOrder
+  businessWebsite?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -462,6 +567,11 @@ export type UserMinOrderByAggregateInput = {
   status?: Prisma.SortOrder
   resetToken?: Prisma.SortOrder
   resetTokenExpiry?: Prisma.SortOrder
+  businessCategory?: Prisma.SortOrder
+  businessDescription?: Prisma.SortOrder
+  businessAddress?: Prisma.SortOrder
+  businessEmail?: Prisma.SortOrder
+  businessWebsite?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -475,16 +585,16 @@ export type StringFieldUpdateOperationsInput = {
   set?: string
 }
 
+export type NullableStringFieldUpdateOperationsInput = {
+  set?: string | null
+}
+
 export type EnumRoleFieldUpdateOperationsInput = {
   set?: $Enums.Role
 }
 
 export type EnumUserStatusFieldUpdateOperationsInput = {
   set?: $Enums.UserStatus
-}
-
-export type NullableStringFieldUpdateOperationsInput = {
-  set?: string | null
 }
 
 export type NullableDateTimeFieldUpdateOperationsInput = {
@@ -513,13 +623,18 @@ export type UserCreateWithoutAgentsInput = {
   id?: string
   name: string
   email: string
-  phone: string
+  phone?: string | null
   businessName: string
   passwordHash: string
   role?: $Enums.Role
   status?: $Enums.UserStatus
   resetToken?: string | null
   resetTokenExpiry?: Date | string | null
+  businessCategory?: string | null
+  businessDescription?: string | null
+  businessAddress?: string | null
+  businessEmail?: string | null
+  businessWebsite?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -528,13 +643,18 @@ export type UserUncheckedCreateWithoutAgentsInput = {
   id?: string
   name: string
   email: string
-  phone: string
+  phone?: string | null
   businessName: string
   passwordHash: string
   role?: $Enums.Role
   status?: $Enums.UserStatus
   resetToken?: string | null
   resetTokenExpiry?: Date | string | null
+  businessCategory?: string | null
+  businessDescription?: string | null
+  businessAddress?: string | null
+  businessEmail?: string | null
+  businessWebsite?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -559,13 +679,18 @@ export type UserUpdateWithoutAgentsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
   resetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetTokenExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  businessCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -574,13 +699,18 @@ export type UserUncheckedUpdateWithoutAgentsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
   role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
   status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
   resetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resetTokenExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  businessCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -627,6 +757,11 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   status?: boolean
   resetToken?: boolean
   resetTokenExpiry?: boolean
+  businessCategory?: boolean
+  businessDescription?: boolean
+  businessAddress?: boolean
+  businessEmail?: boolean
+  businessWebsite?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   agents?: boolean | Prisma.User$agentsArgs<ExtArgs>
@@ -644,6 +779,11 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   status?: boolean
   resetToken?: boolean
   resetTokenExpiry?: boolean
+  businessCategory?: boolean
+  businessDescription?: boolean
+  businessAddress?: boolean
+  businessEmail?: boolean
+  businessWebsite?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["user"]>
@@ -659,6 +799,11 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   status?: boolean
   resetToken?: boolean
   resetTokenExpiry?: boolean
+  businessCategory?: boolean
+  businessDescription?: boolean
+  businessAddress?: boolean
+  businessEmail?: boolean
+  businessWebsite?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["user"]>
@@ -674,11 +819,16 @@ export type UserSelectScalar = {
   status?: boolean
   resetToken?: boolean
   resetTokenExpiry?: boolean
+  businessCategory?: boolean
+  businessDescription?: boolean
+  businessAddress?: boolean
+  businessEmail?: boolean
+  businessWebsite?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "phone" | "businessName" | "passwordHash" | "role" | "status" | "resetToken" | "resetTokenExpiry" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "phone" | "businessName" | "passwordHash" | "role" | "status" | "resetToken" | "resetTokenExpiry" | "businessCategory" | "businessDescription" | "businessAddress" | "businessEmail" | "businessWebsite" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   agents?: boolean | Prisma.User$agentsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
@@ -695,13 +845,18 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     id: string
     name: string
     email: string
-    phone: string
+    phone: string | null
     businessName: string
     passwordHash: string
     role: $Enums.Role
     status: $Enums.UserStatus
     resetToken: string | null
     resetTokenExpiry: Date | null
+    businessCategory: string | null
+    businessDescription: string | null
+    businessAddress: string | null
+    businessEmail: string | null
+    businessWebsite: string | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["user"]>
@@ -1138,6 +1293,11 @@ export interface UserFieldRefs {
   readonly status: Prisma.FieldRef<"User", 'UserStatus'>
   readonly resetToken: Prisma.FieldRef<"User", 'String'>
   readonly resetTokenExpiry: Prisma.FieldRef<"User", 'DateTime'>
+  readonly businessCategory: Prisma.FieldRef<"User", 'String'>
+  readonly businessDescription: Prisma.FieldRef<"User", 'String'>
+  readonly businessAddress: Prisma.FieldRef<"User", 'String'>
+  readonly businessEmail: Prisma.FieldRef<"User", 'String'>
+  readonly businessWebsite: Prisma.FieldRef<"User", 'String'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>
 }

@@ -14,7 +14,6 @@ export default function SignupPage() {
   const [form, setForm] = useState({
     name: "",
     email: "",
-    phone: "",
     businessName: "",
     password: "",
   })
@@ -87,27 +86,15 @@ export default function SignupPage() {
         <form className={styles.form} onSubmit={handleSubmit}>
           {error && <div className={styles.error}>{error}</div>}
 
-          <div className={styles.row}>
-            <Input
-              label="Full Name"
-              name="name"
-              placeholder="John Doe"
-              value={form.name}
-              onChange={handleChange}
-              error={errors.name}
-              required
-            />
-            <Input
-              label="Phone Number"
-              name="phone"
-              type="tel"
-              placeholder="+1 (555) 000-0000"
-              value={form.phone}
-              onChange={handleChange}
-              error={errors.phone}
-              required
-            />
-          </div>
+          <Input
+            label="Full Name"
+            name="name"
+            placeholder="John Doe"
+            value={form.name}
+            onChange={handleChange}
+            error={errors.name}
+            required
+          />
 
           <Input
             label="Business Name"

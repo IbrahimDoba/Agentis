@@ -138,7 +138,7 @@ export async function sendNewSignupNotification(user: {
   name: string
   email: string
   businessName: string
-  phone: string
+  phone?: string
 }) {
   await resend().emails.send({
     from: FROM,
@@ -152,7 +152,7 @@ export async function sendNewSignupNotification(user: {
         ${infoRow("Name", user.name)}
         ${infoRow("Email", user.email)}
         ${infoRow("Business", user.businessName)}
-        ${infoRow("Phone", user.phone)}
+        ${user.phone ? infoRow("Phone", user.phone) : ""}
       </table>
       ${btn("Review in Admin Panel", `${APP_URL}/admin/users`)}
     `),

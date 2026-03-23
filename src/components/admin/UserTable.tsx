@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import styles from "./UserTable.module.css"
 import { StatusBadge } from "@/components/ui/Badge"
 import Button from "@/components/ui/Button"
+import { Modal } from "@/components/ui/Modal"
 import { formatDate } from "@/lib/utils"
 import type { UserPublic } from "@/types"
 
@@ -16,9 +17,119 @@ interface UserTableProps {
   users: UserWithAgentCount[]
 }
 
+function UserDetailModal({ user, onClose, onStatusChange, loading }: {
+  user: UserWithAgentCount
+  onClose: () => void
+  onStatusChange: (userId: string, status: "APPROVED" | "REJECTED") => void
+  loading: string | null
+}) {
+  return (
+    <Modal
+      open
+      onClose={onClose}
+      title={user.name}
+      footer={
+        <div className={styles.modalActions}>
+          {user.status !== "APPROVED" && (
+            <Button
+              size="sm"
+              variant="primary"
+              loading={loading === `${user.id}-APPROVED`}
+              onClick={() => onStatusChange(user.id, "APPROVED")}
+            >
+              Approve
+            </Button>
+          )}
+          {user.status !== "REJECTED" && (
+            <Button
+              size="sm"
+              variant="danger"
+              loading={loading === `${user.id}-REJECTED`}
+              onClick={() => onStatusChange(user.id, "REJECTED")}
+            >
+              Reject
+            </Button>
+          )}
+          <Button size="sm" variant="ghost" onClick={onClose}>Close</Button>
+        </div>
+      }
+    >
+      <div className={styles.modalBody}>
+        <div className={styles.modalSection}>
+          <div className={styles.modalSectionTitle}>Personal</div>
+          <div className={styles.modalGrid}>
+            <div className={styles.modalRow}>
+              <span className={styles.modalLabel}>Email</span>
+              <span className={styles.modalValue}>{user.email}</span>
+            </div>
+            <div className={styles.modalRow}>
+              <span className={styles.modalLabel}>Phone</span>
+              <span className={styles.modalValue}>{user.phone ?? <span className={styles.empty}>—</span>}</span>
+            </div>
+            <div className={styles.modalRow}>
+              <span className={styles.modalLabel}>Status</span>
+              <span className={styles.modalValue}><StatusBadge status={user.status} /></span>
+            </div>
+            <div className={styles.modalRow}>
+              <span className={styles.modalLabel}>Role</span>
+              <span className={styles.modalValue}>{user.role}</span>
+            </div>
+            <div className={styles.modalRow}>
+              <span className={styles.modalLabel}>Joined</span>
+              <span className={styles.modalValue}>{formatDate(user.createdAt)}</span>
+            </div>
+            <div className={styles.modalRow}>
+              <span className={styles.modalLabel}>Agents</span>
+              <span className={styles.modalValue}>{user._count?.agents ?? 0}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.modalSection}>
+          <div className={styles.modalSectionTitle}>Business</div>
+          <div className={styles.modalGrid}>
+            <div className={styles.modalRow}>
+              <span className={styles.modalLabel}>Name</span>
+              <span className={styles.modalValue}>{user.businessName}</span>
+            </div>
+            <div className={styles.modalRow}>
+              <span className={styles.modalLabel}>Category</span>
+              <span className={styles.modalValue}>{user.businessCategory ?? <span className={styles.empty}>—</span>}</span>
+            </div>
+            <div className={styles.modalRow}>
+              <span className={styles.modalLabel}>Email</span>
+              <span className={styles.modalValue}>{user.businessEmail ?? <span className={styles.empty}>—</span>}</span>
+            </div>
+            <div className={styles.modalRow}>
+              <span className={styles.modalLabel}>Website</span>
+              <span className={styles.modalValue}>
+                {user.businessWebsite
+                  ? <a href={user.businessWebsite} target="_blank" rel="noreferrer" className={styles.link}>{user.businessWebsite}</a>
+                  : <span className={styles.empty}>—</span>
+                }
+              </span>
+            </div>
+            <div className={styles.modalRow}>
+              <span className={styles.modalLabel}>Address</span>
+              <span className={styles.modalValue}>{user.businessAddress ?? <span className={styles.empty}>—</span>}</span>
+            </div>
+            {user.businessDescription && (
+              <div className={styles.modalRowFull}>
+                <span className={styles.modalLabel}>Description</span>
+                <p className={styles.modalDesc}>{user.businessDescription}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </Modal>
+  )
+}
+
 export function UserTable({ users }: UserTableProps) {
   const router = useRouter()
   const [loading, setLoading] = useState<string | null>(null)
+  const [selectedUser, setSelectedUser] = useState<UserWithAgentCount | null>(null)
 
   const handleStatusChange = async (userId: string, status: "APPROVED" | "REJECTED") => {
     setLoading(`${userId}-${status}`)
@@ -30,7 +141,8 @@ export function UserTable({ users }: UserTableProps) {
       })
       if (!res.ok) throw new Error("Failed to update")
       router.refresh()
-    } catch (err) {
+      setSelectedUser(null)
+    } catch {
       alert("Failed to update user status")
     } finally {
       setLoading(null)
@@ -46,73 +158,89 @@ export function UserTable({ users }: UserTableProps) {
   }
 
   return (
-    <div className={styles.wrapper}>
-      <table className={styles.table}>
-        <thead className={styles.thead}>
-          <tr>
-            <th className={styles.th}>User</th>
-            <th className={styles.th}>Business</th>
-            <th className={styles.th}>Phone</th>
-            <th className={styles.th}>Agents</th>
-            <th className={styles.th}>Status</th>
-            <th className={styles.th}>Joined</th>
-            <th className={styles.th}>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map((user) => (
-            <tr key={user.id} className={styles.tr}>
-              <td className={styles.td}>
-                <div className={styles.name}>{user.name}</div>
-                <div className={styles.email}>{user.email}</div>
-              </td>
-              <td className={styles.td}>
-                <div className={styles.business}>{user.businessName}</div>
-              </td>
-              <td className={styles.td}>
-                <div className={styles.business}>{user.phone}</div>
-              </td>
-              <td className={styles.td}>
-                {(user as any)._count?.agents ?? 0}
-              </td>
-              <td className={styles.td}>
-                <StatusBadge status={user.status} />
-              </td>
-              <td className={styles.td}>
-                {formatDate(user.createdAt)}
-              </td>
-              <td className={styles.td}>
-                <div className={styles.actions}>
-                  {user.status !== "APPROVED" && (
-                    <Button
-                      size="sm"
-                      variant="primary"
-                      loading={loading === `${user.id}-APPROVED`}
-                      onClick={() => handleStatusChange(user.id, "APPROVED")}
-                    >
-                      Approve
-                    </Button>
-                  )}
-                  {user.status !== "REJECTED" && (
-                    <Button
-                      size="sm"
-                      variant="danger"
-                      loading={loading === `${user.id}-REJECTED`}
-                      onClick={() => handleStatusChange(user.id, "REJECTED")}
-                    >
-                      Reject
-                    </Button>
-                  )}
-                  {user.status === "APPROVED" && (
-                    <span style={{ fontSize: 12, color: "var(--text-muted)" }}>Active</span>
-                  )}
-                </div>
-              </td>
+    <>
+      <div className={styles.wrapper}>
+        <table className={styles.table}>
+          <thead className={styles.thead}>
+            <tr>
+              <th className={styles.th}>User</th>
+              <th className={styles.th}>Business</th>
+              <th className={styles.th}>Phone</th>
+              <th className={styles.th}>Agents</th>
+              <th className={styles.th}>Status</th>
+              <th className={styles.th}>Joined</th>
+              <th className={styles.th}>Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {users.map((user) => (
+              <tr
+                key={user.id}
+                className={styles.tr}
+                onClick={() => setSelectedUser(user)}
+                style={{ cursor: "pointer" }}
+              >
+                <td className={styles.td}>
+                  <div className={styles.name}>{user.name}</div>
+                  <div className={styles.email}>{user.email}</div>
+                </td>
+                <td className={styles.td}>
+                  <div className={styles.business}>{user.businessName}</div>
+                </td>
+                <td className={styles.td}>
+                  <div className={styles.business}>{user.phone ?? "—"}</div>
+                </td>
+                <td className={styles.td}>
+                  {(user as any)._count?.agents ?? 0}
+                </td>
+                <td className={styles.td}>
+                  <StatusBadge status={user.status} />
+                </td>
+                <td className={styles.td}>
+                  {formatDate(user.createdAt)}
+                </td>
+                <td className={styles.td} onClick={(e) => e.stopPropagation()}>
+                  <div className={styles.actions}>
+                    {user.status !== "APPROVED" && (
+                      <Button
+                        size="sm"
+                        variant="primary"
+                        loading={loading === `${user.id}-APPROVED`}
+                        onClick={() => handleStatusChange(user.id, "APPROVED")}
+                      >
+                        Approve
+                      </Button>
+                    )}
+                    {user.status !== "REJECTED" && (
+                      <Button
+                        size="sm"
+                        variant="danger"
+                        loading={loading === `${user.id}-REJECTED`}
+                        onClick={() => handleStatusChange(user.id, "REJECTED")}
+                      >
+                        Reject
+                      </Button>
+                    )}
+                    {user.status === "APPROVED" && (
+                      <span style={{ fontSize: 12, color: "var(--text-muted)" }}>Active</span>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {selectedUser && (
+        <UserDetailModal
+          user={selectedUser}
+          onClose={() => setSelectedUser(null)}
+          onStatusChange={handleStatusChange}
+          loading={loading}
+        />
+      )}
+    </>
   )
 }
 

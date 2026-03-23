@@ -82,6 +82,11 @@ export const UserScalarFieldEnum = {
   status: 'status',
   resetToken: 'resetToken',
   resetTokenExpiry: 'resetTokenExpiry',
+  businessCategory: 'businessCategory',
+  businessDescription: 'businessDescription',
+  businessAddress: 'businessAddress',
+  businessEmail: 'businessEmail',
+  businessWebsite: 'businessWebsite',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

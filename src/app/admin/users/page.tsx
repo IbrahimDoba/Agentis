@@ -19,11 +19,16 @@ export default async function AdminUsersPage() {
     id: u.id,
     name: u.name,
     email: u.email,
-    phone: u.phone,
+    phone: u.phone ?? null,
     businessName: u.businessName,
     role: u.role as any,
     status: u.status as any,
     createdAt: u.createdAt.toISOString(),
+    businessCategory: u.businessCategory ?? null,
+    businessDescription: u.businessDescription ?? null,
+    businessAddress: u.businessAddress ?? null,
+    businessEmail: u.businessEmail ?? null,
+    businessWebsite: u.businessWebsite ?? null,
     _count: u._count,
   }))
 

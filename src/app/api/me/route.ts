@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
-import { NextResponse } from "next/server"
+import { profileUpdateSchema } from "@/lib/validations"
+import { NextRequest, NextResponse } from "next/server"
 
 export async function GET() {
   const session = await auth()
@@ -20,11 +21,16 @@ export async function GET() {
       id: user.id,
       name: user.name,
       email: user.email,
-      phone: user.phone,
+      phone: user.phone ?? null,
       businessName: user.businessName,
       role: user.role,
       status: user.status,
       createdAt: user.createdAt.toISOString(),
+      businessCategory: user.businessCategory ?? null,
+      businessDescription: user.businessDescription ?? null,
+      businessAddress: user.businessAddress ?? null,
+      businessEmail: user.businessEmail ?? null,
+      businessWebsite: user.businessWebsite ?? null,
     },
     agent: agent ? {
       id: agent.id,
@@ -46,5 +52,63 @@ export async function GET() {
       createdAt: agent.createdAt.toISOString(),
       updatedAt: agent.updatedAt.toISOString(),
     } : null,
+  })
+}
+
+export async function PATCH(req: NextRequest) {
+  const session = await auth()
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
+  const body = await req.json()
+  const parsed = profileUpdateSchema.safeParse(body)
+
+  if (!parsed.success) {
+    const errors: Record<string, string> = {}
+    parsed.error.issues.forEach((err) => {
+      const field = err.path[0] as string
+      errors[field] = err.message
+    })
+    return NextResponse.json({ errors }, { status: 400 })
+  }
+
+  const {
+    name,
+    phone,
+    businessName,
+    businessCategory,
+    businessDescription,
+    businessAddress,
+    businessEmail,
+    businessWebsite,
+  } = parsed.data
+
+  const user = await db.user.update({
+    where: { id: session.user.id },
+    data: {
+      name,
+      phone: phone || null,
+      businessName,
+      businessCategory: businessCategory || null,
+      businessDescription: businessDescription || null,
+      businessAddress: businessAddress || null,
+      businessEmail: businessEmail || null,
+      businessWebsite: businessWebsite || null,
+    },
+  })
+
+  return NextResponse.json({
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    phone: user.phone ?? null,
+    businessName: user.businessName,
+    role: user.role,
+    status: user.status,
+    createdAt: user.createdAt.toISOString(),
+    businessCategory: user.businessCategory ?? null,
+    businessDescription: user.businessDescription ?? null,
+    businessAddress: user.businessAddress ?? null,
+    businessEmail: user.businessEmail ?? null,
+    businessWebsite: user.businessWebsite ?? null,
   })
 }

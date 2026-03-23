@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ errors }, { status: 400 })
     }
 
-    const { name, email, phone, businessName, password } = parsed.data
+    const { name, email, businessName, password } = parsed.data
 
     // Check if email already exists
     const existing = await db.user.findUnique({ where: { email } })
@@ -35,7 +35,6 @@ export async function POST(req: NextRequest) {
       data: {
         name,
         email,
-        phone,
         businessName,
         passwordHash,
       },
@@ -48,7 +47,6 @@ export async function POST(req: NextRequest) {
         name: user.name,
         email: user.email,
         businessName: user.businessName,
-        phone: user.phone,
       }),
     ]).catch((err) => console.error("[SIGNUP] email error:", err))
 
