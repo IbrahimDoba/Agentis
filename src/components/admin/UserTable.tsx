@@ -20,7 +20,7 @@ interface UserTableProps {
 function UserDetailModal({ user, onClose, onStatusChange, loading }: {
   user: UserWithAgentCount
   onClose: () => void
-  onStatusChange: (userId: string, status: "APPROVED" | "REJECTED") => void
+  onStatusChange: (userId: string, status: "APPROVED" | "REJECTED" | "SUSPENDED") => void
   loading: string | null
 }) {
   return (
@@ -40,7 +40,27 @@ function UserDetailModal({ user, onClose, onStatusChange, loading }: {
               Approve
             </Button>
           )}
-          {user.status !== "REJECTED" && (
+          {user.status === "APPROVED" && (
+            <Button
+              size="sm"
+              variant="danger"
+              loading={loading === `${user.id}-SUSPENDED`}
+              onClick={() => onStatusChange(user.id, "SUSPENDED")}
+            >
+              Suspend
+            </Button>
+          )}
+          {user.status === "SUSPENDED" && (
+            <Button
+              size="sm"
+              variant="primary"
+              loading={loading === `${user.id}-APPROVED`}
+              onClick={() => onStatusChange(user.id, "APPROVED")}
+            >
+              Unsuspend
+            </Button>
+          )}
+          {user.status !== "REJECTED" && user.status !== "SUSPENDED" && (
             <Button
               size="sm"
               variant="danger"
@@ -131,7 +151,7 @@ export function UserTable({ users }: UserTableProps) {
   const [loading, setLoading] = useState<string | null>(null)
   const [selectedUser, setSelectedUser] = useState<UserWithAgentCount | null>(null)
 
-  const handleStatusChange = async (userId: string, status: "APPROVED" | "REJECTED") => {
+  const handleStatusChange = async (userId: string, status: "APPROVED" | "REJECTED" | "SUSPENDED") => {
     setLoading(`${userId}-${status}`)
     try {
       const res = await fetch(`/api/users/${userId}`, {
@@ -201,28 +221,25 @@ export function UserTable({ users }: UserTableProps) {
                 </td>
                 <td className={styles.td} onClick={(e) => e.stopPropagation()}>
                   <div className={styles.actions}>
-                    {user.status !== "APPROVED" && (
+                    {(user.status === "PENDING" || user.status === "REJECTED" || user.status === "SUSPENDED") && (
                       <Button
                         size="sm"
                         variant="primary"
                         loading={loading === `${user.id}-APPROVED`}
                         onClick={() => handleStatusChange(user.id, "APPROVED")}
                       >
-                        Approve
-                      </Button>
-                    )}
-                    {user.status !== "REJECTED" && (
-                      <Button
-                        size="sm"
-                        variant="danger"
-                        loading={loading === `${user.id}-REJECTED`}
-                        onClick={() => handleStatusChange(user.id, "REJECTED")}
-                      >
-                        Reject
+                        {user.status === "SUSPENDED" ? "Unsuspend" : "Approve"}
                       </Button>
                     )}
                     {user.status === "APPROVED" && (
-                      <span style={{ fontSize: 12, color: "var(--text-muted)" }}>Active</span>
+                      <Button
+                        size="sm"
+                        variant="danger"
+                        loading={loading === `${user.id}-SUSPENDED`}
+                        onClick={() => handleStatusChange(user.id, "SUSPENDED")}
+                      >
+                        Suspend
+                      </Button>
                     )}
                   </div>
                 </td>

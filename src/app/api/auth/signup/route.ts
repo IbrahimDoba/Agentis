@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
 import { db } from "@/lib/db"
 import { signupSchema } from "@/lib/validations"
-import { sendWelcomeEmail, sendNewSignupNotification } from "@/lib/email"
+import { sendVerificationCode } from "@/lib/email"
+
+function generateCode(): string {
+  return Math.floor(1000 + Math.random() * 9000).toString()
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,9 +24,21 @@ export async function POST(req: NextRequest) {
 
     const { name, email, businessName, password } = parsed.data
 
-    // Check if email already exists
     const existing = await db.user.findUnique({ where: { email } })
     if (existing) {
+      // If they exist but haven't verified yet, resend the code
+      if (!existing.emailVerified) {
+        const code = generateCode()
+        const expiry = new Date(Date.now() + 10 * 60 * 1000) // 10 min
+        await db.user.update({
+          where: { email },
+          data: { verificationCode: code, verificationCodeExpiry: expiry },
+        })
+        sendVerificationCode({ name: existing.name, email, code }).catch(
+          (err) => console.error("[SIGNUP] resend code error:", err)
+        )
+        return NextResponse.json({ email }, { status: 200 })
+      }
       return NextResponse.json(
         { error: "An account with this email already exists" },
         { status: 409 }
@@ -30,30 +46,26 @@ export async function POST(req: NextRequest) {
     }
 
     const passwordHash = await bcrypt.hash(password, 12)
+    const code = generateCode()
+    const expiry = new Date(Date.now() + 10 * 60 * 1000)
 
-    const user = await db.user.create({
+    await db.user.create({
       data: {
         name,
         email,
         businessName,
         passwordHash,
+        emailVerified: false,
+        verificationCode: code,
+        verificationCodeExpiry: expiry,
       },
     })
 
-    // Fire emails in background — don't block the response
-    Promise.all([
-      sendWelcomeEmail({ name: user.name, email: user.email }),
-      sendNewSignupNotification({
-        name: user.name,
-        email: user.email,
-        businessName: user.businessName,
-      }),
-    ]).catch((err) => console.error("[SIGNUP] email error:", err))
-
-    return NextResponse.json(
-      { id: user.id, name: user.name, email: user.email },
-      { status: 201 }
+    sendVerificationCode({ name, email, code }).catch(
+      (err) => console.error("[SIGNUP] send code error:", err)
     )
+
+    return NextResponse.json({ email }, { status: 201 })
   } catch (error) {
     console.error("[SIGNUP]", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })

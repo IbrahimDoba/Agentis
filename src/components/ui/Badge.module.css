@@ -85,6 +85,16 @@
   background: var(--text-muted);
 }
 
+.badge--suspended {
+  background: rgba(239, 68, 68, 0.08);
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.25);
+}
+
+.badge--suspended .dot {
+  background: #ef4444;
+}
+
 .badge--default {
   background: var(--bg-hover);
   color: var(--text-secondary);

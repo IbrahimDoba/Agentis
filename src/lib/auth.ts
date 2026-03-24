@@ -27,6 +27,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         if (user.status === "REJECTED") return null
 
+        // Block unverified users from logging in
+        if (!user.emailVerified) return null
+
         return {
           id: user.id,
           name: user.name,

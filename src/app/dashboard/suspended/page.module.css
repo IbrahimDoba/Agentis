@@ -1,0 +1,163 @@
+.page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: var(--bg-primary);
+}
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: var(--radius-xl);
+  padding: 3rem 2.5rem;
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+}
+
+.iconWrap {
+  margin-bottom: 1.25rem;
+}
+
+.icon {
+  font-size: 3.5rem;
+  line-height: 1;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  margin-bottom: 0.75rem;
+}
+
+.desc {
+  font-size: 15px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-bottom: 1.75rem;
+}
+
+.infoBox {
+  background: rgba(239, 68, 68, 0.05);
+  border: 1px solid rgba(239, 68, 68, 0.15);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.infoRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.infoLabel {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.infoValue {
+  font-size: 13px;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 100px;
+  padding: 0.2rem 0.65rem;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.statusBadge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.helpText {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-bottom: 2rem;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.contactBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent);
+  color: #000;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  padding: 0.875rem 1.5rem;
+  transition: background var(--transition);
+}
+
+.contactBtn:hover {
+  background: var(--accent-hover);
+}
+
+.signOutBtn {
+  width: 100%;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1.5rem;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color var(--transition), color var(--transition);
+}
+
+.signOutBtn:hover {
+  border-color: var(--text-muted);
+  color: var(--text-primary);
+}
+
+.contactInfo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.contactEmail {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-weight: 500;
+}

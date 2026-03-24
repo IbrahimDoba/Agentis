@@ -13,6 +13,7 @@ function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const errorParam = searchParams.get("error")
+  const verified = searchParams.get("verified")
 
   const [form, setForm] = useState({ email: "", password: "" })
   const [error, setError] = useState("")
@@ -59,6 +60,11 @@ function LoginForm() {
         <h1 className={styles.title}>Welcome back</h1>
         <p className={styles.subtitle}>Sign in to your D-Zero AI account</p>
 
+        {verified === "1" && (
+          <div className={styles.successParam}>
+            Email verified! You can now sign in.
+          </div>
+        )}
         {errorParam === "rejected" && (
           <div className={styles.errorParam}>
             Your account application has been rejected. Please contact support.

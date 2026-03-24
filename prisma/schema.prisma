@@ -16,8 +16,11 @@ model User {
   passwordHash   String
   role           Role       @default(USER)
   status         UserStatus @default(PENDING)
-  resetToken         String?    @unique
-  resetTokenExpiry   DateTime?
+  resetToken            String?    @unique
+  resetTokenExpiry      DateTime?
+  emailVerified         Boolean    @default(false)
+  verificationCode      String?
+  verificationCodeExpiry DateTime?
   businessCategory    String?
   businessDescription String?
   businessAddress     String?
@@ -61,6 +64,7 @@ enum UserStatus {
   PENDING
   APPROVED
   REJECTED
+  SUSPENDED
 }
 
 enum AgentStatus {

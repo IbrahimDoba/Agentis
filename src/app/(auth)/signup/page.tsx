@@ -3,7 +3,6 @@
 import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { signIn } from "next-auth/react"
 import { LogoIcon } from "@/components/landing/Logo"
 import styles from "./page.module.css"
 import { Input } from "@/components/ui/Input"
@@ -51,20 +50,9 @@ export default function SignupPage() {
         return
       }
 
-      // Auto sign-in after signup
-      const result = await signIn("credentials", {
-        email: form.email,
-        password: form.password,
-        redirect: false,
-      })
-
-      if (result?.error) {
-        router.push("/login")
-        return
-      }
-
-      router.push("/dashboard/pending")
-      router.refresh()
+      // Store password briefly so verify page can auto sign-in after verification
+      sessionStorage.setItem("__signup_pw", form.password)
+      router.push(`/verify-email?email=${encodeURIComponent(form.email)}`)
     } catch {
       setError("Something went wrong. Please try again.")
     } finally {
@@ -134,11 +122,6 @@ export default function SignupPage() {
             Create Account
           </Button>
         </form>
-
-        <div className={styles.note}>
-          Your account will be reviewed by our team before activation.
-          You&apos;ll be notified within 24 hours.
-        </div>
 
         <div className={styles.footer}>
           Already have an account?{" "}

@@ -79,7 +79,35 @@ function infoRow(label: string, value: string): string {
 }
 
 // ---------------------------------------------------------------------------
-// 1. Welcome email — sent to user on signup
+// 0. Email verification code — sent immediately on signup
+// ---------------------------------------------------------------------------
+
+export async function sendVerificationCode(data: { name: string; email: string; code: string }) {
+  await resend().emails.send({
+    from: FROM,
+    to: data.email,
+    subject: `${data.code} is your D-Zero AI verification code`,
+    html: baseTemplate(`
+      <h2 style="margin:0 0 8px;font-size:22px;color:#111111;">Verify your email</h2>
+      <p style="margin:0 0 24px;color:#4b5563;">
+        Hi ${data.name}, enter the code below to verify your email address and activate your account.
+        This code expires in <strong>10 minutes</strong>.
+      </p>
+      <div style="text-align:center;margin:0 0 28px;">
+        <div style="display:inline-block;background:#f4f4f5;border-radius:12px;padding:20px 40px;">
+          <span style="font-size:40px;font-weight:800;letter-spacing:12px;color:#0a0a0a;font-family:monospace;">${data.code}</span>
+        </div>
+      </div>
+      ${divider()}
+      <p style="margin:0;color:#6b7280;font-size:13px;">
+        If you didn't create a D-Zero AI account, you can safely ignore this email.
+      </p>
+    `),
+  })
+}
+
+// ---------------------------------------------------------------------------
+// 1. Welcome email — sent to user after email is verified
 // ---------------------------------------------------------------------------
 
 export async function sendWelcomeEmail(user: { name: string; email: string }) {
@@ -305,6 +333,32 @@ export async function sendAgentSubmittedNotification(data: {
         ${infoRow("Email", data.userEmail)}
       </table>
       ${btn("Configure Agent", `${APP_URL}/admin/agents/${data.agentId}`)}
+    `),
+  })
+}
+
+// ---------------------------------------------------------------------------
+// 5b. Account suspended — sent to user when admin suspends them
+// ---------------------------------------------------------------------------
+
+export async function sendAccountSuspendedEmail(user: { name: string; email: string }) {
+  await resend().emails.send({
+    from: FROM,
+    to: user.email,
+    subject: "Your D-Zero AI account has been suspended",
+    html: baseTemplate(`
+      <h2 style="margin:0 0 8px;font-size:22px;color:#111111;">Account Suspended</h2>
+      <p style="margin:0 0 20px;color:#4b5563;">
+        Hi ${user.name}, your D-Zero AI account has been temporarily suspended.
+        You will not be able to access the platform until the suspension is lifted.
+      </p>
+      ${divider()}
+      <p style="margin:0 0 16px;color:#4b5563;font-size:14px;">
+        If you believe this is a mistake or would like more information, please contact our support team:
+      </p>
+      <p style="margin:0;color:#4b5563;font-size:14px;">
+        <a href="mailto:support@dailzero.com" style="color:#00dc82;text-decoration:none;font-weight:600;">support@dailzero.com</a>
+      </p>
     `),
   })
 }

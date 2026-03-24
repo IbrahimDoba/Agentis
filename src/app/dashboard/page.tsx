@@ -57,10 +57,10 @@ export default function DashboardPage() {
             </div>
 
             <div className={styles.statCard}>
-              <div className={styles.statLabel}>Account Status</div>
-              <div className={styles.statValue}>{user?.status ?? "—"}</div>
+              <div className={styles.statLabel}>Member Since</div>
+              <div className={styles.statValue}>{user ? formatDate(user.createdAt) : "—"}</div>
               <div className={styles.statSub}>
-                {user ? `Member since ${formatDate(user.createdAt)}` : ""}
+                {user?.businessName ?? ""}
               </div>
             </div>
 

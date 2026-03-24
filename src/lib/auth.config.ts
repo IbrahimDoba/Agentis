@@ -12,8 +12,8 @@ export const authConfig: NextAuthConfig = {
         if (!isLoggedIn) return false
         const status = auth?.user?.status
         if (status === "REJECTED") return Response.redirect(new URL("/login?error=rejected", nextUrl))
-        if (status === "PENDING" && pathname !== "/dashboard/pending") {
-          return Response.redirect(new URL("/dashboard/pending", nextUrl))
+        if (status === "SUSPENDED" && pathname !== "/dashboard/suspended") {
+          return Response.redirect(new URL("/dashboard/suspended", nextUrl))
         }
         return true
       }

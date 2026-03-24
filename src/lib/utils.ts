@@ -100,6 +100,7 @@ export function getStatusColor(status: string): string {
     PENDING: "badge--pending",
     APPROVED: "badge--approved",
     REJECTED: "badge--rejected",
+    SUSPENDED: "badge--suspended",
     PENDING_REVIEW: "badge--pending",
     SETTING_UP: "badge--setup",
     ACTIVE: "badge--active",
@@ -110,9 +111,10 @@ export function getStatusColor(status: string): string {
 
 export function getStatusLabel(status: string): string {
   const map: Record<string, string> = {
-    PENDING: "Pending Approval",
+    PENDING: "Pending Verification",
     APPROVED: "Approved",
     REJECTED: "Rejected",
+    SUSPENDED: "Suspended",
     PENDING_REVIEW: "Pending Review",
     SETTING_UP: "Setting Up",
     ACTIVE: "Active",

@@ -1,5 +1,5 @@
 export type Role = "USER" | "ADMIN"
-export type UserStatus = "PENDING" | "APPROVED" | "REJECTED"
+export type UserStatus = "PENDING" | "APPROVED" | "REJECTED" | "SUSPENDED"
 export type AgentStatus = "PENDING_REVIEW" | "SETTING_UP" | "ACTIVE" | "INACTIVE"
 
 export interface UserPublic {
