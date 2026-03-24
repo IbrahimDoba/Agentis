@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# Block admin and API routes from indexing
+Disallow: /admin/
+Disallow: /api/
+Disallow: /dashboard/
+
+Sitemap: https://www.dailzero.com/sitemap.xml
