@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { Space_Grotesk } from "next/font/google"
+import { Analytics } from "@vercel/analytics/next"
 import { ThemeProvider } from "@/components/ThemeProvider"
 import { QueryProvider } from "@/components/QueryProvider"
 import "./globals.css"
@@ -31,6 +32,7 @@ export default function RootLayout({
         <QueryProvider>
           <ThemeProvider>{children}</ThemeProvider>
         </QueryProvider>
+        <Analytics />
       </body>
     </html>
   )
