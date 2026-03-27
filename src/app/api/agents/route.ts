@@ -54,6 +54,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Account not approved" }, { status: 403 })
     }
 
+    // Check agent limit
+    const user = await db.user.findUnique({
+      where: { id: session.user.id },
+      select: { maxAgents: true, _count: { select: { agents: true } } }
+    })
+    if (user && user._count.agents >= user.maxAgents) {
+      return NextResponse.json(
+        { error: "Agent limit reached. Contact support to create more agents." },
+        { status: 403 }
+      )
+    }
+
     const body = await req.json()
     const parsed = agentSchema.safeParse(body)
 

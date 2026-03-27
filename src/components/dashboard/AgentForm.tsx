@@ -6,7 +6,9 @@ import { useQueryClient } from "@tanstack/react-query"
 import styles from "./AgentForm.module.css"
 import { Input, Textarea } from "@/components/ui/Input"
 import Button from "@/components/ui/Button"
-import type { AgentPublic } from "@/types"
+import { ProductsEditor } from "@/components/dashboard/ProductsEditor"
+import { agentSchema } from "@/lib/validations"
+import type { AgentPublic, Product } from "@/types"
 
 interface AgentFormProps {
   initialData?: Partial<AgentPublic>
@@ -27,6 +29,9 @@ export function AgentForm({ initialData, agentId }: AgentFormProps) {
     websiteLinks: initialData?.websiteLinks ?? "",
     responseGuidelines: initialData?.responseGuidelines ?? "",
   })
+  const [products, setProducts] = useState<Product[]>(
+    (initialData?.productsData as Product[] | undefined) ?? []
+  )
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
@@ -75,10 +80,22 @@ export function AgentForm({ initialData, agentId }: AgentFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
     setError("")
     setSuccess("")
+
+    // Client-side validation
+    const parsed = agentSchema.partial().safeParse({ ...form, productsData: products })
+    if (!parsed.success) {
+      const fieldErrors: Record<string, string> = {}
+      parsed.error.issues.forEach((issue) => {
+        const field = issue.path[0] as string
+        if (!fieldErrors[field]) fieldErrors[field] = issue.message
+      })
+      setErrors(fieldErrors)
+      return
+    }
     setErrors({})
+    setLoading(true)
 
     try {
       const url = agentId ? `/api/agents/${agentId}` : "/api/agents"
@@ -87,7 +104,7 @@ export function AgentForm({ initialData, agentId }: AgentFormProps) {
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, productsData: products }),
       })
 
       const data = await res.json()
@@ -189,15 +206,23 @@ export function AgentForm({ initialData, agentId }: AgentFormProps) {
         </div>
         <div className={styles.fields}>
           <Textarea
-            label="Products & Services"
+            label="Products & Services Overview"
             name="productsServices"
-            placeholder="List your main products and services with key details, pricing ranges, etc."
+            placeholder="Briefly describe your products and services — the AI will use this to answer customer questions."
             value={form.productsServices}
             onChange={handleChange}
             error={errors.productsServices}
             required
             style={{ minHeight: 100 }}
           />
+
+          <div>
+            <div className={styles.fieldLabel}>Product Catalogue <span className={styles.optional}>(optional)</span></div>
+            <div className={styles.fieldHint}>Add individual products the AI can reference when customers ask.</div>
+            <div style={{ marginTop: "0.5rem" }}>
+              <ProductsEditor value={products} onChange={setProducts} />
+            </div>
+          </div>
 
           <Textarea
             label="Frequently Asked Questions"

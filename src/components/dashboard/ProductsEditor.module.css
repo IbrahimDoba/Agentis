@@ -1,0 +1,340 @@
+.root {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.875rem 1rem;
+  background: var(--bg-card);
+  border: none;
+  cursor: pointer;
+  color: var(--text-primary);
+  font-family: inherit;
+  transition: background var(--transition);
+}
+
+.header:hover {
+  background: var(--bg-hover, rgba(255,255,255,0.04));
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.headerTitle {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent);
+  color: #000;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 100px;
+  padding: 0.1rem 0.5rem;
+  min-width: 20px;
+}
+
+.body {
+  border-top: 1px solid var(--border);
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: var(--bg-primary);
+}
+
+.empty {
+  font-size: 13px;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 1rem 0;
+}
+
+/* Product row */
+.productRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--bg-card);
+}
+
+.productMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  flex: 1;
+}
+
+.productThumb {
+  flex-shrink: 0;
+}
+
+.thumbImg {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+}
+
+.thumbFallback {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: #000;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.productInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.productName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.productPrice {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.productActions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding-right: 0.5rem;
+  padding-top: 0.6rem;
+  padding-bottom: 0.6rem;
+  align-self: flex-start;
+}
+
+/* Make the whole first row flex */
+.productRow > .productMeta {
+  display: flex;
+}
+
+/* Layout: meta + actions in a row */
+.productRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+}
+
+.productMeta { grid-column: 1; grid-row: 1; }
+.productActions { grid-column: 2; grid-row: 1; align-self: center; }
+.inlineForm { grid-column: 1 / -1; grid-row: 2; }
+
+.iconBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color var(--transition), border-color var(--transition);
+}
+
+.iconBtn:hover {
+  color: var(--text-primary);
+  border-color: var(--text-muted);
+}
+
+.iconBtnDanger {
+  composes: iconBtn;
+}
+
+.iconBtnDanger:hover {
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+/* Inline form */
+.inlineForm {
+  border-top: 1px solid var(--border);
+  padding: 0.875rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  background: var(--bg-primary);
+}
+
+.imageRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.imagePicker {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-md);
+  border: 1.5px dashed var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  overflow: hidden;
+  flex-shrink: 0;
+  transition: border-color var(--transition);
+}
+
+.imagePicker:hover {
+  border-color: var(--accent);
+}
+
+.productImg {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+}
+
+.imgPlaceholderIcon {
+  color: var(--text-muted);
+}
+
+.imgSpinner {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.imageHint {
+  font-size: 12px;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.uploadErr {
+  color: #ef4444;
+  font-size: 11px;
+}
+
+.hiddenInput {
+  display: none;
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+@media (max-width: 540px) {
+  .formRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+.formActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.saveBtn {
+  padding: 0.5rem 1.25rem;
+  border-radius: var(--radius-md);
+  background: var(--accent);
+  color: #000;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background var(--transition);
+}
+
+.saveBtn:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.saveBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cancelBtn {
+  padding: 0.5rem 1.25rem;
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color var(--transition), color var(--transition);
+}
+
+.cancelBtn:hover {
+  border-color: var(--text-muted);
+  color: var(--text-primary);
+}
+
+.addBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-md);
+  border: 1.5px dashed var(--border);
+  background: none;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color var(--transition), color var(--transition);
+  align-self: flex-start;
+}
+
+.addBtn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}

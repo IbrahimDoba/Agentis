@@ -7,6 +7,7 @@ import { sendAccountApprovedEmail, sendAccountRejectedEmail, sendAccountSuspende
 const updateSchema = z.object({
   status: z.enum(["PENDING", "APPROVED", "REJECTED", "SUSPENDED"]).optional(),
   role: z.enum(["USER", "ADMIN"]).optional(),
+  maxAgents: z.number().int().min(1).max(20).optional(),
 })
 
 interface Params {

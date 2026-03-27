@@ -7,6 +7,7 @@ import { LogoIcon } from "@/components/landing/Logo"
 import styles from "./page.module.css"
 import { Input } from "@/components/ui/Input"
 import Button from "@/components/ui/Button"
+import { signupSchema } from "@/lib/validations"
 
 export default function SignupPage() {
   const router = useRouter()
@@ -28,9 +29,21 @@ export default function SignupPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
     setError("")
+
+    // Client-side validation
+    const parsed = signupSchema.safeParse(form)
+    if (!parsed.success) {
+      const fieldErrors: Record<string, string> = {}
+      parsed.error.issues.forEach((issue) => {
+        const field = issue.path[0] as string
+        if (!fieldErrors[field]) fieldErrors[field] = issue.message
+      })
+      setErrors(fieldErrors)
+      return
+    }
     setErrors({})
+    setLoading(true)
 
     try {
       const res = await fetch("/api/auth/signup", {

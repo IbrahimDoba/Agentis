@@ -16,6 +16,16 @@ export interface UserPublic {
   businessAddress?: string | null
   businessEmail?: string | null
   businessWebsite?: string | null
+  maxAgents?: number
+}
+
+export interface Product {
+  id: string
+  name: string
+  description?: string
+  price?: string
+  link?: string
+  imageUrl?: string
 }
 
 export interface AgentPublic {
@@ -36,6 +46,9 @@ export interface AgentPublic {
   whatsappPhoneNumber?: string
   qrCodeUrl?: string
   elevenlabsAgentId?: string
+  category?: string | null
+  address?: string | null
+  productsData?: Product[] | null
   status: AgentStatus
   createdAt: string
   updatedAt: string

@@ -16,17 +16,29 @@ function LoginForm() {
   const verified = searchParams.get("verified")
 
   const [form, setForm] = useState({ email: "", password: "" })
+  const [errors, setErrors] = useState<Record<string, string>>({})
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }))
+    setErrors((prev) => ({ ...prev, [e.target.name]: "" }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
     setError("")
+
+    const fieldErrors: Record<string, string> = {}
+    if (!form.email) fieldErrors.email = "Email is required"
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) fieldErrors.email = "Enter a valid email address"
+    if (!form.password) fieldErrors.password = "Password is required"
+    if (Object.keys(fieldErrors).length > 0) {
+      setErrors(fieldErrors)
+      return
+    }
+    setErrors({})
+    setLoading(true)
 
     try {
       const result = await signIn("credentials", {
@@ -81,6 +93,7 @@ function LoginForm() {
             placeholder="you@company.com"
             value={form.email}
             onChange={handleChange}
+            error={errors.email}
             required
             autoComplete="email"
           />
@@ -92,6 +105,7 @@ function LoginForm() {
             placeholder="••••••••"
             value={form.password}
             onChange={handleChange}
+            error={errors.password}
             required
             autoComplete="current-password"
           />

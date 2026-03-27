@@ -3,6 +3,8 @@ import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { agentSchema, adminAgentUpdateSchema } from "@/lib/validations"
 import { sendAgentApprovedEmail } from "@/lib/email"
+import { buildAndSyncElevenLabsPrompt } from "@/lib/agentSync"
+import type { Product } from "@/types"
 
 interface Params {
   params: Promise<{ id: string }>
@@ -94,6 +96,24 @@ export async function PATCH(req: NextRequest, { params }: Params) {
         include: { user: { select: { name: true, email: true } } },
       })
 
+      // Fire-and-forget: sync to ElevenLabs if agent is connected
+      if (updated.elevenlabsAgentId) {
+        buildAndSyncElevenLabsPrompt(updated.elevenlabsAgentId, {
+          businessName: updated.businessName,
+          businessDescription: updated.businessDescription,
+          productsServices: updated.productsServices,
+          faqs: updated.faqs,
+          operatingHours: updated.operatingHours,
+          contactEmail: updated.contactEmail,
+          contactPhone: updated.contactPhone,
+          websiteLinks: updated.websiteLinks,
+          responseGuidelines: updated.responseGuidelines,
+          category: updated.category,
+          address: updated.address,
+          productsData: updated.productsData as Product[] | null,
+        }).catch((err) => console.error("[agentSync] ElevenLabs sync failed (admin):", err))
+      }
+
       if (parsed.data.status === "ACTIVE") {
         sendAgentApprovedEmail({
           userName: updated.user.name,
@@ -126,6 +146,24 @@ export async function PATCH(req: NextRequest, { params }: Params) {
         where: { id },
         data: parsed.data,
       })
+
+      // Fire-and-forget: sync to ElevenLabs if agent is connected
+      if (updated.elevenlabsAgentId) {
+        buildAndSyncElevenLabsPrompt(updated.elevenlabsAgentId, {
+          businessName: updated.businessName,
+          businessDescription: updated.businessDescription,
+          productsServices: updated.productsServices,
+          faqs: updated.faqs,
+          operatingHours: updated.operatingHours,
+          contactEmail: updated.contactEmail,
+          contactPhone: updated.contactPhone,
+          websiteLinks: updated.websiteLinks,
+          responseGuidelines: updated.responseGuidelines,
+          category: updated.category,
+          address: updated.address,
+          productsData: updated.productsData as Product[] | null,
+        }).catch((err) => console.error("[agentSync] ElevenLabs sync failed:", err))
+      }
 
       return NextResponse.json({
         ...updated,

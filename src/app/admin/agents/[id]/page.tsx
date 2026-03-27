@@ -96,6 +96,21 @@ export default async function AdminAgentDetailPage({ params }: PageProps) {
             <div className={styles.infoLabel}>Products / Services</div>
             <div className={styles.infoValue}>{agent.productsServices}</div>
           </div>
+          {Array.isArray(agent.productsData) && (agent.productsData as any[]).length > 0 && (
+            <div className={styles.infoRow}>
+              <div className={styles.infoLabel}>Product Catalogue</div>
+              <div className={styles.productsList}>
+                {(agent.productsData as any[]).map((p: any) => (
+                  <div key={p.id} className={styles.productItem}>
+                    <span className={styles.productName}>{p.name}</span>
+                    {p.price && <span className={styles.productPrice}>{p.price}</span>}
+                    {p.description && <span className={styles.productDesc}>{p.description}</span>}
+                    {p.link && <a href={p.link} target="_blank" rel="noopener noreferrer" className={styles.productLink}>{p.link}</a>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           <div className={styles.infoRow}>
             <div className={styles.infoLabel}>Operating Hours</div>
             <div className={styles.infoValue}>{agent.operatingHours}</div>

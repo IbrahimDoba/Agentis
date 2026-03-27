@@ -24,3 +24,24 @@ export async function getConversation(conversationId: string) {
   if (!res.ok) throw new Error("Failed to fetch conversation")
   return res.json()
 }
+
+export async function updateAgentPrompt(elevenlabsAgentId: string, systemPrompt: string) {
+  const res = await fetch(`${BASE_URL}/convai/agents/${elevenlabsAgentId}`, {
+    method: "PATCH",
+    headers: headers(),
+    body: JSON.stringify({
+      conversation_config: {
+        agent: {
+          prompt: {
+            prompt: systemPrompt,
+          },
+        },
+      },
+    }),
+  })
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`ElevenLabs update failed: ${text}`)
+  }
+  return res.json()
+}

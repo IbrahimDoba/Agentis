@@ -24,17 +24,27 @@ export const loginSchema = z.object({
 })
 
 export const agentSchema = z.object({
-  businessName: z.string().min(2),
-  businessDescription: z.string().min(20, "Please describe your business (min 20 chars)"),
-  contactEmail: z.string().email("Enter a valid contact email"),
+  businessName: z.string().min(2, "Business name must be at least 2 characters"),
+  businessDescription: z.string().min(20, "Please describe your business (min 20 characters)"),
+  contactEmail: z.string().email("Enter a valid contact email address"),
   contactPhone: z.string().min(7, "Enter a valid contact phone number"),
-  productsServices: z.string().min(10),
-  faqs: z.string().min(10),
-  operatingHours: z.string().min(3),
+  productsServices: z.string().min(10, "Please describe your products or services (min 10 characters)"),
+  faqs: z.string().min(10, "Please add at least one FAQ (min 10 characters)"),
+  operatingHours: z.string().min(3, "Please enter your operating hours"),
   websiteLinks: z.string().optional(),
   responseGuidelines: z.string().optional(),
   profileImageUrl: z.string().optional(),
   whatsappBusinessName: z.string().optional(),
+  category: z.string().optional(),
+  address: z.string().optional(),
+  productsData: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    description: z.string().optional(),
+    price: z.string().optional(),
+    link: z.string().optional(),
+    imageUrl: z.string().optional(),
+  })).optional(),
 })
 
 export const adminAgentUpdateSchema = z.object({
@@ -46,11 +56,11 @@ export const adminAgentUpdateSchema = z.object({
 })
 
 export const demoSchema = z.object({
-  name: z.string().min(2),
-  email: z.string().email(),
-  businessName: z.string().min(2),
-  preferredDate: z.string(),
-  preferredTime: z.string(),
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Enter a valid email address"),
+  businessName: z.string().min(2, "Business name must be at least 2 characters"),
+  preferredDate: z.string().min(1, "Please select a preferred date"),
+  preferredTime: z.string().min(1, "Please select a preferred time"),
   message: z.string().optional(),
 })
 

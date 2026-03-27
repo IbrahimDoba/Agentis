@@ -16,7 +16,7 @@ interface SidebarProps {
 
 const navItems = [
   { href: "/dashboard", label: "Overview", icon: "◈" },
-  { href: "/dashboard/agent", label: "My Agent", icon: "🤖" },
+  { href: "/dashboard/agents", label: "Agents", icon: "🤖" },
   { href: "/dashboard/chats", label: "Conversations", icon: "💬" },
   { href: "/dashboard/profile", label: "Profile", icon: "👤" },
 ]

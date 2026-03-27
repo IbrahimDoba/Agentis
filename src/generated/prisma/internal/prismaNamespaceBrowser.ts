@@ -90,6 +90,7 @@ export const UserScalarFieldEnum = {
   businessAddress: 'businessAddress',
   businessEmail: 'businessEmail',
   businessWebsite: 'businessWebsite',
+  maxAgents: 'maxAgents',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -115,6 +116,9 @@ export const AgentScalarFieldEnum = {
   whatsappPhoneNumber: 'whatsappPhoneNumber',
   qrCodeUrl: 'qrCodeUrl',
   elevenlabsAgentId: 'elevenlabsAgentId',
+  category: 'category',
+  address: 'address',
+  productsData: 'productsData',
   status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -131,6 +135,14 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
 export const QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
@@ -145,4 +157,13 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 

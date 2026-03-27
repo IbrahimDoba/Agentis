@@ -20,8 +20,18 @@ export type UserModel = runtime.Types.Result.DefaultSelection<Prisma.$UserPayloa
 
 export type AggregateUser = {
   _count: UserCountAggregateOutputType | null
+  _avg: UserAvgAggregateOutputType | null
+  _sum: UserSumAggregateOutputType | null
   _min: UserMinAggregateOutputType | null
   _max: UserMaxAggregateOutputType | null
+}
+
+export type UserAvgAggregateOutputType = {
+  maxAgents: number | null
+}
+
+export type UserSumAggregateOutputType = {
+  maxAgents: number | null
 }
 
 export type UserMinAggregateOutputType = {
@@ -43,6 +53,7 @@ export type UserMinAggregateOutputType = {
   businessAddress: string | null
   businessEmail: string | null
   businessWebsite: string | null
+  maxAgents: number | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -66,6 +77,7 @@ export type UserMaxAggregateOutputType = {
   businessAddress: string | null
   businessEmail: string | null
   businessWebsite: string | null
+  maxAgents: number | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -89,11 +101,20 @@ export type UserCountAggregateOutputType = {
   businessAddress: number
   businessEmail: number
   businessWebsite: number
+  maxAgents: number
   createdAt: number
   updatedAt: number
   _all: number
 }
 
+
+export type UserAvgAggregateInputType = {
+  maxAgents?: true
+}
+
+export type UserSumAggregateInputType = {
+  maxAgents?: true
+}
 
 export type UserMinAggregateInputType = {
   id?: true
@@ -114,6 +135,7 @@ export type UserMinAggregateInputType = {
   businessAddress?: true
   businessEmail?: true
   businessWebsite?: true
+  maxAgents?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -137,6 +159,7 @@ export type UserMaxAggregateInputType = {
   businessAddress?: true
   businessEmail?: true
   businessWebsite?: true
+  maxAgents?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -160,6 +183,7 @@ export type UserCountAggregateInputType = {
   businessAddress?: true
   businessEmail?: true
   businessWebsite?: true
+  maxAgents?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -203,6 +227,18 @@ export type UserAggregateArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: UserAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: UserSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: UserMinAggregateInputType
@@ -233,6 +269,8 @@ export type UserGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
   take?: number
   skip?: number
   _count?: UserCountAggregateInputType | true
+  _avg?: UserAvgAggregateInputType
+  _sum?: UserSumAggregateInputType
   _min?: UserMinAggregateInputType
   _max?: UserMaxAggregateInputType
 }
@@ -256,9 +294,12 @@ export type UserGroupByOutputType = {
   businessAddress: string | null
   businessEmail: string | null
   businessWebsite: string | null
+  maxAgents: number
   createdAt: Date
   updatedAt: Date
   _count: UserCountAggregateOutputType | null
+  _avg: UserAvgAggregateOutputType | null
+  _sum: UserSumAggregateOutputType | null
   _min: UserMinAggregateOutputType | null
   _max: UserMaxAggregateOutputType | null
 }
@@ -300,6 +341,7 @@ export type UserWhereInput = {
   businessAddress?: Prisma.StringNullableFilter<"User"> | string | null
   businessEmail?: Prisma.StringNullableFilter<"User"> | string | null
   businessWebsite?: Prisma.StringNullableFilter<"User"> | string | null
+  maxAgents?: Prisma.IntFilter<"User"> | number
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   agents?: Prisma.AgentListRelationFilter
@@ -324,6 +366,7 @@ export type UserOrderByWithRelationInput = {
   businessAddress?: Prisma.SortOrderInput | Prisma.SortOrder
   businessEmail?: Prisma.SortOrderInput | Prisma.SortOrder
   businessWebsite?: Prisma.SortOrderInput | Prisma.SortOrder
+  maxAgents?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   agents?: Prisma.AgentOrderByRelationAggregateInput
@@ -351,6 +394,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   businessAddress?: Prisma.StringNullableFilter<"User"> | string | null
   businessEmail?: Prisma.StringNullableFilter<"User"> | string | null
   businessWebsite?: Prisma.StringNullableFilter<"User"> | string | null
+  maxAgents?: Prisma.IntFilter<"User"> | number
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   agents?: Prisma.AgentListRelationFilter
@@ -375,11 +419,14 @@ export type UserOrderByWithAggregationInput = {
   businessAddress?: Prisma.SortOrderInput | Prisma.SortOrder
   businessEmail?: Prisma.SortOrderInput | Prisma.SortOrder
   businessWebsite?: Prisma.SortOrderInput | Prisma.SortOrder
+  maxAgents?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.UserCountOrderByAggregateInput
+  _avg?: Prisma.UserAvgOrderByAggregateInput
   _max?: Prisma.UserMaxOrderByAggregateInput
   _min?: Prisma.UserMinOrderByAggregateInput
+  _sum?: Prisma.UserSumOrderByAggregateInput
 }
 
 export type UserScalarWhereWithAggregatesInput = {
@@ -404,6 +451,7 @@ export type UserScalarWhereWithAggregatesInput = {
   businessAddress?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   businessEmail?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   businessWebsite?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  maxAgents?: Prisma.IntWithAggregatesFilter<"User"> | number
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
 }
@@ -427,6 +475,7 @@ export type UserCreateInput = {
   businessAddress?: string | null
   businessEmail?: string | null
   businessWebsite?: string | null
+  maxAgents?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   agents?: Prisma.AgentCreateNestedManyWithoutUserInput
@@ -451,6 +500,7 @@ export type UserUncheckedCreateInput = {
   businessAddress?: string | null
   businessEmail?: string | null
   businessWebsite?: string | null
+  maxAgents?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   agents?: Prisma.AgentUncheckedCreateNestedManyWithoutUserInput
@@ -475,6 +525,7 @@ export type UserUpdateInput = {
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   agents?: Prisma.AgentUpdateManyWithoutUserNestedInput
@@ -499,6 +550,7 @@ export type UserUncheckedUpdateInput = {
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   agents?: Prisma.AgentUncheckedUpdateManyWithoutUserNestedInput
@@ -523,6 +575,7 @@ export type UserCreateManyInput = {
   businessAddress?: string | null
   businessEmail?: string | null
   businessWebsite?: string | null
+  maxAgents?: number
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -546,6 +599,7 @@ export type UserUpdateManyMutationInput = {
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -569,6 +623,7 @@ export type UserUncheckedUpdateManyInput = {
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -592,8 +647,13 @@ export type UserCountOrderByAggregateInput = {
   businessAddress?: Prisma.SortOrder
   businessEmail?: Prisma.SortOrder
   businessWebsite?: Prisma.SortOrder
+  maxAgents?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type UserAvgOrderByAggregateInput = {
+  maxAgents?: Prisma.SortOrder
 }
 
 export type UserMaxOrderByAggregateInput = {
@@ -615,6 +675,7 @@ export type UserMaxOrderByAggregateInput = {
   businessAddress?: Prisma.SortOrder
   businessEmail?: Prisma.SortOrder
   businessWebsite?: Prisma.SortOrder
+  maxAgents?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -638,8 +699,13 @@ export type UserMinOrderByAggregateInput = {
   businessAddress?: Prisma.SortOrder
   businessEmail?: Prisma.SortOrder
   businessWebsite?: Prisma.SortOrder
+  maxAgents?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type UserSumOrderByAggregateInput = {
+  maxAgents?: Prisma.SortOrder
 }
 
 export type UserScalarRelationFilter = {
@@ -669,6 +735,14 @@ export type NullableDateTimeFieldUpdateOperationsInput = {
 
 export type BoolFieldUpdateOperationsInput = {
   set?: boolean
+}
+
+export type IntFieldUpdateOperationsInput = {
+  set?: number
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
 }
 
 export type DateTimeFieldUpdateOperationsInput = {
@@ -708,6 +782,7 @@ export type UserCreateWithoutAgentsInput = {
   businessAddress?: string | null
   businessEmail?: string | null
   businessWebsite?: string | null
+  maxAgents?: number
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -731,6 +806,7 @@ export type UserUncheckedCreateWithoutAgentsInput = {
   businessAddress?: string | null
   businessEmail?: string | null
   businessWebsite?: string | null
+  maxAgents?: number
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -770,6 +846,7 @@ export type UserUpdateWithoutAgentsInput = {
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -793,6 +870,7 @@ export type UserUncheckedUpdateWithoutAgentsInput = {
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -847,6 +925,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   businessAddress?: boolean
   businessEmail?: boolean
   businessWebsite?: boolean
+  maxAgents?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   agents?: boolean | Prisma.User$agentsArgs<ExtArgs>
@@ -872,6 +951,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   businessAddress?: boolean
   businessEmail?: boolean
   businessWebsite?: boolean
+  maxAgents?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["user"]>
@@ -895,6 +975,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   businessAddress?: boolean
   businessEmail?: boolean
   businessWebsite?: boolean
+  maxAgents?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["user"]>
@@ -918,11 +999,12 @@ export type UserSelectScalar = {
   businessAddress?: boolean
   businessEmail?: boolean
   businessWebsite?: boolean
+  maxAgents?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "phone" | "businessName" | "passwordHash" | "role" | "status" | "resetToken" | "resetTokenExpiry" | "emailVerified" | "verificationCode" | "verificationCodeExpiry" | "businessCategory" | "businessDescription" | "businessAddress" | "businessEmail" | "businessWebsite" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "phone" | "businessName" | "passwordHash" | "role" | "status" | "resetToken" | "resetTokenExpiry" | "emailVerified" | "verificationCode" | "verificationCodeExpiry" | "businessCategory" | "businessDescription" | "businessAddress" | "businessEmail" | "businessWebsite" | "maxAgents" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   agents?: boolean | Prisma.User$agentsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
@@ -954,6 +1036,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     businessAddress: string | null
     businessEmail: string | null
     businessWebsite: string | null
+    maxAgents: number
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["user"]>
@@ -1398,6 +1481,7 @@ export interface UserFieldRefs {
   readonly businessAddress: Prisma.FieldRef<"User", 'String'>
   readonly businessEmail: Prisma.FieldRef<"User", 'String'>
   readonly businessWebsite: Prisma.FieldRef<"User", 'String'>
+  readonly maxAgents: Prisma.FieldRef<"User", 'Int'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>
 }
