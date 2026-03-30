@@ -27,6 +27,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={spaceGrotesk.variable}>
+      <head>
+        <script
+          src="https://cdn.databuddy.cc/databuddy.js"
+          data-client-id="5c77f52a-12ad-49f1-9ef0-e8c3f0c6a95a"
+          crossOrigin="anonymous"
+          async
+        />
+      </head>
       <body className={spaceGrotesk.className}>
         <QueryProvider>
           <ThemeProvider>{children}</ThemeProvider>
