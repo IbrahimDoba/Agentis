@@ -125,6 +125,103 @@ function MediaIllustration() {
   )
 }
 
+function KnowledgeBaseIllustration() {
+  const docs = [
+    { icon: "📄", name: "Product Catalogue 2025.pdf", size: "2.4 MB" },
+    { icon: "🌐", name: "yourstore.com/faqs", size: "URL" },
+    { icon: "📄", name: "Return Policy.pdf", size: "340 KB" },
+  ]
+  return (
+    <div className={styles.illus}>
+      <div className={styles.illusKb}>
+        <div className={styles.illusKbHeader}>
+          <span className={styles.illusKbTitle}>Knowledge Base</span>
+          <span className={styles.illusKbCount}>3 documents</span>
+        </div>
+        {docs.map((doc, i) => (
+          <div key={i} className={styles.illusKbDoc}>
+            <span className={styles.illusKbDocIcon}>{doc.icon}</span>
+            <span className={styles.illusKbDocName}>{doc.name}</span>
+            <span className={styles.illusKbDocSize}>{doc.size}</span>
+          </div>
+        ))}
+        <div className={styles.illusKbAdd}>+ Upload document or URL</div>
+      </div>
+    </div>
+  )
+}
+
+function ToolsIllustration() {
+  return (
+    <div className={styles.illus}>
+      <div className={styles.illusTools}>
+        <div className={styles.illusToolsChat}>
+          <div className={styles.illusToolsMsg}>What's the status of order #1042?</div>
+          <div className={styles.illusToolsThinking}>
+            <span className={styles.illusToolsSpinner} />
+            Checking order system…
+          </div>
+          <div className={styles.illusToolsReply}>
+            Order #1042 is out for delivery! Expected by 4pm today. 🚚
+          </div>
+        </div>
+        <div className={styles.illusToolsEndpoint}>
+          <span className={styles.illusToolsBadge}>GET</span>
+          <span className={styles.illusToolsUrl}>yourstore.com/api/orders</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function MultiAgentIllustration() {
+  const agents = [
+    { name: "JustFits Store", status: "Active", color: "#00dc82" },
+    { name: "JustFits Support", status: "Active", color: "#00dc82" },
+    { name: "JustFits Sales", status: "Setting up", color: "#f59e0b" },
+  ]
+  return (
+    <div className={styles.illus}>
+      <div className={styles.illusAgents}>
+        {agents.map((a, i) => (
+          <div key={i} className={styles.illusAgentRow}>
+            <div className={styles.illusAgentAvatar}>{a.name[0]}</div>
+            <div className={styles.illusAgentInfo}>
+              <div className={styles.illusAgentName}>{a.name}</div>
+              <div className={styles.illusAgentStatus}>
+                <span className={styles.illusAgentDot} style={{ background: a.color }} />
+                {a.status}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function AiLeadIllustration() {
+  return (
+    <div className={styles.illus}>
+      <div className={styles.illusAiLead}>
+        <div className={styles.illusAiLeadCard}>
+          <div className={styles.illusAiLeadTop}>
+            <span className={styles.illusAiLeadCaller}>+234 803 456 7890</span>
+            <span className={styles.illusAiLeadBadge}>✨ AI detected</span>
+          </div>
+          <p className={styles.illusAiLeadSummary}>
+            Customer asked about pricing for bulk order of 50 units and requested a callback.
+          </p>
+          <div className={styles.illusAiLeadActions}>
+            <span className={styles.illusAiLeadStatus}>🔥 New Lead</span>
+            <span className={styles.illusAiLeadArrow}>Mark Contacted →</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function AnalyticsIllustration() {
   const bars = [55, 70, 45, 85, 60, 90, 75]
   const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
@@ -173,30 +270,56 @@ const features = [
     illustration: <ChatIllustration />,
   },
   {
-    icon: "🧠",
-    title: "Smart FAQ Handling",
+    icon: "📚",
+    title: "Knowledge Base",
     description:
-      "Train your agent once with your business FAQs and it handles hundreds of repetitive questions automatically. Free your team for complex, high-value tasks.",
+      "Upload your documents, PDFs, and website URLs and your agent learns from them instantly. Ask it anything about your business and it answers accurately every time.",
     bullets: [
-      "Import FAQs from your website automatically",
-      "AI-suggested FAQ entries",
-      "Fuzzy matching for similar questions",
-      "Continuous learning from conversations",
+      "Upload PDFs, Word docs, and text files",
+      "Add any webpage URL as a source",
+      "Agent answers from your exact content",
+      "Update knowledge base anytime",
     ],
-    illustration: <FAQIllustration />,
+    illustration: <KnowledgeBaseIllustration />,
+  },
+  {
+    icon: "🔧",
+    title: "Live API Tools",
+    description:
+      "Connect your own backend APIs so the agent can fetch real-time data during conversations — order status, product availability, delivery tracking, and more.",
+    bullets: [
+      "Connect any REST API endpoint",
+      "Supports GET and POST requests",
+      "Fully configurable parameters",
+      "Agent decides when to call each tool",
+    ],
+    illustration: <ToolsIllustration />,
+  },
+  {
+    icon: "🤖",
+    title: "Multiple AI Agents",
+    description:
+      "Run separate AI agents for different brands, departments, or WhatsApp numbers — each with its own personality, knowledge base, and configuration.",
+    bullets: [
+      "Create agents for sales, support, and more",
+      "Each agent fully independent",
+      "Manage all agents from one dashboard",
+      "Upgrade to unlock additional agents",
+    ],
+    illustration: <MultiAgentIllustration />,
   },
   {
     icon: "🎯",
-    title: "Lead Capture & Follow-up",
+    title: "AI Lead Detection",
     description:
-      "Don't just answer questions — capture and qualify leads. Your agent collects contact details, understands intent, and schedules automatic follow-ups.",
+      "Your agent automatically identifies high-intent conversations — customers asking about pricing, placing orders, or requesting callbacks — and flags them as leads.",
     bullets: [
-      "Automatic lead qualification",
-      "CRM-style lead cards",
-      "Scheduled follow-up messages",
-      "Export leads to CSV or integrate via API",
+      "AI scans every conversation for buying intent",
+      "Instant lead card created automatically",
+      "Manual flag option from any conversation",
+      "Track leads from New → Contacted → Closed",
     ],
-    illustration: <LeadIllustration />,
+    illustration: <AiLeadIllustration />,
   },
   {
     icon: "🎙️",

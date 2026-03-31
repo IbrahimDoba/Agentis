@@ -10,9 +10,14 @@ export default async function ChatsPage() {
   const session = await auth()
   if (!session) redirect("/login")
 
-  const agent = await db.agent.findFirst({
+  const agents = await db.agent.findMany({
     where: { userId: session.user.id },
+    select: { id: true, businessName: true, elevenlabsAgentId: true, profileImageUrl: true },
+    orderBy: { createdAt: "asc" },
   })
+
+  const hasAny = agents.length > 0
+  const hasConnected = agents.some((a) => !!a.elevenlabsAgentId)
 
   return (
     <div className={styles.page}>
@@ -20,14 +25,12 @@ export default async function ChatsPage() {
         <div>
           <h1 className={styles.title}>Conversations</h1>
           <p className={styles.subtitle}>
-            {agent?.elevenlabsAgentId
-              ? "All conversations with your AI agent"
-              : "Connect your agent to see conversations"}
+            {hasConnected ? "All conversations with your AI agents" : "Connect your agent to see conversations"}
           </p>
         </div>
       </div>
 
-      {!agent && (
+      {!hasAny && (
         <div className={styles.noAgent}>
           <div className={styles.noAgentIcon}>🤖</div>
           <div className={styles.noAgentTitle}>No agent created yet</div>
@@ -38,7 +41,7 @@ export default async function ChatsPage() {
         </div>
       )}
 
-      {agent && !agent.elevenlabsAgentId && (
+      {hasAny && !hasConnected && (
         <div className={styles.notActive}>
           <div className={styles.notActiveIcon}>⚙️</div>
           <div className={styles.notActiveTitle}>Agent not yet connected</div>
@@ -48,7 +51,7 @@ export default async function ChatsPage() {
         </div>
       )}
 
-      {agent?.elevenlabsAgentId && <ChatsClient />}
+      {hasConnected && <ChatsClient agents={agents} />}
     </div>
   )
 }

@@ -52,7 +52,9 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   User: 'User',
-  Agent: 'Agent'
+  Agent: 'Agent',
+  Lead: 'Lead',
+  ConversationRead: 'ConversationRead'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -119,12 +121,40 @@ export const AgentScalarFieldEnum = {
   category: 'category',
   address: 'address',
   productsData: 'productsData',
+  toolsData: 'toolsData',
   status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type AgentScalarFieldEnum = (typeof AgentScalarFieldEnum)[keyof typeof AgentScalarFieldEnum]
+
+
+export const LeadScalarFieldEnum = {
+  id: 'id',
+  conversationId: 'conversationId',
+  agentId: 'agentId',
+  userId: 'userId',
+  callerNumber: 'callerNumber',
+  summary: 'summary',
+  status: 'status',
+  notes: 'notes',
+  aiDetected: 'aiDetected',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type LeadScalarFieldEnum = (typeof LeadScalarFieldEnum)[keyof typeof LeadScalarFieldEnum]
+
+
+export const ConversationReadScalarFieldEnum = {
+  id: 'id',
+  conversationId: 'conversationId',
+  userId: 'userId',
+  readAt: 'readAt'
+} as const
+
+export type ConversationReadScalarFieldEnum = (typeof ConversationReadScalarFieldEnum)[keyof typeof ConversationReadScalarFieldEnum]
 
 
 export const SortOrder = {

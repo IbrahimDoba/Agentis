@@ -23,6 +23,31 @@ function UserDetailModal({ user, onClose, onStatusChange, loading }: {
   onStatusChange: (userId: string, status: "APPROVED" | "REJECTED" | "SUSPENDED") => void
   loading: string | null
 }) {
+  const router = useRouter()
+  const [maxAgents, setMaxAgents] = useState<number>(user.maxAgents ?? 1)
+  const [savingMaxAgents, setSavingMaxAgents] = useState(false)
+  const [maxAgentsSaved, setMaxAgentsSaved] = useState(false)
+
+  const handleSaveMaxAgents = async () => {
+    setSavingMaxAgents(true)
+    setMaxAgentsSaved(false)
+    try {
+      const res = await fetch(`/api/users/${user.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ maxAgents }),
+      })
+      if (!res.ok) throw new Error("Failed to update")
+      setMaxAgentsSaved(true)
+      router.refresh()
+      setTimeout(() => setMaxAgentsSaved(false), 2000)
+    } catch {
+      alert("Failed to update agent limit")
+    } finally {
+      setSavingMaxAgents(false)
+    }
+  }
+
   return (
     <Modal
       open
@@ -100,7 +125,29 @@ function UserDetailModal({ user, onClose, onStatusChange, loading }: {
             </div>
             <div className={styles.modalRow}>
               <span className={styles.modalLabel}>Agents</span>
-              <span className={styles.modalValue}>{user._count?.agents ?? 0}</span>
+              <span className={styles.modalValue}>{user._count?.agents ?? 0} / {user.maxAgents ?? 1}</span>
+            </div>
+            <div className={styles.modalRow}>
+              <span className={styles.modalLabel}>Agent Limit</span>
+              <span className={styles.modalValue}>
+                <div className={styles.agentLimitRow}>
+                  <input
+                    type="number"
+                    min={1}
+                    max={20}
+                    value={maxAgents}
+                    onChange={(e) => setMaxAgents(Math.max(1, Math.min(20, Number(e.target.value))))}
+                    className={styles.agentLimitInput}
+                  />
+                  <button
+                    className={styles.agentLimitSaveBtn}
+                    onClick={handleSaveMaxAgents}
+                    disabled={savingMaxAgents || maxAgents === (user.maxAgents ?? 1)}
+                  >
+                    {savingMaxAgents ? "Saving…" : maxAgentsSaved ? "Saved ✓" : "Save"}
+                  </button>
+                </div>
+              </span>
             </div>
           </div>
         </div>

@@ -18,6 +18,7 @@ const navItems = [
   { href: "/dashboard", label: "Overview", icon: "◈" },
   { href: "/dashboard/agents", label: "Agents", icon: "🤖" },
   { href: "/dashboard/chats", label: "Conversations", icon: "💬" },
+  { href: "/dashboard/leads", label: "Leads", icon: "🔥" },
   { href: "/dashboard/profile", label: "Profile", icon: "👤" },
 ]
 

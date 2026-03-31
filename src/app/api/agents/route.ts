@@ -12,10 +12,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const isAdmin = session.user.role === "ADMIN"
-
     const agents = await db.agent.findMany({
-      where: isAdmin ? {} : { userId: session.user.id },
+      where: { userId: session.user.id },
       orderBy: { createdAt: "desc" },
       include: {
         user: {

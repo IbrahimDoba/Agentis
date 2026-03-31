@@ -44,7 +44,10 @@ interface ConversationDetail {
 
 interface ConversationDrawerProps {
   conversationId: string | null
+  agentId?: string
   onClose: () => void
+  isLead?: boolean
+  conversation?: { metadata?: Record<string, unknown>; transcript_summary?: string | null; [key: string]: unknown }
 }
 
 function SourceIcon({ source }: { source?: string | null }) {
@@ -81,13 +84,15 @@ function MediaBubble({ msg }: { msg: TranscriptMessage }) {
   )
 }
 
-export function ConversationDrawer({ conversationId, onClose }: ConversationDrawerProps) {
+export function ConversationDrawer({ conversationId, agentId, onClose, isLead: initialIsLead = false, conversation: convMeta }: ConversationDrawerProps) {
   const { data: detail, isLoading: loading, error: queryError } = useConversationDetail(conversationId)
 
   const [summary, setSummary] = useState("")
   const [summaryLoading, setSummaryLoading] = useState(false)
   const [summaryError, setSummaryError] = useState("")
   const [summaryDone, setSummaryDone] = useState(false)
+  const [isLead, setIsLead] = useState(initialIsLead)
+  const [leadLoading, setLeadLoading] = useState(false)
 
   const transcriptRef = useRef<HTMLDivElement>(null)
 
@@ -100,18 +105,44 @@ export function ConversationDrawer({ conversationId, onClose }: ConversationDraw
     }
   }, [detail, summaryDone])
 
-  // Reset summary state when switching conversations
+  // Reset state when switching conversations
   useEffect(() => {
     setSummary("")
     setSummaryDone(false)
     setSummaryError("")
-  }, [conversationId])
+    setIsLead(initialIsLead)
+  }, [conversationId, initialIsLead])
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose() }
     window.addEventListener("keydown", handler)
     return () => window.removeEventListener("keydown", handler)
   }, [onClose])
+
+  const toggleLead = async () => {
+    if (!conversationId || !agentId) return
+    setLeadLoading(true)
+    try {
+      const meta = convMeta?.metadata as Record<string, unknown> | undefined
+      const callerNumber = (meta?.from_number || meta?.caller_id || (meta?.phone_call as Record<string,unknown>)?.external_number) as string | undefined
+      const res = await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          conversationId,
+          agentId,
+          callerNumber,
+          summary: convMeta?.transcript_summary ?? detail?.transcript_summary ?? null,
+        }),
+      })
+      const data = await res.json()
+      setIsLead(!data.removed)
+    } catch {
+      // silently fail
+    } finally {
+      setLeadLoading(false)
+    }
+  }
 
   const generateSummary = async () => {
     if (!conversationId) return
@@ -150,12 +181,22 @@ export function ConversationDrawer({ conversationId, onClose }: ConversationDraw
             <div className={styles.drawerTitle}>{title}</div>
             {subline && <div className={styles.drawerSub}>{subline}</div>}
           </div>
-          <button className={styles.closeBtn} onClick={onClose} aria-label="Close">
+          <div className={styles.headerActions}>
+            <button
+              className={cn(styles.leadBtn, isLead ? styles.leadBtnActive : undefined)}
+              onClick={toggleLead}
+              disabled={leadLoading}
+              title={isLead ? "Remove lead" : "Mark as lead"}
+            >
+              {isLead ? "🔥 Lead" : "Mark as Lead"}
+            </button>
+            <button className={styles.closeBtn} onClick={onClose} aria-label="Close">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
               <line x1="18" y1="6" x2="6" y2="18" />
               <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
           </button>
+          </div>
         </div>
 
         {loading && (
@@ -226,7 +267,9 @@ export function ConversationDrawer({ conversationId, onClose }: ConversationDraw
               {!detail.transcript?.length ? (
                 <div className={styles.emptyTranscript}>No transcript available</div>
               ) : (
-                detail.transcript.map((msg: TranscriptMessage, i: number) => <MediaBubble key={i} msg={msg} />)
+                detail.transcript
+                  .filter((msg) => msg.message?.trim() || msg.audio_url || msg.image_url || msg.video_url || msg.document_url)
+                  .map((msg: TranscriptMessage, i: number) => <MediaBubble key={i} msg={msg} />)
               )}
             </div>
           </div>

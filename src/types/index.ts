@@ -19,6 +19,24 @@ export interface UserPublic {
   maxAgents?: number
 }
 
+export interface ToolParameter {
+  name: string
+  type: "string" | "integer" | "boolean" | "number"
+  description: string
+  required: boolean
+  enum?: string[]
+}
+
+export interface AgentTool {
+  id: string
+  name: string
+  displayName: string
+  description: string
+  url: string
+  method: "GET" | "POST"
+  parameters: ToolParameter[]
+}
+
 export interface Product {
   id: string
   name: string
@@ -49,6 +67,7 @@ export interface AgentPublic {
   category?: string | null
   address?: string | null
   productsData?: Product[] | null
+  toolsData?: AgentTool[] | null
   status: AgentStatus
   createdAt: string
   updatedAt: string

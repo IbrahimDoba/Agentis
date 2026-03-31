@@ -29,6 +29,7 @@ export default async function AdminUsersPage() {
     businessAddress: u.businessAddress ?? null,
     businessEmail: u.businessEmail ?? null,
     businessWebsite: u.businessWebsite ?? null,
+    maxAgents: u.maxAgents ?? 1,
     _count: u._count,
   }))
 

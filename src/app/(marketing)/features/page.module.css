@@ -616,3 +616,291 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Knowledge Base illustration */
+.illusKb {
+  background: var(--bg-secondary, #0f1a12);
+  border: 1px solid var(--border, rgba(255,255,255,0.08));
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.illusKbHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.illusKbTitle {
+  font-size: 12px;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.illusKbCount {
+  font-size: 11px;
+  color: #00dc82;
+  background: rgba(0,220,130,0.1);
+  border: 1px solid rgba(0,220,130,0.2);
+  border-radius: 99px;
+  padding: 1px 8px;
+}
+
+.illusKbDoc {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.625rem;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 8px;
+}
+
+.illusKbDocIcon {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.illusKbDocName {
+  font-size: 11px;
+  color: #94a3b8;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.illusKbDocSize {
+  font-size: 10px;
+  color: #475569;
+  flex-shrink: 0;
+}
+
+.illusKbAdd {
+  font-size: 11px;
+  color: #00dc82;
+  text-align: center;
+  padding: 0.4rem;
+  border: 1px dashed rgba(0,220,130,0.25);
+  border-radius: 8px;
+  margin-top: 0.25rem;
+}
+
+/* Tools illustration */
+.illusTools {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.illusToolsChat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.illusToolsMsg {
+  align-self: flex-end;
+  background: #00dc82;
+  color: #050c08;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 0.5rem 0.75rem;
+  border-radius: 12px 12px 4px 12px;
+  max-width: 80%;
+}
+
+.illusToolsThinking {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 11px;
+  color: #64748b;
+  padding: 0.25rem 0;
+}
+
+.illusToolsSpinner {
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid rgba(0,220,130,0.3);
+  border-top-color: #00dc82;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.illusToolsReply {
+  align-self: flex-start;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: #e2e8f0;
+  font-size: 12px;
+  padding: 0.5rem 0.75rem;
+  border-radius: 12px 12px 12px 4px;
+  max-width: 85%;
+}
+
+.illusToolsEndpoint {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(0,220,130,0.05);
+  border: 1px solid rgba(0,220,130,0.15);
+  border-radius: 8px;
+}
+
+.illusToolsBadge {
+  font-size: 10px;
+  font-weight: 700;
+  color: #00dc82;
+  background: rgba(0,220,130,0.12);
+  padding: 1px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.illusToolsUrl {
+  font-size: 11px;
+  color: #64748b;
+  font-family: monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Multi-agent illustration */
+.illusAgents {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  width: 100%;
+}
+
+.illusAgentRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 10px;
+}
+
+.illusAgentAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #00dc82 0%, #00a86b 100%);
+  color: #050c08;
+  font-weight: 700;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.illusAgentInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.illusAgentName {
+  font-size: 12px;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.illusAgentStatus {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: #64748b;
+}
+
+.illusAgentDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* AI Lead illustration */
+.illusAiLead {
+  width: 100%;
+}
+
+.illusAiLeadCard {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(245,158,11,0.2);
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.illusAiLeadTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.illusAiLeadCaller {
+  font-size: 13px;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.illusAiLeadBadge {
+  font-size: 10px;
+  font-weight: 600;
+  color: #7c3aed;
+  background: rgba(124,58,237,0.1);
+  border: 1px solid rgba(124,58,237,0.2);
+  border-radius: 99px;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+
+.illusAiLeadSummary {
+  font-size: 12px;
+  color: #94a3b8;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.illusAiLeadActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.illusAiLeadStatus {
+  font-size: 11px;
+  font-weight: 700;
+  color: #d97706;
+  background: rgba(245,158,11,0.1);
+  border: 1px solid rgba(245,158,11,0.25);
+  border-radius: 99px;
+  padding: 2px 8px;
+}
+
+.illusAiLeadArrow {
+  font-size: 11px;
+  font-weight: 600;
+  color: #00dc82;
+}

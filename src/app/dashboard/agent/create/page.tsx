@@ -1,21 +1,11 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
-import { db } from "@/lib/db"
 import styles from "./page.module.css"
 import { AgentForm } from "@/components/dashboard/AgentForm"
 
 export default async function CreateAgentPage() {
   const session = await auth()
   if (!session) redirect("/login")
-
-  // Check if user already has an agent
-  const existingAgent = await db.agent.findFirst({
-    where: { userId: session.user.id },
-  })
-
-  if (existingAgent) {
-    redirect(`/dashboard/agent/${existingAgent.id}`)
-  }
 
   return (
     <div className={styles.page}>

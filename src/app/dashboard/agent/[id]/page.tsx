@@ -8,6 +8,8 @@ import { ArrowLeft } from "lucide-react"
 import styles from "./page.module.css"
 import { AgentForm } from "@/components/dashboard/AgentForm"
 import { AgentProfileForm } from "@/components/dashboard/AgentProfileForm"
+import { KnowledgeBaseTab } from "@/components/dashboard/KnowledgeBaseTab"
+import { ToolsTab } from "@/components/dashboard/ToolsTab"
 import { StatusBadge } from "@/components/ui/Badge"
 import { useAgent } from "@/hooks/useAgent"
 import { cn } from "@/lib/utils"
@@ -15,6 +17,8 @@ import { cn } from "@/lib/utils"
 const TABS = [
   { id: "profile", label: "Profile" },
   { id: "configuration", label: "Configuration" },
+  { id: "knowledge-base", label: "Knowledge Base" },
+  { id: "tools", label: "Tools" },
 ]
 
 function Skeleton({ height, width }: { height: number; width?: string }) {
@@ -111,6 +115,16 @@ export default function AgentDetailPage() {
         )}
         {activeTab === "configuration" && (
           <AgentForm initialData={agent} agentId={agent.id} />
+        )}
+        {activeTab === "knowledge-base" && (
+          <KnowledgeBaseTab agentId={agent.id} elevenlabsAgentId={agent.elevenlabsAgentId} />
+        )}
+        {activeTab === "tools" && (
+          <ToolsTab
+            agentId={agent.id}
+            initialTools={agent.toolsData as any}
+            elevenlabsAgentId={agent.elevenlabsAgentId}
+          />
         )}
       </div>
     </div>

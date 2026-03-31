@@ -27,3 +27,13 @@ export type User = Prisma.UserModel
  * 
  */
 export type Agent = Prisma.AgentModel
+/**
+ * Model Lead
+ * 
+ */
+export type Lead = Prisma.LeadModel
+/**
+ * Model ConversationRead
+ * 
+ */
+export type ConversationRead = Prisma.ConversationReadModel

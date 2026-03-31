@@ -6,6 +6,8 @@ import type { Conversation } from "@/types"
 
 interface ChatListProps {
   conversations: Conversation[]
+  readIds: Set<string>
+  leadIds: Set<string>
   onSelect: (id: string) => void
 }
 
@@ -15,7 +17,7 @@ function SuccessBadge({ result }: { result: string }) {
   return null
 }
 
-export function ChatList({ conversations, onSelect }: ChatListProps) {
+export function ChatList({ conversations, readIds, leadIds, onSelect }: ChatListProps) {
   if (conversations.length === 0) {
     return (
       <div className={styles.empty}>
@@ -32,6 +34,8 @@ export function ChatList({ conversations, onSelect }: ChatListProps) {
     <div className={styles.container}>
       {conversations.map((conv) => {
         const isActive = conv.status === "in-progress" || conv.status === "initiated"
+        const isUnread = !readIds.has(conv.conversation_id)
+        const isLead = leadIds.has(conv.conversation_id)
         const title = conv.call_summary_title || conv.user_id || getCallerIdentifier(conv)
         const subtitle = conv.call_summary_title && conv.user_id ? conv.user_id : null
         const preview = conv.transcript_summary
@@ -39,15 +43,21 @@ export function ChatList({ conversations, onSelect }: ChatListProps) {
         return (
           <button
             key={conv.conversation_id}
-            className={styles.chatCard}
+            className={cn(styles.chatCard, isUnread ? styles.chatCardUnread : undefined)}
             onClick={() => onSelect(conv.conversation_id)}
           >
             <div className={styles.chatHeader}>
               <div className={styles.titleGroup}>
-                <div className={styles.callerName}>{title}</div>
+                <div className={styles.callerName}>
+                  {isUnread && <span className={styles.unreadDot} />}
+                  {title}
+                </div>
                 {subtitle && <div className={styles.callerSub}>{subtitle}</div>}
               </div>
-              <div className={styles.chatTime}>{formatTime(conv.start_time_unix_secs)}</div>
+              <div className={styles.headerRight}>
+                {isLead && <span className={styles.leadBadge}>🔥 Lead</span>}
+                <span className={styles.chatTime}>{formatTime(conv.start_time_unix_secs)}</span>
+              </div>
             </div>
 
             {preview && (

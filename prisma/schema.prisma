@@ -30,6 +30,8 @@ model User {
   createdAt          DateTime   @default(now())
   updatedAt          DateTime   @updatedAt
   agents             Agent[]
+  leads              Lead[]
+  conversationReads  ConversationRead[]
 }
 
 model Agent {
@@ -54,9 +56,39 @@ model Agent {
   category             String?
   address              String?
   productsData         Json?
+  toolsData            Json?
   status               AgentStatus @default(PENDING_REVIEW)
   createdAt            DateTime    @default(now())
   updatedAt            DateTime    @updatedAt
+  leads                Lead[]
+}
+
+model Lead {
+  id             String     @id @default(cuid())
+  conversationId String
+  agentId        String
+  userId         String
+  callerNumber   String?
+  summary        String?    @db.Text
+  status         LeadStatus @default(NEW)
+  notes          String?    @db.Text
+  aiDetected     Boolean    @default(false)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  agent          Agent      @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  user           User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+}
+
+model ConversationRead {
+  id             String   @id @default(cuid())
+  conversationId String
+  userId         String
+  readAt         DateTime @default(now())
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
 }
 
 enum Role {
@@ -76,4 +108,10 @@ enum AgentStatus {
   SETTING_UP
   ACTIVE
   INACTIVE
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  CLOSED
 }

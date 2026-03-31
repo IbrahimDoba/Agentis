@@ -31,8 +31,12 @@ export function formatDuration(secs: number | null | undefined): string {
 }
 
 export function formatPhoneNumber(raw: string): string {
-  // Strip any non-digit chars except leading +
-  const digits = raw.replace(/\D/g, "")
+  // Handle WhatsApp JID format: 2348012345678:123@s.whatsapp.net
+  const jidMatch = raw.match(/^(\d+)[:@]/)
+  const cleaned = jidMatch ? jidMatch[1] : raw
+
+  // Strip any non-digit chars
+  const digits = cleaned.replace(/\D/g, "")
 
   // Country code lookup: maps prefix → { ccLen, groups }
   // groups = how to split the subscriber number after the country code
@@ -71,19 +75,22 @@ export function getCallerIdentifier(conv: {
   metadata?: Record<string, unknown>
   conversation_id: string
 }): string {
-  // ElevenLabs WhatsApp: user_id is the caller's phone number at the top level
-  if (conv.user_id) return formatPhoneNumber(conv.user_id)
-
-  // Fallback: check metadata fields
+  // Metadata fields have the real phone number — check these first
   const meta = conv.metadata as Record<string, unknown> | undefined
   if (meta) {
     const phone =
-      (meta.caller_id as string) ||
       (meta.from_number as string) ||
-      (meta.initiator_identifier as string) ||
+      (meta.caller_id as string) ||
       ((meta.phone_call as Record<string, string> | undefined)?.external_number) ||
-      ((meta.phone_call as Record<string, string> | undefined)?.from)
+      ((meta.phone_call as Record<string, string> | undefined)?.from) ||
+      (meta.initiator_identifier as string)
     if (phone) return formatPhoneNumber(phone)
+  }
+
+  // Only use user_id if it looks like a real phone number (7+ digits)
+  if (conv.user_id) {
+    const digits = conv.user_id.replace(/\D/g, "")
+    if (digits.length >= 7) return formatPhoneNumber(conv.user_id)
   }
 
   return formatConvId(conv.conversation_id)

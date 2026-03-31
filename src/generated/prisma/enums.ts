@@ -35,3 +35,12 @@ export const AgentStatus = {
 } as const
 
 export type AgentStatus = (typeof AgentStatus)[keyof typeof AgentStatus]
+
+
+export const LeadStatus = {
+  NEW: 'NEW',
+  CONTACTED: 'CONTACTED',
+  CLOSED: 'CLOSED'
+} as const
+
+export type LeadStatus = (typeof LeadStatus)[keyof typeof LeadStatus]
