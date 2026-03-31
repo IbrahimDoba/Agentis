@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import { cn, formatTime, formatDuration, getCallerIdentifier } from "@/lib/utils"
 import { useConversationDetail } from "@/hooks/useConversationDetail"
+import type { Conversation } from "@/types"
 import styles from "./ConversationDrawer.module.css"
 
 interface TranscriptMessage {
@@ -47,7 +48,7 @@ interface ConversationDrawerProps {
   agentId?: string
   onClose: () => void
   isLead?: boolean
-  conversation?: { metadata?: Record<string, unknown>; transcript_summary?: string | null; [key: string]: unknown }
+  conversation?: Conversation
 }
 
 function SourceIcon({ source }: { source?: string | null }) {
@@ -123,8 +124,8 @@ export function ConversationDrawer({ conversationId, agentId, onClose, isLead: i
     if (!conversationId || !agentId) return
     setLeadLoading(true)
     try {
-      const meta = convMeta?.metadata as Record<string, unknown> | undefined
-      const callerNumber = (meta?.from_number || meta?.caller_id || (meta?.phone_call as Record<string,unknown>)?.external_number) as string | undefined
+      const meta = convMeta?.metadata
+      const callerNumber = meta?.from_number || meta?.caller_id || meta?.phone_call?.external_number || meta?.phone_call?.from
       const res = await fetch("/api/leads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -268,7 +269,7 @@ export function ConversationDrawer({ conversationId, agentId, onClose, isLead: i
                 <div className={styles.emptyTranscript}>No transcript available</div>
               ) : (
                 detail.transcript
-                  .filter((msg) => msg.message?.trim() || msg.audio_url || msg.image_url || msg.video_url || msg.document_url)
+                  .filter((msg: TranscriptMessage) => msg.message?.trim() || msg.audio_url || msg.image_url || msg.video_url || msg.document_url)
                   .map((msg: TranscriptMessage, i: number) => <MediaBubble key={i} msg={msg} />)
               )}
             </div>
