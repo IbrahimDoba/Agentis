@@ -59,6 +59,10 @@ export function Sidebar({ userName, businessName, isOpen, onClose }: SidebarProp
       </nav>
 
       <div className={styles.bottom}>
+        <Link href="/changelog" className={styles.whatsNewLink} onClick={onClose}>
+          <span className={styles.navIcon}>✨</span>
+          What&apos;s New
+        </Link>
         <div className={styles.userCard}>
           <div className={styles.userName}>{userName}</div>
           <div className={styles.userBusiness}>{businessName}</div>
