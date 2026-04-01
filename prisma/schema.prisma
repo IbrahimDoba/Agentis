@@ -62,6 +62,7 @@ model Agent {
   updatedAt            DateTime    @updatedAt
   leads                Lead[]
   conversationLogs     ConversationLog[]
+  customers            Customer[]
 }
 
 model Lead {
@@ -117,11 +118,27 @@ enum LeadStatus {
   CLOSED
 }
 
+model Customer {
+  id                  String    @id @default(cuid())
+  phoneNumber         String    @unique
+  agentId             String?
+  name                String?
+  email               String?
+  conversationSummary String?   @db.Text
+  lastSeen            DateTime  @default(now())
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  agent               Agent?           @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  conversationLogs    ConversationLog[]
+}
+
 model ConversationLog {
   id                String    @id @default(cuid())
   conversationId    String    @unique
   elevenlabsAgentId String
   agentId           String?
+  customerId        String?
   phoneNumber       String?
   transcript        Json
   summary           String?   @db.Text
@@ -132,4 +149,5 @@ model ConversationLog {
   createdAt         DateTime  @default(now())
 
   agent             Agent?    @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  customer          Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
 }

@@ -15,6 +15,7 @@ export default function SignupPage() {
     name: "",
     email: "",
     businessName: "",
+    phone: "",
     password: "",
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -106,6 +107,22 @@ export default function SignupPage() {
             error={errors.businessName}
             required
           />
+
+          <div className={styles.fieldWithTooltip}>
+            <Input
+              label="WhatsApp Phone Number"
+              name="phone"
+              type="tel"
+              placeholder="+234 800 000 0000"
+              value={form.phone}
+              onChange={handleChange}
+              error={errors.phone}
+              autoComplete="tel"
+            />
+            <p className={styles.tooltip}>
+              📞 We&apos;ll use this number to confirm and activate your AI agent on WhatsApp.
+            </p>
+          </div>
 
           <Input
             label="Email Address"

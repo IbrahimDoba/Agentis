@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ errors }, { status: 400 })
     }
 
-    const { name, email, businessName, password } = parsed.data
+    const { name, email, businessName, phone, password } = parsed.data
 
     const existing = await db.user.findUnique({ where: { email } })
     if (existing) {
@@ -54,6 +54,7 @@ export async function POST(req: NextRequest) {
         name,
         email,
         businessName,
+        phone: phone || null,
         passwordHash,
         emailVerified: false,
         verificationCode: code,

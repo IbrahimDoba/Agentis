@@ -55,6 +55,7 @@ export const ModelName = {
   Agent: 'Agent',
   Lead: 'Lead',
   ConversationRead: 'ConversationRead',
+  Customer: 'Customer',
   ConversationLog: 'ConversationLog'
 } as const
 
@@ -158,11 +159,27 @@ export const ConversationReadScalarFieldEnum = {
 export type ConversationReadScalarFieldEnum = (typeof ConversationReadScalarFieldEnum)[keyof typeof ConversationReadScalarFieldEnum]
 
 
+export const CustomerScalarFieldEnum = {
+  id: 'id',
+  phoneNumber: 'phoneNumber',
+  agentId: 'agentId',
+  name: 'name',
+  email: 'email',
+  conversationSummary: 'conversationSummary',
+  lastSeen: 'lastSeen',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CustomerScalarFieldEnum = (typeof CustomerScalarFieldEnum)[keyof typeof CustomerScalarFieldEnum]
+
+
 export const ConversationLogScalarFieldEnum = {
   id: 'id',
   conversationId: 'conversationId',
   elevenlabsAgentId: 'elevenlabsAgentId',
   agentId: 'agentId',
+  customerId: 'customerId',
   phoneNumber: 'phoneNumber',
   transcript: 'transcript',
   summary: 'summary',

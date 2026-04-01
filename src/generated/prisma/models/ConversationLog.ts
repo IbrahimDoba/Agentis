@@ -39,6 +39,7 @@ export type ConversationLogMinAggregateOutputType = {
   conversationId: string | null
   elevenlabsAgentId: string | null
   agentId: string | null
+  customerId: string | null
   phoneNumber: string | null
   summary: string | null
   durationSecs: number | null
@@ -52,6 +53,7 @@ export type ConversationLogMaxAggregateOutputType = {
   conversationId: string | null
   elevenlabsAgentId: string | null
   agentId: string | null
+  customerId: string | null
   phoneNumber: string | null
   summary: string | null
   durationSecs: number | null
@@ -65,6 +67,7 @@ export type ConversationLogCountAggregateOutputType = {
   conversationId: number
   elevenlabsAgentId: number
   agentId: number
+  customerId: number
   phoneNumber: number
   transcript: number
   summary: number
@@ -90,6 +93,7 @@ export type ConversationLogMinAggregateInputType = {
   conversationId?: true
   elevenlabsAgentId?: true
   agentId?: true
+  customerId?: true
   phoneNumber?: true
   summary?: true
   durationSecs?: true
@@ -103,6 +107,7 @@ export type ConversationLogMaxAggregateInputType = {
   conversationId?: true
   elevenlabsAgentId?: true
   agentId?: true
+  customerId?: true
   phoneNumber?: true
   summary?: true
   durationSecs?: true
@@ -116,6 +121,7 @@ export type ConversationLogCountAggregateInputType = {
   conversationId?: true
   elevenlabsAgentId?: true
   agentId?: true
+  customerId?: true
   phoneNumber?: true
   transcript?: true
   summary?: true
@@ -218,6 +224,7 @@ export type ConversationLogGroupByOutputType = {
   conversationId: string
   elevenlabsAgentId: string
   agentId: string | null
+  customerId: string | null
   phoneNumber: string | null
   transcript: runtime.JsonValue
   summary: string | null
@@ -256,6 +263,7 @@ export type ConversationLogWhereInput = {
   conversationId?: Prisma.StringFilter<"ConversationLog"> | string
   elevenlabsAgentId?: Prisma.StringFilter<"ConversationLog"> | string
   agentId?: Prisma.StringNullableFilter<"ConversationLog"> | string | null
+  customerId?: Prisma.StringNullableFilter<"ConversationLog"> | string | null
   phoneNumber?: Prisma.StringNullableFilter<"ConversationLog"> | string | null
   transcript?: Prisma.JsonFilter<"ConversationLog">
   summary?: Prisma.StringNullableFilter<"ConversationLog"> | string | null
@@ -265,6 +273,7 @@ export type ConversationLogWhereInput = {
   rawPayload?: Prisma.JsonFilter<"ConversationLog">
   createdAt?: Prisma.DateTimeFilter<"ConversationLog"> | Date | string
   agent?: Prisma.XOR<Prisma.AgentNullableScalarRelationFilter, Prisma.AgentWhereInput> | null
+  customer?: Prisma.XOR<Prisma.CustomerNullableScalarRelationFilter, Prisma.CustomerWhereInput> | null
 }
 
 export type ConversationLogOrderByWithRelationInput = {
@@ -272,6 +281,7 @@ export type ConversationLogOrderByWithRelationInput = {
   conversationId?: Prisma.SortOrder
   elevenlabsAgentId?: Prisma.SortOrder
   agentId?: Prisma.SortOrderInput | Prisma.SortOrder
+  customerId?: Prisma.SortOrderInput | Prisma.SortOrder
   phoneNumber?: Prisma.SortOrderInput | Prisma.SortOrder
   transcript?: Prisma.SortOrder
   summary?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -281,6 +291,7 @@ export type ConversationLogOrderByWithRelationInput = {
   rawPayload?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   agent?: Prisma.AgentOrderByWithRelationInput
+  customer?: Prisma.CustomerOrderByWithRelationInput
 }
 
 export type ConversationLogWhereUniqueInput = Prisma.AtLeast<{
@@ -291,6 +302,7 @@ export type ConversationLogWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.ConversationLogWhereInput | Prisma.ConversationLogWhereInput[]
   elevenlabsAgentId?: Prisma.StringFilter<"ConversationLog"> | string
   agentId?: Prisma.StringNullableFilter<"ConversationLog"> | string | null
+  customerId?: Prisma.StringNullableFilter<"ConversationLog"> | string | null
   phoneNumber?: Prisma.StringNullableFilter<"ConversationLog"> | string | null
   transcript?: Prisma.JsonFilter<"ConversationLog">
   summary?: Prisma.StringNullableFilter<"ConversationLog"> | string | null
@@ -300,6 +312,7 @@ export type ConversationLogWhereUniqueInput = Prisma.AtLeast<{
   rawPayload?: Prisma.JsonFilter<"ConversationLog">
   createdAt?: Prisma.DateTimeFilter<"ConversationLog"> | Date | string
   agent?: Prisma.XOR<Prisma.AgentNullableScalarRelationFilter, Prisma.AgentWhereInput> | null
+  customer?: Prisma.XOR<Prisma.CustomerNullableScalarRelationFilter, Prisma.CustomerWhereInput> | null
 }, "id" | "conversationId">
 
 export type ConversationLogOrderByWithAggregationInput = {
@@ -307,6 +320,7 @@ export type ConversationLogOrderByWithAggregationInput = {
   conversationId?: Prisma.SortOrder
   elevenlabsAgentId?: Prisma.SortOrder
   agentId?: Prisma.SortOrderInput | Prisma.SortOrder
+  customerId?: Prisma.SortOrderInput | Prisma.SortOrder
   phoneNumber?: Prisma.SortOrderInput | Prisma.SortOrder
   transcript?: Prisma.SortOrder
   summary?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -330,6 +344,7 @@ export type ConversationLogScalarWhereWithAggregatesInput = {
   conversationId?: Prisma.StringWithAggregatesFilter<"ConversationLog"> | string
   elevenlabsAgentId?: Prisma.StringWithAggregatesFilter<"ConversationLog"> | string
   agentId?: Prisma.StringNullableWithAggregatesFilter<"ConversationLog"> | string | null
+  customerId?: Prisma.StringNullableWithAggregatesFilter<"ConversationLog"> | string | null
   phoneNumber?: Prisma.StringNullableWithAggregatesFilter<"ConversationLog"> | string | null
   transcript?: Prisma.JsonWithAggregatesFilter<"ConversationLog">
   summary?: Prisma.StringNullableWithAggregatesFilter<"ConversationLog"> | string | null
@@ -353,6 +368,7 @@ export type ConversationLogCreateInput = {
   rawPayload: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   agent?: Prisma.AgentCreateNestedOneWithoutConversationLogsInput
+  customer?: Prisma.CustomerCreateNestedOneWithoutConversationLogsInput
 }
 
 export type ConversationLogUncheckedCreateInput = {
@@ -360,6 +376,7 @@ export type ConversationLogUncheckedCreateInput = {
   conversationId: string
   elevenlabsAgentId: string
   agentId?: string | null
+  customerId?: string | null
   phoneNumber?: string | null
   transcript: Prisma.JsonNullValueInput | runtime.InputJsonValue
   summary?: string | null
@@ -383,6 +400,7 @@ export type ConversationLogUpdateInput = {
   rawPayload?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   agent?: Prisma.AgentUpdateOneWithoutConversationLogsNestedInput
+  customer?: Prisma.CustomerUpdateOneWithoutConversationLogsNestedInput
 }
 
 export type ConversationLogUncheckedUpdateInput = {
@@ -390,6 +408,7 @@ export type ConversationLogUncheckedUpdateInput = {
   conversationId?: Prisma.StringFieldUpdateOperationsInput | string
   elevenlabsAgentId?: Prisma.StringFieldUpdateOperationsInput | string
   agentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   transcript?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -405,6 +424,7 @@ export type ConversationLogCreateManyInput = {
   conversationId: string
   elevenlabsAgentId: string
   agentId?: string | null
+  customerId?: string | null
   phoneNumber?: string | null
   transcript: Prisma.JsonNullValueInput | runtime.InputJsonValue
   summary?: string | null
@@ -434,6 +454,7 @@ export type ConversationLogUncheckedUpdateManyInput = {
   conversationId?: Prisma.StringFieldUpdateOperationsInput | string
   elevenlabsAgentId?: Prisma.StringFieldUpdateOperationsInput | string
   agentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  customerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   transcript?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -459,6 +480,7 @@ export type ConversationLogCountOrderByAggregateInput = {
   conversationId?: Prisma.SortOrder
   elevenlabsAgentId?: Prisma.SortOrder
   agentId?: Prisma.SortOrder
+  customerId?: Prisma.SortOrder
   phoneNumber?: Prisma.SortOrder
   transcript?: Prisma.SortOrder
   summary?: Prisma.SortOrder
@@ -478,6 +500,7 @@ export type ConversationLogMaxOrderByAggregateInput = {
   conversationId?: Prisma.SortOrder
   elevenlabsAgentId?: Prisma.SortOrder
   agentId?: Prisma.SortOrder
+  customerId?: Prisma.SortOrder
   phoneNumber?: Prisma.SortOrder
   summary?: Prisma.SortOrder
   durationSecs?: Prisma.SortOrder
@@ -491,6 +514,7 @@ export type ConversationLogMinOrderByAggregateInput = {
   conversationId?: Prisma.SortOrder
   elevenlabsAgentId?: Prisma.SortOrder
   agentId?: Prisma.SortOrder
+  customerId?: Prisma.SortOrder
   phoneNumber?: Prisma.SortOrder
   summary?: Prisma.SortOrder
   durationSecs?: Prisma.SortOrder
@@ -545,6 +569,48 @@ export type ConversationLogUncheckedUpdateManyWithoutAgentNestedInput = {
   deleteMany?: Prisma.ConversationLogScalarWhereInput | Prisma.ConversationLogScalarWhereInput[]
 }
 
+export type ConversationLogCreateNestedManyWithoutCustomerInput = {
+  create?: Prisma.XOR<Prisma.ConversationLogCreateWithoutCustomerInput, Prisma.ConversationLogUncheckedCreateWithoutCustomerInput> | Prisma.ConversationLogCreateWithoutCustomerInput[] | Prisma.ConversationLogUncheckedCreateWithoutCustomerInput[]
+  connectOrCreate?: Prisma.ConversationLogCreateOrConnectWithoutCustomerInput | Prisma.ConversationLogCreateOrConnectWithoutCustomerInput[]
+  createMany?: Prisma.ConversationLogCreateManyCustomerInputEnvelope
+  connect?: Prisma.ConversationLogWhereUniqueInput | Prisma.ConversationLogWhereUniqueInput[]
+}
+
+export type ConversationLogUncheckedCreateNestedManyWithoutCustomerInput = {
+  create?: Prisma.XOR<Prisma.ConversationLogCreateWithoutCustomerInput, Prisma.ConversationLogUncheckedCreateWithoutCustomerInput> | Prisma.ConversationLogCreateWithoutCustomerInput[] | Prisma.ConversationLogUncheckedCreateWithoutCustomerInput[]
+  connectOrCreate?: Prisma.ConversationLogCreateOrConnectWithoutCustomerInput | Prisma.ConversationLogCreateOrConnectWithoutCustomerInput[]
+  createMany?: Prisma.ConversationLogCreateManyCustomerInputEnvelope
+  connect?: Prisma.ConversationLogWhereUniqueInput | Prisma.ConversationLogWhereUniqueInput[]
+}
+
+export type ConversationLogUpdateManyWithoutCustomerNestedInput = {
+  create?: Prisma.XOR<Prisma.ConversationLogCreateWithoutCustomerInput, Prisma.ConversationLogUncheckedCreateWithoutCustomerInput> | Prisma.ConversationLogCreateWithoutCustomerInput[] | Prisma.ConversationLogUncheckedCreateWithoutCustomerInput[]
+  connectOrCreate?: Prisma.ConversationLogCreateOrConnectWithoutCustomerInput | Prisma.ConversationLogCreateOrConnectWithoutCustomerInput[]
+  upsert?: Prisma.ConversationLogUpsertWithWhereUniqueWithoutCustomerInput | Prisma.ConversationLogUpsertWithWhereUniqueWithoutCustomerInput[]
+  createMany?: Prisma.ConversationLogCreateManyCustomerInputEnvelope
+  set?: Prisma.ConversationLogWhereUniqueInput | Prisma.ConversationLogWhereUniqueInput[]
+  disconnect?: Prisma.ConversationLogWhereUniqueInput | Prisma.ConversationLogWhereUniqueInput[]
+  delete?: Prisma.ConversationLogWhereUniqueInput | Prisma.ConversationLogWhereUniqueInput[]
+  connect?: Prisma.ConversationLogWhereUniqueInput | Prisma.ConversationLogWhereUniqueInput[]
+  update?: Prisma.ConversationLogUpdateWithWhereUniqueWithoutCustomerInput | Prisma.ConversationLogUpdateWithWhereUniqueWithoutCustomerInput[]
+  updateMany?: Prisma.ConversationLogUpdateManyWithWhereWithoutCustomerInput | Prisma.ConversationLogUpdateManyWithWhereWithoutCustomerInput[]
+  deleteMany?: Prisma.ConversationLogScalarWhereInput | Prisma.ConversationLogScalarWhereInput[]
+}
+
+export type ConversationLogUncheckedUpdateManyWithoutCustomerNestedInput = {
+  create?: Prisma.XOR<Prisma.ConversationLogCreateWithoutCustomerInput, Prisma.ConversationLogUncheckedCreateWithoutCustomerInput> | Prisma.ConversationLogCreateWithoutCustomerInput[] | Prisma.ConversationLogUncheckedCreateWithoutCustomerInput[]
+  connectOrCreate?: Prisma.ConversationLogCreateOrConnectWithoutCustomerInput | Prisma.ConversationLogCreateOrConnectWithoutCustomerInput[]
+  upsert?: Prisma.ConversationLogUpsertWithWhereUniqueWithoutCustomerInput | Prisma.ConversationLogUpsertWithWhereUniqueWithoutCustomerInput[]
+  createMany?: Prisma.ConversationLogCreateManyCustomerInputEnvelope
+  set?: Prisma.ConversationLogWhereUniqueInput | Prisma.ConversationLogWhereUniqueInput[]
+  disconnect?: Prisma.ConversationLogWhereUniqueInput | Prisma.ConversationLogWhereUniqueInput[]
+  delete?: Prisma.ConversationLogWhereUniqueInput | Prisma.ConversationLogWhereUniqueInput[]
+  connect?: Prisma.ConversationLogWhereUniqueInput | Prisma.ConversationLogWhereUniqueInput[]
+  update?: Prisma.ConversationLogUpdateWithWhereUniqueWithoutCustomerInput | Prisma.ConversationLogUpdateWithWhereUniqueWithoutCustomerInput[]
+  updateMany?: Prisma.ConversationLogUpdateManyWithWhereWithoutCustomerInput | Prisma.ConversationLogUpdateManyWithWhereWithoutCustomerInput[]
+  deleteMany?: Prisma.ConversationLogScalarWhereInput | Prisma.ConversationLogScalarWhereInput[]
+}
+
 export type NullableIntFieldUpdateOperationsInput = {
   set?: number | null
   increment?: number
@@ -565,12 +631,14 @@ export type ConversationLogCreateWithoutAgentInput = {
   status?: string | null
   rawPayload: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
+  customer?: Prisma.CustomerCreateNestedOneWithoutConversationLogsInput
 }
 
 export type ConversationLogUncheckedCreateWithoutAgentInput = {
   id?: string
   conversationId: string
   elevenlabsAgentId: string
+  customerId?: string | null
   phoneNumber?: string | null
   transcript: Prisma.JsonNullValueInput | runtime.InputJsonValue
   summary?: string | null
@@ -615,6 +683,7 @@ export type ConversationLogScalarWhereInput = {
   conversationId?: Prisma.StringFilter<"ConversationLog"> | string
   elevenlabsAgentId?: Prisma.StringFilter<"ConversationLog"> | string
   agentId?: Prisma.StringNullableFilter<"ConversationLog"> | string | null
+  customerId?: Prisma.StringNullableFilter<"ConversationLog"> | string | null
   phoneNumber?: Prisma.StringNullableFilter<"ConversationLog"> | string | null
   transcript?: Prisma.JsonFilter<"ConversationLog">
   summary?: Prisma.StringNullableFilter<"ConversationLog"> | string | null
@@ -625,10 +694,67 @@ export type ConversationLogScalarWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"ConversationLog"> | Date | string
 }
 
+export type ConversationLogCreateWithoutCustomerInput = {
+  id?: string
+  conversationId: string
+  elevenlabsAgentId: string
+  phoneNumber?: string | null
+  transcript: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  summary?: string | null
+  durationSecs?: number | null
+  startTime?: Date | string | null
+  status?: string | null
+  rawPayload: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Date | string
+  agent?: Prisma.AgentCreateNestedOneWithoutConversationLogsInput
+}
+
+export type ConversationLogUncheckedCreateWithoutCustomerInput = {
+  id?: string
+  conversationId: string
+  elevenlabsAgentId: string
+  agentId?: string | null
+  phoneNumber?: string | null
+  transcript: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  summary?: string | null
+  durationSecs?: number | null
+  startTime?: Date | string | null
+  status?: string | null
+  rawPayload: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Date | string
+}
+
+export type ConversationLogCreateOrConnectWithoutCustomerInput = {
+  where: Prisma.ConversationLogWhereUniqueInput
+  create: Prisma.XOR<Prisma.ConversationLogCreateWithoutCustomerInput, Prisma.ConversationLogUncheckedCreateWithoutCustomerInput>
+}
+
+export type ConversationLogCreateManyCustomerInputEnvelope = {
+  data: Prisma.ConversationLogCreateManyCustomerInput | Prisma.ConversationLogCreateManyCustomerInput[]
+  skipDuplicates?: boolean
+}
+
+export type ConversationLogUpsertWithWhereUniqueWithoutCustomerInput = {
+  where: Prisma.ConversationLogWhereUniqueInput
+  update: Prisma.XOR<Prisma.ConversationLogUpdateWithoutCustomerInput, Prisma.ConversationLogUncheckedUpdateWithoutCustomerInput>
+  create: Prisma.XOR<Prisma.ConversationLogCreateWithoutCustomerInput, Prisma.ConversationLogUncheckedCreateWithoutCustomerInput>
+}
+
+export type ConversationLogUpdateWithWhereUniqueWithoutCustomerInput = {
+  where: Prisma.ConversationLogWhereUniqueInput
+  data: Prisma.XOR<Prisma.ConversationLogUpdateWithoutCustomerInput, Prisma.ConversationLogUncheckedUpdateWithoutCustomerInput>
+}
+
+export type ConversationLogUpdateManyWithWhereWithoutCustomerInput = {
+  where: Prisma.ConversationLogScalarWhereInput
+  data: Prisma.XOR<Prisma.ConversationLogUpdateManyMutationInput, Prisma.ConversationLogUncheckedUpdateManyWithoutCustomerInput>
+}
+
 export type ConversationLogCreateManyAgentInput = {
   id?: string
   conversationId: string
   elevenlabsAgentId: string
+  customerId?: string | null
   phoneNumber?: string | null
   transcript: Prisma.JsonNullValueInput | runtime.InputJsonValue
   summary?: string | null
@@ -651,12 +777,14 @@ export type ConversationLogUpdateWithoutAgentInput = {
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   rawPayload?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  customer?: Prisma.CustomerUpdateOneWithoutConversationLogsNestedInput
 }
 
 export type ConversationLogUncheckedUpdateWithoutAgentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   conversationId?: Prisma.StringFieldUpdateOperationsInput | string
   elevenlabsAgentId?: Prisma.StringFieldUpdateOperationsInput | string
+  customerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   transcript?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -671,6 +799,67 @@ export type ConversationLogUncheckedUpdateManyWithoutAgentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   conversationId?: Prisma.StringFieldUpdateOperationsInput | string
   elevenlabsAgentId?: Prisma.StringFieldUpdateOperationsInput | string
+  customerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  transcript?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationSecs?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  startTime?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rawPayload?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type ConversationLogCreateManyCustomerInput = {
+  id?: string
+  conversationId: string
+  elevenlabsAgentId: string
+  agentId?: string | null
+  phoneNumber?: string | null
+  transcript: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  summary?: string | null
+  durationSecs?: number | null
+  startTime?: Date | string | null
+  status?: string | null
+  rawPayload: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Date | string
+}
+
+export type ConversationLogUpdateWithoutCustomerInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  conversationId?: Prisma.StringFieldUpdateOperationsInput | string
+  elevenlabsAgentId?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  transcript?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationSecs?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  startTime?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rawPayload?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  agent?: Prisma.AgentUpdateOneWithoutConversationLogsNestedInput
+}
+
+export type ConversationLogUncheckedUpdateWithoutCustomerInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  conversationId?: Prisma.StringFieldUpdateOperationsInput | string
+  elevenlabsAgentId?: Prisma.StringFieldUpdateOperationsInput | string
+  agentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  transcript?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationSecs?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  startTime?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rawPayload?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type ConversationLogUncheckedUpdateManyWithoutCustomerInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  conversationId?: Prisma.StringFieldUpdateOperationsInput | string
+  elevenlabsAgentId?: Prisma.StringFieldUpdateOperationsInput | string
+  agentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   transcript?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -688,6 +877,7 @@ export type ConversationLogSelect<ExtArgs extends runtime.Types.Extensions.Inter
   conversationId?: boolean
   elevenlabsAgentId?: boolean
   agentId?: boolean
+  customerId?: boolean
   phoneNumber?: boolean
   transcript?: boolean
   summary?: boolean
@@ -697,6 +887,7 @@ export type ConversationLogSelect<ExtArgs extends runtime.Types.Extensions.Inter
   rawPayload?: boolean
   createdAt?: boolean
   agent?: boolean | Prisma.ConversationLog$agentArgs<ExtArgs>
+  customer?: boolean | Prisma.ConversationLog$customerArgs<ExtArgs>
 }, ExtArgs["result"]["conversationLog"]>
 
 export type ConversationLogSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -704,6 +895,7 @@ export type ConversationLogSelectCreateManyAndReturn<ExtArgs extends runtime.Typ
   conversationId?: boolean
   elevenlabsAgentId?: boolean
   agentId?: boolean
+  customerId?: boolean
   phoneNumber?: boolean
   transcript?: boolean
   summary?: boolean
@@ -713,6 +905,7 @@ export type ConversationLogSelectCreateManyAndReturn<ExtArgs extends runtime.Typ
   rawPayload?: boolean
   createdAt?: boolean
   agent?: boolean | Prisma.ConversationLog$agentArgs<ExtArgs>
+  customer?: boolean | Prisma.ConversationLog$customerArgs<ExtArgs>
 }, ExtArgs["result"]["conversationLog"]>
 
 export type ConversationLogSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -720,6 +913,7 @@ export type ConversationLogSelectUpdateManyAndReturn<ExtArgs extends runtime.Typ
   conversationId?: boolean
   elevenlabsAgentId?: boolean
   agentId?: boolean
+  customerId?: boolean
   phoneNumber?: boolean
   transcript?: boolean
   summary?: boolean
@@ -729,6 +923,7 @@ export type ConversationLogSelectUpdateManyAndReturn<ExtArgs extends runtime.Typ
   rawPayload?: boolean
   createdAt?: boolean
   agent?: boolean | Prisma.ConversationLog$agentArgs<ExtArgs>
+  customer?: boolean | Prisma.ConversationLog$customerArgs<ExtArgs>
 }, ExtArgs["result"]["conversationLog"]>
 
 export type ConversationLogSelectScalar = {
@@ -736,6 +931,7 @@ export type ConversationLogSelectScalar = {
   conversationId?: boolean
   elevenlabsAgentId?: boolean
   agentId?: boolean
+  customerId?: boolean
   phoneNumber?: boolean
   transcript?: boolean
   summary?: boolean
@@ -746,27 +942,32 @@ export type ConversationLogSelectScalar = {
   createdAt?: boolean
 }
 
-export type ConversationLogOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "conversationId" | "elevenlabsAgentId" | "agentId" | "phoneNumber" | "transcript" | "summary" | "durationSecs" | "startTime" | "status" | "rawPayload" | "createdAt", ExtArgs["result"]["conversationLog"]>
+export type ConversationLogOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "conversationId" | "elevenlabsAgentId" | "agentId" | "customerId" | "phoneNumber" | "transcript" | "summary" | "durationSecs" | "startTime" | "status" | "rawPayload" | "createdAt", ExtArgs["result"]["conversationLog"]>
 export type ConversationLogInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   agent?: boolean | Prisma.ConversationLog$agentArgs<ExtArgs>
+  customer?: boolean | Prisma.ConversationLog$customerArgs<ExtArgs>
 }
 export type ConversationLogIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   agent?: boolean | Prisma.ConversationLog$agentArgs<ExtArgs>
+  customer?: boolean | Prisma.ConversationLog$customerArgs<ExtArgs>
 }
 export type ConversationLogIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   agent?: boolean | Prisma.ConversationLog$agentArgs<ExtArgs>
+  customer?: boolean | Prisma.ConversationLog$customerArgs<ExtArgs>
 }
 
 export type $ConversationLogPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "ConversationLog"
   objects: {
     agent: Prisma.$AgentPayload<ExtArgs> | null
+    customer: Prisma.$CustomerPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     conversationId: string
     elevenlabsAgentId: string
     agentId: string | null
+    customerId: string | null
     phoneNumber: string | null
     transcript: runtime.JsonValue
     summary: string | null
@@ -1170,6 +1371,7 @@ readonly fields: ConversationLogFieldRefs;
 export interface Prisma__ConversationLogClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   agent<T extends Prisma.ConversationLog$agentArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ConversationLog$agentArgs<ExtArgs>>): Prisma.Prisma__AgentClient<runtime.Types.Result.GetResult<Prisma.$AgentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  customer<T extends Prisma.ConversationLog$customerArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ConversationLog$customerArgs<ExtArgs>>): Prisma.Prisma__CustomerClient<runtime.Types.Result.GetResult<Prisma.$CustomerPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1203,6 +1405,7 @@ export interface ConversationLogFieldRefs {
   readonly conversationId: Prisma.FieldRef<"ConversationLog", 'String'>
   readonly elevenlabsAgentId: Prisma.FieldRef<"ConversationLog", 'String'>
   readonly agentId: Prisma.FieldRef<"ConversationLog", 'String'>
+  readonly customerId: Prisma.FieldRef<"ConversationLog", 'String'>
   readonly phoneNumber: Prisma.FieldRef<"ConversationLog", 'String'>
   readonly transcript: Prisma.FieldRef<"ConversationLog", 'Json'>
   readonly summary: Prisma.FieldRef<"ConversationLog", 'String'>
@@ -1628,6 +1831,25 @@ export type ConversationLog$agentArgs<ExtArgs extends runtime.Types.Extensions.I
    */
   include?: Prisma.AgentInclude<ExtArgs> | null
   where?: Prisma.AgentWhereInput
+}
+
+/**
+ * ConversationLog.customer
+ */
+export type ConversationLog$customerArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Customer
+   */
+  select?: Prisma.CustomerSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Customer
+   */
+  omit?: Prisma.CustomerOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CustomerInclude<ExtArgs> | null
+  where?: Prisma.CustomerWhereInput
 }
 
 /**

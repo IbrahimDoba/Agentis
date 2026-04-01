@@ -90,6 +90,23 @@
   line-height: 1.5;
 }
 
+.fieldWithTooltip {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.tooltip {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  background: var(--bg-subtle, rgba(255,255,255,0.04));
+  border-left: 2px solid var(--accent);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  line-height: 1.5;
+}
+
 @media (max-width: 500px) {
   .row {
     grid-template-columns: 1fr;

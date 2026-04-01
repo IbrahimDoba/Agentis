@@ -77,7 +77,18 @@ Follow these rules:
 - For FAQs, present them so the agent can answer naturally without sounding scripted
 - End with a "Behaviour & Tone" section based on the response guidelines (or sensible defaults if none provided)
 - Do NOT include placeholder text or instructions to "fill in later"
-- Do NOT wrap the output in a code block — return the raw markdown only`,
+- Do NOT wrap the output in a code block — return the raw markdown only
+- ALWAYS include the following customer memory block exactly as written at the very top of the prompt, before anything else:
+
+## Customer Memory
+{{#if is_returning_customer}}
+You are speaking with {{customer_name}}. Here is context from their previous conversations with this business:
+{{customer_memory}}
+
+Greet them warmly by name and acknowledge they are a returning customer. Reference relevant past interactions naturally where appropriate.
+{{else}}
+This is a new customer. Greet them warmly. If their name comes up naturally in conversation, remember it.
+{{/if}}`,
       },
       {
         role: "user",

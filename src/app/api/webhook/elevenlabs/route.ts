@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
+import OpenAI from "openai"
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
 // Extract phone number from ElevenLabs conversation metadata
-// Same logic as getCallerIdentifier in utils.ts but returns raw (unformatted)
 function extractPhoneNumber(metadata: Record<string, unknown> | undefined): string | null {
   if (!metadata) return null
   const phone =
@@ -12,6 +14,42 @@ function extractPhoneNumber(metadata: Record<string, unknown> | undefined): stri
     ((metadata.phone_call as Record<string, string> | undefined)?.from) ||
     (metadata.initiator_identifier as string)
   return phone || null
+}
+
+// Build a new running summary by combining the existing one with this session's transcript
+async function buildUpdatedSummary(
+  existingSummary: string | null,
+  transcript: { role: string; message: string }[],
+  sessionSummary: string | undefined
+): Promise<string> {
+  if (transcript.length === 0 && !sessionSummary) return existingSummary ?? ""
+
+  const sessionText = sessionSummary
+    ?? transcript.map((m) => `${m.role === "user" ? "Customer" : "Agent"}: ${m.message}`).join("\n")
+
+  const prompt = existingSummary
+    ? `You are updating a running memory summary for a returning customer.
+
+Existing summary of past conversations:
+${existingSummary}
+
+New conversation that just ended:
+${sessionText}
+
+Update the summary to include the new conversation. Keep it to 4–6 sentences max. Focus on: who the customer is, what they've asked about, what was resolved, any personal details or preferences mentioned, and their purchase/order history.`
+    : `Summarise this customer conversation in 3–4 sentences. Focus on: what the customer wanted, what was resolved, and any personal details or preferences mentioned.
+
+Conversation:
+${sessionText}`
+
+  const completion = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    temperature: 0.2,
+    messages: [{ role: "user", content: prompt }],
+    max_tokens: 300,
+  })
+
+  return completion.choices[0]?.message?.content?.trim() ?? existingSummary ?? ""
 }
 
 export async function POST(req: NextRequest) {
@@ -41,11 +79,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Missing conversation_id or agent_id" }, { status: 400 })
   }
 
-  // Pull fields out of payload
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const transcript = ((payload.transcript as Record<string, unknown>[]) ?? []) as any
+  const raw = payload as any
   const metadata = payload.metadata as Record<string, unknown> | undefined
   const analysis = payload.analysis as Record<string, unknown> | undefined
+  const transcript: { role: string; message: string }[] = raw.transcript ?? []
 
   const phoneNumber = extractPhoneNumber(metadata)
   const summary = (analysis?.transcript_summary ?? payload.transcript_summary) as string | undefined
@@ -59,16 +97,45 @@ export async function POST(req: NextRequest) {
     select: { id: true },
   })
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const raw = payload as any
+  // Upsert customer record if we have a phone number
+  let customerId: string | null = null
+  if (phoneNumber) {
+    const existing = await db.customer.findUnique({
+      where: { phoneNumber },
+      select: { id: true, conversationSummary: true },
+    })
 
-  // Upsert — if somehow we receive the same conversation twice, update it
+    // Build updated running summary in the background (don't block the response)
+    const updatedSummary = await buildUpdatedSummary(
+      existing?.conversationSummary ?? null,
+      transcript,
+      summary
+    ).catch(() => existing?.conversationSummary ?? null)
+
+    const customer = await db.customer.upsert({
+      where: { phoneNumber },
+      create: {
+        phoneNumber,
+        agentId: agent?.id ?? null,
+        conversationSummary: updatedSummary ?? null,
+        lastSeen: new Date(),
+      },
+      update: {
+        conversationSummary: updatedSummary ?? undefined,
+        lastSeen: new Date(),
+      },
+    })
+    customerId = customer.id
+  }
+
+  // Save the conversation log, linked to the customer
   await db.conversationLog.upsert({
     where: { conversationId },
     create: {
       conversationId,
       elevenlabsAgentId,
       agentId: agent?.id ?? null,
+      customerId,
       phoneNumber: phoneNumber ?? null,
       transcript: raw.transcript ?? [],
       summary: summary ?? null,
@@ -78,6 +145,7 @@ export async function POST(req: NextRequest) {
       rawPayload: raw,
     },
     update: {
+      customerId,
       phoneNumber: phoneNumber ?? null,
       transcript: raw.transcript ?? [],
       summary: summary ?? null,

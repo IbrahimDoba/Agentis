@@ -154,7 +154,7 @@ export async function updateAgentTools(elevenlabsAgentId: string, tools: any[]) 
 }
 
 export async function setAgentWebhook(elevenlabsAgentId: string) {
-  const webhookUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/webhook/elevenlabs`
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL
   const webhookSecret = process.env.ELEVENLABS_WEBHOOK_SECRET
 
   const res = await fetch(`${BASE_URL}/convai/agents/${elevenlabsAgentId}`, {
@@ -162,8 +162,14 @@ export async function setAgentWebhook(elevenlabsAgentId: string) {
     headers: headers(),
     body: JSON.stringify({
       platform_settings: {
+        // Fires after conversation ends — saves transcript + updates customer memory
         post_call_webhook: {
-          url: webhookUrl,
+          url: `${appUrl}/api/webhook/elevenlabs`,
+          ...(webhookSecret ? { secret: webhookSecret } : {}),
+        },
+        // Fires before conversation starts — injects customer memory into the session
+        pre_call_webhook: {
+          url: `${appUrl}/api/webhook/elevenlabs/initiate`,
           ...(webhookSecret ? { secret: webhookSecret } : {}),
         },
       },
