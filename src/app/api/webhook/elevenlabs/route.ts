@@ -42,7 +42,8 @@ export async function POST(req: NextRequest) {
   }
 
   // Pull fields out of payload
-  const transcript = (payload.transcript as unknown[]) ?? []
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const transcript = ((payload.transcript as Record<string, unknown>[]) ?? []) as any
   const metadata = payload.metadata as Record<string, unknown> | undefined
   const analysis = payload.analysis as Record<string, unknown> | undefined
 
@@ -58,6 +59,9 @@ export async function POST(req: NextRequest) {
     select: { id: true },
   })
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const raw = payload as any
+
   // Upsert — if somehow we receive the same conversation twice, update it
   await db.conversationLog.upsert({
     where: { conversationId },
@@ -66,20 +70,20 @@ export async function POST(req: NextRequest) {
       elevenlabsAgentId,
       agentId: agent?.id ?? null,
       phoneNumber: phoneNumber ?? null,
-      transcript,
+      transcript: raw.transcript ?? [],
       summary: summary ?? null,
       durationSecs: durationSecs ?? null,
       startTime: startTimeUnix ? new Date(startTimeUnix * 1000) : null,
       status: status ?? null,
-      rawPayload: payload,
+      rawPayload: raw,
     },
     update: {
       phoneNumber: phoneNumber ?? null,
-      transcript,
+      transcript: raw.transcript ?? [],
       summary: summary ?? null,
       durationSecs: durationSecs ?? null,
       status: status ?? null,
-      rawPayload: payload,
+      rawPayload: raw,
     },
   })
 
