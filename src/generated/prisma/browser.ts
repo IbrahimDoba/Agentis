@@ -37,3 +37,8 @@ export type Lead = Prisma.LeadModel
  * 
  */
 export type ConversationRead = Prisma.ConversationReadModel
+/**
+ * Model ConversationLog
+ * 
+ */
+export type ConversationLog = Prisma.ConversationLogModel

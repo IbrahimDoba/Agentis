@@ -4,6 +4,7 @@ import { db } from "@/lib/db"
 import { agentSchema, adminAgentUpdateSchema } from "@/lib/validations"
 import { sendAgentApprovedEmail } from "@/lib/email"
 import { buildAndSyncElevenLabsPrompt } from "@/lib/agentSync"
+import { setAgentWebhook } from "@/lib/elevenlabs"
 import type { Product } from "@/types"
 
 interface Params {
@@ -112,6 +113,12 @@ export async function PATCH(req: NextRequest, { params }: Params) {
           address: updated.address,
           productsData: updated.productsData as Product[] | null,
         }).catch((err) => console.error("[agentSync] ElevenLabs sync failed (admin):", err))
+
+        // If elevenlabsAgentId was just set or updated, register the post-call webhook
+        if (parsed.data.elevenlabsAgentId) {
+          setAgentWebhook(updated.elevenlabsAgentId)
+            .catch((err) => console.error("[agentSync] Webhook setup failed:", err))
+        }
       }
 
       if (parsed.data.status === "ACTIVE") {

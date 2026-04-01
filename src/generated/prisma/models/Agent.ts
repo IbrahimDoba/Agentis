@@ -328,6 +328,7 @@ export type AgentWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Agent"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   leads?: Prisma.LeadListRelationFilter
+  conversationLogs?: Prisma.ConversationLogListRelationFilter
 }
 
 export type AgentOrderByWithRelationInput = {
@@ -357,6 +358,7 @@ export type AgentOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
   leads?: Prisma.LeadOrderByRelationAggregateInput
+  conversationLogs?: Prisma.ConversationLogOrderByRelationAggregateInput
 }
 
 export type AgentWhereUniqueInput = Prisma.AtLeast<{
@@ -389,6 +391,7 @@ export type AgentWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"Agent"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   leads?: Prisma.LeadListRelationFilter
+  conversationLogs?: Prisma.ConversationLogListRelationFilter
 }, "id">
 
 export type AgentOrderByWithAggregationInput = {
@@ -477,6 +480,7 @@ export type AgentCreateInput = {
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutAgentsInput
   leads?: Prisma.LeadCreateNestedManyWithoutAgentInput
+  conversationLogs?: Prisma.ConversationLogCreateNestedManyWithoutAgentInput
 }
 
 export type AgentUncheckedCreateInput = {
@@ -505,6 +509,7 @@ export type AgentUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutAgentInput
+  conversationLogs?: Prisma.ConversationLogUncheckedCreateNestedManyWithoutAgentInput
 }
 
 export type AgentUpdateInput = {
@@ -533,6 +538,7 @@ export type AgentUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutAgentsNestedInput
   leads?: Prisma.LeadUpdateManyWithoutAgentNestedInput
+  conversationLogs?: Prisma.ConversationLogUpdateManyWithoutAgentNestedInput
 }
 
 export type AgentUncheckedUpdateInput = {
@@ -561,6 +567,7 @@ export type AgentUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   leads?: Prisma.LeadUncheckedUpdateManyWithoutAgentNestedInput
+  conversationLogs?: Prisma.ConversationLogUncheckedUpdateManyWithoutAgentNestedInput
 }
 
 export type AgentCreateManyInput = {
@@ -735,6 +742,11 @@ export type AgentScalarRelationFilter = {
   isNot?: Prisma.AgentWhereInput
 }
 
+export type AgentNullableScalarRelationFilter = {
+  is?: Prisma.AgentWhereInput | null
+  isNot?: Prisma.AgentWhereInput | null
+}
+
 export type AgentCreateNestedManyWithoutUserInput = {
   create?: Prisma.XOR<Prisma.AgentCreateWithoutUserInput, Prisma.AgentUncheckedCreateWithoutUserInput> | Prisma.AgentCreateWithoutUserInput[] | Prisma.AgentUncheckedCreateWithoutUserInput[]
   connectOrCreate?: Prisma.AgentCreateOrConnectWithoutUserInput | Prisma.AgentCreateOrConnectWithoutUserInput[]
@@ -795,6 +807,22 @@ export type AgentUpdateOneRequiredWithoutLeadsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.AgentUpdateToOneWithWhereWithoutLeadsInput, Prisma.AgentUpdateWithoutLeadsInput>, Prisma.AgentUncheckedUpdateWithoutLeadsInput>
 }
 
+export type AgentCreateNestedOneWithoutConversationLogsInput = {
+  create?: Prisma.XOR<Prisma.AgentCreateWithoutConversationLogsInput, Prisma.AgentUncheckedCreateWithoutConversationLogsInput>
+  connectOrCreate?: Prisma.AgentCreateOrConnectWithoutConversationLogsInput
+  connect?: Prisma.AgentWhereUniqueInput
+}
+
+export type AgentUpdateOneWithoutConversationLogsNestedInput = {
+  create?: Prisma.XOR<Prisma.AgentCreateWithoutConversationLogsInput, Prisma.AgentUncheckedCreateWithoutConversationLogsInput>
+  connectOrCreate?: Prisma.AgentCreateOrConnectWithoutConversationLogsInput
+  upsert?: Prisma.AgentUpsertWithoutConversationLogsInput
+  disconnect?: Prisma.AgentWhereInput | boolean
+  delete?: Prisma.AgentWhereInput | boolean
+  connect?: Prisma.AgentWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.AgentUpdateToOneWithWhereWithoutConversationLogsInput, Prisma.AgentUpdateWithoutConversationLogsInput>, Prisma.AgentUncheckedUpdateWithoutConversationLogsInput>
+}
+
 export type AgentCreateWithoutUserInput = {
   id?: string
   businessName: string
@@ -820,6 +848,7 @@ export type AgentCreateWithoutUserInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   leads?: Prisma.LeadCreateNestedManyWithoutAgentInput
+  conversationLogs?: Prisma.ConversationLogCreateNestedManyWithoutAgentInput
 }
 
 export type AgentUncheckedCreateWithoutUserInput = {
@@ -847,6 +876,7 @@ export type AgentUncheckedCreateWithoutUserInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutAgentInput
+  conversationLogs?: Prisma.ConversationLogUncheckedCreateNestedManyWithoutAgentInput
 }
 
 export type AgentCreateOrConnectWithoutUserInput = {
@@ -930,6 +960,7 @@ export type AgentCreateWithoutLeadsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutAgentsInput
+  conversationLogs?: Prisma.ConversationLogCreateNestedManyWithoutAgentInput
 }
 
 export type AgentUncheckedCreateWithoutLeadsInput = {
@@ -957,6 +988,7 @@ export type AgentUncheckedCreateWithoutLeadsInput = {
   status?: $Enums.AgentStatus
   createdAt?: Date | string
   updatedAt?: Date | string
+  conversationLogs?: Prisma.ConversationLogUncheckedCreateNestedManyWithoutAgentInput
 }
 
 export type AgentCreateOrConnectWithoutLeadsInput = {
@@ -1000,6 +1032,7 @@ export type AgentUpdateWithoutLeadsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutAgentsNestedInput
+  conversationLogs?: Prisma.ConversationLogUpdateManyWithoutAgentNestedInput
 }
 
 export type AgentUncheckedUpdateWithoutLeadsInput = {
@@ -1027,6 +1060,135 @@ export type AgentUncheckedUpdateWithoutLeadsInput = {
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  conversationLogs?: Prisma.ConversationLogUncheckedUpdateManyWithoutAgentNestedInput
+}
+
+export type AgentCreateWithoutConversationLogsInput = {
+  id?: string
+  businessName: string
+  businessDescription: string
+  productsServices: string
+  faqs: string
+  operatingHours: string
+  contactEmail?: string | null
+  contactPhone?: string | null
+  websiteLinks?: string | null
+  responseGuidelines?: string | null
+  profileImageUrl?: string | null
+  whatsappBusinessName?: string | null
+  whatsappAgentLink?: string | null
+  whatsappPhoneNumber?: string | null
+  qrCodeUrl?: string | null
+  elevenlabsAgentId?: string | null
+  category?: string | null
+  address?: string | null
+  productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  status?: $Enums.AgentStatus
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  user: Prisma.UserCreateNestedOneWithoutAgentsInput
+  leads?: Prisma.LeadCreateNestedManyWithoutAgentInput
+}
+
+export type AgentUncheckedCreateWithoutConversationLogsInput = {
+  id?: string
+  userId: string
+  businessName: string
+  businessDescription: string
+  productsServices: string
+  faqs: string
+  operatingHours: string
+  contactEmail?: string | null
+  contactPhone?: string | null
+  websiteLinks?: string | null
+  responseGuidelines?: string | null
+  profileImageUrl?: string | null
+  whatsappBusinessName?: string | null
+  whatsappAgentLink?: string | null
+  whatsappPhoneNumber?: string | null
+  qrCodeUrl?: string | null
+  elevenlabsAgentId?: string | null
+  category?: string | null
+  address?: string | null
+  productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  status?: $Enums.AgentStatus
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutAgentInput
+}
+
+export type AgentCreateOrConnectWithoutConversationLogsInput = {
+  where: Prisma.AgentWhereUniqueInput
+  create: Prisma.XOR<Prisma.AgentCreateWithoutConversationLogsInput, Prisma.AgentUncheckedCreateWithoutConversationLogsInput>
+}
+
+export type AgentUpsertWithoutConversationLogsInput = {
+  update: Prisma.XOR<Prisma.AgentUpdateWithoutConversationLogsInput, Prisma.AgentUncheckedUpdateWithoutConversationLogsInput>
+  create: Prisma.XOR<Prisma.AgentCreateWithoutConversationLogsInput, Prisma.AgentUncheckedCreateWithoutConversationLogsInput>
+  where?: Prisma.AgentWhereInput
+}
+
+export type AgentUpdateToOneWithWhereWithoutConversationLogsInput = {
+  where?: Prisma.AgentWhereInput
+  data: Prisma.XOR<Prisma.AgentUpdateWithoutConversationLogsInput, Prisma.AgentUncheckedUpdateWithoutConversationLogsInput>
+}
+
+export type AgentUpdateWithoutConversationLogsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessDescription?: Prisma.StringFieldUpdateOperationsInput | string
+  productsServices?: Prisma.StringFieldUpdateOperationsInput | string
+  faqs?: Prisma.StringFieldUpdateOperationsInput | string
+  operatingHours?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  websiteLinks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  responseGuidelines?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappBusinessName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappAgentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappPhoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  qrCodeUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  elevenlabsAgentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneRequiredWithoutAgentsNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutAgentNestedInput
+}
+
+export type AgentUncheckedUpdateWithoutConversationLogsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessDescription?: Prisma.StringFieldUpdateOperationsInput | string
+  productsServices?: Prisma.StringFieldUpdateOperationsInput | string
+  faqs?: Prisma.StringFieldUpdateOperationsInput | string
+  operatingHours?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  websiteLinks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  responseGuidelines?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappBusinessName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappAgentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappPhoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  qrCodeUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  elevenlabsAgentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutAgentNestedInput
 }
 
 export type AgentCreateManyUserInput = {
@@ -1080,6 +1242,7 @@ export type AgentUpdateWithoutUserInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   leads?: Prisma.LeadUpdateManyWithoutAgentNestedInput
+  conversationLogs?: Prisma.ConversationLogUpdateManyWithoutAgentNestedInput
 }
 
 export type AgentUncheckedUpdateWithoutUserInput = {
@@ -1107,6 +1270,7 @@ export type AgentUncheckedUpdateWithoutUserInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   leads?: Prisma.LeadUncheckedUpdateManyWithoutAgentNestedInput
+  conversationLogs?: Prisma.ConversationLogUncheckedUpdateManyWithoutAgentNestedInput
 }
 
 export type AgentUncheckedUpdateManyWithoutUserInput = {
@@ -1142,10 +1306,12 @@ export type AgentUncheckedUpdateManyWithoutUserInput = {
 
 export type AgentCountOutputType = {
   leads: number
+  conversationLogs: number
 }
 
 export type AgentCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   leads?: boolean | AgentCountOutputTypeCountLeadsArgs
+  conversationLogs?: boolean | AgentCountOutputTypeCountConversationLogsArgs
 }
 
 /**
@@ -1163,6 +1329,13 @@ export type AgentCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extens
  */
 export type AgentCountOutputTypeCountLeadsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.LeadWhereInput
+}
+
+/**
+ * AgentCountOutputType without action
+ */
+export type AgentCountOutputTypeCountConversationLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ConversationLogWhereInput
 }
 
 
@@ -1193,6 +1366,7 @@ export type AgentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   leads?: boolean | Prisma.Agent$leadsArgs<ExtArgs>
+  conversationLogs?: boolean | Prisma.Agent$conversationLogsArgs<ExtArgs>
   _count?: boolean | Prisma.AgentCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["agent"]>
 
@@ -1283,6 +1457,7 @@ export type AgentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = ru
 export type AgentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   leads?: boolean | Prisma.Agent$leadsArgs<ExtArgs>
+  conversationLogs?: boolean | Prisma.Agent$conversationLogsArgs<ExtArgs>
   _count?: boolean | Prisma.AgentCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type AgentIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1297,6 +1472,7 @@ export type $AgentPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   objects: {
     user: Prisma.$UserPayload<ExtArgs>
     leads: Prisma.$LeadPayload<ExtArgs>[]
+    conversationLogs: Prisma.$ConversationLogPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1719,6 +1895,7 @@ export interface Prisma__AgentClient<T, Null = never, ExtArgs extends runtime.Ty
   readonly [Symbol.toStringTag]: "PrismaPromise"
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   leads<T extends Prisma.Agent$leadsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Agent$leadsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LeadPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  conversationLogs<T extends Prisma.Agent$conversationLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Agent$conversationLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ConversationLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2194,6 +2371,30 @@ export type Agent$leadsArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
   take?: number
   skip?: number
   distinct?: Prisma.LeadScalarFieldEnum | Prisma.LeadScalarFieldEnum[]
+}
+
+/**
+ * Agent.conversationLogs
+ */
+export type Agent$conversationLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ConversationLog
+   */
+  select?: Prisma.ConversationLogSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ConversationLog
+   */
+  omit?: Prisma.ConversationLogOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ConversationLogInclude<ExtArgs> | null
+  where?: Prisma.ConversationLogWhereInput
+  orderBy?: Prisma.ConversationLogOrderByWithRelationInput | Prisma.ConversationLogOrderByWithRelationInput[]
+  cursor?: Prisma.ConversationLogWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ConversationLogScalarFieldEnum | Prisma.ConversationLogScalarFieldEnum[]
 }
 
 /**

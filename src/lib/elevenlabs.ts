@@ -100,23 +100,81 @@ export async function deleteKnowledgeBaseDoc(docId: string) {
 }
 
 export async function updateAgentTools(elevenlabsAgentId: string, tools: any[]) {
+  const payload = {
+    conversation_config: { agent: { prompt: { tools } } },
+  }
+
+  const res = await fetch(`${BASE_URL}/convai/agents/${elevenlabsAgentId}`, {
+    method: "PATCH",
+    headers: headers(),
+    body: JSON.stringify(payload),
+  })
+
+  if (!res.ok) {
+    const text = await res.text()
+
+    // If stale KB documents are blocking the update, remove them and retry
+    let parsed: any
+    try { parsed = JSON.parse(text) } catch { /* not JSON */ }
+    if (parsed?.detail?.status === "documents_not_found") {
+      const staleIds: string[] = parsed.detail.message
+        .match(/['"]([^'"]+)['"]/g)
+        ?.map((s: string) => s.replace(/['"]/g, "")) ?? []
+
+      if (staleIds.length > 0) {
+        // Fetch current agent, strip stale KB entries, patch KB first
+        const agent = await getElevenLabsAgent(elevenlabsAgentId)
+        const currentKb: any[] = agent?.conversation_config?.agent?.prompt?.knowledge_base ?? []
+        const cleanKb = currentKb.filter((doc: any) => !staleIds.includes(doc.id))
+        await fetch(`${BASE_URL}/convai/agents/${elevenlabsAgentId}`, {
+          method: "PATCH",
+          headers: headers(),
+          body: JSON.stringify({
+            conversation_config: { agent: { prompt: { knowledge_base: cleanKb } } },
+          }),
+        })
+        // Retry tools update
+        const retry = await fetch(`${BASE_URL}/convai/agents/${elevenlabsAgentId}`, {
+          method: "PATCH",
+          headers: headers(),
+          body: JSON.stringify(payload),
+        })
+        if (!retry.ok) {
+          const retryText = await retry.text()
+          throw new Error(`ElevenLabs tools update failed: ${retryText}`)
+        }
+        return retry.json()
+      }
+    }
+
+    throw new Error(`ElevenLabs tools update failed: ${text}`)
+  }
+
+  return res.json()
+}
+
+export async function setAgentWebhook(elevenlabsAgentId: string) {
+  const webhookUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/webhook/elevenlabs`
+  const webhookSecret = process.env.ELEVENLABS_WEBHOOK_SECRET
+
   const res = await fetch(`${BASE_URL}/convai/agents/${elevenlabsAgentId}`, {
     method: "PATCH",
     headers: headers(),
     body: JSON.stringify({
-      conversation_config: {
-        agent: {
-          prompt: {
-            tools,
-          },
+      platform_settings: {
+        post_call_webhook: {
+          url: webhookUrl,
+          ...(webhookSecret ? { secret: webhookSecret } : {}),
         },
       },
     }),
   })
+
   if (!res.ok) {
     const text = await res.text()
-    throw new Error(`ElevenLabs tools update failed: ${text}`)
+    throw new Error(`ElevenLabs webhook setup failed: ${text}`)
   }
+
   return res.json()
 }
 

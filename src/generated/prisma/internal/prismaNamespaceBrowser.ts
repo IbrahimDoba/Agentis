@@ -54,7 +54,8 @@ export const ModelName = {
   User: 'User',
   Agent: 'Agent',
   Lead: 'Lead',
-  ConversationRead: 'ConversationRead'
+  ConversationRead: 'ConversationRead',
+  ConversationLog: 'ConversationLog'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -157,6 +158,24 @@ export const ConversationReadScalarFieldEnum = {
 export type ConversationReadScalarFieldEnum = (typeof ConversationReadScalarFieldEnum)[keyof typeof ConversationReadScalarFieldEnum]
 
 
+export const ConversationLogScalarFieldEnum = {
+  id: 'id',
+  conversationId: 'conversationId',
+  elevenlabsAgentId: 'elevenlabsAgentId',
+  agentId: 'agentId',
+  phoneNumber: 'phoneNumber',
+  transcript: 'transcript',
+  summary: 'summary',
+  durationSecs: 'durationSecs',
+  startTime: 'startTime',
+  status: 'status',
+  rawPayload: 'rawPayload',
+  createdAt: 'createdAt'
+} as const
+
+export type ConversationLogScalarFieldEnum = (typeof ConversationLogScalarFieldEnum)[keyof typeof ConversationLogScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -171,6 +190,13 @@ export const NullableJsonNullValueInput = {
 } as const
 
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {

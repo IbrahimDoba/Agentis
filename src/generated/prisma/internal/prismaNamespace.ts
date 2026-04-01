@@ -387,7 +387,8 @@ export const ModelName = {
   User: 'User',
   Agent: 'Agent',
   Lead: 'Lead',
-  ConversationRead: 'ConversationRead'
+  ConversationRead: 'ConversationRead',
+  ConversationLog: 'ConversationLog'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -403,7 +404,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "agent" | "lead" | "conversationRead"
+    modelProps: "user" | "agent" | "lead" | "conversationRead" | "conversationLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -703,6 +704,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ConversationLog: {
+      payload: Prisma.$ConversationLogPayload<ExtArgs>
+      fields: Prisma.ConversationLogFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ConversationLogFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConversationLogPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ConversationLogFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConversationLogPayload>
+        }
+        findFirst: {
+          args: Prisma.ConversationLogFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConversationLogPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ConversationLogFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConversationLogPayload>
+        }
+        findMany: {
+          args: Prisma.ConversationLogFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConversationLogPayload>[]
+        }
+        create: {
+          args: Prisma.ConversationLogCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConversationLogPayload>
+        }
+        createMany: {
+          args: Prisma.ConversationLogCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ConversationLogCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConversationLogPayload>[]
+        }
+        delete: {
+          args: Prisma.ConversationLogDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConversationLogPayload>
+        }
+        update: {
+          args: Prisma.ConversationLogUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConversationLogPayload>
+        }
+        deleteMany: {
+          args: Prisma.ConversationLogDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ConversationLogUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ConversationLogUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConversationLogPayload>[]
+        }
+        upsert: {
+          args: Prisma.ConversationLogUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ConversationLogPayload>
+        }
+        aggregate: {
+          args: Prisma.ConversationLogAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateConversationLog>
+        }
+        groupBy: {
+          args: Prisma.ConversationLogGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ConversationLogGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ConversationLogCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ConversationLogCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -826,6 +901,24 @@ export const ConversationReadScalarFieldEnum = {
 export type ConversationReadScalarFieldEnum = (typeof ConversationReadScalarFieldEnum)[keyof typeof ConversationReadScalarFieldEnum]
 
 
+export const ConversationLogScalarFieldEnum = {
+  id: 'id',
+  conversationId: 'conversationId',
+  elevenlabsAgentId: 'elevenlabsAgentId',
+  agentId: 'agentId',
+  phoneNumber: 'phoneNumber',
+  transcript: 'transcript',
+  summary: 'summary',
+  durationSecs: 'durationSecs',
+  startTime: 'startTime',
+  status: 'status',
+  rawPayload: 'rawPayload',
+  createdAt: 'createdAt'
+} as const
+
+export type ConversationLogScalarFieldEnum = (typeof ConversationLogScalarFieldEnum)[keyof typeof ConversationLogScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -840,6 +933,13 @@ export const NullableJsonNullValueInput = {
 } as const
 
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {
@@ -1104,6 +1204,7 @@ export type GlobalOmitConfig = {
   agent?: Prisma.AgentOmit
   lead?: Prisma.LeadOmit
   conversationRead?: Prisma.ConversationReadOmit
+  conversationLog?: Prisma.ConversationLogOmit
 }
 
 /* Types for Logging */

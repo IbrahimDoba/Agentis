@@ -61,6 +61,7 @@ model Agent {
   createdAt            DateTime    @default(now())
   updatedAt            DateTime    @updatedAt
   leads                Lead[]
+  conversationLogs     ConversationLog[]
 }
 
 model Lead {
@@ -114,4 +115,21 @@ enum LeadStatus {
   NEW
   CONTACTED
   CLOSED
+}
+
+model ConversationLog {
+  id                String    @id @default(cuid())
+  conversationId    String    @unique
+  elevenlabsAgentId String
+  agentId           String?
+  phoneNumber       String?
+  transcript        Json
+  summary           String?   @db.Text
+  durationSecs      Int?
+  startTime         DateTime?
+  status            String?
+  rawPayload        Json
+  createdAt         DateTime  @default(now())
+
+  agent             Agent?    @relation(fields: [agentId], references: [id], onDelete: SetNull)
 }
