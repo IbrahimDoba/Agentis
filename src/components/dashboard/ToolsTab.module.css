@@ -417,6 +417,24 @@
   color: var(--accent);
 }
 
+.loadingState {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 3rem 2rem;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.spinner {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 .notConnected {
   display: flex;
   flex-direction: column;

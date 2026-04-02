@@ -2,6 +2,38 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 
+const ELEVENLABS_BASE = "https://api.elevenlabs.io/v1"
+
+function normalizePhone(raw: string): string | null {
+  const jidMatch = raw.match(/^(\d+)[:@]/)
+  const cleaned = jidMatch ? jidMatch[1] : raw.replace(/\D/g, "")
+  return cleaned.length >= 7 ? cleaned : null
+}
+
+function extractPhone(conv: Record<string, unknown>): string | null {
+  const meta = conv.metadata as Record<string, unknown> | undefined
+  if (meta) {
+    const candidates = [
+      meta.from_number as string,
+      meta.caller_id as string,
+      (meta.phone_call as Record<string, string> | undefined)?.external_number,
+      (meta.phone_call as Record<string, string> | undefined)?.from,
+      meta.initiator_identifier as string,
+    ]
+    for (const c of candidates) {
+      if (c) {
+        const n = normalizePhone(c)
+        if (n) return n
+      }
+    }
+  }
+  if (conv.user_id) {
+    const n = normalizePhone(conv.user_id as string)
+    if (n) return n
+  }
+  return null
+}
+
 // GET /api/leads — all leads for the current user
 export async function GET() {
   const session = await auth()
@@ -9,11 +41,57 @@ export async function GET() {
 
   const leads = await db.lead.findMany({
     where: { userId: session.user.id },
-    include: { agent: { select: { businessName: true, profileImageUrl: true } } },
+    include: {
+      agent: { select: { businessName: true, profileImageUrl: true, elevenlabsAgentId: true } },
+    },
     orderBy: { createdAt: "desc" },
   })
 
-  return NextResponse.json({ leads })
+  // Fill missing callerNumbers from ConversationLog
+  const missingIds = leads
+    .filter((l) => !l.callerNumber)
+    .map((l) => l.conversationId)
+
+  const logs = missingIds.length
+    ? await db.conversationLog.findMany({
+        where: { conversationId: { in: missingIds } },
+        select: { conversationId: true, phoneNumber: true },
+      })
+    : []
+
+  const phoneMap = new Map(logs.map((l) => [l.conversationId, l.phoneNumber]))
+
+  // For leads still missing a number, try fetching from ElevenLabs
+  const stillMissing = missingIds.filter((id) => !phoneMap.get(id))
+  if (stillMissing.length > 0 && process.env.ELEVENLABS_API_KEY) {
+    const fetches = stillMissing.map(async (convId) => {
+      try {
+        const res = await fetch(`${ELEVENLABS_BASE}/convai/conversations/${convId}`, {
+          headers: { "xi-api-key": process.env.ELEVENLABS_API_KEY! },
+        })
+        if (!res.ok) return
+        const data = await res.json()
+        const phone = extractPhone(data)
+        if (phone) {
+          phoneMap.set(convId, phone)
+          // Persist so we don't have to fetch again
+          db.lead.updateMany({
+            where: { conversationId: convId, callerNumber: null },
+            data: { callerNumber: phone },
+          }).catch(() => {})
+        }
+      } catch { /* skip */ }
+    })
+    await Promise.all(fetches)
+  }
+
+  const enriched = leads.map((l) => ({
+    ...l,
+    callerNumber: l.callerNumber || phoneMap.get(l.conversationId) || null,
+    agent: { businessName: l.agent.businessName, profileImageUrl: l.agent.profileImageUrl },
+  }))
+
+  return NextResponse.json({ leads: enriched })
 }
 
 // POST /api/leads — create or toggle a lead

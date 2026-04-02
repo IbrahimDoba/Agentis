@@ -21,6 +21,8 @@ export default function SignupPage() {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [agreed, setAgreed] = useState(false)
+  const [agreeError, setAgreeError] = useState("")
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -43,6 +45,11 @@ export default function SignupPage() {
       setErrors(fieldErrors)
       return
     }
+    if (!agreed) {
+      setAgreeError("You must agree to the Terms & Conditions to continue.")
+      return
+    }
+    setAgreeError("")
     setErrors({})
     setLoading(true)
 
@@ -147,6 +154,27 @@ export default function SignupPage() {
             required
             autoComplete="new-password"
           />
+
+          <div className={styles.checkboxWrapper}>
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                className={styles.checkbox}
+                checked={agreed}
+                onChange={(e) => {
+                  setAgreed(e.target.checked)
+                  if (e.target.checked) setAgreeError("")
+                }}
+              />
+              <span>
+                I agree to the{" "}
+                <Link href="/terms" className={styles.link} target="_blank">
+                  Terms &amp; Conditions
+                </Link>
+              </span>
+            </label>
+            {agreeError && <p className={styles.agreeError}>{agreeError}</p>}
+          </div>
 
           <Button type="submit" fullWidth loading={loading}>
             Create Account

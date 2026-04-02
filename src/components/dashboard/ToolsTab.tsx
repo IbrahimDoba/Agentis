@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Plus, Trash2, ChevronDown, ChevronUp, Wrench, CheckCircle, Loader2, AlertCircle, X, Lock } from "lucide-react"
 import { Input } from "@/components/ui/Input"
 import Button from "@/components/ui/Button"
@@ -39,6 +39,7 @@ function toSnakeCase(str: string) {
 
 export function ToolsTab({ agentId, initialTools, elevenlabsAgentId }: ToolsTabProps) {
   const [tools, setTools] = useState<AgentTool[]>(initialTools ?? [])
+  const [loadingTools, setLoadingTools] = useState(!!elevenlabsAgentId)
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [addingNew, setAddingNew] = useState(false)
   const [newTool, setNewTool] = useState<Omit<AgentTool, "id">>(EMPTY_TOOL)
@@ -46,6 +47,16 @@ export function ToolsTab({ agentId, initialTools, elevenlabsAgentId }: ToolsTabP
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState("")
   const [synced, setSynced] = useState(false)
+
+  useEffect(() => {
+    if (!elevenlabsAgentId) return
+    setLoadingTools(true)
+    fetch(`/api/agents/${agentId}/tools`)
+      .then((r) => r.json())
+      .then((data) => { if (data.tools) setTools(data.tools) })
+      .catch(() => {/* keep initialTools on error */})
+      .finally(() => setLoadingTools(false))
+  }, [agentId, elevenlabsAgentId])
 
   if (!elevenlabsAgentId) {
     return (
@@ -59,7 +70,7 @@ export function ToolsTab({ agentId, initialTools, elevenlabsAgentId }: ToolsTabP
     )
   }
 
-  const handleSave = async () => {
+  const saveTools = async (toolList: AgentTool[]) => {
     setSaving(true)
     setError("")
     setSuccess(false)
@@ -67,7 +78,7 @@ export function ToolsTab({ agentId, initialTools, elevenlabsAgentId }: ToolsTabP
       const res = await fetch(`/api/agents/${agentId}/tools`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tools }),
+        body: JSON.stringify({ tools: toolList }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? "Failed to save")
@@ -81,6 +92,8 @@ export function ToolsTab({ agentId, initialTools, elevenlabsAgentId }: ToolsTabP
     }
   }
 
+  const handleSave = () => saveTools(tools)
+
   const handleAddTool = () => {
     if (!newTool.displayName.trim() || !newTool.url.trim()) return
     const tool: AgentTool = {
@@ -93,11 +106,14 @@ export function ToolsTab({ agentId, initialTools, elevenlabsAgentId }: ToolsTabP
     setNewTool(EMPTY_TOOL)
     setAddingNew(false)
     setExpandedId(tool.id)
+    saveTools(updated)
   }
 
   const handleDeleteTool = (id: string) => {
-    setTools(tools.filter((t) => t.id !== id))
+    const updated = tools.filter((t) => t.id !== id)
+    setTools(updated)
     if (expandedId === id) setExpandedId(null)
+    saveTools(updated)
   }
 
   const handleUpdateTool = (id: string, patch: Partial<AgentTool>) => {
@@ -126,6 +142,17 @@ export function ToolsTab({ agentId, initialTools, elevenlabsAgentId }: ToolsTabP
         ? { ...t, parameters: t.parameters.filter((_, i) => i !== idx) }
         : t
     ))
+  }
+
+  if (loadingTools) {
+    return (
+      <div className={styles.root}>
+        <div className={styles.loadingState}>
+          <Loader2 size={20} className={styles.spinner} />
+          <span>Loading tools from agent…</span>
+        </div>
+      </div>
+    )
   }
 
   return (

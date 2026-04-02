@@ -36,8 +36,8 @@ export function ChatList({ conversations, readIds, leadIds, onSelect }: ChatList
         const isActive = conv.status === "in-progress" || conv.status === "initiated"
         const isUnread = !readIds.has(conv.conversation_id)
         const isLead = leadIds.has(conv.conversation_id)
-        const title = conv.call_summary_title || conv.user_id || getCallerIdentifier(conv)
-        const subtitle = conv.call_summary_title && conv.user_id ? conv.user_id : null
+        const title = getCallerIdentifier(conv)
+        const subtitle = conv.call_summary_title || null
         const preview = conv.transcript_summary
 
         return (

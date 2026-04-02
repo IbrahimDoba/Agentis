@@ -153,7 +153,7 @@ export function LeadsClient() {
             <div className={styles.cardTop}>
               <div className={styles.cardLeft}>
                 <div className={styles.caller}>
-                  {lead.callerNumber || "Unknown caller"}
+                  {lead.callerNumber ?? "No number"}
                   {lead.aiDetected && (
                     <span className={styles.aiBadge}>✨ AI detected</span>
                   )}

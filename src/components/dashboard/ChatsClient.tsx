@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from "react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { ChatList } from "./ChatList"
+import { ContactsView } from "./ContactsView"
 import { ConversationDrawer } from "./ConversationDrawer"
 import type { Conversation } from "@/types"
 import styles from "./ChatsClient.module.css"
@@ -28,6 +29,7 @@ export function ChatsClient({ agents }: ChatsClientProps) {
   const connectedAgents = agents.filter((a) => !!a.elevenlabsAgentId)
   const [selectedAgentId, setSelectedAgentId] = useState(connectedAgents[0]?.id ?? "")
   const [selectedConvId, setSelectedConvId] = useState<string | null>(null)
+  const [viewTab, setViewTab] = useState<"chats" | "contacts">("chats")
   const queryClient = useQueryClient()
 
   const { data: convsData, isLoading, error } = useQuery<{ conversations: Conversation[] }>({
@@ -114,19 +116,37 @@ export function ChatsClient({ agents }: ChatsClientProps) {
 
   return (
     <div>
-      {connectedAgents.length > 1 && (
-        <div className={styles.agentTabs}>
-          {connectedAgents.map((agent) => (
-            <button
-              key={agent.id}
-              className={`${styles.agentTab} ${selectedAgentId === agent.id ? styles.agentTabActive : ""}`}
-              onClick={() => handleAgentSwitch(agent.id)}
-            >
-              {agent.businessName}
-            </button>
-          ))}
+      {/* View tabs + agent tabs */}
+      <div className={styles.topBar}>
+        <div className={styles.viewTabs}>
+          <button
+            className={`${styles.viewTab} ${viewTab === "chats" ? styles.viewTabActive : ""}`}
+            onClick={() => setViewTab("chats")}
+          >
+            Chats
+          </button>
+          <button
+            className={`${styles.viewTab} ${viewTab === "contacts" ? styles.viewTabActive : ""}`}
+            onClick={() => setViewTab("contacts")}
+          >
+            Contacts
+          </button>
         </div>
-      )}
+
+        {connectedAgents.length > 1 && (
+          <div className={styles.agentTabs}>
+            {connectedAgents.map((agent) => (
+              <button
+                key={agent.id}
+                className={`${styles.agentTab} ${selectedAgentId === agent.id ? styles.agentTabActive : ""}`}
+                onClick={() => handleAgentSwitch(agent.id)}
+              >
+                {agent.businessName}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
       {isLoading && (
         <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
@@ -156,7 +176,7 @@ export function ChatsClient({ agents }: ChatsClientProps) {
         </div>
       )}
 
-      {!isLoading && !error && (
+      {!isLoading && !error && viewTab === "chats" && (
         <ChatList
           conversations={conversations}
           readIds={readIds}
@@ -165,13 +185,22 @@ export function ChatsClient({ agents }: ChatsClientProps) {
         />
       )}
 
-      <ConversationDrawer
-        conversationId={selectedConvId}
-        agentId={selectedAgentId}
-        onClose={handleClose}
-        isLead={selectedConvId ? leadIds.has(selectedConvId) : false}
-        conversation={selectedConvId ? conversations.find((c) => c.conversation_id === selectedConvId) : undefined}
-      />
+      {!isLoading && !error && viewTab === "contacts" && (
+        <ContactsView
+          conversations={conversations}
+          agentId={selectedAgentId}
+        />
+      )}
+
+      {viewTab === "chats" && (
+        <ConversationDrawer
+          conversationId={selectedConvId}
+          agentId={selectedAgentId}
+          onClose={handleClose}
+          isLead={selectedConvId ? leadIds.has(selectedConvId) : false}
+          conversation={selectedConvId ? conversations.find((c) => c.conversation_id === selectedConvId) : undefined}
+        />
+      )}
     </div>
   )
 }

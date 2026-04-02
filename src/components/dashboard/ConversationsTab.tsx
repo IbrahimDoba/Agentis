@@ -2,8 +2,9 @@
 
 import { useState } from "react"
 import { useQuery } from "@tanstack/react-query"
-import { MessageSquare, Phone, Clock, ChevronRight, Lock, Loader2, AlertCircle, User, Bot } from "lucide-react"
+import { MessageSquare, Phone, Lock, Loader2, AlertCircle, User, Bot } from "lucide-react"
 import type { Conversation, TranscriptMessage } from "@/types"
+import { getCallerIdentifier } from "@/lib/utils"
 import styles from "./ConversationsTab.module.css"
 
 interface ConversationsTabProps {
@@ -16,14 +17,16 @@ function formatDate(unixSecs: number) {
   const now = new Date()
   const isToday = date.toDateString() === now.toDateString()
   const isThisYear = date.getFullYear() === now.getFullYear()
-
-  if (isToday) {
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-  }
-  if (isThisYear) {
-    return date.toLocaleDateString([], { month: "short", day: "numeric" })
-  }
+  if (isToday) return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+  if (isThisYear) return date.toLocaleDateString([], { month: "short", day: "numeric" })
   return date.toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })
+}
+
+function formatDateFull(unixSecs: number) {
+  return new Date(unixSecs * 1000).toLocaleString([], {
+    weekday: "short", month: "short", day: "numeric",
+    hour: "2-digit", minute: "2-digit",
+  })
 }
 
 function formatDuration(secs: number) {
@@ -33,107 +36,106 @@ function formatDuration(secs: number) {
   return s > 0 ? `${m}m ${s}s` : `${m}m`
 }
 
-function getCallerNumber(conv: Conversation): string {
-  const meta = conv.metadata
-  if (!meta) return "Unknown"
-  return (
-    meta.from_number ||
-    meta.caller_id ||
-    meta.phone_call?.external_number ||
-    meta.phone_call?.from ||
-    meta.initiator_identifier ||
-    "Unknown"
-  )
+// Group conversations by phone number, sorted by most recent first
+interface CallerGroup {
+  phoneNumber: string
+  conversations: Conversation[] // sorted oldest → newest
+  lastActive: number
+  totalMessages: number
 }
 
-function StatusDot({ status }: { status: string }) {
-  const cls =
-    status === "done"
-      ? styles.dotDone
-      : status === "failed"
-      ? styles.dotFailed
-      : styles.dotActive
-  return <span className={cls} />
-}
+function groupByPhone(conversations: Conversation[]): CallerGroup[] {
+  const map = new Map<string, Conversation[]>()
 
-function ConversationList({
-  conversations,
-  selectedId,
-  onSelect,
-}: {
-  conversations: Conversation[]
-  selectedId: string | null
-  onSelect: (c: Conversation) => void
-}) {
-  if (conversations.length === 0) {
-    return (
-      <div className={styles.emptyList}>
-        <MessageSquare size={28} className={styles.emptyIcon} />
-        <div className={styles.emptyTitle}>No conversations yet</div>
-        <div className={styles.emptyDesc}>
-          Conversations will appear here once your agent starts talking to customers.
-        </div>
-      </div>
-    )
+  for (const conv of conversations) {
+    const phone = getCallerIdentifier(conv)
+    const existing = map.get(phone) ?? []
+    map.set(phone, [...existing, conv])
   }
 
-  return (
-    <div className={styles.list}>
-      {conversations.map((conv) => {
-        const caller = getCallerNumber(conv)
-        const isSelected = conv.conversation_id === selectedId
-        return (
-          <button
-            key={conv.conversation_id}
-            className={`${styles.listItem} ${isSelected ? styles.listItemActive : ""}`}
-            onClick={() => onSelect(conv)}
-          >
-            <div className={styles.listAvatar}>
-              <Phone size={15} />
-            </div>
-            <div className={styles.listContent}>
-              <div className={styles.listTop}>
-                <span className={styles.listCaller}>{caller}</span>
-                <span className={styles.listDate}>{formatDate(conv.start_time_unix_secs)}</span>
-              </div>
-              {conv.call_summary_title ? (
-                <div className={styles.listSummary}>{conv.call_summary_title}</div>
-              ) : (
-                <div className={styles.listMeta}>
-                  <Clock size={11} />
-                  {formatDuration(conv.call_duration_secs)} · {conv.message_count} messages
-                </div>
-              )}
-            </div>
-            <div className={styles.listRight}>
-              <StatusDot status={conv.status} />
-              <ChevronRight size={13} className={styles.listChevron} />
-            </div>
-          </button>
-        )
-      })}
-    </div>
-  )
+  return Array.from(map.entries())
+    .map(([phoneNumber, convs]) => {
+      const sorted = [...convs].sort((a, b) => a.start_time_unix_secs - b.start_time_unix_secs)
+      return {
+        phoneNumber,
+        conversations: sorted,
+        lastActive: Math.max(...convs.map((c) => c.start_time_unix_secs)),
+        totalMessages: convs.reduce((sum, c) => sum + c.message_count, 0),
+      }
+    })
+    .sort((a, b) => b.lastActive - a.lastActive)
 }
 
-function TranscriptView({
+function SessionBlock({
   agentId,
-  conversation,
+  conv,
+  sessionIndex,
 }: {
   agentId: string
-  conversation: Conversation
+  conv: Conversation
+  sessionIndex: number
 }) {
-  const { data, isLoading } = useQuery<Conversation>({
-    queryKey: ["conversation", conversation.conversation_id],
+  const { data: detail, isLoading } = useQuery<Conversation>({
+    queryKey: ["conversation", conv.conversation_id],
     queryFn: async () => {
-      const res = await fetch(`/api/agents/${agentId}/conversations/${conversation.conversation_id}`)
+      const res = await fetch(`/api/agents/${agentId}/conversations/${conv.conversation_id}`)
       if (!res.ok) throw new Error("Failed to load")
       return res.json()
     },
   })
 
-  const caller = getCallerNumber(conversation)
+  const messages: TranscriptMessage[] = detail?.transcript ?? []
 
+  return (
+    <div>
+      <div className={styles.sessionBreak}>
+        <div className={styles.sessionBreakLine} />
+        <div className={styles.sessionBreakLabel}>
+          Session {sessionIndex + 1} — {formatDateFull(conv.start_time_unix_secs)}
+          {conv.call_duration_secs ? ` · ${formatDuration(conv.call_duration_secs)}` : ""}
+        </div>
+        <div className={styles.sessionBreakLine} />
+      </div>
+
+      {conv.transcript_summary && (
+        <div className={styles.sessionSummary}>
+          {conv.transcript_summary}
+        </div>
+      )}
+
+      {isLoading ? (
+        <div className={styles.transcriptEmpty}>
+          <Loader2 size={14} className={styles.spin} /> Loading…
+        </div>
+      ) : messages.length === 0 ? (
+        <div className={styles.transcriptEmpty}>No transcript for this session.</div>
+      ) : (
+        messages.map((msg: TranscriptMessage, i: number) => (
+          <div
+            key={i}
+            className={`${styles.bubble} ${msg.role === "user" ? styles.bubbleUser : styles.bubbleAgent}`}
+          >
+            <div className={styles.bubbleIcon}>
+              {msg.role === "user" ? <User size={12} /> : <Bot size={12} />}
+            </div>
+            <div className={styles.bubbleBody}>
+              <div className={styles.bubbleText}>{msg.message}</div>
+              <div className={styles.bubbleTime}>{formatDuration(msg.time_in_call_secs)}</div>
+            </div>
+          </div>
+        ))
+      )}
+    </div>
+  )
+}
+
+function MergedTranscriptView({
+  agentId,
+  group,
+}: {
+  agentId: string
+  group: CallerGroup
+}) {
   return (
     <div className={styles.detail}>
       <div className={styles.detailHeader}>
@@ -142,60 +144,32 @@ function TranscriptView({
             <Phone size={16} />
           </div>
           <div>
-            <div className={styles.detailCaller}>{caller}</div>
+            <div className={styles.detailCaller}>{group.phoneNumber}</div>
             <div className={styles.detailMeta}>
-              {new Date(conversation.start_time_unix_secs * 1000).toLocaleString([], {
-                month: "short", day: "numeric", year: "numeric",
-                hour: "2-digit", minute: "2-digit",
-              })}
+              {group.conversations.length} session{group.conversations.length !== 1 ? "s" : ""}
               {" · "}
-              {formatDuration(conversation.call_duration_secs)}
-              {" · "}
-              {conversation.message_count} messages
+              {group.totalMessages} messages total
             </div>
           </div>
         </div>
-        <StatusDot status={conversation.status} />
       </div>
 
-      {conversation.transcript_summary && (
-        <div className={styles.summaryBox}>
-          <div className={styles.summaryLabel}>Summary</div>
-          <div className={styles.summaryText}>{conversation.transcript_summary}</div>
-        </div>
-      )}
-
       <div className={styles.transcript}>
-        {isLoading ? (
-          <div className={styles.transcriptLoading}>
-            <Loader2 size={18} className={styles.spin} />
-            Loading transcript…
-          </div>
-        ) : !data?.transcript || data.transcript.length === 0 ? (
-          <div className={styles.transcriptEmpty}>No transcript available.</div>
-        ) : (
-          data.transcript.map((msg: TranscriptMessage, i: number) => (
-            <div
-              key={i}
-              className={`${styles.bubble} ${msg.role === "user" ? styles.bubbleUser : styles.bubbleAgent}`}
-            >
-              <div className={styles.bubbleIcon}>
-                {msg.role === "user" ? <User size={12} /> : <Bot size={12} />}
-              </div>
-              <div className={styles.bubbleBody}>
-                <div className={styles.bubbleText}>{msg.message}</div>
-                <div className={styles.bubbleTime}>{formatDuration(msg.time_in_call_secs)}</div>
-              </div>
-            </div>
-          ))
-        )}
+        {group.conversations.map((conv, idx) => (
+          <SessionBlock
+            key={conv.conversation_id}
+            agentId={agentId}
+            conv={conv}
+            sessionIndex={idx}
+          />
+        ))}
       </div>
     </div>
   )
 }
 
 export function ConversationsTab({ agentId, elevenlabsAgentId }: ConversationsTabProps) {
-  const [selected, setSelected] = useState<Conversation | null>(null)
+  const [selected, setSelected] = useState<CallerGroup | null>(null)
 
   const { data, isLoading, error } = useQuery<{ conversations: Conversation[] }>({
     queryKey: ["conversations", agentId],
@@ -237,20 +211,50 @@ export function ConversationsTab({ agentId, elevenlabsAgentId }: ConversationsTa
     )
   }
 
-  const conversations = data?.conversations ?? []
+  const groups = groupByPhone(data?.conversations ?? [])
 
   return (
     <div className={styles.root}>
       <div className={`${styles.pane} ${selected ? styles.paneHidden : ""}`}>
         <div className={styles.paneHeader}>
           <span className={styles.paneTitle}>Conversations</span>
-          <span className={styles.paneCount}>{conversations.length}</span>
+          <span className={styles.paneCount}>{groups.length}</span>
         </div>
-        <ConversationList
-          conversations={conversations}
-          selectedId={selected?.conversation_id ?? null}
-          onSelect={setSelected}
-        />
+
+        {groups.length === 0 ? (
+          <div className={styles.emptyList}>
+            <MessageSquare size={28} className={styles.emptyIcon} />
+            <div className={styles.emptyTitle}>No conversations yet</div>
+            <div className={styles.emptyDesc}>
+              Conversations will appear here once your agent starts talking to customers.
+            </div>
+          </div>
+        ) : (
+          <div className={styles.list}>
+            {groups.map((group) => (
+              <button
+                key={group.phoneNumber}
+                className={`${styles.listItem} ${selected?.phoneNumber === group.phoneNumber ? styles.listItemActive : ""}`}
+                onClick={() => setSelected(group)}
+              >
+                <div className={styles.listAvatar}>
+                  <Phone size={15} />
+                </div>
+                <div className={styles.listContent}>
+                  <div className={styles.listTop}>
+                    <span className={styles.listCaller}>{group.phoneNumber}</span>
+                    <span className={styles.listDate}>{formatDate(group.lastActive)}</span>
+                  </div>
+                  <div className={styles.listMeta}>
+                    <span>{group.conversations.length} session{group.conversations.length !== 1 ? "s" : ""}</span>
+                    <span>·</span>
+                    <span>{group.totalMessages} messages</span>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className={`${styles.detailPane} ${!selected ? styles.detailPaneHidden : ""}`}>
@@ -259,12 +263,12 @@ export function ConversationsTab({ agentId, elevenlabsAgentId }: ConversationsTa
             <button className={styles.backBtn} onClick={() => setSelected(null)}>
               ← Back
             </button>
-            <TranscriptView agentId={agentId} conversation={selected} />
+            <MergedTranscriptView agentId={agentId} group={selected} />
           </>
         ) : (
           <div className={styles.noSelection}>
             <MessageSquare size={28} className={styles.noSelectionIcon} />
-            <div>Select a conversation to view the transcript</div>
+            <div>Select a conversation to view the full thread</div>
           </div>
         )}
       </div>

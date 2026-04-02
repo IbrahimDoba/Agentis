@@ -38,36 +38,35 @@ export function formatPhoneNumber(raw: string): string {
   // Strip any non-digit chars
   const digits = cleaned.replace(/\D/g, "")
 
-  // Country code lookup: maps prefix → { ccLen, groups }
-  // groups = how to split the subscriber number after the country code
-  const patterns: Array<{ prefix: string; groups: number[] }> = [
-    { prefix: "234", groups: [3, 3, 4] },  // Nigeria   +234 XXX XXX XXXX
-    { prefix: "1",   groups: [3, 3, 4] },  // US/Canada +1 XXX XXX XXXX
-    { prefix: "44",  groups: [4, 3, 4] },  // UK        +44 XXXX XXX XXXX
-    { prefix: "27",  groups: [2, 3, 4] },  // South Africa
-    { prefix: "254", groups: [3, 3, 3] },  // Kenya
-    { prefix: "233", groups: [2, 3, 4] },  // Ghana
-    { prefix: "255", groups: [3, 3, 3] },  // Tanzania
+  // Country code lookup: prefix, local prefix (replaces country code), digit grouping
+  const patterns: Array<{ prefix: string; local: string; groups: number[] }> = [
+    { prefix: "234", local: "0", groups: [4, 3, 4] },  // Nigeria  0801 234 5678
+    { prefix: "1",   local: "",  groups: [3, 3, 4] },   // US/Canada (XXX) XXX-XXXX
+    { prefix: "44",  local: "0", groups: [4, 3, 4] },   // UK       0XXXX XXX XXXX
+    { prefix: "27",  local: "0", groups: [2, 3, 4] },   // South Africa
+    { prefix: "254", local: "0", groups: [3, 3, 3] },   // Kenya
+    { prefix: "233", local: "0", groups: [2, 3, 4] },   // Ghana
+    { prefix: "255", local: "0", groups: [3, 3, 3] },   // Tanzania
   ]
 
-  for (const { prefix, groups } of patterns) {
+  for (const { prefix, local, groups } of patterns) {
     if (digits.startsWith(prefix)) {
       const subscriber = digits.slice(prefix.length)
+      const full = local + subscriber
       const parts: string[] = []
       let pos = 0
       for (const len of groups) {
-        if (pos >= subscriber.length) break
-        parts.push(subscriber.slice(pos, pos + len))
+        if (pos >= full.length) break
+        parts.push(full.slice(pos, pos + len))
         pos += len
       }
-      // Append any leftover digits
-      if (pos < subscriber.length) parts.push(subscriber.slice(pos))
-      return `+${prefix} ${parts.join(" ")}`
+      if (pos < full.length) parts.push(full.slice(pos))
+      return parts.join(" ")
     }
   }
 
-  // Generic fallback: just prepend + and group in 3s
-  return "+" + digits.replace(/(\d{3})(?=\d)/g, "$1 ").trim()
+  // Generic fallback: group in 3s
+  return digits.replace(/(\d{3})(?=\d)/g, "$1 ").trim()
 }
 
 export function getCallerIdentifier(conv: {
@@ -75,9 +74,23 @@ export function getCallerIdentifier(conv: {
   metadata?: Record<string, unknown>
   conversation_id: string
 }): string {
-  // Metadata fields have the real phone number — check these first
+  // 1. Top-level user_id (most reliable for WhatsApp)
+  if (conv.user_id) {
+    const digits = conv.user_id.replace(/\D/g, "")
+    if (digits.length >= 7) return formatPhoneNumber(conv.user_id)
+  }
+
   const meta = conv.metadata as Record<string, unknown> | undefined
   if (meta) {
+    // 2. metadata.whatsapp.whatsapp_user_id
+    const wa = meta.whatsapp as Record<string, unknown> | undefined
+    if (wa?.whatsapp_user_id) {
+      const uid = wa.whatsapp_user_id as string
+      const digits = uid.replace(/\D/g, "")
+      if (digits.length >= 7) return formatPhoneNumber(uid)
+    }
+
+    // 3. Other metadata fields
     const phone =
       (meta.from_number as string) ||
       (meta.caller_id as string) ||
@@ -85,12 +98,6 @@ export function getCallerIdentifier(conv: {
       ((meta.phone_call as Record<string, string> | undefined)?.from) ||
       (meta.initiator_identifier as string)
     if (phone) return formatPhoneNumber(phone)
-  }
-
-  // Only use user_id if it looks like a real phone number (7+ digits)
-  if (conv.user_id) {
-    const digits = conv.user_id.replace(/\D/g, "")
-    if (digits.length >= 7) return formatPhoneNumber(conv.user_id)
   }
 
   return formatConvId(conv.conversation_id)

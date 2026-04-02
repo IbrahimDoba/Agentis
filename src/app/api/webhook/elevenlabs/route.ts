@@ -4,16 +4,50 @@ import OpenAI from "openai"
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
-// Extract phone number from ElevenLabs conversation metadata
-function extractPhoneNumber(metadata: Record<string, unknown> | undefined): string | null {
-  if (!metadata) return null
-  const phone =
-    (metadata.from_number as string) ||
-    (metadata.caller_id as string) ||
-    ((metadata.phone_call as Record<string, string> | undefined)?.external_number) ||
-    ((metadata.phone_call as Record<string, string> | undefined)?.from) ||
-    (metadata.initiator_identifier as string)
-  return phone || null
+// Normalize any phone-like string to just digits (strips JID suffixes, whitespace, +, etc.)
+// e.g. "2348012345678:123@s.whatsapp.net" → "2348012345678"
+// e.g. "+234 801 234 5678" → "2348012345678"
+function normalizePhone(raw: string): string | null {
+  // Handle WhatsApp JID: take digits before the first : or @
+  const jidMatch = raw.match(/^(\d+)[:@]/)
+  const cleaned = jidMatch ? jidMatch[1] : raw.replace(/\D/g, "")
+  return cleaned.length >= 7 ? cleaned : null
+}
+
+// Extract phone number from ElevenLabs conversation payload
+function extractPhoneNumber(payload: Record<string, unknown>): string | null {
+  // 1. Top-level user_id (most reliable for WhatsApp)
+  if (payload.user_id) {
+    const normalized = normalizePhone(payload.user_id as string)
+    if (normalized) return normalized
+  }
+
+  const metadata = payload.metadata as Record<string, unknown> | undefined
+  if (metadata) {
+    // 2. metadata.whatsapp.whatsapp_user_id
+    const wa = metadata.whatsapp as Record<string, unknown> | undefined
+    if (wa?.whatsapp_user_id) {
+      const normalized = normalizePhone(wa.whatsapp_user_id as string)
+      if (normalized) return normalized
+    }
+
+    // 3. Other metadata fields
+    const candidates = [
+      metadata.from_number as string,
+      metadata.caller_id as string,
+      (metadata.phone_call as Record<string, string> | undefined)?.external_number,
+      (metadata.phone_call as Record<string, string> | undefined)?.from,
+      metadata.initiator_identifier as string,
+    ]
+    for (const c of candidates) {
+      if (c) {
+        const normalized = normalizePhone(c)
+        if (normalized) return normalized
+      }
+    }
+  }
+
+  return null
 }
 
 // Build a new running summary by combining the existing one with this session's transcript
@@ -85,7 +119,7 @@ export async function POST(req: NextRequest) {
   const analysis = payload.analysis as Record<string, unknown> | undefined
   const transcript: { role: string; message: string }[] = raw.transcript ?? []
 
-  const phoneNumber = extractPhoneNumber(metadata)
+  const phoneNumber = extractPhoneNumber(payload)
   const summary = (analysis?.transcript_summary ?? payload.transcript_summary) as string | undefined
   const durationSecs = (metadata?.call_duration_secs ?? payload.call_duration_secs) as number | undefined
   const startTimeUnix = (metadata?.start_time_unix_secs ?? payload.start_time_unix_secs) as number | undefined

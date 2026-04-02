@@ -124,8 +124,7 @@ export function ConversationDrawer({ conversationId, agentId, onClose, isLead: i
     if (!conversationId || !agentId) return
     setLeadLoading(true)
     try {
-      const meta = convMeta?.metadata
-      const callerNumber = meta?.from_number || meta?.caller_id || meta?.phone_call?.external_number || meta?.phone_call?.from
+      const callerNumber = convMeta ? getCallerIdentifier(convMeta) : (detail ? getCallerIdentifier(detail) : null)
       const res = await fetch("/api/leads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
