@@ -127,7 +127,7 @@ export async function POST(req: NextRequest) {
 
   // ElevenLabs sends different event types — we only care about post-call
   const eventType = payload.type ?? payload.event_type
-  if (eventType !== "post_call_transcription") {
+  if (eventType !== "post_call_transcription" && eventType !== "transcript") {
     return NextResponse.json({ received: true })
   }
 
