@@ -1,8 +1,32 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import OpenAI from "openai"
+import { createHmac, timingSafeEqual } from "crypto"
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+
+// Verify ElevenLabs HMAC signature
+// Header format: "t=<timestamp>,v0=<hex_signature>"
+// Signed payload: "<timestamp>.<raw_body>"
+async function verifyElevenLabsSignature(req: NextRequest, body: string): Promise<boolean> {
+  const secret = process.env.ELEVENLABS_WEBHOOK_SECRET
+  if (!secret) return false
+
+  const sigHeader = req.headers.get("xi-elevenlabs-signature")
+  if (!sigHeader) return false
+
+  const parts = Object.fromEntries(sigHeader.split(",").map((p) => p.split("=")))
+  const timestamp = parts["t"]
+  const signature = parts["v0"]
+  if (!timestamp || !signature) return false
+
+  const expected = createHmac("sha256", secret).update(`${timestamp}.${body}`).digest("hex")
+  try {
+    return timingSafeEqual(Buffer.from(expected, "hex"), Buffer.from(signature, "hex"))
+  } catch {
+    return false
+  }
+}
 
 // Normalize any phone-like string to just digits (strips JID suffixes, whitespace, +, etc.)
 // e.g. "2348012345678:123@s.whatsapp.net" → "2348012345678"
@@ -87,15 +111,16 @@ ${sessionText}`
 }
 
 export async function POST(req: NextRequest) {
-  // Verify shared secret
-  const secret = req.headers.get("x-webhook-secret")
-  if (secret !== process.env.ELEVENLABS_WEBHOOK_SECRET) {
+  const rawBody = await req.text()
+
+  const valid = await verifyElevenLabsSignature(req, rawBody)
+  if (!valid) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
   let payload: Record<string, unknown>
   try {
-    payload = await req.json()
+    payload = JSON.parse(rawBody)
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 })
   }
