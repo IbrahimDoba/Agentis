@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
+import { verifyElevenLabsSignature } from "@/lib/webhookAuth"
 
 // Normalize any phone-like string to just digits
 function normalizePhone(raw: string): string | null {
@@ -55,23 +56,32 @@ function extractPhoneNumber(payload: Record<string, unknown>): string | null {
 // ElevenLabs calls this before a conversation starts.
 // We return dynamic_variables that get injected into the agent's prompt.
 export async function POST(req: NextRequest) {
-  // Verify shared secret
-  const secret = req.headers.get("x-webhook-secret")
-  if (secret !== process.env.ELEVENLABS_WEBHOOK_SECRET) {
+  // Read raw body for HMAC verification, then parse JSON from it
+  const rawBody = await req.text()
+
+  // Verify HMAC signature (same mechanism as post-call webhook)
+  const valid = await verifyElevenLabsSignature(req, rawBody)
+  if (!valid) {
+    console.error("[pre-call] ❌ Signature verification failed")
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
   let payload: Record<string, unknown>
   try {
-    payload = await req.json()
+    payload = JSON.parse(rawBody)
   } catch {
+    console.error("[pre-call] ❌ Invalid JSON body")
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 })
   }
 
+  console.log("[pre-call] Received initiation webhook. Keys:", Object.keys(payload))
+
   const phoneNumber = extractPhoneNumber(payload)
+  console.log(`[pre-call] Extracted phone: ${phoneNumber ?? "none"}`)
 
   // New customer — no phone number found
   if (!phoneNumber) {
+    console.log("[pre-call] No phone number — returning new customer context")
     return NextResponse.json({
       type: "conversation_initiation_client_data",
       dynamic_variables: {
@@ -85,8 +95,11 @@ export async function POST(req: NextRequest) {
     select: { name: true, conversationSummary: true },
   })
 
+  console.log(`[pre-call] Customer lookup: ${customer ? `found (name=${customer.name}, hasSummary=${!!customer.conversationSummary})` : "not found"}`)
+
   // First time caller — no prior conversations logged yet
   if (!customer || !customer.conversationSummary) {
+    console.log("[pre-call] No prior summary — returning new customer context")
     return NextResponse.json({
       type: "conversation_initiation_client_data",
       dynamic_variables: {
@@ -98,6 +111,8 @@ export async function POST(req: NextRequest) {
   // Returning customer — inject memory
   const name = customer.name ? customer.name : "the customer"
   const customerContext = `You are speaking with ${name}. Here is context from their previous conversations:\n${customer.conversationSummary}\n\nGreet them warmly by name and acknowledge they are a returning customer. Reference relevant past interactions naturally where appropriate.`
+
+  console.log(`[pre-call] ✅ Injecting memory for returning customer: ${name}`)
 
   return NextResponse.json({
     type: "conversation_initiation_client_data",

@@ -1,32 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import OpenAI from "openai"
-import { createHmac, timingSafeEqual } from "crypto"
+import { verifyElevenLabsSignature } from "@/lib/webhookAuth"
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-
-// Verify ElevenLabs HMAC signature
-// Header format: "t=<timestamp>,v0=<hex_signature>"
-// Signed payload: "<timestamp>.<raw_body>"
-async function verifyElevenLabsSignature(req: NextRequest, body: string): Promise<boolean> {
-  const secret = process.env.ELEVENLABS_WEBHOOK_SECRET
-  if (!secret) return false
-
-  const sigHeader = req.headers.get("xi-elevenlabs-signature")
-  if (!sigHeader) return false
-
-  const parts = Object.fromEntries(sigHeader.split(",").map((p) => p.split("=")))
-  const timestamp = parts["t"]
-  const signature = parts["v0"]
-  if (!timestamp || !signature) return false
-
-  const expected = createHmac("sha256", secret).update(`${timestamp}.${body}`).digest("hex")
-  try {
-    return timingSafeEqual(Buffer.from(expected, "hex"), Buffer.from(signature, "hex"))
-  } catch {
-    return false
-  }
-}
 
 // Normalize any phone-like string to just digits (strips JID suffixes, whitespace, +, etc.)
 // e.g. "2348012345678:123@s.whatsapp.net" → "2348012345678"
@@ -113,36 +90,53 @@ ${sessionText}`
 export async function POST(req: NextRequest) {
   const rawBody = await req.text()
 
+  // Verify HMAC signature
   const valid = await verifyElevenLabsSignature(req, rawBody)
   if (!valid) {
+    console.error("[post-call] ❌ Signature verification failed")
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  let payload: Record<string, unknown>
+  let envelope: Record<string, unknown>
   try {
-    payload = JSON.parse(rawBody)
+    envelope = JSON.parse(rawBody)
   } catch {
+    console.error("[post-call] ❌ Invalid JSON body")
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 })
   }
 
   // ElevenLabs sends different event types — we only care about post-call
-  const eventType = payload.type ?? payload.event_type
+  const eventType = envelope.type ?? envelope.event_type
+  console.log(`[post-call] Received event type: ${eventType}`)
+
   if (eventType !== "post_call_transcription" && eventType !== "transcript") {
+    console.log(`[post-call] Ignoring event type: ${eventType}`)
     return NextResponse.json({ received: true })
   }
+
+  // Workspace-level webhooks wrap conversation data inside a `data` envelope.
+  // Agent-level webhooks send data at the top level.
+  // Handle both formats.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const payload = (envelope.data ?? envelope) as Record<string, any>
 
   const conversationId = payload.conversation_id as string | undefined
   const elevenlabsAgentId = payload.agent_id as string | undefined
 
+  console.log(`[post-call] conversation_id=${conversationId}, agent_id=${elevenlabsAgentId}`)
+
   if (!conversationId || !elevenlabsAgentId) {
+    console.error("[post-call] ❌ Missing conversation_id or agent_id")
+    console.error("[post-call] Top-level keys:", Object.keys(envelope))
+    if (envelope.data) {
+      console.error("[post-call] data keys:", Object.keys(envelope.data as object))
+    }
     return NextResponse.json({ error: "Missing conversation_id or agent_id" }, { status: 400 })
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const raw = payload as any
   const metadata = payload.metadata as Record<string, unknown> | undefined
   const analysis = payload.analysis as Record<string, unknown> | undefined
-  const transcript: { role: string; message: string }[] = raw.transcript ?? []
+  const transcript: { role: string; message: string }[] = payload.transcript ?? []
 
   const phoneNumber = extractPhoneNumber(payload)
   const summary = (analysis?.transcript_summary ?? payload.transcript_summary) as string | undefined
@@ -150,11 +144,14 @@ export async function POST(req: NextRequest) {
   const startTimeUnix = (metadata?.start_time_unix_secs ?? payload.start_time_unix_secs) as number | undefined
   const status = payload.status as string | undefined
 
+  console.log(`[post-call] phone=${phoneNumber}, transcript_turns=${transcript.length}, summary=${summary ? "yes" : "no"}`)
+
   // Find the matching agent in our DB by ElevenLabs agent ID
   const agent = await db.agent.findFirst({
     where: { elevenlabsAgentId },
     select: { id: true },
   })
+  console.log(`[post-call] Matched DB agent: ${agent?.id ?? "none"}`)
 
   // Upsert customer record if we have a phone number
   let customerId: string | null = null
@@ -164,12 +161,17 @@ export async function POST(req: NextRequest) {
       select: { id: true, conversationSummary: true },
     })
 
-    // Build updated running summary in the background (don't block the response)
+    console.log(`[post-call] Existing customer: ${existing?.id ?? "new customer"}`)
+
+    // Build updated running summary
     const updatedSummary = await buildUpdatedSummary(
       existing?.conversationSummary ?? null,
       transcript,
       summary
-    ).catch(() => existing?.conversationSummary ?? null)
+    ).catch((err) => {
+      console.error("[post-call] ❌ Summary generation failed:", err)
+      return existing?.conversationSummary ?? null
+    })
 
     const customer = await db.customer.upsert({
       where: { phoneNumber },
@@ -185,6 +187,7 @@ export async function POST(req: NextRequest) {
       },
     })
     customerId = customer.id
+    console.log(`[post-call] ✅ Customer upserted: ${customerId}`)
   }
 
   // Save the conversation log, linked to the customer
@@ -196,23 +199,24 @@ export async function POST(req: NextRequest) {
       agentId: agent?.id ?? null,
       customerId,
       phoneNumber: phoneNumber ?? null,
-      transcript: raw.transcript ?? [],
+      transcript: payload.transcript ?? [],
       summary: summary ?? null,
       durationSecs: durationSecs ?? null,
       startTime: startTimeUnix ? new Date(startTimeUnix * 1000) : null,
       status: status ?? null,
-      rawPayload: raw,
+      rawPayload: payload,
     },
     update: {
       customerId,
       phoneNumber: phoneNumber ?? null,
-      transcript: raw.transcript ?? [],
+      transcript: payload.transcript ?? [],
       summary: summary ?? null,
       durationSecs: durationSecs ?? null,
       status: status ?? null,
-      rawPayload: raw,
+      rawPayload: payload,
     },
   })
 
+  console.log(`[post-call] ✅ ConversationLog saved for ${conversationId}`)
   return NextResponse.json({ received: true })
 }
