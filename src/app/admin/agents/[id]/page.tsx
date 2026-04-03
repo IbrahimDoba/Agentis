@@ -71,23 +71,44 @@ export default async function AdminAgentDetailPage({ params }: PageProps) {
         {/* Business Info Card */}
         <div className={styles.infoCard}>
           <div className={styles.cardTitleRow}>
-            <div className={styles.cardTitle}>Business Details</div>
+            <div className={styles.cardTitle}>Business & Profile Details</div>
             <CopyAllButton text={[
               `Business: ${agent.businessName}`,
+              agent.category ? `Category: ${agent.category}` : "",
               `Description: ${agent.businessDescription}`,
               `Products/Services: ${agent.productsServices}`,
               `Operating Hours: ${agent.operatingHours}`,
+              agent.address ? `Address: ${agent.address}` : "",
+              agent.contactEmail ? `Email: ${agent.contactEmail}` : "",
+              agent.contactPhone ? `Phone: ${agent.contactPhone}` : "",
               agent.websiteLinks ? `Website: ${agent.websiteLinks}` : "",
               `FAQs:\n${agent.faqs}`,
               agent.responseGuidelines ? `Response Guidelines:\n${agent.responseGuidelines}` : "",
               agent.whatsappBusinessName ? `WhatsApp Business Name: ${agent.whatsappBusinessName}` : "",
+              agent.whatsappPhoneNumber ? `WhatsApp Number: ${agent.whatsappPhoneNumber}` : "",
+              agent.whatsappAgentLink ? `WhatsApp Link: ${agent.whatsappAgentLink}` : "",
             ].filter(Boolean).join("\n\n")} />
           </div>
+
+          {agent.profileImageUrl && (
+            <div className={styles.infoRow} style={{ alignItems: "center" }}>
+              <div className={styles.infoLabel}>Profile Image</div>
+              <div className={styles.infoValue}>
+                <img src={agent.profileImageUrl} alt="Agent Profile" style={{ width: "80px", height: "80px", borderRadius: "50%", objectFit: "cover" }} />
+              </div>
+            </div>
+          )}
 
           <div className={styles.infoRow}>
             <div className={styles.infoLabel}>Business Name</div>
             <div className={styles.infoValue}>{agent.businessName}</div>
           </div>
+          {agent.category && (
+            <div className={styles.infoRow}>
+              <div className={styles.infoLabel}>Category</div>
+              <div className={styles.infoValue}>{agent.category}</div>
+            </div>
+          )}
           <div className={styles.infoRow}>
             <div className={styles.infoLabel}>Description</div>
             <div className={styles.infoValue}>{agent.businessDescription}</div>
@@ -119,6 +140,27 @@ export default async function AdminAgentDetailPage({ params }: PageProps) {
             <div className={styles.infoLabel}>FAQs</div>
             <div className={styles.infoValue}>{agent.faqs}</div>
           </div>
+          
+          <div style={{ marginTop: "1rem", marginBottom: "0.5rem", fontWeight: "600", fontSize: "1rem", color: "var(--foreground)" }}>Contact Details</div>
+          
+          {agent.contactEmail && (
+            <div className={styles.infoRow}>
+              <div className={styles.infoLabel}>Email</div>
+              <div className={styles.infoValue}>{agent.contactEmail}</div>
+            </div>
+          )}
+          {agent.contactPhone && (
+            <div className={styles.infoRow}>
+              <div className={styles.infoLabel}>Phone</div>
+              <div className={styles.infoValue}>{agent.contactPhone}</div>
+            </div>
+          )}
+          {agent.address && (
+            <div className={styles.infoRow}>
+              <div className={styles.infoLabel}>Address</div>
+              <div className={styles.infoValue}>{agent.address}</div>
+            </div>
+          )}
           {agent.websiteLinks && (
             <div className={styles.infoRow}>
               <div className={styles.infoLabel}>Website</div>
@@ -131,10 +173,37 @@ export default async function AdminAgentDetailPage({ params }: PageProps) {
               <div className={styles.infoValue}>{agent.responseGuidelines}</div>
             </div>
           )}
+
+          <div style={{ marginTop: "1rem", marginBottom: "0.5rem", fontWeight: "600", fontSize: "1rem", color: "var(--foreground)" }}>WhatsApp Profile</div>
+
           {agent.whatsappBusinessName && (
             <div className={styles.infoRow}>
               <div className={styles.infoLabel}>WhatsApp Business Name</div>
               <div className={styles.infoValue}>{agent.whatsappBusinessName}</div>
+            </div>
+          )}
+          {agent.whatsappPhoneNumber && (
+            <div className={styles.infoRow}>
+              <div className={styles.infoLabel}>WhatsApp Number</div>
+              <div className={styles.infoValue}>{agent.whatsappPhoneNumber}</div>
+            </div>
+          )}
+          {agent.whatsappAgentLink && (
+            <div className={styles.infoRow}>
+              <div className={styles.infoLabel}>WhatsApp Link</div>
+              <div className={styles.infoValue}>
+                <a href={agent.whatsappAgentLink} target="_blank" rel="noopener noreferrer" style={{ color: "var(--primary)" }}>
+                  {agent.whatsappAgentLink}
+                </a>
+              </div>
+            </div>
+          )}
+          {agent.qrCodeUrl && (
+            <div className={styles.infoRow}>
+              <div className={styles.infoLabel}>QR Code</div>
+              <div className={styles.infoValue}>
+                <img src={agent.qrCodeUrl} alt="WhatsApp QR Code" style={{ width: "100px", height: "100px", borderRadius: "8px" }} />
+              </div>
             </div>
           )}
         </div>
