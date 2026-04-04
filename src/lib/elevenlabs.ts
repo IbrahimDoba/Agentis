@@ -184,6 +184,92 @@ export async function setAgentWebhook(elevenlabsAgentId: string) {
   return res.json()
 }
 
+const CUSTOMER_HISTORY_TOOL = {
+  type: "webhook",
+  name: "get_customer_history",
+  description:
+    "Call this tool at the start of every conversation. It retrieves the caller's previous interaction history based on their phone number. Use the returned summary to greet the customer by name, reference past interactions, and provide personalized assistance. If no history is found, treat them as a first-time caller.",
+  disable_interruptions: false,
+  force_pre_tool_speech: "auto",
+  tool_call_sound: null,
+  tool_call_sound_behavior: "auto",
+  tool_error_handling_mode: "auto",
+  execution_mode: "immediate",
+  api_schema: {
+    url: "https://www.dailzero.com/api/webhook/elevenlabs/customer-history",
+    method: "POST",
+    path_params_schema: [],
+    query_params_schema: [],
+    request_body_schema: {
+      id: "body",
+      type: "object",
+      description: "Request body containing the caller's phone number, agent ID and conversation ID",
+      properties: [
+        {
+          id: "phone_number",
+          type: "string",
+          value_type: "dynamic_variable",
+          description: "",
+          dynamic_variable: "system__caller_id",
+          constant_value: "",
+          enum: null,
+          is_system_provided: false,
+          required: true,
+        },
+        {
+          id: "agent_id",
+          type: "string",
+          value_type: "dynamic_variable",
+          description: "",
+          dynamic_variable: "system__agent_id",
+          constant_value: "",
+          enum: null,
+          is_system_provided: false,
+          required: true,
+        },
+        {
+          id: "conversation_id",
+          type: "string",
+          value_type: "dynamic_variable",
+          description: "",
+          dynamic_variable: "system__conversation_id",
+          constant_value: "",
+          enum: null,
+          is_system_provided: false,
+          required: true,
+        },
+      ],
+      required: false,
+      value_type: "llm_prompt",
+    },
+    request_headers: [],
+    content_type: "application/json",
+    auth_connection: null,
+  },
+  assignments: [],
+  response_timeout_secs: 20,
+  dynamic_variables: { dynamic_variable_placeholders: {} },
+  response_mocks: [],
+}
+
+/**
+ * Adds the get_customer_history tool to an ElevenLabs agent if not already present.
+ * Safe to call multiple times — idempotent.
+ */
+export async function addCustomerHistoryTool(elevenlabsAgentId: string): Promise<void> {
+  const agent = await getElevenLabsAgent(elevenlabsAgentId)
+  const currentTools: any[] = agent?.conversation_config?.agent?.prompt?.tools ?? []
+
+  const alreadyExists = currentTools.some((t: any) => t.name === "get_customer_history")
+  if (alreadyExists) {
+    console.log(`[addCustomerHistoryTool] Tool already present on agent ${elevenlabsAgentId}, skipping.`)
+    return
+  }
+
+  await updateAgentTools(elevenlabsAgentId, [...currentTools, CUSTOMER_HISTORY_TOOL])
+  console.log(`[addCustomerHistoryTool] ✅ Tool added to agent ${elevenlabsAgentId}`)
+}
+
 export async function updateAgentPrompt(elevenlabsAgentId: string, systemPrompt: string) {
   const res = await fetch(`${BASE_URL}/convai/agents/${elevenlabsAgentId}`, {
     method: "PATCH",

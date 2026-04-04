@@ -4,7 +4,7 @@ import { db } from "@/lib/db"
 import { agentSchema, adminAgentUpdateSchema } from "@/lib/validations"
 import { sendAgentApprovedEmail } from "@/lib/email"
 import { buildAndSyncElevenLabsPrompt } from "@/lib/agentSync"
-import { setAgentWebhook } from "@/lib/elevenlabs"
+import { setAgentWebhook, addCustomerHistoryTool } from "@/lib/elevenlabs"
 import type { Product } from "@/types"
 
 interface Params {
@@ -119,6 +119,12 @@ export async function PATCH(req: NextRequest, { params }: Params) {
           setAgentWebhook(updated.elevenlabsAgentId)
             .catch((err) => console.error("[agentSync] Webhook setup failed:", err))
         }
+      }
+
+      // When an agent is approved, add the customer history tool
+      if (parsed.data.status === "ACTIVE" && updated.elevenlabsAgentId) {
+        addCustomerHistoryTool(updated.elevenlabsAgentId)
+          .catch((err) => console.error("[agentSync] Customer history tool setup failed:", err))
       }
 
       if (parsed.data.status === "ACTIVE") {
