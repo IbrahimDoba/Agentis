@@ -28,7 +28,13 @@ export async function POST(req: NextRequest) {
 
     await db.user.update({
       where: { id: user.id },
-      data: { passwordHash, resetToken: null, resetTokenExpiry: null },
+      data: {
+        passwordHash,
+        resetToken: null,
+        resetTokenExpiry: null,
+        // Receiving and using the reset link proves email ownership
+        emailVerified: user.emailVerified ?? new Date(),
+      },
     })
 
     return NextResponse.json({ success: true })
