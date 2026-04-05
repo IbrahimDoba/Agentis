@@ -33,6 +33,17 @@
   padding: 1.5rem;
 }
 
+.statCardIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.875rem;
+  flex-shrink: 0;
+}
+
 .statLabel {
   font-size: 12px;
   font-weight: 600;

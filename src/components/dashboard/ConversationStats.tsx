@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query"
 import Link from "next/link"
+import { MessageSquare, Users, Flame, TrendingUp } from "lucide-react"
 import styles from "@/app/dashboard/page.module.css"
 
 function SkeletonCard() {
@@ -44,24 +45,36 @@ export function ConversationStats() {
   return (
     <>
       <div className={styles.statCard}>
+        <div className={styles.statCardIcon} style={{ background: "rgba(0, 220, 130, 0.1)", color: "var(--accent)" }}>
+          <MessageSquare size={18} />
+        </div>
         <div className={styles.statLabel}>Total Conversations</div>
         <div className={styles.statValue}>{total}</div>
         <div className={styles.statSub}>All time calls with your agent</div>
       </div>
 
       <div className={styles.statCard}>
+        <div className={styles.statCardIcon} style={{ background: "rgba(99, 179, 237, 0.12)", color: "#63b3ed" }}>
+          <Users size={18} />
+        </div>
         <div className={styles.statLabel}>Total Contacts</div>
         <div className={styles.statValue}>{contacts}</div>
         <div className={styles.statSub}>Unique callers reached</div>
       </div>
 
       <Link href="/dashboard/leads" className={styles.statCard} style={{ textDecoration: "none" }}>
+        <div className={styles.statCardIcon} style={{ background: "rgba(245, 158, 11, 0.12)", color: "#f59e0b" }}>
+          <Flame size={18} />
+        </div>
         <div className={styles.statLabel}>Total Leads</div>
         <div className={styles.statValue}>{leads}</div>
         <div className={styles.statSub}>View all leads →</div>
       </Link>
 
       <div className={styles.statCard}>
+        <div className={styles.statCardIcon} style={{ background: "rgba(167, 139, 250, 0.12)", color: "#a78bfa" }}>
+          <TrendingUp size={18} />
+        </div>
         <div className={styles.statLabel}>Leads Rate</div>
         <div className={styles.statValue}>{leadsRate}%</div>
         <div className={styles.statSub}>Of conversations become leads</div>

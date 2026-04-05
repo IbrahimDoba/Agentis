@@ -4,7 +4,73 @@ import styles from "./page.module.css"
 
 const updates = [
   {
-    date: "March 2026",
+    date: "5 April 2026",
+    tag: "Improvement",
+    tagColor: "blue",
+    title: "Favicon & Brand Icon",
+    description:
+      "The browser tab and bookmarks now show the correct D-Zero AI logo instead of the default framework icon.",
+    bullets: [
+      "Custom icon across all browsers and devices",
+      "Correct Apple touch icon when bookmarked on iOS",
+    ],
+  },
+  {
+    date: "5 April 2026",
+    tag: "Fix",
+    tagColor: "orange",
+    title: "Password Reset Now Properly Unlocks Login",
+    description:
+      "Users who reset their password were still unable to log in due to a bug where email verification status was not correctly updated. This is now fixed.",
+    bullets: [
+      "Resetting password now marks email as verified",
+      "Affected users can log in immediately after resetting",
+    ],
+  },
+  {
+    date: "4 April 2026",
+    tag: "New",
+    tagColor: "green",
+    title: "Media in Conversation Transcripts",
+    description:
+      "Voice notes, images, videos, and documents shared during WhatsApp conversations are now visible directly inside the conversation view.",
+    bullets: [
+      "Voice notes shown with a mic indicator and audio player",
+      "Images displayed inline with click-to-expand lightbox",
+      "Video and document attachments rendered with download links",
+      "Works in both the conversation drawer and the agent detail view",
+    ],
+  },
+  {
+    date: "4 April 2026",
+    tag: "Improvement",
+    tagColor: "blue",
+    title: "Conversations Served from Local DB with Live Sync",
+    description:
+      "The conversations list now loads from your local database for instant pagination, while staying in sync with ElevenLabs in the background.",
+    bullets: [
+      "Infinite scroll with 20 conversations per page",
+      "First page load syncs latest conversations from ElevenLabs automatically",
+      "In-progress conversations update to completed status on refresh",
+      "Phone numbers backfilled for all existing conversations",
+    ],
+  },
+  {
+    date: "4 April 2026",
+    tag: "Improvement",
+    tagColor: "blue",
+    title: "Dashboard Stats — Contacts & Leads Rate",
+    description:
+      "The overview dashboard now shows Total Contacts and Leads Rate alongside total conversations and leads, giving a clearer picture of agent performance.",
+    bullets: [
+      "Total Contacts shows unique callers reached",
+      "Leads Rate shows what percentage of conversations become leads",
+      "Each stat card has a descriptive icon",
+      "Leads card links directly to the Leads page",
+    ],
+  },
+  {
+    date: "28 March 2026",
     tag: "New",
     tagColor: "green",
     title: "AI Lead Detection & Leads Dashboard",
@@ -19,7 +85,7 @@ const updates = [
     ],
   },
   {
-    date: "March 2026",
+    date: "25 March 2026",
     tag: "New",
     tagColor: "green",
     title: "Live API Tools",
@@ -33,7 +99,7 @@ const updates = [
     ],
   },
   {
-    date: "March 2026",
+    date: "22 March 2026",
     tag: "New",
     tagColor: "green",
     title: "Knowledge Base",
@@ -47,7 +113,7 @@ const updates = [
     ],
   },
   {
-    date: "March 2026",
+    date: "19 March 2026",
     tag: "New",
     tagColor: "green",
     title: "Multiple AI Agents",
@@ -61,7 +127,7 @@ const updates = [
     ],
   },
   {
-    date: "March 2026",
+    date: "16 March 2026",
     tag: "Improvement",
     tagColor: "blue",
     title: "Read / Unread Conversations",
@@ -74,7 +140,7 @@ const updates = [
     ],
   },
   {
-    date: "March 2026",
+    date: "14 March 2026",
     tag: "Improvement",
     tagColor: "blue",
     title: "Agent Profile & Business Details",
@@ -87,7 +153,7 @@ const updates = [
     ],
   },
   {
-    date: "February 2026",
+    date: "28 February 2026",
     tag: "Improvement",
     tagColor: "blue",
     title: "Product Catalogue",
@@ -100,7 +166,7 @@ const updates = [
     ],
   },
   {
-    date: "February 2026",
+    date: "15 February 2026",
     tag: "New",
     tagColor: "green",
     title: "Agent Auto-Sync",
@@ -113,7 +179,7 @@ const updates = [
     ],
   },
   {
-    date: "January 2026",
+    date: "30 January 2026",
     tag: "New",
     tagColor: "green",
     title: "Conversation Dashboard",

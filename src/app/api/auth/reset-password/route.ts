@@ -32,8 +32,8 @@ export async function POST(req: NextRequest) {
         passwordHash,
         resetToken: null,
         resetTokenExpiry: null,
-        // Receiving and using the reset link proves email ownership
-        emailVerified: user.emailVerified ?? new Date(),
+        // Using the reset link proves email ownership
+        emailVerified: true,
       },
     })
 
