@@ -5,18 +5,6 @@ import styles from "./page.module.css"
 const updates = [
   {
     date: "5 April 2026",
-    tag: "Improvement",
-    tagColor: "blue",
-    title: "Favicon & Brand Icon",
-    description:
-      "The browser tab and bookmarks now show the correct D-Zero AI logo instead of the default framework icon.",
-    bullets: [
-      "Custom icon across all browsers and devices",
-      "Correct Apple touch icon when bookmarked on iOS",
-    ],
-  },
-  {
-    date: "5 April 2026",
     tag: "Fix",
     tagColor: "orange",
     title: "Password Reset Now Properly Unlocks Login",
