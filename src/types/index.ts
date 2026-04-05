@@ -112,8 +112,9 @@ export interface Conversation {
 
 export interface TranscriptMessage {
   role: "user" | "agent"
-  message: string
+  message: string | null
   time_in_call_secs: number
+  source_medium?: string
   audio_url?: string
   image_url?: string
   video_url?: string

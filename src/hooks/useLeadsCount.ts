@@ -1,16 +1,14 @@
 import { useQuery } from "@tanstack/react-query"
 
-async function fetchLeadsCount(): Promise<number> {
-  const res = await fetch("/api/leads")
-  if (!res.ok) throw new Error("Failed to load leads")
-  const data = await res.json()
-  return data.leads.length
-}
-
 export function useLeadsCount() {
-  return useQuery({
+  return useQuery<number>({
     queryKey: ["leads-count"],
-    queryFn: fetchLeadsCount,
+    queryFn: async () => {
+      const res = await fetch("/api/conversations/stats")
+      if (!res.ok) throw new Error("Failed to load stats")
+      const data = await res.json()
+      return data.totalLeads
+    },
     staleTime: 60 * 1000,
   })
 }

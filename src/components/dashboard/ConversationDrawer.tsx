@@ -8,8 +8,9 @@ import styles from "./ConversationDrawer.module.css"
 
 interface TranscriptMessage {
   role: "user" | "agent"
-  message: string
+  message: string | null
   time_in_call_secs: number
+  source_medium?: string
   audio_url?: string
   image_url?: string
   video_url?: string
@@ -57,17 +58,52 @@ function SourceIcon({ source }: { source?: string | null }) {
   return null
 }
 
-function MediaBubble({ msg }: { msg: TranscriptMessage }) {
+function ImageLightbox({ src, onClose }: { src: string; onClose: () => void }) {
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose() }
+    window.addEventListener("keydown", handler)
+    return () => window.removeEventListener("keydown", handler)
+  }, [onClose])
+
+  return (
+    <div className={styles.lightboxBackdrop} onClick={onClose}>
+      <div className={styles.lightboxInner} onClick={(e) => e.stopPropagation()}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={src} alt="Full size" className={styles.lightboxImg} />
+        <button className={styles.lightboxClose} onClick={onClose} aria-label="Close">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+            <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function MediaBubble({ msg, onImageClick }: { msg: TranscriptMessage; onImageClick: (url: string) => void }) {
+  const isVoiceNote = msg.source_medium === "audio" && !msg.audio_url
+
   return (
     <div className={cn(styles.message, msg.role === "user" ? styles.user : styles.agent)}>
       <div className={styles.bubble}>
+        {isVoiceNote && (
+          <div className={styles.voiceNote}>
+            <span className={styles.voiceNoteIcon}>🎤</span>
+            <span className={styles.voiceNoteLabel}>Voice note</span>
+          </div>
+        )}
         {msg.message && <p className={styles.messageText}>{msg.message}</p>}
         {msg.audio_url && (
           <audio controls className={styles.audioPlayer} src={msg.audio_url} />
         )}
         {msg.image_url && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={msg.image_url} alt="Shared image" className={styles.mediaImage} />
+          <img
+            src={msg.image_url}
+            alt="Shared image"
+            className={styles.mediaImage}
+            onClick={() => onImageClick(msg.image_url!)}
+          />
         )}
         {msg.video_url && (
           <video controls className={styles.mediaVideo} src={msg.video_url} />
@@ -94,6 +130,7 @@ export function ConversationDrawer({ conversationId, agentId, onClose, isLead: i
   const [summaryDone, setSummaryDone] = useState(false)
   const [isLead, setIsLead] = useState(initialIsLead)
   const [leadLoading, setLeadLoading] = useState(false)
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null)
 
   const transcriptRef = useRef<HTMLDivElement>(null)
 
@@ -173,6 +210,7 @@ export function ConversationDrawer({ conversationId, agentId, onClose, isLead: i
 
   return (
     <>
+      {lightboxSrc && <ImageLightbox src={lightboxSrc} onClose={() => setLightboxSrc(null)} />}
       <div className={styles.backdrop} onClick={onClose} aria-hidden />
       <aside className={styles.drawer}>
         {/* Header */}
@@ -268,8 +306,8 @@ export function ConversationDrawer({ conversationId, agentId, onClose, isLead: i
                 <div className={styles.emptyTranscript}>No transcript available</div>
               ) : (
                 detail.transcript
-                  .filter((msg: TranscriptMessage) => msg.message?.trim() || msg.audio_url || msg.image_url || msg.video_url || msg.document_url)
-                  .map((msg: TranscriptMessage, i: number) => <MediaBubble key={i} msg={msg} />)
+                  .filter((msg: TranscriptMessage) => msg.message?.trim() || msg.source_medium === "audio" || msg.audio_url || msg.image_url || msg.video_url || msg.document_url)
+                  .map((msg: TranscriptMessage, i: number) => <MediaBubble key={i} msg={msg} onImageClick={setLightboxSrc} />)
               )}
             </div>
           </div>

@@ -361,6 +361,57 @@
   text-align: right;
 }
 
+.voiceNote {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 12px;
+  opacity: 0.7;
+  padding: 0.5rem 0.75rem 0.25rem;
+}
+
+.voiceNoteLabel {
+  font-style: italic;
+}
+
+.mediaAudio {
+  width: 100%;
+  max-width: 260px;
+  height: 36px;
+  accent-color: var(--accent);
+  display: block;
+}
+
+.mediaImage {
+  max-width: 220px;
+  max-height: 200px;
+  border-radius: 10px;
+  object-fit: cover;
+  display: block;
+  margin: 0.25rem 0.75rem;
+}
+
+.mediaVideo {
+  max-width: 220px;
+  border-radius: 10px;
+  display: block;
+  margin: 0.25rem 0.75rem;
+}
+
+.docLink {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  padding: 0.25rem 0.75rem;
+  display: inline-block;
+}
+
+.docLink:hover {
+  opacity: 0.8;
+}
+
 /* Back button (mobile) */
 .backBtn {
   display: none;

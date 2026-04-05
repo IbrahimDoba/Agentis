@@ -7,7 +7,6 @@ import { ConversationStats } from "@/components/dashboard/ConversationStats"
 import Button from "@/components/ui/Button"
 import { formatDate } from "@/lib/utils"
 import { useDashboardData } from "@/hooks/useDashboardData"
-import { useLeadsCount } from "@/hooks/useLeadsCount"
 
 function SkeletonCard() {
   return (
@@ -21,7 +20,6 @@ function SkeletonCard() {
 
 export default function DashboardPage() {
   const { data, isLoading } = useDashboardData()
-  const { data: leadsCount, isLoading: leadsLoading } = useLeadsCount()
 
   const user = data?.user
   const agent = data?.agent ?? null
@@ -44,39 +42,10 @@ export default function DashboardPage() {
             <SkeletonCard />
             <SkeletonCard />
             <SkeletonCard />
+            <SkeletonCard />
           </>
         ) : (
           <>
-            <div className={styles.statCard}>
-              <div className={styles.statLabel}>Agent Status</div>
-              <div className={styles.statValue}>
-                {agent ? (agent.status === "ACTIVE" ? "Live" : "Pending") : "None"}
-              </div>
-              <div className={styles.statSub}>
-                {agent
-                  ? `Last updated ${formatDate(agent.updatedAt)}`
-                  : "No agent created yet"}
-              </div>
-            </div>
-
-            <div className={styles.statCard}>
-              <div className={styles.statLabel}>Member Since</div>
-              <div className={styles.statValue}>{user ? formatDate(user.createdAt) : "—"}</div>
-              <div className={styles.statSub}>
-                {user?.businessName ?? ""}
-              </div>
-            </div>
-
-            {leadsLoading ? (
-              <SkeletonCard />
-            ) : (
-              <Link href="/dashboard/leads" className={styles.statCard} style={{ textDecoration: "none" }}>
-                <div className={styles.statLabel}>Leads</div>
-                <div className={styles.statValue}>{leadsCount ?? 0}</div>
-                <div className={styles.statSub}>View all leads →</div>
-              </Link>
-            )}
-
             {agent?.elevenlabsAgentId && <ConversationStats />}
           </>
         )}

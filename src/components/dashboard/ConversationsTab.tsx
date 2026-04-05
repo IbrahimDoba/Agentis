@@ -110,20 +110,46 @@ function SessionBlock({
       ) : messages.length === 0 ? (
         <div className={styles.transcriptEmpty}>No transcript for this session.</div>
       ) : (
-        messages.map((msg: TranscriptMessage, i: number) => (
-          <div
-            key={i}
-            className={`${styles.bubble} ${msg.role === "user" ? styles.bubbleUser : styles.bubbleAgent}`}
-          >
-            <div className={styles.bubbleIcon}>
-              {msg.role === "user" ? <User size={12} /> : <Bot size={12} />}
-            </div>
-            <div className={styles.bubbleBody}>
-              <div className={styles.bubbleText}>{msg.message}</div>
-              <div className={styles.bubbleTime}>{formatDuration(msg.time_in_call_secs)}</div>
-            </div>
-          </div>
-        ))
+        messages
+          .filter((msg) => msg.message?.trim() || msg.source_medium === "audio" || msg.audio_url || msg.image_url || msg.video_url || msg.document_url)
+          .map((msg: TranscriptMessage, i: number) => {
+            const isVoiceNote = msg.source_medium === "audio" && !msg.audio_url
+            return (
+              <div
+                key={i}
+                className={`${styles.bubble} ${msg.role === "user" ? styles.bubbleUser : styles.bubbleAgent}`}
+              >
+                <div className={styles.bubbleIcon}>
+                  {msg.role === "user" ? <User size={12} /> : <Bot size={12} />}
+                </div>
+                <div className={styles.bubbleBody}>
+                  {isVoiceNote && (
+                    <div className={styles.voiceNote}>
+                      <span>🎤</span>
+                      <span className={styles.voiceNoteLabel}>Voice note</span>
+                    </div>
+                  )}
+                  {msg.message && <div className={styles.bubbleText}>{msg.message}</div>}
+                  {msg.audio_url && (
+                    <audio controls className={styles.mediaAudio} src={msg.audio_url} />
+                  )}
+                  {msg.image_url && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={msg.image_url} alt="Shared image" className={styles.mediaImage} />
+                  )}
+                  {msg.video_url && (
+                    <video controls className={styles.mediaVideo} src={msg.video_url} />
+                  )}
+                  {msg.document_url && (
+                    <a href={msg.document_url} target="_blank" rel="noopener noreferrer" className={styles.docLink}>
+                      📄 {msg.document_name ?? "Document"}
+                    </a>
+                  )}
+                  <div className={styles.bubbleTime}>{formatDuration(msg.time_in_call_secs)}</div>
+                </div>
+              </div>
+            )
+          })
       )}
     </div>
   )

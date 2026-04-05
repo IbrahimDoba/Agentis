@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useEffect } from "react"
+import { useState, useCallback, useEffect, useRef } from "react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { ChatList } from "./ChatList"
 import { ContactsView } from "./ContactsView"
@@ -31,9 +31,15 @@ export function ChatsClient({ agents }: ChatsClientProps) {
   const [selectedConvId, setSelectedConvId] = useState<string | null>(null)
   const [viewTab, setViewTab] = useState<"chats" | "contacts">("chats")
   const queryClient = useQueryClient()
+  const loadMoreRef = useRef<HTMLDivElement>(null)
 
-  const { data: convsData, isLoading, error } = useQuery<{ conversations: Conversation[] }>({
-    queryKey: ["conversations", selectedAgentId],
+  const [cursor, setCursor] = useState<string | null>(null)
+  const [allConversations, setAllConversations] = useState<Conversation[]>([])
+  const [hasMore, setHasMore] = useState(false)
+  const [isFetchingMore, setIsFetchingMore] = useState(false)
+
+  const { data, isLoading, error } = useQuery<{ conversations: Conversation[]; has_more: boolean; next_cursor: string | null }>({
+    queryKey: ["chats", selectedAgentId],
     queryFn: async () => {
       const res = await fetch(`/api/agents/${selectedAgentId}/conversations`)
       if (!res.ok) throw new Error("Failed to fetch conversations")
@@ -42,6 +48,36 @@ export function ChatsClient({ agents }: ChatsClientProps) {
     enabled: !!selectedAgentId,
     staleTime: 30 * 1000,
   })
+
+  // Reset conversations when agent changes or initial data loads
+  useEffect(() => {
+    if (data) {
+      setAllConversations(data.conversations)
+      setHasMore(data.has_more)
+      setCursor(data.next_cursor)
+    }
+  }, [data])
+
+  useEffect(() => {
+    setAllConversations([])
+    setHasMore(false)
+    setCursor(null)
+  }, [selectedAgentId])
+
+  const fetchMore = useCallback(async () => {
+    if (!cursor || isFetchingMore) return
+    setIsFetchingMore(true)
+    try {
+      const res = await fetch(`/api/agents/${selectedAgentId}/conversations?cursor=${cursor}`)
+      if (!res.ok) return
+      const page = await res.json()
+      setAllConversations((prev) => [...prev, ...page.conversations])
+      setHasMore(page.has_more)
+      setCursor(page.next_cursor)
+    } finally {
+      setIsFetchingMore(false)
+    }
+  }, [cursor, isFetchingMore, selectedAgentId])
 
   const { data: readData } = useQuery<{ readIds: string[] }>({
     queryKey: ["conversation-reads"],
@@ -63,9 +99,25 @@ export function ChatsClient({ agents }: ChatsClientProps) {
     staleTime: 30 * 1000,
   })
 
-  const conversations = convsData?.conversations ?? []
+  const conversations = allConversations
   const readIds = new Set(readData?.readIds ?? [])
   const leadIds = new Set(leadsData?.leads.map((l) => l.conversationId) ?? [])
+
+  // Infinite scroll — trigger next page when sentinel comes into view
+  useEffect(() => {
+    const el = loadMoreRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isFetchingMore) {
+          fetchMore()
+        }
+      },
+      { threshold: 0.1 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [hasMore, isFetchingMore, fetchMore])
 
   // Run AI lead detection after conversations load
   useEffect(() => {
@@ -85,10 +137,10 @@ export function ChatsClient({ agents }: ChatsClientProps) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ conversations: toSend }),
     }).then((r) => {
-      if (r.ok) queryClient.invalidateQueries({ queryKey: ["leads"] })
+        if (r.ok) queryClient.invalidateQueries({ queryKey: ["leads"] })
     })
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [convsData, selectedAgentId])
+  }, [data, selectedAgentId])
 
   const markRead = useCallback(async (conversationId: string) => {
     if (readIds.has(conversationId)) return
@@ -109,10 +161,10 @@ export function ChatsClient({ agents }: ChatsClientProps) {
 
   const handleClose = useCallback(() => setSelectedConvId(null), [])
 
-  const handleAgentSwitch = (agentId: string) => {
+  const handleAgentSwitch = useCallback((agentId: string) => {
     setSelectedAgentId(agentId)
     setSelectedConvId(null)
-  }
+  }, [])
 
   return (
     <div>
@@ -177,12 +229,21 @@ export function ChatsClient({ agents }: ChatsClientProps) {
       )}
 
       {!isLoading && !error && viewTab === "chats" && (
-        <ChatList
-          conversations={conversations}
-          readIds={readIds}
-          leadIds={leadIds}
-          onSelect={handleSelect}
-        />
+        <>
+          <ChatList
+            conversations={conversations}
+            readIds={readIds}
+            leadIds={leadIds}
+            onSelect={handleSelect}
+          />
+          {/* Infinite scroll sentinel */}
+          <div ref={loadMoreRef} style={{ height: 1 }} />
+          {isFetchingMore && (
+            <div style={{ textAlign: "center", padding: "1rem", fontSize: 13, color: "var(--muted)" }}>
+              Loading more…
+            </div>
+          )}
+        </>
       )}
 
       {!isLoading && !error && viewTab === "contacts" && (
