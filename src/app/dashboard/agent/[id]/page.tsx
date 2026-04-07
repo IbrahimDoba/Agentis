@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useParams } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeftIcon } from "@heroicons/react/24/outline"
 import styles from "./page.module.css"
 import { AgentForm } from "@/components/dashboard/AgentForm"
 import { AgentProfileForm } from "@/components/dashboard/AgentProfileForm"
@@ -80,7 +80,7 @@ export default function AgentDetailPage() {
     <div className={styles.page}>
       {/* Back link */}
       <Link href="/dashboard/agents" className={styles.back}>
-        <ArrowLeft size={15} /> All Agents
+        <ArrowLeftIcon width={15} height={15} /> All Agents
       </Link>
 
       {/* Header */}

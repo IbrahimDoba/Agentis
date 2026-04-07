@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { Sun, Moon } from "lucide-react"
+import { SunIcon, MoonIcon } from "@heroicons/react/24/outline"
 import { useTheme } from "@/components/ThemeProvider"
 import { LogoIcon } from "@/components/landing/Logo"
 import styles from "./Navbar.module.css"
@@ -35,7 +35,7 @@ export function Navbar() {
 
       <div className={styles.actions}>
         <button className={styles.themeToggle} onClick={toggle} aria-label="Toggle theme">
-          {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+          {theme === "dark" ? <SunIcon width={18} height={18} /> : <MoonIcon width={18} height={18} />}
         </button>
         <Link href="/login" className={styles.signIn}>Sign in</Link>
         <Link href="/signup" className={styles.getAccess}>Get Access</Link>

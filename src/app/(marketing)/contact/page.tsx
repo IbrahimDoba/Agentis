@@ -1,7 +1,7 @@
 "use client"
 import { useState } from "react"
 import Link from "next/link"
-import { Mail, Clock, MessageSquare, ArrowRight, CheckCircle, Send, Calendar } from "lucide-react"
+import { EnvelopeIcon, ClockIcon, ChatBubbleLeftRightIcon, ArrowRightIcon, CheckCircleIcon, PaperAirplaneIcon, CalendarDaysIcon } from "@heroicons/react/24/outline"
 import { Navbar } from "@/components/landing/Navbar"
 import styles from "./page.module.css"
 
@@ -78,7 +78,7 @@ export default function ContactPage() {
             {/* Left: info cards */}
             <div className={styles.infoCol}>
               <div className={styles.infoCard}>
-                <div className={styles.infoIconWrap}><Mail size={20} /></div>
+                <div className={styles.infoIconWrap}><EnvelopeIcon width={20} height={20} /></div>
                 <div>
                   <div className={styles.infoTitle}>Email</div>
                   <div className={styles.infoValue}>support@dailzero.com</div>
@@ -87,7 +87,7 @@ export default function ContactPage() {
               </div>
 
               <div className={styles.infoCard}>
-                <div className={styles.infoIconWrap}><Clock size={20} /></div>
+                <div className={styles.infoIconWrap}><ClockIcon width={20} height={20} /></div>
                 <div>
                   <div className={styles.infoTitle}>Response Time</div>
                   <div className={styles.infoValue}>Within 24 hours</div>
@@ -96,7 +96,7 @@ export default function ContactPage() {
               </div>
 
               <div className={styles.infoCard}>
-                <div className={styles.infoIconWrap}><MessageSquare size={20} /></div>
+                <div className={styles.infoIconWrap}><ChatBubbleLeftRightIcon width={20} height={20} /></div>
                 <div>
                   <div className={styles.infoTitle}>WhatsApp</div>
                   <div className={styles.infoValue}>Available on request</div>
@@ -110,7 +110,7 @@ export default function ContactPage() {
                   Book a free 30-minute demo and watch an AI agent handle real customer conversations live.
                 </div>
                 <Link href="/pricing" className={styles.demoBannerBtn}>
-                  <Calendar size={15} />
+                  <CalendarDaysIcon width={15} height={15} />
                   Book a Free Demo
                 </Link>
               </div>
@@ -121,14 +121,14 @@ export default function ContactPage() {
               {sent ? (
                 <div className={styles.success}>
                   <div className={styles.successIcon}>
-                    <CheckCircle size={30} />
+                    <CheckCircleIcon width={30} height={30} />
                   </div>
                   <h2 className={styles.successTitle}>Message sent!</h2>
                   <p className={styles.successText}>
                     Thanks for reaching out. We&apos;ll review your message and get back to you within 24 hours.
                   </p>
                   <button className={styles.successBack} onClick={() => setSent(false)}>
-                    Send another message <ArrowRight size={15} />
+                    Send another message <ArrowRightIcon width={15} height={15} />
                   </button>
                 </div>
               ) : (
@@ -197,7 +197,7 @@ export default function ContactPage() {
                     </div>
 
                     <button type="submit" className={styles.submitBtn} disabled={loading}>
-                      {loading ? "Sending…" : <><Send size={16} /> Send Message</>}
+                      {loading ? "Sending…" : <><PaperAirplaneIcon width={16} height={16} /> Send Message</>}
                     </button>
                   </form>
                 </>

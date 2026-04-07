@@ -1,13 +1,14 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import Link from "next/link"
+import { Squares2X2Icon, UsersIcon, CpuChipIcon, ArrowUturnLeftIcon } from "@heroicons/react/24/outline"
 import { LogoIcon } from "@/components/landing/Logo"
 import styles from "./layout.module.css"
 
 const navItems = [
-  { href: "/admin", label: "Overview", icon: "◈" },
-  { href: "/admin/users", label: "Users", icon: "👥" },
-  { href: "/admin/agents", label: "Agents", icon: "🤖" },
+  { href: "/admin", label: "Overview", icon: <Squares2X2Icon width={16} height={16} /> },
+  { href: "/admin/users", label: "Users", icon: <UsersIcon width={16} height={16} /> },
+  { href: "/admin/agents", label: "Agents", icon: <CpuChipIcon width={16} height={16} /> },
 ]
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -37,7 +38,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
           <div className={styles.navLabel}>Account</div>
           <Link href="/dashboard" className={styles.navLink}>
-            <span className={styles.navIcon}>↩</span>
+            <span className={styles.navIcon}><ArrowUturnLeftIcon width={16} height={16} /></span>
             Back to Dashboard
           </Link>
         </nav>

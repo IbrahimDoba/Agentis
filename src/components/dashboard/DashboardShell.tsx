@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Sidebar } from "./Sidebar"
 import { LogoIcon } from "@/components/landing/Logo"
@@ -14,6 +14,19 @@ interface Props {
 
 export function DashboardShell({ userName, businessName, children }: Props) {
   const [isOpen, setIsOpen] = useState(false)
+  const [collapsed, setCollapsed] = useState(false)
+
+  useEffect(() => {
+    setCollapsed(localStorage.getItem("sidebar-collapsed") === "true")
+  }, [])
+
+  const toggleCollapse = () => {
+    setCollapsed((c) => {
+      const next = !c
+      localStorage.setItem("sidebar-collapsed", String(next))
+      return next
+    })
+  }
 
   return (
     <div className={styles.shell}>
@@ -45,6 +58,8 @@ export function DashboardShell({ userName, businessName, children }: Props) {
         businessName={businessName}
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
+        collapsed={collapsed}
+        onToggleCollapse={toggleCollapse}
       />
 
       <main className={styles.main}>{children}</main>

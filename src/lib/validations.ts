@@ -25,13 +25,13 @@ export const loginSchema = z.object({
 })
 
 export const agentSchema = z.object({
-  businessName: z.string().min(2, "Business name must be at least 2 characters"),
-  businessDescription: z.string().min(20, "Please describe your business (min 20 characters)"),
-  contactEmail: z.string().email("Enter a valid contact email address"),
-  contactPhone: z.string().min(7, "Enter a valid contact phone number"),
-  productsServices: z.string().min(10, "Please describe your products or services (min 10 characters)"),
-  faqs: z.string().min(10, "Please add at least one FAQ (min 10 characters)"),
-  operatingHours: z.string().min(3, "Please enter your operating hours"),
+  businessName: z.string().min(2, "Business name must be at least 2 characters").optional(),
+  businessDescription: z.string().optional(),
+  contactEmail: z.string().email("Enter a valid contact email address").optional().or(z.literal("")),
+  contactPhone: z.string().optional(),
+  productsServices: z.string().optional(),
+  faqs: z.string().optional(),
+  operatingHours: z.string().optional(),
   websiteLinks: z.string().optional(),
   responseGuidelines: z.string().optional(),
   profileImageUrl: z.string().optional(),

@@ -4,7 +4,7 @@ import { useState, useRef } from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { useQueryClient } from "@tanstack/react-query"
-import { Camera, Loader2, CheckCircle, Globe, Mail, Phone, MapPin, Tag, Info } from "lucide-react"
+import { CameraIcon, ArrowPathIcon, CheckCircleIcon, GlobeAltIcon, EnvelopeIcon, PhoneIcon, MapPinIcon, TagIcon, InformationCircleIcon } from "@heroicons/react/24/outline"
 import styles from "./AgentProfileForm.module.css"
 import { Input, Textarea } from "@/components/ui/Input"
 import Button from "@/components/ui/Button"
@@ -115,7 +115,7 @@ export function AgentProfileForm({ agent }: AgentProfileFormProps) {
     <form onSubmit={handleSubmit} className={styles.form}>
       {/* Info banner */}
       <div className={styles.infoBanner}>
-        <Info size={15} className={styles.infoIcon} />
+        <InformationCircleIcon width={15} height={15} className={styles.infoIcon} />
         <span>This information will be shown on your agent&apos;s WhatsApp Business profile, visible to customers who message you.</span>
       </div>
 
@@ -137,9 +137,9 @@ export function AgentProfileForm({ agent }: AgentProfileFormProps) {
           )}
           <div className={styles.avatarOverlay}>
             {isUploading ? (
-              <Loader2 size={20} className={styles.uploadSpinner} />
+              <ArrowPathIcon width={20} height={20} className={styles.uploadSpinner} />
             ) : (
-              <Camera size={20} />
+              <CameraIcon width={20} height={20} />
             )}
           </div>
         </div>
@@ -163,7 +163,7 @@ export function AgentProfileForm({ agent }: AgentProfileFormProps) {
       {errors.form && <div className={styles.formError}>{errors.form}</div>}
       {success && (
         <div className={styles.successMsg}>
-          <CheckCircle size={15} /> Profile updated successfully
+          <CheckCircleIcon width={15} height={15} /> Profile updated successfully
         </div>
       )}
 
@@ -182,7 +182,7 @@ export function AgentProfileForm({ agent }: AgentProfileFormProps) {
             />
             <div className={styles.selectWrap}>
               <label className={styles.selectLabel}>
-                <Tag size={13} /> Category
+                <TagIcon width={13} height={13} /> Category
               </label>
               <select
                 name="category"
@@ -215,7 +215,7 @@ export function AgentProfileForm({ agent }: AgentProfileFormProps) {
         <div className={styles.fields}>
           <div className={styles.row}>
             <div className={styles.iconField}>
-              <Mail size={14} className={styles.fieldIcon} />
+              <EnvelopeIcon width={14} height={14} className={styles.fieldIcon} />
               <Input
                 label="Contact Email"
                 name="contactEmail"
@@ -227,7 +227,7 @@ export function AgentProfileForm({ agent }: AgentProfileFormProps) {
               />
             </div>
             <div className={styles.iconField}>
-              <Phone size={14} className={styles.fieldIcon} />
+              <PhoneIcon width={14} height={14} className={styles.fieldIcon} />
               <Input
                 label="Contact Phone"
                 name="contactPhone"
@@ -240,7 +240,7 @@ export function AgentProfileForm({ agent }: AgentProfileFormProps) {
             </div>
           </div>
           <div className={styles.iconField}>
-            <Globe size={14} className={styles.fieldIcon} />
+            <GlobeAltIcon width={14} height={14} className={styles.fieldIcon} />
             <Input
               label="Website"
               name="websiteLinks"
@@ -251,7 +251,7 @@ export function AgentProfileForm({ agent }: AgentProfileFormProps) {
             />
           </div>
           <div className={styles.iconField}>
-            <MapPin size={14} className={styles.fieldIcon} />
+            <MapPinIcon width={14} height={14} className={styles.fieldIcon} />
             <Input
               label="Business Address"
               name="address"

@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeftIcon } from "@heroicons/react/24/outline"
 
 import { AgentForm } from "@/components/dashboard/AgentForm"
 import { AgentProfileForm } from "@/components/dashboard/AgentProfileForm"
@@ -64,7 +64,7 @@ export function AdminAgentClient({ agent }: { agent: any }) {
     return (
         <div className={styles.page}>
             <Link href="/admin/agents" className={styles.back}>
-                <ArrowLeft size={15} /> All Agents
+                <ArrowLeftIcon width={15} height={15} /> All Agents
             </Link>
 
             <div className={styles.header}>

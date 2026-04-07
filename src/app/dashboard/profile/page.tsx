@@ -6,6 +6,9 @@ import styles from "./page.module.css"
 import { Input, Textarea, Select } from "@/components/ui/Input"
 import Button from "@/components/ui/Button"
 import { useDashboardData } from "@/hooks/useDashboardData"
+import { useTheme } from "@/components/ThemeProvider"
+import { SunIcon, MoonIcon, ArrowRightStartOnRectangleIcon } from "@heroicons/react/24/outline"
+import { signOut } from "next-auth/react"
 
 const BUSINESS_CATEGORIES = [
   { value: "Non-Online Gambling & Gaming (E.g. Brick and mortar)", label: "Non-Online Gambling & Gaming (E.g. Brick and mortar)" },
@@ -29,6 +32,7 @@ const BUSINESS_CATEGORIES = [
 export default function ProfilePage() {
   const queryClient = useQueryClient()
   const { data, isLoading } = useDashboardData()
+  const { theme, toggle } = useTheme()
 
   const [form, setForm] = useState({
     name: "",
@@ -238,10 +242,54 @@ export default function ProfilePage() {
           </div>
         </div>
 
+        {/* Appearance */}
+        <div className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <div className={styles.sectionTitle}>Appearance</div>
+            <div className={styles.sectionDesc}>Choose how the dashboard looks to you.</div>
+          </div>
+          <div className={styles.themeOptions}>
+            <button
+              type="button"
+              className={`${styles.themeOption} ${theme === "light" ? styles.themeOptionActive : ""}`}
+              onClick={() => theme !== "light" && toggle()}
+            >
+              <SunIcon width={22} height={22} className={styles.themeOptionIcon} />
+              <span className={styles.themeOptionLabel}>Light</span>
+              <span className={styles.themeOptionDesc}>Clean white interface</span>
+            </button>
+            <button
+              type="button"
+              className={`${styles.themeOption} ${theme === "dark" ? styles.themeOptionActive : ""}`}
+              onClick={() => theme !== "dark" && toggle()}
+            >
+              <MoonIcon width={22} height={22} className={styles.themeOptionIcon} />
+              <span className={styles.themeOptionLabel}>Dark</span>
+              <span className={styles.themeOptionDesc}>Easy on the eyes</span>
+            </button>
+          </div>
+        </div>
+
         <div className={styles.actions}>
           <Button type="submit" loading={loading} size="lg">
             Save Changes
           </Button>
+        </div>
+
+        {/* Sign Out */}
+        <div className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <div className={styles.sectionTitle}>Sign Out</div>
+            <div className={styles.sectionDesc}>Sign out of your account on this device.</div>
+          </div>
+          <button
+            type="button"
+            className={styles.signOutBtn}
+            onClick={() => signOut({ callbackUrl: "/login" })}
+          >
+            <ArrowRightStartOnRectangleIcon width={16} height={16} />
+            Sign out
+          </button>
         </div>
       </form>
     </div>

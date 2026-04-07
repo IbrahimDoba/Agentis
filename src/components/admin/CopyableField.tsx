@@ -1,6 +1,6 @@
 "use client"
 import { useState } from "react"
-import { Copy, Check } from "lucide-react"
+import { DocumentDuplicateIcon, CheckIcon } from "@heroicons/react/24/outline"
 import styles from "./CopyableField.module.css"
 
 interface Props {
@@ -22,7 +22,7 @@ export function CopyableField({ label, value }: Props) {
       <div className={styles.header}>
         <span className={styles.label}>{label}</span>
         <button className={`${styles.copyBtn} ${copied ? styles.copied : ""}`} onClick={copy}>
-          {copied ? <><Check size={12} /> Copied</> : <><Copy size={12} /> Copy</>}
+          {copied ? <><CheckIcon width={12} height={12} /> Copied</> : <><DocumentDuplicateIcon width={12} height={12} /> Copy</>}
         </button>
       </div>
       <div className={styles.scrollBox}>{value}</div>

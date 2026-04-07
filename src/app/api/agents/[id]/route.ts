@@ -100,17 +100,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       // Fire-and-forget: sync to ElevenLabs if agent is connected
       if (updated.elevenlabsAgentId) {
         buildAndSyncElevenLabsPrompt(updated.elevenlabsAgentId, {
-          businessName: updated.businessName,
-          businessDescription: updated.businessDescription,
-          productsServices: updated.productsServices,
-          faqs: updated.faqs,
-          operatingHours: updated.operatingHours,
-          contactEmail: updated.contactEmail,
-          contactPhone: updated.contactPhone,
-          websiteLinks: updated.websiteLinks,
           responseGuidelines: updated.responseGuidelines,
-          category: updated.category,
-          address: updated.address,
           productsData: updated.productsData as Product[] | null,
         }).catch((err) => console.error("[agentSync] ElevenLabs sync failed (admin):", err))
 
@@ -163,17 +153,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       // Fire-and-forget: sync to ElevenLabs if agent is connected
       if (updated.elevenlabsAgentId) {
         buildAndSyncElevenLabsPrompt(updated.elevenlabsAgentId, {
-          businessName: updated.businessName,
-          businessDescription: updated.businessDescription,
-          productsServices: updated.productsServices,
-          faqs: updated.faqs,
-          operatingHours: updated.operatingHours,
-          contactEmail: updated.contactEmail,
-          contactPhone: updated.contactPhone,
-          websiteLinks: updated.websiteLinks,
           responseGuidelines: updated.responseGuidelines,
-          category: updated.category,
-          address: updated.address,
           productsData: updated.productsData as Product[] | null,
         }).catch((err) => console.error("[agentSync] ElevenLabs sync failed:", err))
       }

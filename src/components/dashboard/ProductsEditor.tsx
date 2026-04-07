@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react"
 import Image from "next/image"
-import { Plus, Pencil, Trash2, ChevronDown, ChevronUp, Loader2, Package } from "lucide-react"
+import { PlusIcon, PencilIcon, TrashIcon, ChevronDownIcon, ChevronUpIcon, ArrowPathIcon, CubeIcon } from "@heroicons/react/24/outline"
 import { Input } from "@/components/ui/Input"
 import type { Product } from "@/types"
 import styles from "./ProductsEditor.module.css"
@@ -100,9 +100,9 @@ export function ProductsEditor({ value, onChange }: ProductsEditorProps) {
           {form.imageUrl ? (
             <Image src={form.imageUrl} alt="Product" width={56} height={56} className={styles.productImg} />
           ) : (
-            <Package size={20} className={styles.imgPlaceholderIcon} />
+            <CubeIcon width={20} height={20} className={styles.imgPlaceholderIcon} />
           )}
-          {isUploading && <div className={styles.imgSpinner}><Loader2 size={16} className={styles.spin} /></div>}
+          {isUploading && <div className={styles.imgSpinner}><ArrowPathIcon width={16} height={16} className={styles.spin} /></div>}
         </div>
         <input ref={fileInputRef} type="file" accept="image/*" className={styles.hiddenInput} onChange={handleImageUpload} />
         <div className={styles.imageHint}>
@@ -164,7 +164,7 @@ export function ProductsEditor({ value, onChange }: ProductsEditorProps) {
             <span className={styles.badge}>{value.length}</span>
           )}
         </div>
-        {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+        {expanded ? <ChevronUpIcon width={16} height={16} /> : <ChevronDownIcon width={16} height={16} />}
       </button>
 
       {expanded && (
@@ -190,10 +190,10 @@ export function ProductsEditor({ value, onChange }: ProductsEditorProps) {
               </div>
               <div className={styles.productActions}>
                 <button type="button" className={styles.iconBtn} onClick={() => handleEditStart(product)}>
-                  <Pencil size={14} />
+                  <PencilIcon width={14} height={14} />
                 </button>
                 <button type="button" className={styles.iconBtnDanger} onClick={() => handleDelete(product.id)}>
-                  <Trash2 size={14} />
+                  <TrashIcon width={14} height={14} />
                 </button>
               </div>
 
@@ -209,7 +209,7 @@ export function ProductsEditor({ value, onChange }: ProductsEditorProps) {
               className={styles.addBtn}
               onClick={() => { setAddingNew(true); setEditingId(null) }}
             >
-              <Plus size={14} /> Add Product
+              <PlusIcon width={14} height={14} /> Add Product
             </button>
           )}
         </div>

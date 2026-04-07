@@ -128,6 +128,42 @@
   color: var(--text-muted);
 }
 
+.contactsTotal {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.375rem 0.75rem 0.375rem 1rem;
+  font-size: 11px;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-secondary);
+  flex-shrink: 0;
+}
+
+.exportBtn {
+  font-size: 11px;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--accent);
+  background: none;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
+  padding: 0.2rem 0.6rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.exportBtn:hover {
+  background: var(--accent);
+  color: #0a1a0e;
+}
+
+.exportBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .emptyList {
   display: flex;
   align-items: center;
@@ -137,6 +173,13 @@
   font-size: 13px;
   color: var(--text-muted);
   text-align: center;
+}
+
+.loadingMore {
+  text-align: center;
+  padding: 0.75rem;
+  font-size: 12px;
+  color: var(--text-muted);
 }
 
 /* Thread pane */
@@ -246,16 +289,56 @@
   border: 1px solid var(--border);
 }
 
+.sessionBlock {
+  display: flex;
+  flex-direction: column;
+}
+
+.sessionSummaryWrap {
+  margin-bottom: 0.5rem;
+}
+
 .sessionSummary {
   font-size: 12px;
   color: var(--text-secondary);
   font-style: italic;
   line-height: 1.6;
   padding: 0.5rem 0.75rem;
-  margin-bottom: 0.5rem;
   background: rgba(34, 197, 94, 0.04);
   border-left: 2px solid var(--accent);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  /* Truncate to 3 lines by default */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.sessionSummaryExpanded {
+  display: block;
+  overflow: visible;
+}
+
+.summaryToggle {
+  display: inline-block;
+  margin-top: 0.25rem;
+  margin-left: 0.75rem;
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* Container for chat bubbles within a session — must be flex for alignment */
+.sessionMessages {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
 .noMessages {

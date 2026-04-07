@@ -1,6 +1,6 @@
 "use client"
 import { useState } from "react"
-import { Copy, Check } from "lucide-react"
+import { DocumentDuplicateIcon, CheckIcon } from "@heroicons/react/24/outline"
 import styles from "./CopyAllButton.module.css"
 
 export function CopyAllButton({ text }: { text: string }) {
@@ -14,7 +14,7 @@ export function CopyAllButton({ text }: { text: string }) {
 
   return (
     <button className={`${styles.btn} ${copied ? styles.copied : ""}`} onClick={copy}>
-      {copied ? <><Check size={13} /> Copied</> : <><Copy size={13} /> Copy All</>}
+      {copied ? <><CheckIcon width={13} height={13} /> Copied</> : <><DocumentDuplicateIcon width={13} height={13} /> Copy All</>}
     </button>
   )
 }

@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { FileText, Link2, Trash2, Upload, Plus, Loader2, Globe, AlertCircle } from "lucide-react"
+import { DocumentTextIcon, LinkIcon, TrashIcon, ArrowUpTrayIcon, PlusIcon, ArrowPathIcon, GlobeAltIcon, ExclamationCircleIcon } from "@heroicons/react/24/outline"
 import { Input } from "@/components/ui/Input"
 import styles from "./KnowledgeBaseTab.module.css"
 
@@ -25,8 +25,8 @@ function formatDocType(type: string) {
 }
 
 function DocIcon({ type }: { type: string }) {
-  if (type === "url") return <Globe size={16} />
-  return <FileText size={16} />
+  if (type === "url") return <GlobeAltIcon width={16} height={16} />
+  return <DocumentTextIcon width={16} height={16} />
 }
 
 export function KnowledgeBaseTab({ agentId, elevenlabsAgentId }: KnowledgeBaseTabProps) {
@@ -117,7 +117,7 @@ export function KnowledgeBaseTab({ agentId, elevenlabsAgentId }: KnowledgeBaseTa
   if (!elevenlabsAgentId) {
     return (
       <div className={styles.notConnected}>
-        <AlertCircle size={32} className={styles.notConnectedIcon} />
+        <ExclamationCircleIcon width={32} height={32} className={styles.notConnectedIcon} />
         <div className={styles.notConnectedTitle}>Knowledge base not available yet</div>
         <div className={styles.notConnectedDesc}>
           Your agent is still being set up. The knowledge base will be available once setup is complete.
@@ -141,14 +141,14 @@ export function KnowledgeBaseTab({ agentId, elevenlabsAgentId }: KnowledgeBaseTa
             onClick={() => { setMode(mode === "url" ? "idle" : "url"); setError("") }}
             disabled={uploading}
           >
-            <Link2 size={14} /> Add URL
+            <LinkIcon width={14} height={14} /> Add URL
           </button>
           <button
             className={styles.addBtn}
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
           >
-            {uploading ? <Loader2 size={14} className={styles.spin} /> : <Upload size={14} />}
+            {uploading ? <ArrowPathIcon width={14} height={14} className={styles.spin} /> : <ArrowUpTrayIcon width={14} height={14} />}
             {uploading ? "Uploading…" : "Upload File"}
           </button>
           <input
@@ -163,7 +163,7 @@ export function KnowledgeBaseTab({ agentId, elevenlabsAgentId }: KnowledgeBaseTa
 
       {error && (
         <div className={styles.error}>
-          <AlertCircle size={14} /> {error}
+          <ExclamationCircleIcon width={14} height={14} /> {error}
         </div>
       )}
 
@@ -185,7 +185,7 @@ export function KnowledgeBaseTab({ agentId, elevenlabsAgentId }: KnowledgeBaseTa
           </div>
           <div className={styles.urlActions}>
             <button className={styles.saveBtn} onClick={handleAddUrl} disabled={!urlInput.trim() || addingUrl}>
-              {addingUrl ? <Loader2 size={14} className={styles.spin} /> : <Plus size={14} />}
+              {addingUrl ? <ArrowPathIcon width={14} height={14} className={styles.spin} /> : <PlusIcon width={14} height={14} />}
               {addingUrl ? "Adding…" : "Add URL"}
             </button>
             <button className={styles.cancelBtn} onClick={() => { setMode("idle"); setUrlInput(""); setUrlName("") }}>
@@ -197,11 +197,11 @@ export function KnowledgeBaseTab({ agentId, elevenlabsAgentId }: KnowledgeBaseTa
 
       {isLoading ? (
         <div className={styles.loading}>
-          <Loader2 size={18} className={styles.spin} /> Loading knowledge base…
+          <ArrowPathIcon width={18} height={18} className={styles.spin} /> Loading knowledge base…
         </div>
       ) : docs.length === 0 ? (
         <div className={styles.empty}>
-          <FileText size={32} className={styles.emptyIcon} />
+          <DocumentTextIcon width={32} height={32} className={styles.emptyIcon} />
           <div className={styles.emptyTitle}>No documents yet</div>
           <div className={styles.emptyDesc}>
             Upload PDFs, Word documents, or add URLs — the agent will use them to answer questions.
@@ -226,8 +226,8 @@ export function KnowledgeBaseTab({ agentId, elevenlabsAgentId }: KnowledgeBaseTa
                 title="Remove from knowledge base"
               >
                 {deletingId === doc.id
-                  ? <Loader2 size={14} className={styles.spin} />
-                  : <Trash2 size={14} />
+                  ? <ArrowPathIcon width={14} height={14} className={styles.spin} />
+                  : <TrashIcon width={14} height={14} />
                 }
               </button>
             </div>

@@ -78,7 +78,12 @@ export async function POST(req: NextRequest) {
 
     const agent = await db.agent.create({
       data: {
+        businessDescription: "",
+        productsServices: "",
+        faqs: "",
+        operatingHours: "",
         ...parsed.data,
+        businessName: session.user.businessName || parsed.data.businessName || "My Business",
         userId: session.user.id,
       },
     })

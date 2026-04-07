@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
+import { useQueryClient } from "@tanstack/react-query"
 import { cn, formatTime, formatDuration, getCallerIdentifier } from "@/lib/utils"
 import { useConversationDetail } from "@/hooks/useConversationDetail"
 import type { Conversation } from "@/types"
@@ -122,7 +123,29 @@ function MediaBubble({ msg, onImageClick }: { msg: TranscriptMessage; onImageCli
 }
 
 export function ConversationDrawer({ conversationId, agentId, onClose, isLead: initialIsLead = false, conversation: convMeta }: ConversationDrawerProps) {
+  const queryClient = useQueryClient()
   const { data: detail, isLoading: loading, error: queryError } = useConversationDetail(conversationId)
+
+  // If the detail fetch discovered a phone number the list didn't have,
+  // patch the list cache directly (no DB round-trip needed — avoids race condition)
+  useEffect(() => {
+    if (detail?.user_id && !convMeta?.user_id && agentId && conversationId) {
+      queryClient.setQueryData<{ conversations: Conversation[]; has_more: boolean; next_cursor: string | null }>(
+        ["chats", agentId],
+        (old) => {
+          if (!old) return old
+          return {
+            ...old,
+            conversations: old.conversations.map((c) =>
+              c.conversation_id === conversationId
+                ? { ...c, user_id: detail.user_id }
+                : c
+            ),
+          }
+        }
+      )
+    }
+  }, [detail?.user_id, convMeta?.user_id, agentId, conversationId, queryClient])
 
   const [summary, setSummary] = useState("")
   const [summaryLoading, setSummaryLoading] = useState(false)

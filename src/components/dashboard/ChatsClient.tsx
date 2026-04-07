@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useEffect, useRef } from "react"
+import { useState, useCallback, useEffect, useRef, useMemo } from "react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { ChatList } from "./ChatList"
 import { ContactsView } from "./ContactsView"
@@ -33,8 +33,9 @@ export function ChatsClient({ agents }: ChatsClientProps) {
   const queryClient = useQueryClient()
   const loadMoreRef = useRef<HTMLDivElement>(null)
 
+  // Extra pages from infinite scroll (page 2+). Page 1 always comes directly from useQuery.
+  const [extraPages, setExtraPages] = useState<Conversation[]>([])
   const [cursor, setCursor] = useState<string | null>(null)
-  const [allConversations, setAllConversations] = useState<Conversation[]>([])
   const [hasMore, setHasMore] = useState(false)
   const [isFetchingMore, setIsFetchingMore] = useState(false)
 
@@ -46,20 +47,33 @@ export function ChatsClient({ agents }: ChatsClientProps) {
       return res.json()
     },
     enabled: !!selectedAgentId,
-    staleTime: 30 * 1000,
+    staleTime: 20 * 1000,
+    refetchInterval: 20 * 1000,
   })
 
-  // Reset conversations when agent changes or initial data loads
+  // Derive conversations directly from React Query data — no intermediate state needed.
+  // This means page 1 is always in sync with the cache instantly (no effect delay, no flash).
+  const conversations = useMemo(
+    () => [...(data?.conversations ?? []), ...extraPages],
+    [data, extraPages]
+  )
+
+  // Keep pagination state in sync when page 1 refreshes
   useEffect(() => {
     if (data) {
-      setAllConversations(data.conversations)
       setHasMore(data.has_more)
       setCursor(data.next_cursor)
     }
   }, [data])
 
+  // Clear extra scroll pages when switching agents
+  const didMountRef = useRef(false)
   useEffect(() => {
-    setAllConversations([])
+    if (!didMountRef.current) {
+      didMountRef.current = true
+      return
+    }
+    setExtraPages([])
     setHasMore(false)
     setCursor(null)
   }, [selectedAgentId])
@@ -71,7 +85,7 @@ export function ChatsClient({ agents }: ChatsClientProps) {
       const res = await fetch(`/api/agents/${selectedAgentId}/conversations?cursor=${cursor}`)
       if (!res.ok) return
       const page = await res.json()
-      setAllConversations((prev) => [...prev, ...page.conversations])
+      setExtraPages((prev) => [...prev, ...page.conversations])
       setHasMore(page.has_more)
       setCursor(page.next_cursor)
     } finally {
@@ -99,7 +113,6 @@ export function ChatsClient({ agents }: ChatsClientProps) {
     staleTime: 30 * 1000,
   })
 
-  const conversations = allConversations
   const readIds = new Set(readData?.readIds ?? [])
   const leadIds = new Set(leadsData?.leads.map((l) => l.conversationId) ?? [])
 
@@ -166,6 +179,9 @@ export function ChatsClient({ agents }: ChatsClientProps) {
     setSelectedConvId(null)
   }, [])
 
+  // Show skeletons only on the very first load when there's no data at all
+  const showSkeletons = isLoading && conversations.length === 0
+
   return (
     <div>
       {/* View tabs + agent tabs */}
@@ -200,7 +216,7 @@ export function ChatsClient({ agents }: ChatsClientProps) {
         )}
       </div>
 
-      {isLoading && (
+      {showSkeletons && (
         <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
           {[...Array(4)].map((_, i) => (
             <div key={i} style={{
@@ -228,7 +244,7 @@ export function ChatsClient({ agents }: ChatsClientProps) {
         </div>
       )}
 
-      {!isLoading && !error && viewTab === "chats" && (
+      {!showSkeletons && !error && viewTab === "chats" && (
         <>
           <ChatList
             conversations={conversations}
@@ -246,9 +262,8 @@ export function ChatsClient({ agents }: ChatsClientProps) {
         </>
       )}
 
-      {!isLoading && !error && viewTab === "contacts" && (
+      {viewTab === "contacts" && (
         <ContactsView
-          conversations={conversations}
           agentId={selectedAgentId}
         />
       )}

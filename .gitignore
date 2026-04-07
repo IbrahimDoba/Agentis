@@ -42,6 +42,10 @@ yarn-error.log*
 # local prompt files
 prompt.md
 
+# local debug/utility scripts
+check-db.js
+scripts/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

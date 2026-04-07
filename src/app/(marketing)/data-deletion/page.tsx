@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Navbar } from "@/components/landing/Navbar"
 import { Footer } from "@/components/landing/Footer"
-import { Trash2, CheckCircle, ShieldCheck, Clock, FileText, User } from "lucide-react"
+import { TrashIcon, CheckCircleIcon, ShieldCheckIcon, ClockIcon, DocumentTextIcon, UserIcon } from "@heroicons/react/24/outline"
 import styles from "./page.module.css"
 
 const REQUEST_TYPES = [
@@ -73,7 +73,7 @@ export default function DataDeletionPage() {
       <main className={styles.page}>
         <div className={styles.hero}>
           <div className={styles.badge}>
-            <ShieldCheck size={14} />
+            <ShieldCheckIcon width={14} height={14} />
             Privacy & Data Rights
           </div>
           <h1 className={styles.title}>Request Data Deletion</h1>
@@ -87,17 +87,17 @@ export default function DataDeletionPage() {
           {/* Info cards */}
           <div className={styles.infoRow}>
             <div className={styles.infoCard}>
-              <div className={styles.infoIcon}><Clock size={18} /></div>
+              <div className={styles.infoIcon}><ClockIcon width={18} height={18} /></div>
               <div className={styles.infoTitle}>30-Day Processing</div>
               <p className={styles.infoText}>We process all deletion requests within 30 days of verification.</p>
             </div>
             <div className={styles.infoCard}>
-              <div className={styles.infoIcon}><FileText size={18} /></div>
+              <div className={styles.infoIcon}><DocumentTextIcon width={18} height={18} /></div>
               <div className={styles.infoText2}>Reference Number</div>
               <p className={styles.infoText}>You&apos;ll receive a reference number to track your request status.</p>
             </div>
             <div className={styles.infoCard}>
-              <div className={styles.infoIcon}><User size={18} /></div>
+              <div className={styles.infoIcon}><UserIcon width={18} height={18} /></div>
               <div className={styles.infoTitle}>Verification Required</div>
               <p className={styles.infoText}>We may contact you to verify your identity before processing.</p>
             </div>
@@ -149,7 +149,7 @@ export default function DataDeletionPage() {
               {submitted ? (
                 <div className={styles.success}>
                   <div className={styles.successIconWrap}>
-                    <CheckCircle size={36} />
+                    <CheckCircleIcon width={36} height={36} />
                   </div>
                   <h2 className={styles.successTitle}>Request Submitted</h2>
                   <p className={styles.successText}>
@@ -173,7 +173,7 @@ export default function DataDeletionPage() {
               ) : (
                 <>
                   <div className={styles.formHeader}>
-                    <Trash2 size={20} className={styles.formIcon} />
+                    <TrashIcon width={20} height={20} className={styles.formIcon} />
                     <div>
                       <h2 className={styles.formTitle}>Data Deletion Request Form</h2>
                       <p className={styles.formSubtitle}>All fields marked * are required.</p>
@@ -276,7 +276,7 @@ export default function DataDeletionPage() {
                       {loading ? (
                         <span className={styles.spinner} />
                       ) : (
-                        <><Trash2 size={16} /> Submit Deletion Request</>
+                        <><TrashIcon width={16} height={16} /> Submit Deletion Request</>
                       )}
                     </button>
                   </form>

@@ -4,6 +4,50 @@ import styles from "./page.module.css"
 
 const updates = [
   {
+    date: "7 April 2026",
+    tag: "New",
+    tagColor: "green",
+    title: "Contacts View — Full History & Export",
+    description:
+      "The Contacts tab now shows every unique caller across all conversations, not just the first page. Browse all contacts with scroll pagination, search by number, and export your full contact list to Excel.",
+    bullets: [
+      "All unique contacts loaded directly from the database — no page limit",
+      "Scroll pagination loads 30 contacts at a time",
+      "Search contacts by phone number in real time",
+      "Export to a structured Excel file with chat count, talk time, first/last contact dates, and latest summary",
+      "Click any contact to view their full conversation history with transcripts",
+      "Summaries truncated by default — click to expand",
+    ],
+  },
+  {
+    date: "7 April 2026",
+    tag: "Improvement",
+    tagColor: "blue",
+    title: "Live Conversations & Faster Phone Resolution",
+    description:
+      "Active calls now appear on the dashboard the moment they start, and phone numbers resolve immediately without needing to open the conversation.",
+    bullets: [
+      "In-progress calls saved to the database as soon as a conversation begins",
+      "Conversations list refreshes automatically every 20 seconds",
+      "Phone numbers patched in the background during sync — no click required",
+      "Conversation list no longer flashes empty when switching tabs",
+    ],
+  },
+  {
+    date: "7 April 2026",
+    tag: "Improvement",
+    tagColor: "blue",
+    title: "Simplified Agent Configuration",
+    description:
+      "The agent config tab has been streamlined. Instead of multiple separate fields, you now write one System Prompt that goes directly to your AI agent, plus a product catalogue.",
+    bullets: [
+      "System Prompt fetched live from your connected ElevenLabs agent",
+      "Refresh button to reload the latest prompt at any time",
+      "Products remain as a separate structured section",
+      "Fewer fields — faster setup",
+    ],
+  },
+  {
     date: "5 April 2026",
     tag: "Fix",
     tagColor: "orange",

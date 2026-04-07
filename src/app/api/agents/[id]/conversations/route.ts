@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
-import { getConversations } from "@/lib/elevenlabs"
+import { getConversations, getConversation } from "@/lib/elevenlabs"
 
 interface Params {
   params: Promise<{ id: string }>
@@ -51,6 +51,8 @@ async function syncFromElevenLabs(elevenlabsAgentId: string, dbAgentId: string) 
     const missingPhoneIds = new Set(
       existing.filter((e: any) => !e.phoneNumber).map((e: any) => e.conversationId)
     )
+
+    // 1. Patch from list-level user_id where available
     const phonePatches = convs.filter(
       (c: any) => missingPhoneIds.has(c.conversation_id) && c.user_id
     )
@@ -63,6 +65,32 @@ async function syncFromElevenLabs(elevenlabsAgentId: string, dbAgentId: string) 
             where: { conversationId: c.conversation_id },
             data: { phoneNumber: phone },
           })
+        })
+      )
+    }
+
+    // 2. For in-progress conversations still missing a phone (user_id not in list yet),
+    //    fetch the detail from ElevenLabs — it reliably has user_id even mid-call.
+    //    There are typically 0–2 active calls, so this is cheap.
+    const stillMissing = convs.filter(
+      (c: any) =>
+        missingPhoneIds.has(c.conversation_id) &&
+        !c.user_id &&
+        (c.status === "in-progress" || c.status === "initiated")
+    )
+    if (stillMissing.length) {
+      await Promise.all(
+        stillMissing.map(async (c: any) => {
+          try {
+            const detail = await getConversation(c.conversation_id)
+            if (!detail?.user_id) return
+            const phone = normalizePhone(detail.user_id as string)
+            if (!phone) return
+            await db.conversationLog.update({
+              where: { conversationId: c.conversation_id },
+              data: { phoneNumber: phone },
+            })
+          } catch { /* non-fatal */ }
         })
       )
     }
@@ -131,21 +159,29 @@ export async function GET(req: NextRequest, { params }: Params) {
   }
 
   const cursor = req.nextUrl.searchParams.get("cursor")
+  const phone = req.nextUrl.searchParams.get("phone")
 
   // On first page, sync latest from ElevenLabs before returning DB results
-  if (!cursor) {
+  // Skip sync when filtering by phone (used by contacts thread view)
+  if (!cursor && !phone) {
     await syncFromElevenLabs(agent.elevenlabsAgentId, id)
   }
 
+  const agentFilter = {
+    OR: [
+      { agentId: id },
+      { elevenlabsAgentId: agent.elevenlabsAgentId },
+    ],
+  }
+
   const logs = await db.conversationLog.findMany({
-    where: {
-      OR: [
-        { agentId: id },
-        { elevenlabsAgentId: agent.elevenlabsAgentId },
-      ],
-    },
+    where: phone
+      ? { ...agentFilter, phoneNumber: phone }
+      : agentFilter,
     orderBy: { createdAt: "desc" },
-    take: PAGE_SIZE + 1,
+    // When filtering by phone (contact thread view), fetch all sessions (cap at 200).
+    // For the main list, use PAGE_SIZE pagination.
+    take: phone ? 200 : PAGE_SIZE + 1,
     ...(cursor ? { cursor: { conversationId: cursor }, skip: 1 } : {}),
     select: {
       conversationId: true,

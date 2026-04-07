@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query"
 import Link from "next/link"
-import { MessageSquare, Users, Flame, TrendingUp } from "lucide-react"
+import { ChatBubbleLeftRightIcon, UsersIcon, FireIcon, ArrowTrendingUpIcon } from "@heroicons/react/24/outline"
 import styles from "@/app/dashboard/page.module.css"
 
 function SkeletonCard() {
@@ -46,7 +46,7 @@ export function ConversationStats() {
     <>
       <div className={styles.statCard}>
         <div className={styles.statCardIcon} style={{ background: "rgba(0, 220, 130, 0.1)", color: "var(--accent)" }}>
-          <MessageSquare size={18} />
+          <ChatBubbleLeftRightIcon width={18} height={18} />
         </div>
         <div className={styles.statLabel}>Total Conversations</div>
         <div className={styles.statValue}>{total}</div>
@@ -55,7 +55,7 @@ export function ConversationStats() {
 
       <div className={styles.statCard}>
         <div className={styles.statCardIcon} style={{ background: "rgba(99, 179, 237, 0.12)", color: "#63b3ed" }}>
-          <Users size={18} />
+          <UsersIcon width={18} height={18} />
         </div>
         <div className={styles.statLabel}>Total Contacts</div>
         <div className={styles.statValue}>{contacts}</div>
@@ -64,7 +64,7 @@ export function ConversationStats() {
 
       <Link href="/dashboard/leads" className={styles.statCard} style={{ textDecoration: "none" }}>
         <div className={styles.statCardIcon} style={{ background: "rgba(245, 158, 11, 0.12)", color: "#f59e0b" }}>
-          <Flame size={18} />
+          <FireIcon width={18} height={18} />
         </div>
         <div className={styles.statLabel}>Total Leads</div>
         <div className={styles.statValue}>{leads}</div>
@@ -73,7 +73,7 @@ export function ConversationStats() {
 
       <div className={styles.statCard}>
         <div className={styles.statCardIcon} style={{ background: "rgba(167, 139, 250, 0.12)", color: "#a78bfa" }}>
-          <TrendingUp size={18} />
+          <ArrowTrendingUpIcon width={18} height={18} />
         </div>
         <div className={styles.statLabel}>Leads Rate</div>
         <div className={styles.statValue}>{leadsRate}%</div>

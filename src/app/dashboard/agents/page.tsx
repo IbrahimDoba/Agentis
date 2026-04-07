@@ -6,7 +6,7 @@ import { useAgents } from "@/hooks/useAgents"
 import { useDashboardData } from "@/hooks/useDashboardData"
 import { AgentListCard } from "@/components/dashboard/AgentListCard"
 import Button from "@/components/ui/Button"
-import { Lock, Plus } from "lucide-react"
+import { LockClosedIcon, PlusIcon } from "@heroicons/react/24/outline"
 
 function Skeleton() {
   return (
@@ -41,13 +41,13 @@ export default function AgentsPage() {
         <div className={styles.headerRight}>
           {atLimit ? (
             <div className={styles.limitBadge}>
-              <Lock size={13} />
+              <LockClosedIcon width={13} height={13} />
               Agent limit reached
             </div>
           ) : (
             <Link href="/dashboard/agent/create">
               <Button variant="primary" size="sm">
-                <Plus size={15} />
+                <PlusIcon width={15} height={15} />
                 New Agent
               </Button>
             </Link>
@@ -78,7 +78,7 @@ export default function AgentsPage() {
             ))}
             {atLimit && (
               <div className={styles.lockedCard}>
-                <Lock size={24} className={styles.lockIcon} />
+                <LockClosedIcon width={24} height={24} className={styles.lockIcon} />
                 <div className={styles.lockedTitle}>Unlock More Agents</div>
                 <p className={styles.lockedDesc}>
                   You&apos;ve reached your agent limit. Contact support to unlock additional agents for your account.

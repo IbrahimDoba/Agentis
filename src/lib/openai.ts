@@ -2,31 +2,37 @@ import OpenAI from "openai"
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
-export async function enhanceAgentInstructions(agentData: {
+export async function enhanceAgentInstructions(data: {
   businessName: string
-  businessDescription: string
-  productsServices: string
-  faqs: string
-  operatingHours: string
-  responseGuidelines?: string
+  systemPrompt?: string
 }): Promise<string> {
-  const prompt = `You are an expert at crafting AI agent instructions for WhatsApp customer service bots.
+  const hasExisting = data.systemPrompt && data.systemPrompt.trim().length > 0
 
-Given the following business information, create clear, concise, and effective system instructions for a WhatsApp AI agent:
+  const prompt = hasExisting
+    ? `You are an expert at writing system prompts for WhatsApp AI agents.
 
-Business Name: ${agentData.businessName}
-Business Description: ${agentData.businessDescription}
-Products/Services: ${agentData.productsServices}
-FAQs: ${agentData.faqs}
-Operating Hours: ${agentData.operatingHours}
-${agentData.responseGuidelines ? `Response Guidelines: ${agentData.responseGuidelines}` : ""}
+The user has written the following system prompt for their business "${data.businessName}". Improve and expand it — make it clearer, more structured, and more effective for a WhatsApp customer service agent. Keep all their original information but make it professional and comprehensive.
 
-Create professional agent instructions that will make the AI assistant helpful, friendly, and effective for customer service on WhatsApp. Include tone, how to handle common scenarios, and any specific guidelines.`
+Current prompt:
+${data.systemPrompt}
+
+Return only the improved system prompt with no explanation or wrapper text.`
+    : `You are an expert at writing system prompts for WhatsApp AI agents.
+
+Generate a professional, comprehensive system prompt for a WhatsApp AI customer service agent for a business called "${data.businessName || "this business"}".
+
+The prompt should include:
+- A clear role definition (who the agent is and what business it represents)
+- Tone and personality guidelines (friendly, professional, conversational)
+- How to handle common scenarios (greetings, product questions, complaints, escalation)
+- Placeholder sections the user can fill in: business description, services, FAQs, operating hours
+
+Return only the system prompt with no explanation or wrapper text.`
 
   const completion = await client.chat.completions.create({
     model: "gpt-4o-mini",
     messages: [{ role: "user", content: prompt }],
-    max_tokens: 1000,
+    max_tokens: 1200,
   })
 
   return completion.choices[0]?.message?.content ?? ""

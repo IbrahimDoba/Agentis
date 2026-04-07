@@ -1,13 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useQueryClient } from "@tanstack/react-query"
 import styles from "./AgentForm.module.css"
-import { Input, Textarea } from "@/components/ui/Input"
+import { Textarea } from "@/components/ui/Input"
 import Button from "@/components/ui/Button"
 import { ProductsEditor } from "@/components/dashboard/ProductsEditor"
-import { agentSchema } from "@/lib/validations"
+import { ArrowPathIcon } from "@heroicons/react/24/outline"
 import type { AgentPublic, Product } from "@/types"
 
 interface AgentFormProps {
@@ -18,38 +18,40 @@ interface AgentFormProps {
 export function AgentForm({ initialData, agentId }: AgentFormProps) {
   const router = useRouter()
   const queryClient = useQueryClient()
-  const [form, setForm] = useState({
-    businessName: initialData?.businessName ?? "",
-    businessDescription: initialData?.businessDescription ?? "",
-    contactEmail: initialData?.contactEmail ?? "",
-    contactPhone: initialData?.contactPhone ?? "",
-    productsServices: initialData?.productsServices ?? "",
-    faqs: initialData?.faqs ?? "",
-    operatingHours: initialData?.operatingHours ?? "",
-    websiteLinks: initialData?.websiteLinks ?? "",
-    responseGuidelines: initialData?.responseGuidelines ?? "",
-  })
+
+  const [systemPrompt, setSystemPrompt] = useState(initialData?.responseGuidelines ?? "")
+  const [promptLoading, setPromptLoading] = useState(false)
   const [products, setProducts] = useState<Product[]>(
     (initialData?.productsData as Product[] | undefined) ?? []
   )
-  const [errors, setErrors] = useState<Record<string, string>>({})
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
   const [loading, setLoading] = useState(false)
   const [enhancing, setEnhancing] = useState(false)
   const [enhanced, setEnhanced] = useState(false)
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setForm((f) => ({ ...f, [name]: value }))
-    setErrors((prev) => ({ ...prev, [name]: "" }))
+  const fetchFromElevenLabs = async () => {
+    if (!agentId) return
+    setPromptLoading(true)
+    try {
+      const res = await fetch(`/api/agents/${agentId}/system-prompt`)
+      if (!res.ok) return
+      const data = await res.json()
+      if (data.connected && data.systemPrompt) {
+        setSystemPrompt(data.systemPrompt)
+      }
+    } catch {
+      // silently fall back to local value
+    } finally {
+      setPromptLoading(false)
+    }
   }
 
+  useEffect(() => {
+    fetchFromElevenLabs()
+  }, [agentId]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleEnhance = async () => {
-    if (!form.businessDescription || form.businessDescription.length < 20) {
-      setError("Please fill in the business description first (min 20 chars)")
-      return
-    }
     setEnhancing(true)
     setError("")
     try {
@@ -57,22 +59,18 @@ export function AgentForm({ initialData, agentId }: AgentFormProps) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          businessName: form.businessName,
-          businessDescription: form.businessDescription,
-          productsServices: form.productsServices,
-          faqs: form.faqs,
-          operatingHours: form.operatingHours,
-          responseGuidelines: form.responseGuidelines,
+          businessName: initialData?.businessName ?? "",
+          systemPrompt,
         }),
       })
 
       if (!res.ok) throw new Error("Enhancement failed")
 
       const data = await res.json()
-      setForm((f) => ({ ...f, responseGuidelines: data.instructions }))
+      setSystemPrompt(data.instructions)
       setEnhanced(true)
     } catch {
-      setError("Failed to enhance with AI. Please try again.")
+      setError("Failed to generate with AI. Please try again.")
     } finally {
       setEnhancing(false)
     }
@@ -83,20 +81,12 @@ export function AgentForm({ initialData, agentId }: AgentFormProps) {
     setError("")
     setSuccess("")
 
-    // Client-side validation
-    const parsed = agentSchema.partial().safeParse({ ...form, productsData: products })
-    if (!parsed.success) {
-      const fieldErrors: Record<string, string> = {}
-      parsed.error.issues.forEach((issue) => {
-        const field = issue.path[0] as string
-        if (!fieldErrors[field]) fieldErrors[field] = issue.message
-      })
-      setErrors(fieldErrors)
+    if (!systemPrompt.trim()) {
+      setError("System prompt is required.")
       return
     }
-    setErrors({})
-    setLoading(true)
 
+    setLoading(true)
     try {
       const url = agentId ? `/api/agents/${agentId}` : "/api/agents"
       const method = agentId ? "PATCH" : "POST"
@@ -104,17 +94,13 @@ export function AgentForm({ initialData, agentId }: AgentFormProps) {
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, productsData: products }),
+        body: JSON.stringify({ responseGuidelines: systemPrompt, productsData: products }),
       })
 
       const data = await res.json()
 
       if (!res.ok) {
-        if (data.errors) {
-          setErrors(data.errors)
-        } else {
-          setError(data.error || "Failed to save agent")
-        }
+        setError(data.error || "Failed to save agent")
         return
       }
 
@@ -135,130 +121,35 @@ export function AgentForm({ initialData, agentId }: AgentFormProps) {
       {error && <div className={styles.error}>{error}</div>}
       {success && <div className={styles.success}>{success}</div>}
 
-      {/* Business Information */}
+      {/* System Prompt */}
       <div className={styles.section}>
         <div className={styles.sectionHeader}>
-          <div className={styles.sectionTitle}>Business Information</div>
-          <div className={styles.sectionDesc}>Basic details so the AI agent can represent your business accurately.</div>
-        </div>
-        <div className={styles.fields}>
-          <div className={styles.row}>
-            <Input
-              label="Business Name"
-              name="businessName"
-              placeholder="e.g. TechStore Nigeria"
-              value={form.businessName}
-              onChange={handleChange}
-              error={errors.businessName}
-              required
-            />
-            <Input
-              label="Contact Phone"
-              name="contactPhone"
-              type="tel"
-              placeholder="e.g. +234 801 234 5678"
-              value={form.contactPhone}
-              onChange={handleChange}
-              error={errors.contactPhone}
-              required
-            />
+          <div className={styles.sectionTitle}>System Prompt</div>
+          <div className={styles.sectionDesc}>
+            The core instructions for your AI agent — include your business info, services, FAQs, operating hours, and tone.
           </div>
-
-          <div className={styles.row}>
-            <Input
-              label="Contact Email"
-              name="contactEmail"
-              type="email"
-              placeholder="e.g. hello@yourbusiness.com"
-              value={form.contactEmail}
-              onChange={handleChange}
-              error={errors.contactEmail}
-              required
-            />
-            <Input
-              label="Website (optional)"
-              name="websiteLinks"
-              placeholder="https://yourwebsite.com"
-              value={form.websiteLinks}
-              onChange={handleChange}
-              error={errors.websiteLinks}
-            />
-          </div>
-
-          <Textarea
-            label="Business Description"
-            name="businessDescription"
-            placeholder="Describe your business — what you do, your mission, your target customers..."
-            value={form.businessDescription}
-            onChange={handleChange}
-            error={errors.businessDescription}
-            required
-            style={{ minHeight: 110 }}
-          />
-        </div>
-      </div>
-
-      {/* Services & Availability */}
-      <div className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <div className={styles.sectionTitle}>Services & Availability</div>
-          <div className={styles.sectionDesc}>What you offer, common questions, and when you&apos;re open.</div>
-        </div>
-        <div className={styles.fields}>
-          <Textarea
-            label="Products & Services Overview"
-            name="productsServices"
-            placeholder="Briefly describe your products and services — the AI will use this to answer customer questions."
-            value={form.productsServices}
-            onChange={handleChange}
-            error={errors.productsServices}
-            required
-            style={{ minHeight: 100 }}
-          />
-
-          <div>
-            <div className={styles.fieldLabel}>Product Catalogue <span className={styles.optional}>(optional)</span></div>
-            <div className={styles.fieldHint}>Add individual products the AI can reference when customers ask.</div>
-            <div style={{ marginTop: "0.5rem" }}>
-              <ProductsEditor value={products} onChange={setProducts} />
-            </div>
-          </div>
-
-          <Textarea
-            label="Frequently Asked Questions"
-            name="faqs"
-            placeholder="Q: What are your delivery times? A: We deliver within 2-3 business days..."
-            value={form.faqs}
-            onChange={handleChange}
-            error={errors.faqs}
-            required
-            style={{ minHeight: 120 }}
-          />
-
-          <Input
-            label="Operating Hours"
-            name="operatingHours"
-            placeholder="e.g. Monday–Friday 9am–6pm, Saturday 10am–4pm"
-            value={form.operatingHours}
-            onChange={handleChange}
-            error={errors.operatingHours}
-            required
-          />
-        </div>
-      </div>
-
-      {/* Response Guidelines */}
-      <div className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <div className={styles.sectionTitle}>Response Guidelines</div>
-          <div className={styles.sectionDesc}>How your agent should communicate. Use AI to generate these from your info above.</div>
         </div>
         <div className={styles.fields}>
           <div>
             <div className={styles.guidelinesHeader}>
-              <span className={styles.guidelinesLabel}>Guidelines</span>
+              <span className={styles.guidelinesLabel}>Prompt</span>
               <div className={styles.guidelinesActions}>
-                {enhanced && <span className={styles.enhancedBadge}>✓ AI Enhanced</span>}
+                {enhanced && <span className={styles.enhancedBadge}>✓ AI Generated</span>}
+                {agentId && (
+                  <button
+                    type="button"
+                    className={styles.refreshBtn}
+                    onClick={fetchFromElevenLabs}
+                    disabled={promptLoading}
+                    title="Refresh from ElevenLabs"
+                  >
+                    <ArrowPathIcon
+                      width={13}
+                      height={13}
+                      className={promptLoading ? styles.spinning : undefined}
+                    />
+                  </button>
+                )}
                 <Button
                   type="button"
                   variant="secondary"
@@ -266,20 +157,32 @@ export function AgentForm({ initialData, agentId }: AgentFormProps) {
                   onClick={handleEnhance}
                   loading={enhancing}
                 >
-                  ✨ Enhance with AI
+                  ✨ Generate with AI
                 </Button>
               </div>
             </div>
-            <Textarea
-              name="responseGuidelines"
-              placeholder="Be friendly and professional. Always greet customers by name. Escalate complaints to a human agent..."
-              value={form.responseGuidelines}
-              onChange={handleChange}
-              error={errors.responseGuidelines}
-              style={{ minHeight: 160 }}
-            />
+            {promptLoading ? (
+              <div className={styles.promptSkeleton} />
+            ) : (
+              <Textarea
+                name="systemPrompt"
+                placeholder={`You are a helpful WhatsApp assistant for [Business Name].\n\nAbout us: ...\nServices: ...\nOperating hours: ...\nFAQs: ...\nTone: friendly and professional.`}
+                value={systemPrompt}
+                onChange={(e) => setSystemPrompt(e.target.value)}
+                style={{ minHeight: 320, fontFamily: "monospace", fontSize: 13 }}
+              />
+            )}
           </div>
         </div>
+      </div>
+
+      {/* Products */}
+      <div className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <div className={styles.sectionTitle}>Product Catalogue <span className={styles.optional}>(optional)</span></div>
+          <div className={styles.sectionDesc}>Add individual products the AI can reference when customers ask about pricing or availability.</div>
+        </div>
+        <ProductsEditor value={products} onChange={setProducts} />
       </div>
 
       <div className={styles.actions}>

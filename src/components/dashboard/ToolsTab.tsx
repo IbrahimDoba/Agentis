@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Plus, Trash2, ChevronDown, ChevronUp, Wrench, CheckCircle, Loader2, AlertCircle, X, Lock } from "lucide-react"
+import { PlusIcon, TrashIcon, ChevronDownIcon, ChevronUpIcon, WrenchIcon, CheckCircleIcon, ArrowPathIcon, ExclamationCircleIcon, XMarkIcon, LockClosedIcon } from "@heroicons/react/24/outline"
 import { Input } from "@/components/ui/Input"
 import Button from "@/components/ui/Button"
 import type { AgentTool, ToolParameter } from "@/types"
@@ -61,7 +61,7 @@ export function ToolsTab({ agentId, initialTools, elevenlabsAgentId }: ToolsTabP
   if (!elevenlabsAgentId) {
     return (
       <div className={styles.notConnected}>
-        <Lock size={32} className={styles.notConnectedIcon} />
+        <LockClosedIcon width={32} height={32} className={styles.notConnectedIcon} />
         <div className={styles.notConnectedTitle}>Tools not available yet</div>
         <div className={styles.notConnectedDesc}>
           Your agent is still being set up. Tools will be available once setup is complete.
@@ -148,7 +148,7 @@ export function ToolsTab({ agentId, initialTools, elevenlabsAgentId }: ToolsTabP
     return (
       <div className={styles.root}>
         <div className={styles.loadingState}>
-          <Loader2 size={20} className={styles.spinner} />
+          <ArrowPathIcon width={20} height={20} className={styles.spinner} />
           <span>Loading tools from agent…</span>
         </div>
       </div>
@@ -168,19 +168,19 @@ export function ToolsTab({ agentId, initialTools, elevenlabsAgentId }: ToolsTabP
 
       {error && (
         <div className={styles.errorBanner}>
-          <AlertCircle size={14} /> {error}
+          <ExclamationCircleIcon width={14} height={14} /> {error}
         </div>
       )}
       {success && (
         <div className={styles.successBanner}>
-          <CheckCircle size={14} />
+          <CheckCircleIcon width={14} height={14} />
           {synced ? "Tools saved and synced to your agent." : "Tools saved. Connect your agent to sync."}
         </div>
       )}
 
       {tools.length === 0 && !addingNew && (
         <div className={styles.empty}>
-          <Wrench size={32} className={styles.emptyIcon} />
+          <WrenchIcon width={32} height={32} className={styles.emptyIcon} />
           <div className={styles.emptyTitle}>No tools configured</div>
           <div className={styles.emptyDesc}>
             Add an API endpoint and the agent will call it live during conversations to get up-to-date information.
@@ -201,10 +201,10 @@ export function ToolsTab({ agentId, initialTools, elevenlabsAgentId }: ToolsTabP
                 <span className={styles.toolMethod}>{tool.method}</span>
                 <span className={styles.toolUrl}>{tool.url}</span>
               </div>
-              {expandedId === tool.id ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+              {expandedId === tool.id ? <ChevronUpIcon width={15} height={15} /> : <ChevronDownIcon width={15} height={15} />}
             </button>
             <button className={styles.deleteToolBtn} onClick={() => handleDeleteTool(tool.id)}>
-              <Trash2 size={14} />
+              <TrashIcon width={14} height={14} />
             </button>
           </div>
 
@@ -255,7 +255,7 @@ export function ToolsTab({ agentId, initialTools, elevenlabsAgentId }: ToolsTabP
                     Parameters <span className={styles.paramsHint}>({tool.method === "GET" ? "query params" : "request body"})</span>
                   </span>
                   <button type="button" className={styles.addParamBtn} onClick={() => handleAddParam(tool.id)}>
-                    <Plus size={12} /> Add Parameter
+                    <PlusIcon width={12} height={12} /> Add Parameter
                   </button>
                 </div>
 
@@ -303,7 +303,7 @@ export function ToolsTab({ agentId, initialTools, elevenlabsAgentId }: ToolsTabP
                           placeholder="e.g. The order ID to look up, e.g. ORD-12345"
                         />
                         <button className={styles.deleteParamBtn} onClick={() => handleDeleteParam(tool.id, idx)}>
-                          <X size={13} />
+                          <XMarkIcon width={13} height={13} />
                         </button>
                       </div>
                     ))}
@@ -367,7 +367,7 @@ export function ToolsTab({ agentId, initialTools, elevenlabsAgentId }: ToolsTabP
       <div className={styles.footer}>
         {!addingNew && (
           <button className={styles.addToolBtn} onClick={() => setAddingNew(true)}>
-            <Plus size={14} /> Add Tool
+            <PlusIcon width={14} height={14} /> Add Tool
           </button>
         )}
         {tools.length > 0 && (

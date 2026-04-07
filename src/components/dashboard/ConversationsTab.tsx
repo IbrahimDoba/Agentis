@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useQuery } from "@tanstack/react-query"
-import { MessageSquare, Phone, Lock, Loader2, AlertCircle, User, Bot } from "lucide-react"
+import { ChatBubbleLeftRightIcon, PhoneIcon, LockClosedIcon, ArrowPathIcon, ExclamationCircleIcon, UserIcon, CpuChipIcon } from "@heroicons/react/24/outline"
 import type { Conversation, TranscriptMessage } from "@/types"
 import { getCallerIdentifier } from "@/lib/utils"
 import styles from "./ConversationsTab.module.css"
@@ -105,7 +105,7 @@ function SessionBlock({
 
       {isLoading ? (
         <div className={styles.transcriptEmpty}>
-          <Loader2 size={14} className={styles.spin} /> Loading…
+          <ArrowPathIcon width={14} height={14} className={styles.spin} /> Loading…
         </div>
       ) : messages.length === 0 ? (
         <div className={styles.transcriptEmpty}>No transcript for this session.</div>
@@ -120,7 +120,7 @@ function SessionBlock({
                 className={`${styles.bubble} ${msg.role === "user" ? styles.bubbleUser : styles.bubbleAgent}`}
               >
                 <div className={styles.bubbleIcon}>
-                  {msg.role === "user" ? <User size={12} /> : <Bot size={12} />}
+                  {msg.role === "user" ? <UserIcon width={12} height={12} /> : <CpuChipIcon width={12} height={12} />}
                 </div>
                 <div className={styles.bubbleBody}>
                   {isVoiceNote && (
@@ -167,7 +167,7 @@ function MergedTranscriptView({
       <div className={styles.detailHeader}>
         <div className={styles.detailHeaderLeft}>
           <div className={styles.detailAvatar}>
-            <Phone size={16} />
+            <PhoneIcon width={16} height={16} />
           </div>
           <div>
             <div className={styles.detailCaller}>{group.phoneNumber}</div>
@@ -210,7 +210,7 @@ export function ConversationsTab({ agentId, elevenlabsAgentId }: ConversationsTa
   if (!elevenlabsAgentId) {
     return (
       <div className={styles.notConnected}>
-        <Lock size={32} className={styles.notConnectedIcon} />
+        <LockClosedIcon width={32} height={32} className={styles.notConnectedIcon} />
         <div className={styles.notConnectedTitle}>Conversations not available yet</div>
         <div className={styles.notConnectedDesc}>
           Your agent is still being set up. Conversations will appear here once setup is complete.
@@ -222,7 +222,7 @@ export function ConversationsTab({ agentId, elevenlabsAgentId }: ConversationsTa
   if (isLoading) {
     return (
       <div className={styles.loadingState}>
-        <Loader2 size={20} className={styles.spin} />
+        <ArrowPathIcon width={20} height={20} className={styles.spin} />
         Loading conversations…
       </div>
     )
@@ -231,7 +231,7 @@ export function ConversationsTab({ agentId, elevenlabsAgentId }: ConversationsTa
   if (error) {
     return (
       <div className={styles.errorState}>
-        <AlertCircle size={16} />
+        <ExclamationCircleIcon width={16} height={16} />
         Failed to load conversations.
       </div>
     )
@@ -249,7 +249,7 @@ export function ConversationsTab({ agentId, elevenlabsAgentId }: ConversationsTa
 
         {groups.length === 0 ? (
           <div className={styles.emptyList}>
-            <MessageSquare size={28} className={styles.emptyIcon} />
+            <ChatBubbleLeftRightIcon width={28} height={28} className={styles.emptyIcon} />
             <div className={styles.emptyTitle}>No conversations yet</div>
             <div className={styles.emptyDesc}>
               Conversations will appear here once your agent starts talking to customers.
@@ -264,7 +264,7 @@ export function ConversationsTab({ agentId, elevenlabsAgentId }: ConversationsTa
                 onClick={() => setSelected(group)}
               >
                 <div className={styles.listAvatar}>
-                  <Phone size={15} />
+                  <PhoneIcon width={15} height={15} />
                 </div>
                 <div className={styles.listContent}>
                   <div className={styles.listTop}>
@@ -293,7 +293,7 @@ export function ConversationsTab({ agentId, elevenlabsAgentId }: ConversationsTa
           </>
         ) : (
           <div className={styles.noSelection}>
-            <MessageSquare size={28} className={styles.noSelectionIcon} />
+            <ChatBubbleLeftRightIcon width={28} height={28} className={styles.noSelectionIcon} />
             <div>Select a conversation to view the full thread</div>
           </div>
         )}

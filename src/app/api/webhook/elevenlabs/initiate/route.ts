@@ -79,6 +79,39 @@ export async function POST(req: NextRequest) {
   const phoneNumber = extractPhoneNumber(payload)
   console.log(`[pre-call] Extracted phone: ${phoneNumber ?? "none"}`)
 
+  // Save the conversation as in-progress so the dashboard picks it up on next poll
+  const conversationId = payload.conversation_id as string | undefined
+  const elevenlabsAgentId = payload.agent_id as string | undefined
+  if (conversationId && elevenlabsAgentId) {
+    try {
+      const agent = await db.agent.findFirst({
+        where: { elevenlabsAgentId },
+        select: { id: true },
+      })
+      if (agent) {
+        await db.conversationLog.upsert({
+          where: { conversationId },
+          create: {
+            conversationId,
+            elevenlabsAgentId,
+            agentId: agent.id,
+            phoneNumber: phoneNumber ?? null,
+            transcript: [],
+            status: "in-progress",
+            rawPayload: payload as object,
+          },
+          update: {
+            status: "in-progress",
+            ...(phoneNumber ? { phoneNumber } : {}),
+          },
+        })
+        console.log(`[pre-call] ✅ Saved in-progress conversation ${conversationId}`)
+      }
+    } catch (err) {
+      console.error("[pre-call] Failed to save conversation:", err)
+    }
+  }
+
   // New customer — no phone number found
   if (!phoneNumber) {
     console.log("[pre-call] No phone number — returning new customer context")
