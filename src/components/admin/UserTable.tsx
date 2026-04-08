@@ -128,6 +128,12 @@ function UserDetailModal({ user, onClose, onStatusChange, loading }: {
               <span className={styles.modalValue}>{user._count?.agents ?? 0} / {user.maxAgents ?? 1}</span>
             </div>
             <div className={styles.modalRow}>
+              <span className={styles.modalLabel}>Onboarding</span>
+              <span className={styles.modalValue}>
+                {user.onboardingCompleted ? "✓ Completed" : "Not completed"}
+              </span>
+            </div>
+            <div className={styles.modalRow}>
               <span className={styles.modalLabel}>Agent Limit</span>
               <span className={styles.modalValue}>
                 <div className={styles.agentLimitRow}>
@@ -248,7 +254,14 @@ export function UserTable({ users }: UserTableProps) {
                 style={{ cursor: "pointer" }}
               >
                 <td className={styles.td}>
-                  <div className={styles.name}>{user.name}</div>
+                  <div className={styles.name}>
+                    {user.name}
+                    {!user.onboardingCompleted && (
+                      <span title="Onboarding not completed" style={{ marginLeft: "0.4rem", fontSize: "10px", background: "var(--warning-light)", color: "var(--warning)", borderRadius: "4px", padding: "1px 5px", fontWeight: 600, verticalAlign: "middle" }}>
+                        onboarding
+                      </span>
+                    )}
+                  </div>
                   <div className={styles.email}>{user.email}</div>
                 </td>
                 <td className={styles.td}>

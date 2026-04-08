@@ -389,6 +389,7 @@ export const ModelName = {
   Lead: 'Lead',
   ConversationRead: 'ConversationRead',
   Customer: 'Customer',
+  NewsletterSubscriber: 'NewsletterSubscriber',
   ConversationLog: 'ConversationLog'
 } as const
 
@@ -405,7 +406,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "agent" | "lead" | "conversationRead" | "customer" | "conversationLog"
+    modelProps: "user" | "agent" | "lead" | "conversationRead" | "customer" | "newsletterSubscriber" | "conversationLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -779,6 +780,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    NewsletterSubscriber: {
+      payload: Prisma.$NewsletterSubscriberPayload<ExtArgs>
+      fields: Prisma.NewsletterSubscriberFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.NewsletterSubscriberFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsletterSubscriberPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.NewsletterSubscriberFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsletterSubscriberPayload>
+        }
+        findFirst: {
+          args: Prisma.NewsletterSubscriberFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsletterSubscriberPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.NewsletterSubscriberFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsletterSubscriberPayload>
+        }
+        findMany: {
+          args: Prisma.NewsletterSubscriberFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsletterSubscriberPayload>[]
+        }
+        create: {
+          args: Prisma.NewsletterSubscriberCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsletterSubscriberPayload>
+        }
+        createMany: {
+          args: Prisma.NewsletterSubscriberCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.NewsletterSubscriberCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsletterSubscriberPayload>[]
+        }
+        delete: {
+          args: Prisma.NewsletterSubscriberDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsletterSubscriberPayload>
+        }
+        update: {
+          args: Prisma.NewsletterSubscriberUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsletterSubscriberPayload>
+        }
+        deleteMany: {
+          args: Prisma.NewsletterSubscriberDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.NewsletterSubscriberUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.NewsletterSubscriberUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsletterSubscriberPayload>[]
+        }
+        upsert: {
+          args: Prisma.NewsletterSubscriberUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NewsletterSubscriberPayload>
+        }
+        aggregate: {
+          args: Prisma.NewsletterSubscriberAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateNewsletterSubscriber>
+        }
+        groupBy: {
+          args: Prisma.NewsletterSubscriberGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.NewsletterSubscriberGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.NewsletterSubscriberCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.NewsletterSubscriberCountAggregateOutputType> | number
+        }
+      }
+    }
     ConversationLog: {
       payload: Prisma.$ConversationLogPayload<ExtArgs>
       fields: Prisma.ConversationLogFieldRefs
@@ -912,6 +987,7 @@ export const UserScalarFieldEnum = {
   businessEmail: 'businessEmail',
   businessWebsite: 'businessWebsite',
   maxAgents: 'maxAgents',
+  onboardingCompleted: 'onboardingCompleted',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -989,6 +1065,17 @@ export const CustomerScalarFieldEnum = {
 } as const
 
 export type CustomerScalarFieldEnum = (typeof CustomerScalarFieldEnum)[keyof typeof CustomerScalarFieldEnum]
+
+
+export const NewsletterSubscriberScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  name: 'name',
+  source: 'source',
+  createdAt: 'createdAt'
+} as const
+
+export type NewsletterSubscriberScalarFieldEnum = (typeof NewsletterSubscriberScalarFieldEnum)[keyof typeof NewsletterSubscriberScalarFieldEnum]
 
 
 export const ConversationLogScalarFieldEnum = {
@@ -1296,6 +1383,7 @@ export type GlobalOmitConfig = {
   lead?: Prisma.LeadOmit
   conversationRead?: Prisma.ConversationReadOmit
   customer?: Prisma.CustomerOmit
+  newsletterSubscriber?: Prisma.NewsletterSubscriberOmit
   conversationLog?: Prisma.ConversationLogOmit
 }
 

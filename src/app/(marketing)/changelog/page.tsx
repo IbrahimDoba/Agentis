@@ -4,6 +4,65 @@ import styles from "./page.module.css"
 
 const updates = [
   {
+    date: "8 April 2026",
+    tag: "New",
+    tagColor: "green",
+    title: "Newsletter System",
+    description:
+      "Admins can now compose and send branded email newsletters directly from the admin panel, and visitors can subscribe from the website footer.",
+    bullets: [
+      "Newsletter subscribe form in the marketing footer",
+      "Admin composer with template quick-fills: Announcement, Feature Update, Tip & Insight, General",
+      "Live email preview before sending",
+      "Send to newsletter subscribers, active users, or both",
+      "Batch sending via Resend — handles large lists reliably",
+      "Branded dark email design consistent with the D-Zero AI identity",
+    ],
+  },
+  {
+    date: "8 April 2026",
+    tag: "New",
+    tagColor: "green",
+    title: "User Onboarding Flow",
+    description:
+      "New users now go through a guided 5-step onboarding experience after their account is approved, helping them set up their business profile and understand the platform before creating their first agent.",
+    bullets: [
+      "5-step flow: Welcome → Business Profile → Primary Goal → Platform Tour → Done",
+      "Collects business category and description to personalise the experience",
+      "Platform tour explains Chats, Leads, Contacts, and Agents",
+      "Ends with a direct CTA to create your first agent",
+      "Existing users with agents skip onboarding automatically",
+    ],
+  },
+  {
+    date: "8 April 2026",
+    tag: "New",
+    tagColor: "green",
+    title: "Agent Templates",
+    description:
+      "Creating a new agent now starts with a template picker — choose from Receptionist, Sales Agent, Support Agent, or start from scratch. Each template pre-fills the system prompt so you're set up in seconds.",
+    bullets: [
+      "4 template cards shown when creating a new agent",
+      "Receptionist, Sales Agent, and Support Agent templates with pre-written system prompts",
+      "From Scratch option for full customisation",
+      "Two-tab form: Profile and Configuration — switch back to pick a different template at any time",
+    ],
+  },
+  {
+    date: "8 April 2026",
+    tag: "New",
+    tagColor: "green",
+    title: "Test Agent — Live Testing",
+    description:
+      "Active agents now have a Test Agent button that lets you speak to your agent live directly from the dashboard, using the ElevenLabs embedded widget.",
+    bullets: [
+      "Test Agent button shown when agent status is Active",
+      "Opens a modal with the ElevenLabs ConvAI widget",
+      "Microphone access prompted in-browser — no external tools needed",
+      "Widget script loads lazily on first open",
+    ],
+  },
+  {
     date: "7 April 2026",
     tag: "New",
     tagColor: "green",

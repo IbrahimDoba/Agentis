@@ -32,6 +32,7 @@ export async function GET() {
       businessEmail: user.businessEmail ?? null,
       businessWebsite: user.businessWebsite ?? null,
       maxAgents: user.maxAgents,
+      onboardingCompleted: user.onboardingCompleted,
     },
     agent: agent ? {
       id: agent.id,

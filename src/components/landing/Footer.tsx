@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { LogoIcon } from "@/components/landing/Logo"
+import { NewsletterForm } from "@/components/landing/NewsletterForm"
 import styles from "./Footer.module.css"
 
 export function Footer() {
@@ -14,6 +15,8 @@ export function Footer() {
           <p className={styles.desc}>
             AI-powered WhatsApp agents for Nigerian businesses. Automate conversations, delight customers, and scale without limits.
           </p>
+          <NewsletterForm />
+
           <div className={styles.socials}>
             <a href="https://x.com/DobaIbrahim" target="_blank" rel="noopener noreferrer" className={styles.social} aria-label="Twitter / X">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">

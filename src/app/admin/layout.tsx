@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import Link from "next/link"
-import { Squares2X2Icon, UsersIcon, CpuChipIcon, ArrowUturnLeftIcon } from "@heroicons/react/24/outline"
+import { Squares2X2Icon, UsersIcon, CpuChipIcon, ArrowUturnLeftIcon, EnvelopeIcon } from "@heroicons/react/24/outline"
 import { LogoIcon } from "@/components/landing/Logo"
 import styles from "./layout.module.css"
 
@@ -9,6 +9,7 @@ const navItems = [
   { href: "/admin", label: "Overview", icon: <Squares2X2Icon width={16} height={16} /> },
   { href: "/admin/users", label: "Users", icon: <UsersIcon width={16} height={16} /> },
   { href: "/admin/agents", label: "Agents", icon: <CpuChipIcon width={16} height={16} /> },
+  { href: "/admin/newsletter", label: "Newsletter", icon: <EnvelopeIcon width={16} height={16} /> },
 ]
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {

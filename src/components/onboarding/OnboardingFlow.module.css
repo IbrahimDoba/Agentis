@@ -1,0 +1,296 @@
+/* Full-page onboarding wrapper */
+.root {
+  min-height: 100vh;
+  background: var(--bg-primary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+/* Logo / brand bar */
+.brand {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--accent);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-primary);
+  z-index: 10;
+}
+
+.brandDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* Progress bar */
+.progressBar {
+  position: fixed;
+  top: 57px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--border);
+  z-index: 10;
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Card / step container */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 2.5rem 2rem;
+  width: 100%;
+  max-width: 560px;
+  box-shadow: var(--shadow-card);
+  margin-top: 4rem;
+}
+
+/* Step header */
+.stepLabel {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 0.75rem;
+}
+
+.stepTitle {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0 0 0.5rem;
+  line-height: 1.2;
+}
+
+.stepSub {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 0 0 2rem;
+  line-height: 1.6;
+}
+
+/* Form fields */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.input,
+.textarea,
+.select {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 14px;
+  padding: 0.65rem 0.9rem;
+  outline: none;
+  transition: border-color 0.15s;
+  width: 100%;
+}
+
+.input:focus,
+.textarea:focus,
+.select:focus {
+  border-color: var(--accent);
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 90px;
+}
+
+.select {
+  appearance: none;
+  cursor: pointer;
+}
+
+/* Goal cards grid */
+.goalGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.goalCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 1rem;
+  background: var(--bg-secondary);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.goalCard:hover {
+  border-color: var(--accent);
+  background: var(--accent-light);
+}
+
+.goalCardSelected {
+  border-color: var(--accent);
+  background: var(--accent-light);
+}
+
+.goalEmoji {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.goalLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Tour feature list */
+.tourGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.tourItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+  padding: 1rem 1.1rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.tourIcon {
+  font-size: 1.4rem;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.tourInfo {}
+
+.tourName {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 0.15rem;
+}
+
+.tourDesc {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Done / finish step */
+.doneIcon {
+  font-size: 3rem;
+  line-height: 1;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+/* Action buttons */
+.actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.actionsRight {
+  display: flex;
+  gap: 0.75rem;
+  margin-left: auto;
+}
+
+.btnPrimary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.5rem;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: inherit;
+  background: var(--accent);
+  color: #0a1a0e;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.btnPrimary:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+}
+
+.btnPrimary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btnSecondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.7rem 1.2rem;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.btnSecondary:hover {
+  color: var(--text-primary);
+  border-color: var(--text-muted);
+}
+
+/* Welcome emoji */
+.welcomeEmoji {
+  font-size: 2.5rem;
+  display: block;
+  margin-bottom: 1rem;
+}

@@ -67,6 +67,11 @@ export type ConversationRead = Prisma.ConversationReadModel
  */
 export type Customer = Prisma.CustomerModel
 /**
+ * Model NewsletterSubscriber
+ * 
+ */
+export type NewsletterSubscriber = Prisma.NewsletterSubscriberModel
+/**
  * Model ConversationLog
  * 
  */

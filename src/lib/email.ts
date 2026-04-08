@@ -497,3 +497,94 @@ export async function sendDataDeletionRequest(data: {
     `),
   })
 }
+
+// ---------------------------------------------------------------------------
+// Newsletter broadcast
+// ---------------------------------------------------------------------------
+
+export async function sendNewsletter(data: {
+  email: string
+  subject: string
+  title: string
+  body: string
+  ctaText?: string
+  ctaUrl?: string
+}) {
+  const ctaBlock = data.ctaText && data.ctaUrl
+    ? `<div style="margin:32px 0;">
+        <a href="${data.ctaUrl}" style="display:inline-block;background:#00dc82;color:#0a0a0a;font-weight:700;font-size:15px;text-decoration:none;padding:14px 32px;border-radius:8px;letter-spacing:-0.2px;">${data.ctaText} →</a>
+       </div>`
+    : ""
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>${data.subject}</title>
+</head>
+<body style="margin:0;padding:0;background:#0d0d0d;font-family:'Segoe UI',Arial,sans-serif;">
+
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0d0d0d;padding:48px 0 64px;">
+    <tr><td align="center">
+      <table width="580" cellpadding="0" cellspacing="0" style="max-width:580px;width:100%;">
+
+        <!-- Logo bar -->
+        <tr>
+          <td style="padding:0 0 28px;">
+            <span style="color:#00dc82;font-size:18px;font-weight:800;letter-spacing:-0.5px;">D-Zero AI</span>
+          </td>
+        </tr>
+
+        <!-- Hero card -->
+        <tr>
+          <td style="background:#0f1e15;border:1px solid #1e3a26;border-radius:16px;overflow:hidden;">
+
+            <!-- Accent top bar -->
+            <tr>
+              <td style="background:linear-gradient(90deg,#00dc82,#00a862);height:4px;display:block;line-height:4px;font-size:4px;">&nbsp;</td>
+            </tr>
+
+            <!-- Content -->
+            <tr>
+              <td style="padding:40px 44px 44px;">
+                <h1 style="margin:0 0 20px;font-size:26px;font-weight:800;color:#e8fdf0;line-height:1.25;letter-spacing:-0.5px;">${data.title}</h1>
+                <div style="color:#8ab89a;font-size:15px;line-height:1.75;">${data.body.replace(/\n/g, "<br>")}</div>
+                ${ctaBlock}
+              </td>
+            </tr>
+
+          </td>
+        </tr>
+
+        <!-- Divider -->
+        <tr><td style="height:32px;"></td></tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="border-top:1px solid #1e3a26;padding-top:24px;">
+            <p style="margin:0;font-size:12px;color:#4a6b56;line-height:1.6;">
+              You're receiving this from <strong style="color:#8ab89a;">D-Zero AI</strong> because you subscribed or have an account with us.
+              &nbsp;·&nbsp;
+              <a href="${APP_URL}" style="color:#4a6b56;text-decoration:underline;">dailzero.com</a>
+            </p>
+            <p style="margin:6px 0 0;font-size:11px;color:#2d4a38;">
+              © ${new Date().getFullYear()} D-Zero AI. All rights reserved.
+            </p>
+          </td>
+        </tr>
+
+      </table>
+    </td></tr>
+  </table>
+
+</body>
+</html>`
+
+  await resend().emails.send({
+    from: FROM,
+    to: data.email,
+    subject: data.subject,
+    html,
+  })
+}

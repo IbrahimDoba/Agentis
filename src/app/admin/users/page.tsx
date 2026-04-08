@@ -30,6 +30,7 @@ export default async function AdminUsersPage() {
     businessEmail: u.businessEmail ?? null,
     businessWebsite: u.businessWebsite ?? null,
     maxAgents: u.maxAgents ?? 1,
+    onboardingCompleted: u.onboardingCompleted ?? false,
     _count: u._count,
   }))
 

@@ -54,6 +54,7 @@ export type UserMinAggregateOutputType = {
   businessEmail: string | null
   businessWebsite: string | null
   maxAgents: number | null
+  onboardingCompleted: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -78,6 +79,7 @@ export type UserMaxAggregateOutputType = {
   businessEmail: string | null
   businessWebsite: string | null
   maxAgents: number | null
+  onboardingCompleted: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -102,6 +104,7 @@ export type UserCountAggregateOutputType = {
   businessEmail: number
   businessWebsite: number
   maxAgents: number
+  onboardingCompleted: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -136,6 +139,7 @@ export type UserMinAggregateInputType = {
   businessEmail?: true
   businessWebsite?: true
   maxAgents?: true
+  onboardingCompleted?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -160,6 +164,7 @@ export type UserMaxAggregateInputType = {
   businessEmail?: true
   businessWebsite?: true
   maxAgents?: true
+  onboardingCompleted?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -184,6 +189,7 @@ export type UserCountAggregateInputType = {
   businessEmail?: true
   businessWebsite?: true
   maxAgents?: true
+  onboardingCompleted?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -295,6 +301,7 @@ export type UserGroupByOutputType = {
   businessEmail: string | null
   businessWebsite: string | null
   maxAgents: number
+  onboardingCompleted: boolean
   createdAt: Date
   updatedAt: Date
   _count: UserCountAggregateOutputType | null
@@ -342,6 +349,7 @@ export type UserWhereInput = {
   businessEmail?: Prisma.StringNullableFilter<"User"> | string | null
   businessWebsite?: Prisma.StringNullableFilter<"User"> | string | null
   maxAgents?: Prisma.IntFilter<"User"> | number
+  onboardingCompleted?: Prisma.BoolFilter<"User"> | boolean
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   agents?: Prisma.AgentListRelationFilter
@@ -369,6 +377,7 @@ export type UserOrderByWithRelationInput = {
   businessEmail?: Prisma.SortOrderInput | Prisma.SortOrder
   businessWebsite?: Prisma.SortOrderInput | Prisma.SortOrder
   maxAgents?: Prisma.SortOrder
+  onboardingCompleted?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   agents?: Prisma.AgentOrderByRelationAggregateInput
@@ -399,6 +408,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   businessEmail?: Prisma.StringNullableFilter<"User"> | string | null
   businessWebsite?: Prisma.StringNullableFilter<"User"> | string | null
   maxAgents?: Prisma.IntFilter<"User"> | number
+  onboardingCompleted?: Prisma.BoolFilter<"User"> | boolean
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   agents?: Prisma.AgentListRelationFilter
@@ -426,6 +436,7 @@ export type UserOrderByWithAggregationInput = {
   businessEmail?: Prisma.SortOrderInput | Prisma.SortOrder
   businessWebsite?: Prisma.SortOrderInput | Prisma.SortOrder
   maxAgents?: Prisma.SortOrder
+  onboardingCompleted?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.UserCountOrderByAggregateInput
@@ -458,6 +469,7 @@ export type UserScalarWhereWithAggregatesInput = {
   businessEmail?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   businessWebsite?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   maxAgents?: Prisma.IntWithAggregatesFilter<"User"> | number
+  onboardingCompleted?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
 }
@@ -482,6 +494,7 @@ export type UserCreateInput = {
   businessEmail?: string | null
   businessWebsite?: string | null
   maxAgents?: number
+  onboardingCompleted?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   agents?: Prisma.AgentCreateNestedManyWithoutUserInput
@@ -509,6 +522,7 @@ export type UserUncheckedCreateInput = {
   businessEmail?: string | null
   businessWebsite?: string | null
   maxAgents?: number
+  onboardingCompleted?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   agents?: Prisma.AgentUncheckedCreateNestedManyWithoutUserInput
@@ -536,6 +550,7 @@ export type UserUpdateInput = {
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
+  onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   agents?: Prisma.AgentUpdateManyWithoutUserNestedInput
@@ -563,6 +578,7 @@ export type UserUncheckedUpdateInput = {
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
+  onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   agents?: Prisma.AgentUncheckedUpdateManyWithoutUserNestedInput
@@ -590,6 +606,7 @@ export type UserCreateManyInput = {
   businessEmail?: string | null
   businessWebsite?: string | null
   maxAgents?: number
+  onboardingCompleted?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -614,6 +631,7 @@ export type UserUpdateManyMutationInput = {
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
+  onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -638,6 +656,7 @@ export type UserUncheckedUpdateManyInput = {
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
+  onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -662,6 +681,7 @@ export type UserCountOrderByAggregateInput = {
   businessEmail?: Prisma.SortOrder
   businessWebsite?: Prisma.SortOrder
   maxAgents?: Prisma.SortOrder
+  onboardingCompleted?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -690,6 +710,7 @@ export type UserMaxOrderByAggregateInput = {
   businessEmail?: Prisma.SortOrder
   businessWebsite?: Prisma.SortOrder
   maxAgents?: Prisma.SortOrder
+  onboardingCompleted?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -714,6 +735,7 @@ export type UserMinOrderByAggregateInput = {
   businessEmail?: Prisma.SortOrder
   businessWebsite?: Prisma.SortOrder
   maxAgents?: Prisma.SortOrder
+  onboardingCompleted?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -825,6 +847,7 @@ export type UserCreateWithoutAgentsInput = {
   businessEmail?: string | null
   businessWebsite?: string | null
   maxAgents?: number
+  onboardingCompleted?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   leads?: Prisma.LeadCreateNestedManyWithoutUserInput
@@ -851,6 +874,7 @@ export type UserUncheckedCreateWithoutAgentsInput = {
   businessEmail?: string | null
   businessWebsite?: string | null
   maxAgents?: number
+  onboardingCompleted?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutUserInput
@@ -893,6 +917,7 @@ export type UserUpdateWithoutAgentsInput = {
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
+  onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   leads?: Prisma.LeadUpdateManyWithoutUserNestedInput
@@ -919,6 +944,7 @@ export type UserUncheckedUpdateWithoutAgentsInput = {
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
+  onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   leads?: Prisma.LeadUncheckedUpdateManyWithoutUserNestedInput
@@ -945,6 +971,7 @@ export type UserCreateWithoutLeadsInput = {
   businessEmail?: string | null
   businessWebsite?: string | null
   maxAgents?: number
+  onboardingCompleted?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   agents?: Prisma.AgentCreateNestedManyWithoutUserInput
@@ -971,6 +998,7 @@ export type UserUncheckedCreateWithoutLeadsInput = {
   businessEmail?: string | null
   businessWebsite?: string | null
   maxAgents?: number
+  onboardingCompleted?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   agents?: Prisma.AgentUncheckedCreateNestedManyWithoutUserInput
@@ -1013,6 +1041,7 @@ export type UserUpdateWithoutLeadsInput = {
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
+  onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   agents?: Prisma.AgentUpdateManyWithoutUserNestedInput
@@ -1039,6 +1068,7 @@ export type UserUncheckedUpdateWithoutLeadsInput = {
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
+  onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   agents?: Prisma.AgentUncheckedUpdateManyWithoutUserNestedInput
@@ -1065,6 +1095,7 @@ export type UserCreateWithoutConversationReadsInput = {
   businessEmail?: string | null
   businessWebsite?: string | null
   maxAgents?: number
+  onboardingCompleted?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   agents?: Prisma.AgentCreateNestedManyWithoutUserInput
@@ -1091,6 +1122,7 @@ export type UserUncheckedCreateWithoutConversationReadsInput = {
   businessEmail?: string | null
   businessWebsite?: string | null
   maxAgents?: number
+  onboardingCompleted?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   agents?: Prisma.AgentUncheckedCreateNestedManyWithoutUserInput
@@ -1133,6 +1165,7 @@ export type UserUpdateWithoutConversationReadsInput = {
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
+  onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   agents?: Prisma.AgentUpdateManyWithoutUserNestedInput
@@ -1159,6 +1192,7 @@ export type UserUncheckedUpdateWithoutConversationReadsInput = {
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
+  onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   agents?: Prisma.AgentUncheckedUpdateManyWithoutUserNestedInput
@@ -1234,6 +1268,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   businessEmail?: boolean
   businessWebsite?: boolean
   maxAgents?: boolean
+  onboardingCompleted?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   agents?: boolean | Prisma.User$agentsArgs<ExtArgs>
@@ -1262,6 +1297,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   businessEmail?: boolean
   businessWebsite?: boolean
   maxAgents?: boolean
+  onboardingCompleted?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["user"]>
@@ -1286,6 +1322,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   businessEmail?: boolean
   businessWebsite?: boolean
   maxAgents?: boolean
+  onboardingCompleted?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["user"]>
@@ -1310,11 +1347,12 @@ export type UserSelectScalar = {
   businessEmail?: boolean
   businessWebsite?: boolean
   maxAgents?: boolean
+  onboardingCompleted?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "phone" | "businessName" | "passwordHash" | "role" | "status" | "resetToken" | "resetTokenExpiry" | "emailVerified" | "verificationCode" | "verificationCodeExpiry" | "businessCategory" | "businessDescription" | "businessAddress" | "businessEmail" | "businessWebsite" | "maxAgents" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "phone" | "businessName" | "passwordHash" | "role" | "status" | "resetToken" | "resetTokenExpiry" | "emailVerified" | "verificationCode" | "verificationCodeExpiry" | "businessCategory" | "businessDescription" | "businessAddress" | "businessEmail" | "businessWebsite" | "maxAgents" | "onboardingCompleted" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   agents?: boolean | Prisma.User$agentsArgs<ExtArgs>
   leads?: boolean | Prisma.User$leadsArgs<ExtArgs>
@@ -1351,6 +1389,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     businessEmail: string | null
     businessWebsite: string | null
     maxAgents: number
+    onboardingCompleted: boolean
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["user"]>
@@ -1798,6 +1837,7 @@ export interface UserFieldRefs {
   readonly businessEmail: Prisma.FieldRef<"User", 'String'>
   readonly businessWebsite: Prisma.FieldRef<"User", 'String'>
   readonly maxAgents: Prisma.FieldRef<"User", 'Int'>
+  readonly onboardingCompleted: Prisma.FieldRef<"User", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>
 }

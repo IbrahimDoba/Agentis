@@ -11,6 +11,7 @@ import { AgentProfileForm } from "@/components/dashboard/AgentProfileForm"
 import { KnowledgeBaseTab } from "@/components/dashboard/KnowledgeBaseTab"
 import { ToolsTab } from "@/components/dashboard/ToolsTab"
 import { StatusBadge } from "@/components/ui/Badge"
+import { TestAgentWidget } from "@/components/dashboard/TestAgentWidget"
 import { useAgent } from "@/hooks/useAgent"
 import { cn } from "@/lib/utils"
 
@@ -92,7 +93,12 @@ export default function AgentDetailPage() {
             {agent.category && <p className={styles.category}>{agent.category}</p>}
           </div>
         </div>
-        <StatusBadge status={agent.status} />
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+          {agent.status === "ACTIVE" && agent.elevenlabsAgentId && (
+            <TestAgentWidget agentId={agent.elevenlabsAgentId} />
+          )}
+          <StatusBadge status={agent.status} />
+        </div>
       </div>
 
       {/* Tabs */}
