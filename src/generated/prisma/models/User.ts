@@ -54,9 +54,12 @@ export type UserMinAggregateOutputType = {
   businessEmail: string | null
   businessWebsite: string | null
   maxAgents: number | null
+  plan: string | null
   onboardingCompleted: boolean | null
+  referralsEnabled: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
+  referralCode: string | null
 }
 
 export type UserMaxAggregateOutputType = {
@@ -79,9 +82,12 @@ export type UserMaxAggregateOutputType = {
   businessEmail: string | null
   businessWebsite: string | null
   maxAgents: number | null
+  plan: string | null
   onboardingCompleted: boolean | null
+  referralsEnabled: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
+  referralCode: string | null
 }
 
 export type UserCountAggregateOutputType = {
@@ -104,9 +110,12 @@ export type UserCountAggregateOutputType = {
   businessEmail: number
   businessWebsite: number
   maxAgents: number
+  plan: number
   onboardingCompleted: number
+  referralsEnabled: number
   createdAt: number
   updatedAt: number
+  referralCode: number
   _all: number
 }
 
@@ -139,9 +148,12 @@ export type UserMinAggregateInputType = {
   businessEmail?: true
   businessWebsite?: true
   maxAgents?: true
+  plan?: true
   onboardingCompleted?: true
+  referralsEnabled?: true
   createdAt?: true
   updatedAt?: true
+  referralCode?: true
 }
 
 export type UserMaxAggregateInputType = {
@@ -164,9 +176,12 @@ export type UserMaxAggregateInputType = {
   businessEmail?: true
   businessWebsite?: true
   maxAgents?: true
+  plan?: true
   onboardingCompleted?: true
+  referralsEnabled?: true
   createdAt?: true
   updatedAt?: true
+  referralCode?: true
 }
 
 export type UserCountAggregateInputType = {
@@ -189,9 +204,12 @@ export type UserCountAggregateInputType = {
   businessEmail?: true
   businessWebsite?: true
   maxAgents?: true
+  plan?: true
   onboardingCompleted?: true
+  referralsEnabled?: true
   createdAt?: true
   updatedAt?: true
+  referralCode?: true
   _all?: true
 }
 
@@ -301,9 +319,12 @@ export type UserGroupByOutputType = {
   businessEmail: string | null
   businessWebsite: string | null
   maxAgents: number
+  plan: string
   onboardingCompleted: boolean
+  referralsEnabled: boolean
   createdAt: Date
   updatedAt: Date
+  referralCode: string | null
   _count: UserCountAggregateOutputType | null
   _avg: UserAvgAggregateOutputType | null
   _sum: UserSumAggregateOutputType | null
@@ -349,12 +370,17 @@ export type UserWhereInput = {
   businessEmail?: Prisma.StringNullableFilter<"User"> | string | null
   businessWebsite?: Prisma.StringNullableFilter<"User"> | string | null
   maxAgents?: Prisma.IntFilter<"User"> | number
+  plan?: Prisma.StringFilter<"User"> | string
   onboardingCompleted?: Prisma.BoolFilter<"User"> | boolean
+  referralsEnabled?: Prisma.BoolFilter<"User"> | boolean
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
+  referralCode?: Prisma.StringNullableFilter<"User"> | string | null
   agents?: Prisma.AgentListRelationFilter
   leads?: Prisma.LeadListRelationFilter
   conversationReads?: Prisma.ConversationReadListRelationFilter
+  referralsMade?: Prisma.ReferralListRelationFilter
+  referredBy?: Prisma.XOR<Prisma.ReferralNullableScalarRelationFilter, Prisma.ReferralWhereInput> | null
 }
 
 export type UserOrderByWithRelationInput = {
@@ -377,18 +403,24 @@ export type UserOrderByWithRelationInput = {
   businessEmail?: Prisma.SortOrderInput | Prisma.SortOrder
   businessWebsite?: Prisma.SortOrderInput | Prisma.SortOrder
   maxAgents?: Prisma.SortOrder
+  plan?: Prisma.SortOrder
   onboardingCompleted?: Prisma.SortOrder
+  referralsEnabled?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  referralCode?: Prisma.SortOrderInput | Prisma.SortOrder
   agents?: Prisma.AgentOrderByRelationAggregateInput
   leads?: Prisma.LeadOrderByRelationAggregateInput
   conversationReads?: Prisma.ConversationReadOrderByRelationAggregateInput
+  referralsMade?: Prisma.ReferralOrderByRelationAggregateInput
+  referredBy?: Prisma.ReferralOrderByWithRelationInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
   id?: string
   email?: string
   resetToken?: string
+  referralCode?: string
   AND?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
   OR?: Prisma.UserWhereInput[]
   NOT?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
@@ -408,13 +440,17 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   businessEmail?: Prisma.StringNullableFilter<"User"> | string | null
   businessWebsite?: Prisma.StringNullableFilter<"User"> | string | null
   maxAgents?: Prisma.IntFilter<"User"> | number
+  plan?: Prisma.StringFilter<"User"> | string
   onboardingCompleted?: Prisma.BoolFilter<"User"> | boolean
+  referralsEnabled?: Prisma.BoolFilter<"User"> | boolean
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   agents?: Prisma.AgentListRelationFilter
   leads?: Prisma.LeadListRelationFilter
   conversationReads?: Prisma.ConversationReadListRelationFilter
-}, "id" | "email" | "resetToken">
+  referralsMade?: Prisma.ReferralListRelationFilter
+  referredBy?: Prisma.XOR<Prisma.ReferralNullableScalarRelationFilter, Prisma.ReferralWhereInput> | null
+}, "id" | "email" | "resetToken" | "referralCode">
 
 export type UserOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -436,9 +472,12 @@ export type UserOrderByWithAggregationInput = {
   businessEmail?: Prisma.SortOrderInput | Prisma.SortOrder
   businessWebsite?: Prisma.SortOrderInput | Prisma.SortOrder
   maxAgents?: Prisma.SortOrder
+  plan?: Prisma.SortOrder
   onboardingCompleted?: Prisma.SortOrder
+  referralsEnabled?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  referralCode?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.UserCountOrderByAggregateInput
   _avg?: Prisma.UserAvgOrderByAggregateInput
   _max?: Prisma.UserMaxOrderByAggregateInput
@@ -469,9 +508,12 @@ export type UserScalarWhereWithAggregatesInput = {
   businessEmail?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   businessWebsite?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   maxAgents?: Prisma.IntWithAggregatesFilter<"User"> | number
+  plan?: Prisma.StringWithAggregatesFilter<"User"> | string
   onboardingCompleted?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
+  referralsEnabled?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
+  referralCode?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
 }
 
 export type UserCreateInput = {
@@ -494,12 +536,17 @@ export type UserCreateInput = {
   businessEmail?: string | null
   businessWebsite?: string | null
   maxAgents?: number
+  plan?: string
   onboardingCompleted?: boolean
+  referralsEnabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  referralCode?: string | null
   agents?: Prisma.AgentCreateNestedManyWithoutUserInput
   leads?: Prisma.LeadCreateNestedManyWithoutUserInput
   conversationReads?: Prisma.ConversationReadCreateNestedManyWithoutUserInput
+  referralsMade?: Prisma.ReferralCreateNestedManyWithoutReferrerInput
+  referredBy?: Prisma.ReferralCreateNestedOneWithoutReferredInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -522,12 +569,17 @@ export type UserUncheckedCreateInput = {
   businessEmail?: string | null
   businessWebsite?: string | null
   maxAgents?: number
+  plan?: string
   onboardingCompleted?: boolean
+  referralsEnabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  referralCode?: string | null
   agents?: Prisma.AgentUncheckedCreateNestedManyWithoutUserInput
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutUserInput
   conversationReads?: Prisma.ConversationReadUncheckedCreateNestedManyWithoutUserInput
+  referralsMade?: Prisma.ReferralUncheckedCreateNestedManyWithoutReferrerInput
+  referredBy?: Prisma.ReferralUncheckedCreateNestedOneWithoutReferredInput
 }
 
 export type UserUpdateInput = {
@@ -550,12 +602,17 @@ export type UserUpdateInput = {
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
+  plan?: Prisma.StringFieldUpdateOperationsInput | string
   onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  referralsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  referralCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   agents?: Prisma.AgentUpdateManyWithoutUserNestedInput
   leads?: Prisma.LeadUpdateManyWithoutUserNestedInput
   conversationReads?: Prisma.ConversationReadUpdateManyWithoutUserNestedInput
+  referralsMade?: Prisma.ReferralUpdateManyWithoutReferrerNestedInput
+  referredBy?: Prisma.ReferralUpdateOneWithoutReferredNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -578,12 +635,17 @@ export type UserUncheckedUpdateInput = {
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
+  plan?: Prisma.StringFieldUpdateOperationsInput | string
   onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  referralsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  referralCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   agents?: Prisma.AgentUncheckedUpdateManyWithoutUserNestedInput
   leads?: Prisma.LeadUncheckedUpdateManyWithoutUserNestedInput
   conversationReads?: Prisma.ConversationReadUncheckedUpdateManyWithoutUserNestedInput
+  referralsMade?: Prisma.ReferralUncheckedUpdateManyWithoutReferrerNestedInput
+  referredBy?: Prisma.ReferralUncheckedUpdateOneWithoutReferredNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -606,9 +668,12 @@ export type UserCreateManyInput = {
   businessEmail?: string | null
   businessWebsite?: string | null
   maxAgents?: number
+  plan?: string
   onboardingCompleted?: boolean
+  referralsEnabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  referralCode?: string | null
 }
 
 export type UserUpdateManyMutationInput = {
@@ -631,9 +696,12 @@ export type UserUpdateManyMutationInput = {
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
+  plan?: Prisma.StringFieldUpdateOperationsInput | string
   onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  referralsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  referralCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type UserUncheckedUpdateManyInput = {
@@ -656,9 +724,12 @@ export type UserUncheckedUpdateManyInput = {
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
+  plan?: Prisma.StringFieldUpdateOperationsInput | string
   onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  referralsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  referralCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type UserCountOrderByAggregateInput = {
@@ -681,9 +752,12 @@ export type UserCountOrderByAggregateInput = {
   businessEmail?: Prisma.SortOrder
   businessWebsite?: Prisma.SortOrder
   maxAgents?: Prisma.SortOrder
+  plan?: Prisma.SortOrder
   onboardingCompleted?: Prisma.SortOrder
+  referralsEnabled?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  referralCode?: Prisma.SortOrder
 }
 
 export type UserAvgOrderByAggregateInput = {
@@ -710,9 +784,12 @@ export type UserMaxOrderByAggregateInput = {
   businessEmail?: Prisma.SortOrder
   businessWebsite?: Prisma.SortOrder
   maxAgents?: Prisma.SortOrder
+  plan?: Prisma.SortOrder
   onboardingCompleted?: Prisma.SortOrder
+  referralsEnabled?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  referralCode?: Prisma.SortOrder
 }
 
 export type UserMinOrderByAggregateInput = {
@@ -735,9 +812,12 @@ export type UserMinOrderByAggregateInput = {
   businessEmail?: Prisma.SortOrder
   businessWebsite?: Prisma.SortOrder
   maxAgents?: Prisma.SortOrder
+  plan?: Prisma.SortOrder
   onboardingCompleted?: Prisma.SortOrder
+  referralsEnabled?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  referralCode?: Prisma.SortOrder
 }
 
 export type UserSumOrderByAggregateInput = {
@@ -827,6 +907,34 @@ export type UserUpdateOneRequiredWithoutConversationReadsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutConversationReadsInput, Prisma.UserUpdateWithoutConversationReadsInput>, Prisma.UserUncheckedUpdateWithoutConversationReadsInput>
 }
 
+export type UserCreateNestedOneWithoutReferralsMadeInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutReferralsMadeInput, Prisma.UserUncheckedCreateWithoutReferralsMadeInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutReferralsMadeInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserCreateNestedOneWithoutReferredByInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutReferredByInput, Prisma.UserUncheckedCreateWithoutReferredByInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutReferredByInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutReferralsMadeNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutReferralsMadeInput, Prisma.UserUncheckedCreateWithoutReferralsMadeInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutReferralsMadeInput
+  upsert?: Prisma.UserUpsertWithoutReferralsMadeInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutReferralsMadeInput, Prisma.UserUpdateWithoutReferralsMadeInput>, Prisma.UserUncheckedUpdateWithoutReferralsMadeInput>
+}
+
+export type UserUpdateOneRequiredWithoutReferredByNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutReferredByInput, Prisma.UserUncheckedCreateWithoutReferredByInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutReferredByInput
+  upsert?: Prisma.UserUpsertWithoutReferredByInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutReferredByInput, Prisma.UserUpdateWithoutReferredByInput>, Prisma.UserUncheckedUpdateWithoutReferredByInput>
+}
+
 export type UserCreateWithoutAgentsInput = {
   id?: string
   name: string
@@ -847,11 +955,16 @@ export type UserCreateWithoutAgentsInput = {
   businessEmail?: string | null
   businessWebsite?: string | null
   maxAgents?: number
+  plan?: string
   onboardingCompleted?: boolean
+  referralsEnabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  referralCode?: string | null
   leads?: Prisma.LeadCreateNestedManyWithoutUserInput
   conversationReads?: Prisma.ConversationReadCreateNestedManyWithoutUserInput
+  referralsMade?: Prisma.ReferralCreateNestedManyWithoutReferrerInput
+  referredBy?: Prisma.ReferralCreateNestedOneWithoutReferredInput
 }
 
 export type UserUncheckedCreateWithoutAgentsInput = {
@@ -874,11 +987,16 @@ export type UserUncheckedCreateWithoutAgentsInput = {
   businessEmail?: string | null
   businessWebsite?: string | null
   maxAgents?: number
+  plan?: string
   onboardingCompleted?: boolean
+  referralsEnabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  referralCode?: string | null
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutUserInput
   conversationReads?: Prisma.ConversationReadUncheckedCreateNestedManyWithoutUserInput
+  referralsMade?: Prisma.ReferralUncheckedCreateNestedManyWithoutReferrerInput
+  referredBy?: Prisma.ReferralUncheckedCreateNestedOneWithoutReferredInput
 }
 
 export type UserCreateOrConnectWithoutAgentsInput = {
@@ -917,11 +1035,16 @@ export type UserUpdateWithoutAgentsInput = {
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
+  plan?: Prisma.StringFieldUpdateOperationsInput | string
   onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  referralsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  referralCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   leads?: Prisma.LeadUpdateManyWithoutUserNestedInput
   conversationReads?: Prisma.ConversationReadUpdateManyWithoutUserNestedInput
+  referralsMade?: Prisma.ReferralUpdateManyWithoutReferrerNestedInput
+  referredBy?: Prisma.ReferralUpdateOneWithoutReferredNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAgentsInput = {
@@ -944,11 +1067,16 @@ export type UserUncheckedUpdateWithoutAgentsInput = {
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
+  plan?: Prisma.StringFieldUpdateOperationsInput | string
   onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  referralsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  referralCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   leads?: Prisma.LeadUncheckedUpdateManyWithoutUserNestedInput
   conversationReads?: Prisma.ConversationReadUncheckedUpdateManyWithoutUserNestedInput
+  referralsMade?: Prisma.ReferralUncheckedUpdateManyWithoutReferrerNestedInput
+  referredBy?: Prisma.ReferralUncheckedUpdateOneWithoutReferredNestedInput
 }
 
 export type UserCreateWithoutLeadsInput = {
@@ -971,11 +1099,16 @@ export type UserCreateWithoutLeadsInput = {
   businessEmail?: string | null
   businessWebsite?: string | null
   maxAgents?: number
+  plan?: string
   onboardingCompleted?: boolean
+  referralsEnabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  referralCode?: string | null
   agents?: Prisma.AgentCreateNestedManyWithoutUserInput
   conversationReads?: Prisma.ConversationReadCreateNestedManyWithoutUserInput
+  referralsMade?: Prisma.ReferralCreateNestedManyWithoutReferrerInput
+  referredBy?: Prisma.ReferralCreateNestedOneWithoutReferredInput
 }
 
 export type UserUncheckedCreateWithoutLeadsInput = {
@@ -998,11 +1131,16 @@ export type UserUncheckedCreateWithoutLeadsInput = {
   businessEmail?: string | null
   businessWebsite?: string | null
   maxAgents?: number
+  plan?: string
   onboardingCompleted?: boolean
+  referralsEnabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  referralCode?: string | null
   agents?: Prisma.AgentUncheckedCreateNestedManyWithoutUserInput
   conversationReads?: Prisma.ConversationReadUncheckedCreateNestedManyWithoutUserInput
+  referralsMade?: Prisma.ReferralUncheckedCreateNestedManyWithoutReferrerInput
+  referredBy?: Prisma.ReferralUncheckedCreateNestedOneWithoutReferredInput
 }
 
 export type UserCreateOrConnectWithoutLeadsInput = {
@@ -1041,11 +1179,16 @@ export type UserUpdateWithoutLeadsInput = {
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
+  plan?: Prisma.StringFieldUpdateOperationsInput | string
   onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  referralsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  referralCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   agents?: Prisma.AgentUpdateManyWithoutUserNestedInput
   conversationReads?: Prisma.ConversationReadUpdateManyWithoutUserNestedInput
+  referralsMade?: Prisma.ReferralUpdateManyWithoutReferrerNestedInput
+  referredBy?: Prisma.ReferralUpdateOneWithoutReferredNestedInput
 }
 
 export type UserUncheckedUpdateWithoutLeadsInput = {
@@ -1068,11 +1211,16 @@ export type UserUncheckedUpdateWithoutLeadsInput = {
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
+  plan?: Prisma.StringFieldUpdateOperationsInput | string
   onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  referralsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  referralCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   agents?: Prisma.AgentUncheckedUpdateManyWithoutUserNestedInput
   conversationReads?: Prisma.ConversationReadUncheckedUpdateManyWithoutUserNestedInput
+  referralsMade?: Prisma.ReferralUncheckedUpdateManyWithoutReferrerNestedInput
+  referredBy?: Prisma.ReferralUncheckedUpdateOneWithoutReferredNestedInput
 }
 
 export type UserCreateWithoutConversationReadsInput = {
@@ -1095,11 +1243,16 @@ export type UserCreateWithoutConversationReadsInput = {
   businessEmail?: string | null
   businessWebsite?: string | null
   maxAgents?: number
+  plan?: string
   onboardingCompleted?: boolean
+  referralsEnabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  referralCode?: string | null
   agents?: Prisma.AgentCreateNestedManyWithoutUserInput
   leads?: Prisma.LeadCreateNestedManyWithoutUserInput
+  referralsMade?: Prisma.ReferralCreateNestedManyWithoutReferrerInput
+  referredBy?: Prisma.ReferralCreateNestedOneWithoutReferredInput
 }
 
 export type UserUncheckedCreateWithoutConversationReadsInput = {
@@ -1122,11 +1275,16 @@ export type UserUncheckedCreateWithoutConversationReadsInput = {
   businessEmail?: string | null
   businessWebsite?: string | null
   maxAgents?: number
+  plan?: string
   onboardingCompleted?: boolean
+  referralsEnabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  referralCode?: string | null
   agents?: Prisma.AgentUncheckedCreateNestedManyWithoutUserInput
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutUserInput
+  referralsMade?: Prisma.ReferralUncheckedCreateNestedManyWithoutReferrerInput
+  referredBy?: Prisma.ReferralUncheckedCreateNestedOneWithoutReferredInput
 }
 
 export type UserCreateOrConnectWithoutConversationReadsInput = {
@@ -1165,11 +1323,16 @@ export type UserUpdateWithoutConversationReadsInput = {
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
+  plan?: Prisma.StringFieldUpdateOperationsInput | string
   onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  referralsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  referralCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   agents?: Prisma.AgentUpdateManyWithoutUserNestedInput
   leads?: Prisma.LeadUpdateManyWithoutUserNestedInput
+  referralsMade?: Prisma.ReferralUpdateManyWithoutReferrerNestedInput
+  referredBy?: Prisma.ReferralUpdateOneWithoutReferredNestedInput
 }
 
 export type UserUncheckedUpdateWithoutConversationReadsInput = {
@@ -1192,11 +1355,304 @@ export type UserUncheckedUpdateWithoutConversationReadsInput = {
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
+  plan?: Prisma.StringFieldUpdateOperationsInput | string
   onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  referralsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  referralCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   agents?: Prisma.AgentUncheckedUpdateManyWithoutUserNestedInput
   leads?: Prisma.LeadUncheckedUpdateManyWithoutUserNestedInput
+  referralsMade?: Prisma.ReferralUncheckedUpdateManyWithoutReferrerNestedInput
+  referredBy?: Prisma.ReferralUncheckedUpdateOneWithoutReferredNestedInput
+}
+
+export type UserCreateWithoutReferralsMadeInput = {
+  id?: string
+  name: string
+  email: string
+  phone?: string | null
+  businessName: string
+  passwordHash: string
+  role?: $Enums.Role
+  status?: $Enums.UserStatus
+  resetToken?: string | null
+  resetTokenExpiry?: Date | string | null
+  emailVerified?: boolean
+  verificationCode?: string | null
+  verificationCodeExpiry?: Date | string | null
+  businessCategory?: string | null
+  businessDescription?: string | null
+  businessAddress?: string | null
+  businessEmail?: string | null
+  businessWebsite?: string | null
+  maxAgents?: number
+  plan?: string
+  onboardingCompleted?: boolean
+  referralsEnabled?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  referralCode?: string | null
+  agents?: Prisma.AgentCreateNestedManyWithoutUserInput
+  leads?: Prisma.LeadCreateNestedManyWithoutUserInput
+  conversationReads?: Prisma.ConversationReadCreateNestedManyWithoutUserInput
+  referredBy?: Prisma.ReferralCreateNestedOneWithoutReferredInput
+}
+
+export type UserUncheckedCreateWithoutReferralsMadeInput = {
+  id?: string
+  name: string
+  email: string
+  phone?: string | null
+  businessName: string
+  passwordHash: string
+  role?: $Enums.Role
+  status?: $Enums.UserStatus
+  resetToken?: string | null
+  resetTokenExpiry?: Date | string | null
+  emailVerified?: boolean
+  verificationCode?: string | null
+  verificationCodeExpiry?: Date | string | null
+  businessCategory?: string | null
+  businessDescription?: string | null
+  businessAddress?: string | null
+  businessEmail?: string | null
+  businessWebsite?: string | null
+  maxAgents?: number
+  plan?: string
+  onboardingCompleted?: boolean
+  referralsEnabled?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  referralCode?: string | null
+  agents?: Prisma.AgentUncheckedCreateNestedManyWithoutUserInput
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutUserInput
+  conversationReads?: Prisma.ConversationReadUncheckedCreateNestedManyWithoutUserInput
+  referredBy?: Prisma.ReferralUncheckedCreateNestedOneWithoutReferredInput
+}
+
+export type UserCreateOrConnectWithoutReferralsMadeInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutReferralsMadeInput, Prisma.UserUncheckedCreateWithoutReferralsMadeInput>
+}
+
+export type UserCreateWithoutReferredByInput = {
+  id?: string
+  name: string
+  email: string
+  phone?: string | null
+  businessName: string
+  passwordHash: string
+  role?: $Enums.Role
+  status?: $Enums.UserStatus
+  resetToken?: string | null
+  resetTokenExpiry?: Date | string | null
+  emailVerified?: boolean
+  verificationCode?: string | null
+  verificationCodeExpiry?: Date | string | null
+  businessCategory?: string | null
+  businessDescription?: string | null
+  businessAddress?: string | null
+  businessEmail?: string | null
+  businessWebsite?: string | null
+  maxAgents?: number
+  plan?: string
+  onboardingCompleted?: boolean
+  referralsEnabled?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  referralCode?: string | null
+  agents?: Prisma.AgentCreateNestedManyWithoutUserInput
+  leads?: Prisma.LeadCreateNestedManyWithoutUserInput
+  conversationReads?: Prisma.ConversationReadCreateNestedManyWithoutUserInput
+  referralsMade?: Prisma.ReferralCreateNestedManyWithoutReferrerInput
+}
+
+export type UserUncheckedCreateWithoutReferredByInput = {
+  id?: string
+  name: string
+  email: string
+  phone?: string | null
+  businessName: string
+  passwordHash: string
+  role?: $Enums.Role
+  status?: $Enums.UserStatus
+  resetToken?: string | null
+  resetTokenExpiry?: Date | string | null
+  emailVerified?: boolean
+  verificationCode?: string | null
+  verificationCodeExpiry?: Date | string | null
+  businessCategory?: string | null
+  businessDescription?: string | null
+  businessAddress?: string | null
+  businessEmail?: string | null
+  businessWebsite?: string | null
+  maxAgents?: number
+  plan?: string
+  onboardingCompleted?: boolean
+  referralsEnabled?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  referralCode?: string | null
+  agents?: Prisma.AgentUncheckedCreateNestedManyWithoutUserInput
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutUserInput
+  conversationReads?: Prisma.ConversationReadUncheckedCreateNestedManyWithoutUserInput
+  referralsMade?: Prisma.ReferralUncheckedCreateNestedManyWithoutReferrerInput
+}
+
+export type UserCreateOrConnectWithoutReferredByInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutReferredByInput, Prisma.UserUncheckedCreateWithoutReferredByInput>
+}
+
+export type UserUpsertWithoutReferralsMadeInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutReferralsMadeInput, Prisma.UserUncheckedUpdateWithoutReferralsMadeInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutReferralsMadeInput, Prisma.UserUncheckedCreateWithoutReferralsMadeInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutReferralsMadeInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutReferralsMadeInput, Prisma.UserUncheckedUpdateWithoutReferralsMadeInput>
+}
+
+export type UserUpdateWithoutReferralsMadeInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  resetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resetTokenExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  verificationCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationCodeExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  businessCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
+  plan?: Prisma.StringFieldUpdateOperationsInput | string
+  onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  referralsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  referralCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  agents?: Prisma.AgentUpdateManyWithoutUserNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutUserNestedInput
+  conversationReads?: Prisma.ConversationReadUpdateManyWithoutUserNestedInput
+  referredBy?: Prisma.ReferralUpdateOneWithoutReferredNestedInput
+}
+
+export type UserUncheckedUpdateWithoutReferralsMadeInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  resetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resetTokenExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  verificationCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationCodeExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  businessCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
+  plan?: Prisma.StringFieldUpdateOperationsInput | string
+  onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  referralsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  referralCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  agents?: Prisma.AgentUncheckedUpdateManyWithoutUserNestedInput
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutUserNestedInput
+  conversationReads?: Prisma.ConversationReadUncheckedUpdateManyWithoutUserNestedInput
+  referredBy?: Prisma.ReferralUncheckedUpdateOneWithoutReferredNestedInput
+}
+
+export type UserUpsertWithoutReferredByInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutReferredByInput, Prisma.UserUncheckedUpdateWithoutReferredByInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutReferredByInput, Prisma.UserUncheckedCreateWithoutReferredByInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutReferredByInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutReferredByInput, Prisma.UserUncheckedUpdateWithoutReferredByInput>
+}
+
+export type UserUpdateWithoutReferredByInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  resetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resetTokenExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  verificationCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationCodeExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  businessCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
+  plan?: Prisma.StringFieldUpdateOperationsInput | string
+  onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  referralsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  referralCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  agents?: Prisma.AgentUpdateManyWithoutUserNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutUserNestedInput
+  conversationReads?: Prisma.ConversationReadUpdateManyWithoutUserNestedInput
+  referralsMade?: Prisma.ReferralUpdateManyWithoutReferrerNestedInput
+}
+
+export type UserUncheckedUpdateWithoutReferredByInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  resetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resetTokenExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  verificationCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationCodeExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  businessCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
+  plan?: Prisma.StringFieldUpdateOperationsInput | string
+  onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  referralsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  referralCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  agents?: Prisma.AgentUncheckedUpdateManyWithoutUserNestedInput
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutUserNestedInput
+  conversationReads?: Prisma.ConversationReadUncheckedUpdateManyWithoutUserNestedInput
+  referralsMade?: Prisma.ReferralUncheckedUpdateManyWithoutReferrerNestedInput
 }
 
 
@@ -1208,12 +1664,14 @@ export type UserCountOutputType = {
   agents: number
   leads: number
   conversationReads: number
+  referralsMade: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   agents?: boolean | UserCountOutputTypeCountAgentsArgs
   leads?: boolean | UserCountOutputTypeCountLeadsArgs
   conversationReads?: boolean | UserCountOutputTypeCountConversationReadsArgs
+  referralsMade?: boolean | UserCountOutputTypeCountReferralsMadeArgs
 }
 
 /**
@@ -1247,6 +1705,13 @@ export type UserCountOutputTypeCountConversationReadsArgs<ExtArgs extends runtim
   where?: Prisma.ConversationReadWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountReferralsMadeArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ReferralWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1268,12 +1733,17 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   businessEmail?: boolean
   businessWebsite?: boolean
   maxAgents?: boolean
+  plan?: boolean
   onboardingCompleted?: boolean
+  referralsEnabled?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  referralCode?: boolean
   agents?: boolean | Prisma.User$agentsArgs<ExtArgs>
   leads?: boolean | Prisma.User$leadsArgs<ExtArgs>
   conversationReads?: boolean | Prisma.User$conversationReadsArgs<ExtArgs>
+  referralsMade?: boolean | Prisma.User$referralsMadeArgs<ExtArgs>
+  referredBy?: boolean | Prisma.User$referredByArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1297,9 +1767,12 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   businessEmail?: boolean
   businessWebsite?: boolean
   maxAgents?: boolean
+  plan?: boolean
   onboardingCompleted?: boolean
+  referralsEnabled?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  referralCode?: boolean
 }, ExtArgs["result"]["user"]>
 
 export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1322,9 +1795,12 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   businessEmail?: boolean
   businessWebsite?: boolean
   maxAgents?: boolean
+  plan?: boolean
   onboardingCompleted?: boolean
+  referralsEnabled?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  referralCode?: boolean
 }, ExtArgs["result"]["user"]>
 
 export type UserSelectScalar = {
@@ -1347,16 +1823,21 @@ export type UserSelectScalar = {
   businessEmail?: boolean
   businessWebsite?: boolean
   maxAgents?: boolean
+  plan?: boolean
   onboardingCompleted?: boolean
+  referralsEnabled?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  referralCode?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "phone" | "businessName" | "passwordHash" | "role" | "status" | "resetToken" | "resetTokenExpiry" | "emailVerified" | "verificationCode" | "verificationCodeExpiry" | "businessCategory" | "businessDescription" | "businessAddress" | "businessEmail" | "businessWebsite" | "maxAgents" | "onboardingCompleted" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "phone" | "businessName" | "passwordHash" | "role" | "status" | "resetToken" | "resetTokenExpiry" | "emailVerified" | "verificationCode" | "verificationCodeExpiry" | "businessCategory" | "businessDescription" | "businessAddress" | "businessEmail" | "businessWebsite" | "maxAgents" | "plan" | "onboardingCompleted" | "referralsEnabled" | "createdAt" | "updatedAt" | "referralCode", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   agents?: boolean | Prisma.User$agentsArgs<ExtArgs>
   leads?: boolean | Prisma.User$leadsArgs<ExtArgs>
   conversationReads?: boolean | Prisma.User$conversationReadsArgs<ExtArgs>
+  referralsMade?: boolean | Prisma.User$referralsMadeArgs<ExtArgs>
+  referredBy?: boolean | Prisma.User$referredByArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1368,6 +1849,8 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     agents: Prisma.$AgentPayload<ExtArgs>[]
     leads: Prisma.$LeadPayload<ExtArgs>[]
     conversationReads: Prisma.$ConversationReadPayload<ExtArgs>[]
+    referralsMade: Prisma.$ReferralPayload<ExtArgs>[]
+    referredBy: Prisma.$ReferralPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1389,9 +1872,12 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     businessEmail: string | null
     businessWebsite: string | null
     maxAgents: number
+    plan: string
     onboardingCompleted: boolean
+    referralsEnabled: boolean
     createdAt: Date
     updatedAt: Date
+    referralCode: string | null
   }, ExtArgs["result"]["user"]>
   composites: {}
 }
@@ -1789,6 +2275,8 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   agents<T extends Prisma.User$agentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$agentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AgentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   leads<T extends Prisma.User$leadsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$leadsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LeadPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   conversationReads<T extends Prisma.User$conversationReadsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$conversationReadsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ConversationReadPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  referralsMade<T extends Prisma.User$referralsMadeArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$referralsMadeArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReferralPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  referredBy<T extends Prisma.User$referredByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$referredByArgs<ExtArgs>>): Prisma.Prisma__ReferralClient<runtime.Types.Result.GetResult<Prisma.$ReferralPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1837,9 +2325,12 @@ export interface UserFieldRefs {
   readonly businessEmail: Prisma.FieldRef<"User", 'String'>
   readonly businessWebsite: Prisma.FieldRef<"User", 'String'>
   readonly maxAgents: Prisma.FieldRef<"User", 'Int'>
+  readonly plan: Prisma.FieldRef<"User", 'String'>
   readonly onboardingCompleted: Prisma.FieldRef<"User", 'Boolean'>
+  readonly referralsEnabled: Prisma.FieldRef<"User", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>
+  readonly referralCode: Prisma.FieldRef<"User", 'String'>
 }
     
 
@@ -2302,6 +2793,49 @@ export type User$conversationReadsArgs<ExtArgs extends runtime.Types.Extensions.
   take?: number
   skip?: number
   distinct?: Prisma.ConversationReadScalarFieldEnum | Prisma.ConversationReadScalarFieldEnum[]
+}
+
+/**
+ * User.referralsMade
+ */
+export type User$referralsMadeArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Referral
+   */
+  select?: Prisma.ReferralSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Referral
+   */
+  omit?: Prisma.ReferralOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ReferralInclude<ExtArgs> | null
+  where?: Prisma.ReferralWhereInput
+  orderBy?: Prisma.ReferralOrderByWithRelationInput | Prisma.ReferralOrderByWithRelationInput[]
+  cursor?: Prisma.ReferralWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ReferralScalarFieldEnum | Prisma.ReferralScalarFieldEnum[]
+}
+
+/**
+ * User.referredBy
+ */
+export type User$referredByArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Referral
+   */
+  select?: Prisma.ReferralSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Referral
+   */
+  omit?: Prisma.ReferralOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ReferralInclude<ExtArgs> | null
+  where?: Prisma.ReferralWhereInput
 }
 
 /**

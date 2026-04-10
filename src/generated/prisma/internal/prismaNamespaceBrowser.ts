@@ -56,6 +56,7 @@ export const ModelName = {
   Lead: 'Lead',
   ConversationRead: 'ConversationRead',
   Customer: 'Customer',
+  Referral: 'Referral',
   NewsletterSubscriber: 'NewsletterSubscriber',
   ConversationLog: 'ConversationLog'
 } as const
@@ -96,9 +97,12 @@ export const UserScalarFieldEnum = {
   businessEmail: 'businessEmail',
   businessWebsite: 'businessWebsite',
   maxAgents: 'maxAgents',
+  plan: 'plan',
   onboardingCompleted: 'onboardingCompleted',
+  referralsEnabled: 'referralsEnabled',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  referralCode: 'referralCode'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -174,6 +178,22 @@ export const CustomerScalarFieldEnum = {
 } as const
 
 export type CustomerScalarFieldEnum = (typeof CustomerScalarFieldEnum)[keyof typeof CustomerScalarFieldEnum]
+
+
+export const ReferralScalarFieldEnum = {
+  id: 'id',
+  referrerId: 'referrerId',
+  referredId: 'referredId',
+  code: 'code',
+  status: 'status',
+  commissionRate: 'commissionRate',
+  commissionEarned: 'commissionEarned',
+  rewardGranted: 'rewardGranted',
+  assignedByAdmin: 'assignedByAdmin',
+  createdAt: 'createdAt'
+} as const
+
+export type ReferralScalarFieldEnum = (typeof ReferralScalarFieldEnum)[keyof typeof ReferralScalarFieldEnum]
 
 
 export const NewsletterSubscriberScalarFieldEnum = {

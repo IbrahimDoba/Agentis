@@ -27,6 +27,9 @@ function UserDetailModal({ user, onClose, onStatusChange, loading }: {
   const [maxAgents, setMaxAgents] = useState<number>(user.maxAgents ?? 1)
   const [savingMaxAgents, setSavingMaxAgents] = useState(false)
   const [maxAgentsSaved, setMaxAgentsSaved] = useState(false)
+  const [plan, setPlan] = useState<string>(user.plan ?? "free")
+  const [savingPlan, setSavingPlan] = useState(false)
+  const [planSaved, setPlanSaved] = useState(false)
 
   const handleSaveMaxAgents = async () => {
     setSavingMaxAgents(true)
@@ -45,6 +48,26 @@ function UserDetailModal({ user, onClose, onStatusChange, loading }: {
       alert("Failed to update agent limit")
     } finally {
       setSavingMaxAgents(false)
+    }
+  }
+
+  const handleSavePlan = async () => {
+    setSavingPlan(true)
+    setPlanSaved(false)
+    try {
+      const res = await fetch(`/api/users/${user.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan }),
+      })
+      if (!res.ok) throw new Error("Failed to update")
+      setPlanSaved(true)
+      router.refresh()
+      setTimeout(() => setPlanSaved(false), 2000)
+    } catch {
+      alert("Failed to update plan")
+    } finally {
+      setSavingPlan(false)
     }
   }
 
@@ -151,6 +174,36 @@ function UserDetailModal({ user, onClose, onStatusChange, loading }: {
                     disabled={savingMaxAgents || maxAgents === (user.maxAgents ?? 1)}
                   >
                     {savingMaxAgents ? "Saving…" : maxAgentsSaved ? "Saved ✓" : "Save"}
+                  </button>
+                </div>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.modalSection}>
+          <div className={styles.modalSectionTitle}>Subscription</div>
+          <div className={styles.modalGrid}>
+            <div className={styles.modalRow}>
+              <span className={styles.modalLabel}>Plan</span>
+              <span className={styles.modalValue}>
+                <div className={styles.agentLimitRow}>
+                  <select
+                    value={plan}
+                    onChange={(e) => setPlan(e.target.value)}
+                    className={styles.agentLimitInput}
+                  >
+                    <option value="free">Free</option>
+                    <option value="starter">Starter</option>
+                    <option value="pro">Pro</option>
+                    <option value="enterprise">Enterprise</option>
+                  </select>
+                  <button
+                    className={styles.agentLimitSaveBtn}
+                    onClick={handleSavePlan}
+                    disabled={savingPlan || plan === (user.plan ?? "free")}
+                  >
+                    {savingPlan ? "Saving…" : planSaved ? "Saved ✓" : "Save"}
                   </button>
                 </div>
               </span>

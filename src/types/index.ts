@@ -17,7 +17,9 @@ export interface UserPublic {
   businessEmail?: string | null
   businessWebsite?: string | null
   maxAgents?: number
+  plan?: string
   onboardingCompleted?: boolean
+  referralsEnabled?: boolean
 }
 
 export interface ToolParameter {

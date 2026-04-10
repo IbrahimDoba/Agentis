@@ -12,10 +12,12 @@ import {
   XMarkIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  GiftIcon,
 } from "@heroicons/react/24/outline"
 import { LogoIcon } from "@/components/landing/Logo"
 import styles from "./Sidebar.module.css"
 import { cn } from "@/lib/utils"
+import { useDashboardData } from "@/hooks/useDashboardData"
 
 interface SidebarProps {
   userName: string
@@ -32,15 +34,21 @@ type NavItem = {
   icon: React.ComponentType<React.SVGProps<SVGSVGElement>>
 }
 
-const navItems: NavItem[] = [
+const baseNavItems: NavItem[] = [
   { href: "/dashboard", label: "Overview", icon: Squares2X2Icon },
   { href: "/dashboard/agents", label: "Agents", icon: CpuChipIcon },
   { href: "/dashboard/chats", label: "Conversations", icon: ChatBubbleLeftRightIcon },
   { href: "/dashboard/leads", label: "Leads", icon: FireIcon },
 ]
 
+const referralNavItem: NavItem = { href: "/dashboard/referrals", label: "Referrals", icon: GiftIcon }
+
 export function Sidebar({ userName, businessName, isOpen, onClose, collapsed, onToggleCollapse }: SidebarProps) {
   const pathname = usePathname()
+  const { data } = useDashboardData()
+  const navItems = data?.user?.referralsEnabled
+    ? [...baseNavItems, referralNavItem]
+    : baseNavItems
 
   const isActive = (href: string) => {
     if (href === "/dashboard") return pathname === "/dashboard"

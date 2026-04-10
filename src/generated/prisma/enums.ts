@@ -44,3 +44,12 @@ export const LeadStatus = {
 } as const
 
 export type LeadStatus = (typeof LeadStatus)[keyof typeof LeadStatus]
+
+
+export const ReferralStatus = {
+  PENDING: 'PENDING',
+  COMPLETED: 'COMPLETED',
+  REWARDED: 'REWARDED'
+} as const
+
+export type ReferralStatus = (typeof ReferralStatus)[keyof typeof ReferralStatus]

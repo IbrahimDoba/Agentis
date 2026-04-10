@@ -1,16 +1,24 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, Suspense } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { LogoIcon } from "@/components/landing/Logo"
 import styles from "./page.module.css"
 import { Input } from "@/components/ui/Input"
 import Button from "@/components/ui/Button"
 import { signupSchema } from "@/lib/validations"
 
-export default function SignupPage() {
+function SignupForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const [refCode, setRefCode] = useState<string | null>(null)
+
+  useEffect(() => {
+    const ref = searchParams.get("ref")
+    if (ref) setRefCode(ref)
+  }, [searchParams])
+
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -57,7 +65,7 @@ export default function SignupPage() {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, ...(refCode ? { refCode } : {}) }),
       })
 
       const data = await res.json()
@@ -91,6 +99,11 @@ export default function SignupPage() {
       <div className={styles.card}>
         <h1 className={styles.title}>Create your account</h1>
         <p className={styles.subtitle}>Start automating your WhatsApp customer support</p>
+        {refCode && (
+          <div style={{ background: "var(--accent-light)", border: "1px solid var(--accent)", borderRadius: "var(--radius-md)", padding: "0.6rem 0.9rem", fontSize: "13px", color: "var(--accent)", fontWeight: 600, marginBottom: "0.5rem" }}>
+            🎉 You were invited — you&apos;re signing up with a referral link.
+          </div>
+        )}
 
         <form className={styles.form} onSubmit={handleSubmit}>
           {error && <div className={styles.error}>{error}</div>}
@@ -189,5 +202,13 @@ export default function SignupPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense>
+      <SignupForm />
+    </Suspense>
   )
 }

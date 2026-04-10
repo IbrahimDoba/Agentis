@@ -27,12 +27,17 @@ model User {
   businessEmail       String?
   businessWebsite     String?
   maxAgents           Int        @default(1)
+  plan                String     @default("free")
   onboardingCompleted Boolean    @default(false)
+  referralsEnabled    Boolean    @default(false)
   createdAt           DateTime   @default(now())
   updatedAt          DateTime   @updatedAt
   agents             Agent[]
   leads              Lead[]
   conversationReads  ConversationRead[]
+  referralCode       String?    @unique
+  referralsMade      Referral[] @relation("ReferralsMade")
+  referredBy         Referral?  @relation("ReferredBy")
 }
 
 model Agent {
@@ -132,6 +137,28 @@ model Customer {
 
   agent               Agent?           @relation(fields: [agentId], references: [id], onDelete: SetNull)
   conversationLogs    ConversationLog[]
+}
+
+model Referral {
+  id               String         @id @default(cuid())
+  referrerId       String
+  referredId       String         @unique
+  code             String?
+  status           ReferralStatus @default(PENDING)
+  commissionRate   Float          @default(0.15)
+  commissionEarned Float?
+  rewardGranted    Boolean        @default(false)
+  assignedByAdmin  Boolean        @default(false)
+  createdAt        DateTime       @default(now())
+
+  referrer         User           @relation("ReferralsMade", fields: [referrerId], references: [id], onDelete: Cascade)
+  referred         User           @relation("ReferredBy", fields: [referredId], references: [id], onDelete: Cascade)
+}
+
+enum ReferralStatus {
+  PENDING
+  COMPLETED
+  REWARDED
 }
 
 model NewsletterSubscriber {

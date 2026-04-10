@@ -1,8 +1,48 @@
+import type { Metadata } from "next"
 import { Navbar } from "@/components/landing/Navbar"
 import { Footer } from "@/components/landing/Footer"
 import styles from "./page.module.css"
 
+export const metadata: Metadata = {
+  title: "Changelog — D-Zero AI",
+  description:
+    "Every update, improvement, and new feature shipped to D-Zero AI — documented as we build the future of WhatsApp AI agents for business.",
+  openGraph: {
+    title: "Changelog — D-Zero AI",
+    description:
+      "Every update, improvement, and new feature shipped to D-Zero AI — documented as we build the future of WhatsApp AI agents for business.",
+    url: "https://dailzero.com/changelog",
+    siteName: "D-Zero AI",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Changelog — D-Zero AI",
+    description:
+      "Every update, improvement, and new feature shipped to D-Zero AI — documented as we build the future of WhatsApp AI agents for business.",
+  },
+}
+
 const updates = [
+  {
+    date: "9 April 2026",
+    tag: "New",
+    tagColor: "green",
+    title: "Referral Program",
+    description:
+      "Users can now opt into the referral program from their profile and earn 15% commission on every paying customer they refer. Admins can track, manage, and pay out commissions from a dedicated referral panel.",
+    bullets: [
+      "Enable referrals via a toggle in your Profile — the Referrals tab only appears once you opt in",
+      "Unique referral link generated per user (e.g. /signup?ref=john-k7x2mq)",
+      "Referral is automatically recorded when a new user signs up through your link",
+      "15% commission: Starter ₦7,500 · Pro ₦12,750 · Enterprise custom",
+      "Commission auto-calculates when admin sets a referred user to a paid plan",
+      "Admin can manually assign a referral if the user didn't use the link",
+      "Admin can set custom commission amounts for Enterprise referrals",
+      "Admin marks referrals as Paid Out once commission is sent",
+      "Dashboard shows Total Referrals, Total Earned, Pending, and Paid Out stats",
+    ],
+  },
   {
     date: "8 April 2026",
     tag: "New",
@@ -20,7 +60,7 @@ const updates = [
     ],
   },
   {
-    date: "8 April 2026",
+    date: "9 April 2026",
     tag: "New",
     tagColor: "green",
     title: "User Onboarding Flow",

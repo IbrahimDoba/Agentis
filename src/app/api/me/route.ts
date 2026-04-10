@@ -33,6 +33,7 @@ export async function GET() {
       businessWebsite: user.businessWebsite ?? null,
       maxAgents: user.maxAgents,
       onboardingCompleted: user.onboardingCompleted,
+      referralsEnabled: user.referralsEnabled,
     },
     agent: agent ? {
       id: agent.id,
@@ -62,6 +63,15 @@ export async function PATCH(req: NextRequest) {
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const body = await req.json()
+  // Handle referralsEnabled toggle separately (simple boolean patch)
+  if (typeof body.referralsEnabled === "boolean" && Object.keys(body).length === 1) {
+    const user = await db.user.update({
+      where: { id: session.user.id },
+      data: { referralsEnabled: body.referralsEnabled },
+    })
+    return NextResponse.json({ referralsEnabled: user.referralsEnabled })
+  }
+
   const parsed = profileUpdateSchema.safeParse(body)
 
   if (!parsed.success) {

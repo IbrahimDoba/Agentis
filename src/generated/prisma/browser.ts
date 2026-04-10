@@ -43,6 +43,11 @@ export type ConversationRead = Prisma.ConversationReadModel
  */
 export type Customer = Prisma.CustomerModel
 /**
+ * Model Referral
+ * 
+ */
+export type Referral = Prisma.ReferralModel
+/**
  * Model NewsletterSubscriber
  * 
  */

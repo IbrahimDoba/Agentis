@@ -26,6 +26,7 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-globe.gl": "^2.37.0",
+    "recharts": "^3.8.1",
     "resend": "^6.9.3",
     "three": "^0.183.2",
     "uploadthing": "^7.7.4",

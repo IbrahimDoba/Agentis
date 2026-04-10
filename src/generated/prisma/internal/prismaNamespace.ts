@@ -389,6 +389,7 @@ export const ModelName = {
   Lead: 'Lead',
   ConversationRead: 'ConversationRead',
   Customer: 'Customer',
+  Referral: 'Referral',
   NewsletterSubscriber: 'NewsletterSubscriber',
   ConversationLog: 'ConversationLog'
 } as const
@@ -406,7 +407,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "agent" | "lead" | "conversationRead" | "customer" | "newsletterSubscriber" | "conversationLog"
+    modelProps: "user" | "agent" | "lead" | "conversationRead" | "customer" | "referral" | "newsletterSubscriber" | "conversationLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -780,6 +781,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Referral: {
+      payload: Prisma.$ReferralPayload<ExtArgs>
+      fields: Prisma.ReferralFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ReferralFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReferralPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ReferralFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReferralPayload>
+        }
+        findFirst: {
+          args: Prisma.ReferralFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReferralPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ReferralFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReferralPayload>
+        }
+        findMany: {
+          args: Prisma.ReferralFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReferralPayload>[]
+        }
+        create: {
+          args: Prisma.ReferralCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReferralPayload>
+        }
+        createMany: {
+          args: Prisma.ReferralCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ReferralCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReferralPayload>[]
+        }
+        delete: {
+          args: Prisma.ReferralDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReferralPayload>
+        }
+        update: {
+          args: Prisma.ReferralUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReferralPayload>
+        }
+        deleteMany: {
+          args: Prisma.ReferralDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ReferralUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ReferralUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReferralPayload>[]
+        }
+        upsert: {
+          args: Prisma.ReferralUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReferralPayload>
+        }
+        aggregate: {
+          args: Prisma.ReferralAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateReferral>
+        }
+        groupBy: {
+          args: Prisma.ReferralGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ReferralGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ReferralCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ReferralCountAggregateOutputType> | number
+        }
+      }
+    }
     NewsletterSubscriber: {
       payload: Prisma.$NewsletterSubscriberPayload<ExtArgs>
       fields: Prisma.NewsletterSubscriberFieldRefs
@@ -987,9 +1062,12 @@ export const UserScalarFieldEnum = {
   businessEmail: 'businessEmail',
   businessWebsite: 'businessWebsite',
   maxAgents: 'maxAgents',
+  plan: 'plan',
   onboardingCompleted: 'onboardingCompleted',
+  referralsEnabled: 'referralsEnabled',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  referralCode: 'referralCode'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -1065,6 +1143,22 @@ export const CustomerScalarFieldEnum = {
 } as const
 
 export type CustomerScalarFieldEnum = (typeof CustomerScalarFieldEnum)[keyof typeof CustomerScalarFieldEnum]
+
+
+export const ReferralScalarFieldEnum = {
+  id: 'id',
+  referrerId: 'referrerId',
+  referredId: 'referredId',
+  code: 'code',
+  status: 'status',
+  commissionRate: 'commissionRate',
+  commissionEarned: 'commissionEarned',
+  rewardGranted: 'rewardGranted',
+  assignedByAdmin: 'assignedByAdmin',
+  createdAt: 'createdAt'
+} as const
+
+export type ReferralScalarFieldEnum = (typeof ReferralScalarFieldEnum)[keyof typeof ReferralScalarFieldEnum]
 
 
 export const NewsletterSubscriberScalarFieldEnum = {
@@ -1271,6 +1365,20 @@ export type ListEnumLeadStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$P
 
 
 /**
+ * Reference to a field of type 'ReferralStatus'
+ */
+export type EnumReferralStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReferralStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'ReferralStatus[]'
+ */
+export type ListEnumReferralStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReferralStatus[]'>
+    
+
+
+/**
  * Reference to a field of type 'Float'
  */
 export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -1383,6 +1491,7 @@ export type GlobalOmitConfig = {
   lead?: Prisma.LeadOmit
   conversationRead?: Prisma.ConversationReadOmit
   customer?: Prisma.CustomerOmit
+  referral?: Prisma.ReferralOmit
   newsletterSubscriber?: Prisma.NewsletterSubscriberOmit
   conversationLog?: Prisma.ConversationLogOmit
 }

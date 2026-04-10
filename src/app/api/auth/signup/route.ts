@@ -23,6 +23,7 @@ export async function POST(req: NextRequest) {
     }
 
     const { name, email, businessName, phone, password } = parsed.data
+    const refCode = typeof body.refCode === "string" ? body.refCode.trim() : null
 
     const existing = await db.user.findUnique({ where: { email } })
     if (existing) {
@@ -49,7 +50,7 @@ export async function POST(req: NextRequest) {
     const code = generateCode()
     const expiry = new Date(Date.now() + 10 * 60 * 1000)
 
-    await db.user.create({
+    const newUser = await db.user.create({
       data: {
         name,
         email,
@@ -61,6 +62,23 @@ export async function POST(req: NextRequest) {
         verificationCodeExpiry: expiry,
       },
     })
+
+    // Link referral if a valid ref code was provided
+    if (refCode) {
+      const referrer = await db.user.findUnique({
+        where: { referralCode: refCode },
+        select: { id: true },
+      })
+      if (referrer && referrer.id !== newUser.id) {
+        await db.referral.create({
+          data: {
+            referrerId: referrer.id,
+            referredId: newUser.id,
+            code: refCode,
+          },
+        }).catch((err) => console.error("[SIGNUP] referral create error:", err))
+      }
+    }
 
     sendVerificationCode({ name, email, code }).catch(
       (err) => console.error("[SIGNUP] send code error:", err)

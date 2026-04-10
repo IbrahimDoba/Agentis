@@ -3,11 +3,13 @@ import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { z } from "zod"
 import { sendAccountApprovedEmail, sendAccountRejectedEmail, sendAccountSuspendedEmail } from "@/lib/email"
+import { calcCommission } from "@/lib/plans"
 
 const updateSchema = z.object({
   status: z.enum(["PENDING", "APPROVED", "REJECTED", "SUSPENDED"]).optional(),
   role: z.enum(["USER", "ADMIN"]).optional(),
   maxAgents: z.number().int().min(1).max(20).optional(),
+  plan: z.enum(["free", "starter", "pro", "enterprise"]).optional(),
 })
 
 interface Params {
@@ -38,6 +40,24 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       where: { id },
       data: parsed.data,
     })
+
+    // If plan changed to a paid plan, calculate commission for referrer
+    if (parsed.data.plan && parsed.data.plan !== "free") {
+      const referral = await db.referral.findUnique({
+        where: { referredId: id },
+        select: { id: true, status: true },
+      })
+      if (referral && referral.status === "PENDING") {
+        const commission = calcCommission(parsed.data.plan)
+        await db.referral.update({
+          where: { id: referral.id },
+          data: {
+            status: "COMPLETED",
+            commissionEarned: commission ?? undefined,
+          },
+        }).catch((err) => console.error("[PATCH /api/users/:id] referral update error:", err))
+      }
+    }
 
     if (parsed.data.status === "APPROVED") {
       sendAccountApprovedEmail({ name: user.name, email: user.email })

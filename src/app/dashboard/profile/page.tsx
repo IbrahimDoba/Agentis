@@ -34,6 +34,9 @@ export default function ProfilePage() {
   const { data, isLoading } = useDashboardData()
   const { theme, toggle } = useTheme()
 
+  const [referralsEnabled, setReferralsEnabled] = useState(false)
+  const [togglingReferrals, setTogglingReferrals] = useState(false)
+
   const [form, setForm] = useState({
     name: "",
     phone: "",
@@ -48,6 +51,12 @@ export default function ProfilePage() {
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (data?.user) {
+      setReferralsEnabled(data.user.referralsEnabled ?? false)
+    }
+  }, [data?.user?.referralsEnabled])
 
   useEffect(() => {
     if (data?.user) {
@@ -69,6 +78,23 @@ export default function ProfilePage() {
     const { name, value } = e.target
     setForm((f) => ({ ...f, [name]: value }))
     setErrors((prev) => ({ ...prev, [name]: "" }))
+  }
+
+  const handleToggleReferrals = async (enabled: boolean) => {
+    setReferralsEnabled(enabled)
+    setTogglingReferrals(true)
+    try {
+      await fetch("/api/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ referralsEnabled: enabled }),
+      })
+      queryClient.invalidateQueries({ queryKey: ["me"] })
+    } catch {
+      setReferralsEnabled(!enabled) // revert on failure
+    } finally {
+      setTogglingReferrals(false)
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -267,6 +293,35 @@ export default function ProfilePage() {
               <span className={styles.themeOptionLabel}>Dark</span>
               <span className={styles.themeOptionDesc}>Easy on the eyes</span>
             </button>
+          </div>
+        </div>
+
+        {/* Referral Program */}
+        <div className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <div className={styles.sectionTitle}>Referral Program</div>
+            <div className={styles.sectionDesc}>Earn 15% commission for every paying customer you refer.</div>
+          </div>
+          <div className={styles.toggleRow}>
+            <div className={styles.toggleInfo}>
+              <div className={styles.toggleLabel}>
+                {referralsEnabled ? "Referrals enabled" : "Enable referrals"}
+              </div>
+              <div className={styles.toggleDesc}>
+                {referralsEnabled
+                  ? "Your referral link is active and the Referrals tab is visible in your sidebar."
+                  : "Turn this on to get your referral link and track your commissions."}
+              </div>
+            </div>
+            <label className={styles.toggle}>
+              <input
+                type="checkbox"
+                checked={referralsEnabled}
+                disabled={togglingReferrals}
+                onChange={(e) => handleToggleReferrals(e.target.checked)}
+              />
+              <span className={styles.toggleTrack} />
+            </label>
           </div>
         </div>
 
