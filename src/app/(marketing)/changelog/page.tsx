@@ -58,14 +58,12 @@ const updates = [
     date: "15 April 2026",
     tag: "Fix",
     tagColor: "orange",
-    title: "Conversations Ordered by Actual Call Time",
-    description:
-      "The conversations list was showing older chats at the top due to a sort bug where synced conversations were ordered by the time they were imported rather than when the call actually happened.",
+    title: "Smarter Conversation Sorting",
+    description: "Your conversations now always appear in the correct order — most recent at the top, every time.",
     bullets: [
-      "Conversations now always sort by actual call start time, newest first",
-      "In-progress calls appear at the top of the list",
-      "Synced conversations no longer jump to the top when the page loads",
-      "All existing conversations backfilled with correct timestamps",
+      "Latest conversations always appear first",
+      "In-progress calls float to the top of the list",
+      "No more older chats appearing above recent ones",
     ],
   },
   {
