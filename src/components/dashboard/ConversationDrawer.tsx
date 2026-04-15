@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { useQueryClient } from "@tanstack/react-query"
-import { cn, formatTime, formatDuration, getCallerIdentifier } from "@/lib/utils"
+import { cn, formatTime, formatDuration, getCallerIdentifier, toE164 } from "@/lib/utils"
 import { useConversationDetail } from "@/hooks/useConversationDetail"
 import type { Conversation } from "@/types"
 import styles from "./ConversationDrawer.module.css"
@@ -252,8 +252,8 @@ export function ConversationDrawer({ conversationId, agentId, onClose, isLead: i
   const sendOnWhatsApp = () => {
     const phone = convMeta ? getCallerIdentifier(convMeta) : (detail ? getCallerIdentifier(detail) : null)
     if (!phone || !followup) return
-    // Strip any non-digit characters (wa.me expects plain digits in E.164 without +)
-    const digits = phone.replace(/\D/g, "")
+    const digits = toE164(phone)
+    if (!digits) return
     const url = `https://wa.me/${digits}?text=${encodeURIComponent(followup)}`
     window.open(url, "_blank", "noopener,noreferrer")
   }

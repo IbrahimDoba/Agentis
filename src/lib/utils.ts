@@ -69,6 +69,36 @@ export function formatPhoneNumber(raw: string): string {
   return digits.replace(/(\d{3})(?=\d)/g, "$1 ").trim()
 }
 
+/**
+ * Convert any phone number string to E.164 digits (no +) suitable for wa.me links.
+ * Handles:
+ *  - WhatsApp JIDs:   2348012345678:12@s.whatsapp.net → 2348012345678
+ *  - International:   +234 801 234 5678 → 2348012345678
+ *  - Nigerian local:  08012345678 → 2348012345678
+ *  - Already correct: 2348012345678 → 2348012345678
+ */
+export function toE164(raw: string): string | null {
+  // Strip JID suffix first
+  const jidMatch = raw.match(/^(\d+)[:@]/)
+  const cleaned = jidMatch ? jidMatch[1] : raw.replace(/[^\d+]/g, "")
+
+  // Remove leading +
+  let digits = cleaned.replace(/\D/g, "")
+
+  if (!digits) return null
+
+  // Local Nigerian number: starts with 0, 11 digits (e.g. 08012345678)
+  if (digits.startsWith("0") && digits.length === 11) {
+    digits = "234" + digits.slice(1)
+  }
+  // Local UK/SA/Kenya/Ghana/Tanzania: starts with 0 and known length
+  // (all covered by: if starts with 0 and no country code prefix, assume Nigeria for now)
+  // If already has a valid country code prefix and reasonable length, use as-is
+  if (digits.length < 7) return null
+
+  return digits
+}
+
 export function getCallerIdentifier(conv: {
   user_id?: string | null
   metadata?: Record<string, unknown>
