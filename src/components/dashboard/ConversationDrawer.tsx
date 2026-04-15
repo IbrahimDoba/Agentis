@@ -155,6 +155,13 @@ export function ConversationDrawer({ conversationId, agentId, onClose, isLead: i
   const [leadLoading, setLeadLoading] = useState(false)
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null)
 
+  const [templates, setTemplates] = useState<{ id: string; name: string; content: string }[]>([])
+  const [selectedTemplateId, setSelectedTemplateId] = useState("")
+  const [followup, setFollowup] = useState("")
+  const [followupLoading, setFollowupLoading] = useState(false)
+  const [followupError, setFollowupError] = useState("")
+  const [copied, setCopied] = useState(false)
+
   const transcriptRef = useRef<HTMLDivElement>(null)
 
   // Pre-populate summary from ElevenLabs transcript_summary when detail loads
@@ -166,12 +173,24 @@ export function ConversationDrawer({ conversationId, agentId, onClose, isLead: i
     }
   }, [detail, summaryDone])
 
+  // Fetch templates once when agentId is available
+  useEffect(() => {
+    if (!agentId) return
+    fetch(`/api/agents/${agentId}/templates`)
+      .then(r => r.json())
+      .then(d => setTemplates(d.templates ?? []))
+      .catch(() => {})
+  }, [agentId])
+
   // Reset state when switching conversations
   useEffect(() => {
     setSummary("")
     setSummaryDone(false)
     setSummaryError("")
     setIsLead(initialIsLead)
+    setFollowup("")
+    setFollowupError("")
+    setCopied(false)
   }, [conversationId, initialIsLead])
 
   useEffect(() => {
@@ -202,6 +221,41 @@ export function ConversationDrawer({ conversationId, agentId, onClose, isLead: i
     } finally {
       setLeadLoading(false)
     }
+  }
+
+  const generateFollowup = async () => {
+    if (!conversationId || !selectedTemplateId || !agentId) return
+    setFollowupLoading(true)
+    setFollowupError("")
+    try {
+      const res = await fetch(`/api/conversations/${conversationId}/followup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ templateId: selectedTemplateId, agentId }),
+      })
+      const data = await res.json()
+      if (data.error) setFollowupError(data.error)
+      else setFollowup(data.message)
+    } catch {
+      setFollowupError("Failed to generate follow-up")
+    } finally {
+      setFollowupLoading(false)
+    }
+  }
+
+  const copyFollowup = () => {
+    navigator.clipboard.writeText(followup)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  const sendOnWhatsApp = () => {
+    const phone = convMeta ? getCallerIdentifier(convMeta) : (detail ? getCallerIdentifier(detail) : null)
+    if (!phone || !followup) return
+    // Strip any non-digit characters (wa.me expects plain digits in E.164 without +)
+    const digits = phone.replace(/\D/g, "")
+    const url = `https://wa.me/${digits}?text=${encodeURIComponent(followup)}`
+    window.open(url, "_blank", "noopener,noreferrer")
   }
 
   const generateSummary = async () => {
@@ -290,9 +344,7 @@ export function ConversationDrawer({ conversationId, agentId, onClose, isLead: i
               <span className={styles.metaChip}>{formatTime(startTime)}</span>
               <span className={styles.metaChip}>{formatDuration(duration)}</span>
               <span className={styles.metaChip}>{msgCount} {msgCount === 1 ? "msg" : "msgs"}</span>
-              {(convMeta?.creditsUsed ?? 0) > 0 && (
-                <span className={styles.metaChip}>⚡ {convMeta!.creditsUsed} credits</span>
-              )}
+              <span className={styles.metaChip}>⚡ {convMeta?.creditsUsed ?? 0} credits</span>
             </div>
 
             {/* Recording */}
@@ -303,8 +355,8 @@ export function ConversationDrawer({ conversationId, agentId, onClose, isLead: i
               </div>
             )}
 
-            {/* Summary */}
-            <div className={styles.summarySection}>
+            {/* Summary — hidden for now */}
+            {/* <div className={styles.summarySection}>
               <div className={styles.summaryHeader}>
                 <div className={styles.sectionLabel}>AI Summary</div>
                 <button
@@ -323,7 +375,52 @@ export function ConversationDrawer({ conversationId, agentId, onClose, isLead: i
                   Click &ldquo;Generate Summary&rdquo; to get an AI-powered overview of this conversation.
                 </p>
               )}
-            </div>
+            </div> */}
+
+            {/* Follow-up */}
+            {templates.length > 0 && (
+              <div className={styles.followupSection}>
+                <div className={styles.summaryHeader}>
+                  <div className={styles.sectionLabel}>Follow-up Message</div>
+                </div>
+                <div className={styles.followupControls}>
+                  <select
+                    className={styles.templateSelect}
+                    value={selectedTemplateId}
+                    onChange={e => { setSelectedTemplateId(e.target.value); setFollowup("") }}
+                  >
+                    <option value="">Pick a template…</option>
+                    {templates.map(t => (
+                      <option key={t.id} value={t.id}>{t.name}</option>
+                    ))}
+                  </select>
+                  <button
+                    className={styles.summaryBtn}
+                    onClick={generateFollowup}
+                    disabled={followupLoading || !selectedTemplateId}
+                  >
+                    {followupLoading ? "Generating…" : "Generate"}
+                  </button>
+                </div>
+                {followupError && <div className={styles.summaryError}>{followupError}</div>}
+                {followup && (
+                  <div className={styles.followupOutput}>
+                    <p className={styles.followupText}>{followup}</p>
+                    <div className={styles.followupActions}>
+                      <button className={styles.waBtn} onClick={sendOnWhatsApp}>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                        </svg>
+                        Send on WhatsApp
+                      </button>
+                      <button className={styles.copyBtn} onClick={copyFollowup}>
+                        {copied ? "Copied!" : "Copy"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Transcript */}
             <div className={styles.sectionLabel} style={{ marginBottom: "0.75rem" }}>Transcript</div>

@@ -10,6 +10,7 @@
  */
 export type * from './models/User'
 export type * from './models/Agent'
+export type * from './models/MessageTemplate'
 export type * from './models/Lead'
 export type * from './models/ConversationRead'
 export type * from './models/Customer'

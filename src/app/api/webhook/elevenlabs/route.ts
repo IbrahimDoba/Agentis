@@ -51,6 +51,39 @@ function extractPhoneNumber(payload: Record<string, unknown>): string | null {
   return null
 }
 
+// Build a plain-text fallback summary from transcript lines (used when GPT is unavailable)
+function buildFallbackSummary(
+  transcript: { role: string; message: string }[],
+  sessionSummary: string | undefined,
+  existingSummary: string | null
+): string {
+  if (sessionSummary?.trim()) return sessionSummary.trim()
+  if (transcript.length > 0) {
+    // Take last 8 turns max to stay concise
+    const lines = transcript
+      .slice(-8)
+      .map((m) => `${m.role === "user" ? "Customer" : "Agent"}: ${m.message}`)
+      .join("\n")
+    return `Recent conversation:\n${lines}`
+  }
+  return existingSummary ?? ""
+}
+
+// Extract a first name from transcript (simple regex, no GPT needed)
+function extractNameFallback(
+  transcript: { role: string; message: string }[],
+  existingName: string | null
+): string | null {
+  if (existingName) return existingName
+  // Look for "my name is X" or "I'm X" or "I am X" in customer turns
+  for (const turn of transcript) {
+    if (turn.role !== "user") continue
+    const m = turn.message.match(/(?:my name is|i'm|i am)\s+([A-Z][a-z]+)/i)
+    if (m) return m[1]
+  }
+  return null
+}
+
 // Build a new running summary and extract customer name from the conversation
 async function buildUpdatedSummary(
   existingSummary: string | null,
@@ -86,22 +119,25 @@ Summary should be 3–4 sentences focusing on: what the customer wanted, what wa
 Conversation:
 ${sessionText}`
 
-  const completion = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    temperature: 0.2,
-    messages: [{ role: "user", content: prompt }],
-    max_tokens: 400,
-    response_format: { type: "json_object" },
-  })
-
   try {
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      temperature: 0.2,
+      messages: [{ role: "user", content: prompt }],
+      max_tokens: 400,
+      response_format: { type: "json_object" },
+    })
+
     const parsed = JSON.parse(completion.choices[0]?.message?.content ?? "{}")
+    const summary = parsed.summary?.trim() || buildFallbackSummary(transcript, sessionSummary, existingSummary)
+    const name = parsed.name && parsed.name !== "null" ? parsed.name.trim() : extractNameFallback(transcript, existingName)
+    return { summary, name }
+  } catch (err) {
+    console.error("[post-call] GPT summary failed, using fallback:", err)
     return {
-      summary: parsed.summary?.trim() || existingSummary || "",
-      name: parsed.name && parsed.name !== "null" ? parsed.name.trim() : existingName,
+      summary: buildFallbackSummary(transcript, sessionSummary, existingSummary),
+      name: extractNameFallback(transcript, existingName),
     }
-  } catch {
-    return { summary: existingSummary ?? "", name: existingName }
   }
 }
 
@@ -161,7 +197,8 @@ export async function POST(req: NextRequest) {
   const durationSecs = (metadata?.call_duration_secs ?? payload.call_duration_secs) as number | undefined
   const startTimeUnix = (metadata?.start_time_unix_secs ?? payload.start_time_unix_secs) as number | undefined
   const status = payload.status as string | undefined
-  const creditsUsed = typeof metadata?.cost === "number" ? metadata.cost : 0
+  const rawCost = metadata?.cost ?? analysis?.credits_used ?? payload.credits_used ?? payload.cost
+  const creditsUsed = typeof rawCost === "number" ? rawCost : (typeof rawCost === "string" ? parseFloat(rawCost) || 0 : 0)
 
   console.log(`[post-call] phone=${phoneNumber}, transcript_turns=${transcript.length}, summary=${summary ? "yes" : "no"}`)
 
@@ -190,7 +227,11 @@ export async function POST(req: NextRequest) {
       summary
     ).catch((err) => {
       console.error("[post-call] ❌ Summary generation failed:", err)
-      return { summary: existing?.conversationSummary ?? null, name: existing?.name ?? null }
+      // Always fall back to raw transcript so the customer is never forgotten
+      return {
+        summary: buildFallbackSummary(transcript, summary, existing?.conversationSummary ?? null),
+        name: extractNameFallback(transcript, existing?.name ?? null),
+      }
     })
 
     const customer = await db.customer.upsert({

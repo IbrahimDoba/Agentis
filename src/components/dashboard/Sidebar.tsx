@@ -44,7 +44,7 @@ const baseNavItems: NavItem[] = [
   { href: "/dashboard/chats", label: "Conversations", icon: ChatBubbleLeftRightIcon },
   { href: "/dashboard/leads", label: "Leads", icon: FireIcon },
   { href: "/dashboard/billing", label: "Billing", icon: CreditCardIcon },
-  { href: "/dashboard/subscription", label: "Subscription", icon: TagIcon },
+  // { href: "/dashboard/subscription", label: "Subscription", icon: TagIcon },
 ]
 
 const referralNavItem: NavItem = { href: "/dashboard/referrals", label: "Referrals", icon: GiftIcon }

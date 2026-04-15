@@ -10,6 +10,7 @@ import { AgentForm } from "@/components/dashboard/AgentForm"
 import { AgentProfileForm } from "@/components/dashboard/AgentProfileForm"
 import { KnowledgeBaseTab } from "@/components/dashboard/KnowledgeBaseTab"
 import { ToolsTab } from "@/components/dashboard/ToolsTab"
+import { TemplatesTab } from "@/components/dashboard/TemplatesTab"
 import { StatusBadge } from "@/components/ui/Badge"
 import { TestAgentWidget } from "@/components/dashboard/TestAgentWidget"
 import { useAgent } from "@/hooks/useAgent"
@@ -20,6 +21,7 @@ const TABS = [
   { id: "configuration", label: "Configuration" },
   { id: "knowledge-base", label: "Knowledge Base" },
   { id: "tools", label: "Tools" },
+  { id: "templates", label: "Templates" },
 ]
 
 function Skeleton({ height, width }: { height: number; width?: string }) {
@@ -132,6 +134,7 @@ export default function AgentDetailPage() {
             elevenlabsAgentId={agent.elevenlabsAgentId}
           />
         )}
+        {activeTab === "templates" && <TemplatesTab agentId={agent.id} />}
       </div>
     </div>
   )

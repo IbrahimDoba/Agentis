@@ -229,7 +229,7 @@ export async function GET(req: NextRequest, { params }: Params) {
       user_id: log.phoneNumber ?? raw?.user_id ?? null,
       // Pass through metadata so getCallerIdentifier can check fallback phone fields
       metadata: raw?.metadata ?? null,
-      creditsUsed: log.creditsUsed ?? 0,
+      creditsUsed: log.creditsUsed || (raw?.metadata as any)?.cost || (raw?.analysis as any)?.credits_used || 0,
     }
   })
 

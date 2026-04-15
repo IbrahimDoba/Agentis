@@ -126,14 +126,14 @@ export async function POST(req: NextRequest) {
 
   const customer = await db.customer.findUnique({
     where: { phoneNumber },
-    select: { name: true, conversationSummary: true },
+    select: { name: true, conversationSummary: true, lastSeen: true, createdAt: true },
   })
 
   console.log(`[pre-call] Customer lookup: ${customer ? `found (name=${customer.name}, hasSummary=${!!customer.conversationSummary})` : "not found"}`)
 
-  // First time caller — no prior conversations logged yet
-  if (!customer || !customer.conversationSummary?.trim()) {
-    console.log("[pre-call] No prior summary — returning new customer context")
+  // Truly new customer — never seen this phone number before
+  if (!customer) {
+    console.log("[pre-call] No customer record — returning new customer context")
     return NextResponse.json({
       type: "conversation_initiation_client_data",
       dynamic_variables: {
@@ -142,11 +142,23 @@ export async function POST(req: NextRequest) {
     })
   }
 
-  // Returning customer — inject memory
-  const name = customer.name ? customer.name : "the customer"
-  const customerContext = `You are speaking with ${name}. Here is context from their previous conversations:\n${customer.conversationSummary}\n\nGreet them warmly by name and acknowledge they are a returning customer. Reference relevant past interactions naturally where appropriate.`
+  // Returning customer — build context from whatever we have
+  const name = customer.name ?? null
+  const hasSummary = !!customer.conversationSummary?.trim()
 
-  console.log(`[pre-call] ✅ Injecting memory for returning customer: ${name}`)
+  let customerContext: string
+  if (hasSummary) {
+    const displayName = name ?? "the customer"
+    customerContext = `You are speaking with ${displayName}. Here is context from their previous conversations:\n${customer.conversationSummary}\n\nGreet them warmly by name and acknowledge they are a returning customer. Reference relevant past interactions naturally where appropriate.`
+    console.log(`[pre-call] ✅ Injecting full memory for returning customer: ${displayName}`)
+  } else {
+    // Customer exists in DB but summary not ready yet (e.g. first call still processing)
+    const displayName = name ? name : null
+    customerContext = displayName
+      ? `You are speaking with ${displayName}, a returning customer. Greet them warmly by name.`
+      : "This is a returning customer. Greet them warmly."
+    console.log(`[pre-call] ✅ Injecting minimal returning-customer context (no summary yet), name=${displayName ?? "unknown"}`)
+  }
 
   return NextResponse.json({
     type: "conversation_initiation_client_data",
