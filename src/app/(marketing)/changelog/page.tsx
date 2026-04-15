@@ -25,6 +25,94 @@ export const metadata: Metadata = {
 
 const updates = [
   {
+    date: "15 April 2026",
+    tag: "New",
+    tagColor: "green",
+    title: "Subscription Plans & Upgrade Requests",
+    description:
+      "Users can now browse all available plans and submit an upgrade request directly from their dashboard. Requests are reviewed and approved manually by admins — no payment provider integration required yet.",
+    bullets: [
+      "New /dashboard/subscription page with side-by-side plan comparison cards",
+      "Free, Starter, Pro, and Enterprise plans with full feature breakdowns",
+      "Upgrade button generates a unique reference number and bank transfer instructions",
+      "Pending request banner shown until admin approves the upgrade",
+      "Only one active request at a time — submitting a new one cancels the previous",
+      "Enterprise plan shows a Contact Sales link",
+    ],
+  },
+  {
+    date: "15 April 2026",
+    tag: "New",
+    tagColor: "green",
+    title: "Admin Payments Panel",
+    description:
+      "A dedicated payments page in the admin panel shows all incoming subscription upgrade requests. Admins can filter by status and approve requests with a single click — automatically upgrading the user's plan.",
+    bullets: [
+      "New /admin/payments page listing all payment requests",
+      "Filter tabs: All, Pending, Paid, Cancelled",
+      "Shows user info, current plan, requested plan, amount, reference, and date",
+      "Approve button upgrades the user's plan and sets subscription expiry to +1 month",
+      "Status badges: amber for Pending, green for Paid, grey for Cancelled",
+    ],
+  },
+  {
+    date: "15 April 2026",
+    tag: "Improvement",
+    tagColor: "blue",
+    title: "Admin User Modal — 3 Tabs",
+    description:
+      "The admin user detail modal has been redesigned into three focused tabs: Account, Subscription, and Agents — making it much easier to manage users without scrolling through a wall of fields.",
+    bullets: [
+      "Account tab: personal info, business details, role, status, and onboarding state",
+      "Subscription tab: plan selector, expiry date with quick-renew buttons (+1mo/+3mo/+1yr), credit usage stats and progress bar",
+      "Agents tab: per-agent cards showing business name, WhatsApp number, status badge, and a messaging on/off toggle",
+      "Messaging toggle physically links/unlinks the agent from WhatsApp",
+      "Credit stats show monthly used, limit, percentage, and all-time total",
+    ],
+  },
+  {
+    date: "15 April 2026",
+    tag: "Improvement",
+    tagColor: "blue",
+    title: "Sidebar Usage Widget",
+    description:
+      "The dashboard sidebar now shows a compact credit usage widget so you always know how much of your monthly allowance you've used without leaving the page.",
+    bullets: [
+      "Shows your current plan and credit usage percentage",
+      "Progress bar turns amber at 75% and red at 90%",
+      "Displays credits used and credits remaining",
+      "Clicking the widget takes you to the Billing page",
+    ],
+  },
+  {
+    date: "15 April 2026",
+    tag: "Fix",
+    tagColor: "orange",
+    title: "Conversations Ordered by Actual Call Time",
+    description:
+      "The conversations list was showing older chats at the top due to a sort bug where synced conversations were ordered by the time they were imported rather than when the call actually happened.",
+    bullets: [
+      "Conversations now always sort by actual call start time, newest first",
+      "In-progress calls appear at the top of the list",
+      "Synced conversations no longer jump to the top when the page loads",
+      "All existing conversations backfilled with correct timestamps",
+    ],
+  },
+  {
+    date: "15 April 2026",
+    tag: "Improvement",
+    tagColor: "blue",
+    title: "Customer Memory — Name Recognition",
+    description:
+      "The AI agent now remembers returning customers by name. After each conversation, the customer's first name is extracted automatically and stored — so next time they call, the agent greets them personally.",
+    bullets: [
+      "Customer name extracted from conversation transcript using AI",
+      "Name stored on the customer record and injected into the next conversation",
+      "Fixed a bug where returning customers were treated as new if their summary was an empty string",
+      "Memory context now includes name, past topics, and unresolved items",
+    ],
+  },
+  {
     date: "9 April 2026",
     tag: "New",
     tagColor: "green",

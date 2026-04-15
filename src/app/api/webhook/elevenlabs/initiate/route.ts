@@ -98,6 +98,7 @@ export async function POST(req: NextRequest) {
             phoneNumber: phoneNumber ?? null,
             transcript: [],
             status: "in-progress",
+            startTime: new Date(),
             rawPayload: payload as object,
           },
           update: {

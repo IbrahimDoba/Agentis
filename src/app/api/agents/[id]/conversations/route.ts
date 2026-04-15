@@ -184,9 +184,7 @@ export async function GET(req: NextRequest, { params }: Params) {
       ? { ...agentFilter, phoneNumber: phone }
       : agentFilter,
     orderBy: [
-      // Sort by actual call time first; in-progress calls (null startTime) float to top
-      { startTime: { sort: "desc", nulls: "first" } },
-      // Tiebreaker: DB creation time (for pre-call records this equals call start time)
+      { startTime: { sort: "desc", nulls: "last" } },
       { createdAt: "desc" },
     ],
     // When filtering by phone (contact thread view), fetch all sessions (cap at 200).
