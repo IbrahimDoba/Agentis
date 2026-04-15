@@ -7,6 +7,8 @@ import { ConversationStats } from "@/components/dashboard/ConversationStats"
 import Button from "@/components/ui/Button"
 import { formatDate } from "@/lib/utils"
 import { useDashboardData } from "@/hooks/useDashboardData"
+import { usePlanStats } from "@/hooks/usePlanStats"
+import { PLAN_LABELS } from "@/lib/plans"
 
 function SkeletonCard() {
   return (
@@ -20,17 +22,36 @@ function SkeletonCard() {
 
 export default function DashboardPage() {
   const { data, isLoading } = useDashboardData()
+  const { data: stats } = usePlanStats()
 
   const user = data?.user
   const agent = data?.agent ?? null
   const firstName = user?.name.split(" ")[0] ?? ""
 
+  const plan = stats?.plan ?? "free"
+  const planLabel = PLAN_LABELS[plan] ?? plan
+  const monthlyUsed = stats?.monthlyCreditsUsed ?? 0
+  const creditLimit = stats?.creditLimit ?? 0
+  const isUnlimited = creditLimit === -1
+  const pct = isUnlimited ? 0 : creditLimit > 0 ? Math.min(100, Math.round((monthlyUsed / creditLimit) * 100)) : 0
+  const isDanger = !isUnlimited && pct >= 90
+  const isWarning = !isUnlimited && pct >= 75
+
   return (
     <div className={styles.page}>
       <div className={styles.pageHeader}>
-        <h1 className={styles.greeting}>
-          Welcome back{firstName ? `, ${firstName}` : ""} 👋
-        </h1>
+        <div className={styles.headerTop}>
+          <h1 className={styles.greeting}>
+            Welcome back{firstName ? `, ${firstName}` : ""} 👋
+          </h1>
+          {stats && (
+            <Link href="/dashboard/profile" className={`${styles.planPill} ${isDanger ? styles.planPillDanger : isWarning ? styles.planPillWarning : ""}`}>
+              <span className={styles.planPillLabel}>{planLabel}</span>
+              <span className={styles.planPillSep}>·</span>
+              <span>⚡ {isUnlimited ? "∞" : `${pct}%`}</span>
+            </Link>
+          )}
+        </div>
         <p className={styles.subtitle}>
           Here&apos;s an overview of your D-Zero AI account — {formatDate(new Date().toISOString())}
         </p>

@@ -51,6 +51,7 @@ export const agentSchema = z.object({
 export const adminAgentUpdateSchema = z.object({
   whatsappAgentLink: z.string().optional(),
   whatsappPhoneNumber: z.string().optional(),
+  whatsappPhoneNumberId: z.string().optional(),
   qrCodeUrl: z.string().optional(),
   elevenlabsAgentId: z.string().optional(),
   status: z.enum(["PENDING_REVIEW", "SETTING_UP", "ACTIVE", "INACTIVE"]).optional(),

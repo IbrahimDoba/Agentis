@@ -77,6 +77,12 @@ export function ChatList({ conversations, readIds, leadIds, onSelect }: ChatList
                 <span className={styles.metaIcon}>💬</span>
                 {conv.message_count} {conv.message_count === 1 ? "msg" : "msgs"}
               </div>
+              {(conv.creditsUsed ?? 0) > 0 && (
+                <div className={styles.metaItem}>
+                  <span className={styles.metaIcon}>⚡</span>
+                  {conv.creditsUsed} cr
+                </div>
+              )}
               {conv.call_successful && <SuccessBadge result={conv.call_successful} />}
               <div className={cn(styles.metaItem, styles.viewLink)}>View →</div>
             </div>

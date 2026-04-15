@@ -107,6 +107,8 @@ async function syncFromElevenLabs(elevenlabsAgentId: string, dbAgentId: string) 
           (metadata?.caller_id as string | undefined)
         const phoneNumber = phoneRaw ? normalizePhone(phoneRaw) : null
 
+        const callTime = c.start_time_unix_secs ? new Date(c.start_time_unix_secs * 1000) : undefined
+
         return db.conversationLog.upsert({
           where: { conversationId: c.conversation_id },
           create: {
@@ -117,7 +119,10 @@ async function syncFromElevenLabs(elevenlabsAgentId: string, dbAgentId: string) 
             transcript: [],
             summary: c.transcript_summary ?? null,
             durationSecs: c.call_duration_secs ?? null,
-            startTime: c.start_time_unix_secs ? new Date(c.start_time_unix_secs * 1000) : null,
+            startTime: callTime ?? null,
+            // Use actual call time for createdAt so DB ordering reflects real call time,
+            // not the time the sync ran.
+            ...(callTime ? { createdAt: callTime } : {}),
             status: c.status ?? null,
             rawPayload: c,
           },
@@ -178,7 +183,12 @@ export async function GET(req: NextRequest, { params }: Params) {
     where: phone
       ? { ...agentFilter, phoneNumber: phone }
       : agentFilter,
-    orderBy: { createdAt: "desc" },
+    orderBy: [
+      // Sort by actual call time first; in-progress calls (null startTime) float to top
+      { startTime: { sort: "desc", nulls: "first" } },
+      // Tiebreaker: DB creation time (for pre-call records this equals call start time)
+      { createdAt: "desc" },
+    ],
     // When filtering by phone (contact thread view), fetch all sessions (cap at 200).
     // For the main list, use PAGE_SIZE pagination.
     take: phone ? 200 : PAGE_SIZE + 1,
@@ -192,6 +202,7 @@ export async function GET(req: NextRequest, { params }: Params) {
       startTime: true,
       createdAt: true,
       status: true,
+      creditsUsed: true,
       rawPayload: true,
     },
   })
@@ -220,6 +231,7 @@ export async function GET(req: NextRequest, { params }: Params) {
       user_id: log.phoneNumber ?? raw?.user_id ?? null,
       // Pass through metadata so getCallerIdentifier can check fallback phone fields
       metadata: raw?.metadata ?? null,
+      creditsUsed: log.creditsUsed ?? 0,
     }
   })
 

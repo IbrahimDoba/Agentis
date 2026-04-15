@@ -55,6 +55,7 @@ export type UserMinAggregateOutputType = {
   businessWebsite: string | null
   maxAgents: number | null
   plan: string | null
+  subscriptionExpiresAt: Date | null
   onboardingCompleted: boolean | null
   referralsEnabled: boolean | null
   createdAt: Date | null
@@ -83,6 +84,7 @@ export type UserMaxAggregateOutputType = {
   businessWebsite: string | null
   maxAgents: number | null
   plan: string | null
+  subscriptionExpiresAt: Date | null
   onboardingCompleted: boolean | null
   referralsEnabled: boolean | null
   createdAt: Date | null
@@ -111,6 +113,7 @@ export type UserCountAggregateOutputType = {
   businessWebsite: number
   maxAgents: number
   plan: number
+  subscriptionExpiresAt: number
   onboardingCompleted: number
   referralsEnabled: number
   createdAt: number
@@ -149,6 +152,7 @@ export type UserMinAggregateInputType = {
   businessWebsite?: true
   maxAgents?: true
   plan?: true
+  subscriptionExpiresAt?: true
   onboardingCompleted?: true
   referralsEnabled?: true
   createdAt?: true
@@ -177,6 +181,7 @@ export type UserMaxAggregateInputType = {
   businessWebsite?: true
   maxAgents?: true
   plan?: true
+  subscriptionExpiresAt?: true
   onboardingCompleted?: true
   referralsEnabled?: true
   createdAt?: true
@@ -205,6 +210,7 @@ export type UserCountAggregateInputType = {
   businessWebsite?: true
   maxAgents?: true
   plan?: true
+  subscriptionExpiresAt?: true
   onboardingCompleted?: true
   referralsEnabled?: true
   createdAt?: true
@@ -320,6 +326,7 @@ export type UserGroupByOutputType = {
   businessWebsite: string | null
   maxAgents: number
   plan: string
+  subscriptionExpiresAt: Date | null
   onboardingCompleted: boolean
   referralsEnabled: boolean
   createdAt: Date
@@ -371,6 +378,7 @@ export type UserWhereInput = {
   businessWebsite?: Prisma.StringNullableFilter<"User"> | string | null
   maxAgents?: Prisma.IntFilter<"User"> | number
   plan?: Prisma.StringFilter<"User"> | string
+  subscriptionExpiresAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   onboardingCompleted?: Prisma.BoolFilter<"User"> | boolean
   referralsEnabled?: Prisma.BoolFilter<"User"> | boolean
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
@@ -381,6 +389,7 @@ export type UserWhereInput = {
   conversationReads?: Prisma.ConversationReadListRelationFilter
   referralsMade?: Prisma.ReferralListRelationFilter
   referredBy?: Prisma.XOR<Prisma.ReferralNullableScalarRelationFilter, Prisma.ReferralWhereInput> | null
+  paymentRequests?: Prisma.PaymentRequestListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -404,6 +413,7 @@ export type UserOrderByWithRelationInput = {
   businessWebsite?: Prisma.SortOrderInput | Prisma.SortOrder
   maxAgents?: Prisma.SortOrder
   plan?: Prisma.SortOrder
+  subscriptionExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
   onboardingCompleted?: Prisma.SortOrder
   referralsEnabled?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -414,6 +424,7 @@ export type UserOrderByWithRelationInput = {
   conversationReads?: Prisma.ConversationReadOrderByRelationAggregateInput
   referralsMade?: Prisma.ReferralOrderByRelationAggregateInput
   referredBy?: Prisma.ReferralOrderByWithRelationInput
+  paymentRequests?: Prisma.PaymentRequestOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -441,6 +452,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   businessWebsite?: Prisma.StringNullableFilter<"User"> | string | null
   maxAgents?: Prisma.IntFilter<"User"> | number
   plan?: Prisma.StringFilter<"User"> | string
+  subscriptionExpiresAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   onboardingCompleted?: Prisma.BoolFilter<"User"> | boolean
   referralsEnabled?: Prisma.BoolFilter<"User"> | boolean
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
@@ -450,6 +462,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   conversationReads?: Prisma.ConversationReadListRelationFilter
   referralsMade?: Prisma.ReferralListRelationFilter
   referredBy?: Prisma.XOR<Prisma.ReferralNullableScalarRelationFilter, Prisma.ReferralWhereInput> | null
+  paymentRequests?: Prisma.PaymentRequestListRelationFilter
 }, "id" | "email" | "resetToken" | "referralCode">
 
 export type UserOrderByWithAggregationInput = {
@@ -473,6 +486,7 @@ export type UserOrderByWithAggregationInput = {
   businessWebsite?: Prisma.SortOrderInput | Prisma.SortOrder
   maxAgents?: Prisma.SortOrder
   plan?: Prisma.SortOrder
+  subscriptionExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
   onboardingCompleted?: Prisma.SortOrder
   referralsEnabled?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -509,6 +523,7 @@ export type UserScalarWhereWithAggregatesInput = {
   businessWebsite?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   maxAgents?: Prisma.IntWithAggregatesFilter<"User"> | number
   plan?: Prisma.StringWithAggregatesFilter<"User"> | string
+  subscriptionExpiresAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   onboardingCompleted?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   referralsEnabled?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
@@ -537,6 +552,7 @@ export type UserCreateInput = {
   businessWebsite?: string | null
   maxAgents?: number
   plan?: string
+  subscriptionExpiresAt?: Date | string | null
   onboardingCompleted?: boolean
   referralsEnabled?: boolean
   createdAt?: Date | string
@@ -547,6 +563,7 @@ export type UserCreateInput = {
   conversationReads?: Prisma.ConversationReadCreateNestedManyWithoutUserInput
   referralsMade?: Prisma.ReferralCreateNestedManyWithoutReferrerInput
   referredBy?: Prisma.ReferralCreateNestedOneWithoutReferredInput
+  paymentRequests?: Prisma.PaymentRequestCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -570,6 +587,7 @@ export type UserUncheckedCreateInput = {
   businessWebsite?: string | null
   maxAgents?: number
   plan?: string
+  subscriptionExpiresAt?: Date | string | null
   onboardingCompleted?: boolean
   referralsEnabled?: boolean
   createdAt?: Date | string
@@ -580,6 +598,7 @@ export type UserUncheckedCreateInput = {
   conversationReads?: Prisma.ConversationReadUncheckedCreateNestedManyWithoutUserInput
   referralsMade?: Prisma.ReferralUncheckedCreateNestedManyWithoutReferrerInput
   referredBy?: Prisma.ReferralUncheckedCreateNestedOneWithoutReferredInput
+  paymentRequests?: Prisma.PaymentRequestUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -603,6 +622,7 @@ export type UserUpdateInput = {
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
   plan?: Prisma.StringFieldUpdateOperationsInput | string
+  subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   referralsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -613,6 +633,7 @@ export type UserUpdateInput = {
   conversationReads?: Prisma.ConversationReadUpdateManyWithoutUserNestedInput
   referralsMade?: Prisma.ReferralUpdateManyWithoutReferrerNestedInput
   referredBy?: Prisma.ReferralUpdateOneWithoutReferredNestedInput
+  paymentRequests?: Prisma.PaymentRequestUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -636,6 +657,7 @@ export type UserUncheckedUpdateInput = {
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
   plan?: Prisma.StringFieldUpdateOperationsInput | string
+  subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   referralsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -646,6 +668,7 @@ export type UserUncheckedUpdateInput = {
   conversationReads?: Prisma.ConversationReadUncheckedUpdateManyWithoutUserNestedInput
   referralsMade?: Prisma.ReferralUncheckedUpdateManyWithoutReferrerNestedInput
   referredBy?: Prisma.ReferralUncheckedUpdateOneWithoutReferredNestedInput
+  paymentRequests?: Prisma.PaymentRequestUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -669,6 +692,7 @@ export type UserCreateManyInput = {
   businessWebsite?: string | null
   maxAgents?: number
   plan?: string
+  subscriptionExpiresAt?: Date | string | null
   onboardingCompleted?: boolean
   referralsEnabled?: boolean
   createdAt?: Date | string
@@ -697,6 +721,7 @@ export type UserUpdateManyMutationInput = {
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
   plan?: Prisma.StringFieldUpdateOperationsInput | string
+  subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   referralsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -725,6 +750,7 @@ export type UserUncheckedUpdateManyInput = {
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
   plan?: Prisma.StringFieldUpdateOperationsInput | string
+  subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   referralsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -753,6 +779,7 @@ export type UserCountOrderByAggregateInput = {
   businessWebsite?: Prisma.SortOrder
   maxAgents?: Prisma.SortOrder
   plan?: Prisma.SortOrder
+  subscriptionExpiresAt?: Prisma.SortOrder
   onboardingCompleted?: Prisma.SortOrder
   referralsEnabled?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -785,6 +812,7 @@ export type UserMaxOrderByAggregateInput = {
   businessWebsite?: Prisma.SortOrder
   maxAgents?: Prisma.SortOrder
   plan?: Prisma.SortOrder
+  subscriptionExpiresAt?: Prisma.SortOrder
   onboardingCompleted?: Prisma.SortOrder
   referralsEnabled?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -813,6 +841,7 @@ export type UserMinOrderByAggregateInput = {
   businessWebsite?: Prisma.SortOrder
   maxAgents?: Prisma.SortOrder
   plan?: Prisma.SortOrder
+  subscriptionExpiresAt?: Prisma.SortOrder
   onboardingCompleted?: Prisma.SortOrder
   referralsEnabled?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -935,6 +964,20 @@ export type UserUpdateOneRequiredWithoutReferredByNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutReferredByInput, Prisma.UserUpdateWithoutReferredByInput>, Prisma.UserUncheckedUpdateWithoutReferredByInput>
 }
 
+export type UserCreateNestedOneWithoutPaymentRequestsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPaymentRequestsInput, Prisma.UserUncheckedCreateWithoutPaymentRequestsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPaymentRequestsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutPaymentRequestsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPaymentRequestsInput, Prisma.UserUncheckedCreateWithoutPaymentRequestsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPaymentRequestsInput
+  upsert?: Prisma.UserUpsertWithoutPaymentRequestsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutPaymentRequestsInput, Prisma.UserUpdateWithoutPaymentRequestsInput>, Prisma.UserUncheckedUpdateWithoutPaymentRequestsInput>
+}
+
 export type UserCreateWithoutAgentsInput = {
   id?: string
   name: string
@@ -956,6 +999,7 @@ export type UserCreateWithoutAgentsInput = {
   businessWebsite?: string | null
   maxAgents?: number
   plan?: string
+  subscriptionExpiresAt?: Date | string | null
   onboardingCompleted?: boolean
   referralsEnabled?: boolean
   createdAt?: Date | string
@@ -965,6 +1009,7 @@ export type UserCreateWithoutAgentsInput = {
   conversationReads?: Prisma.ConversationReadCreateNestedManyWithoutUserInput
   referralsMade?: Prisma.ReferralCreateNestedManyWithoutReferrerInput
   referredBy?: Prisma.ReferralCreateNestedOneWithoutReferredInput
+  paymentRequests?: Prisma.PaymentRequestCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAgentsInput = {
@@ -988,6 +1033,7 @@ export type UserUncheckedCreateWithoutAgentsInput = {
   businessWebsite?: string | null
   maxAgents?: number
   plan?: string
+  subscriptionExpiresAt?: Date | string | null
   onboardingCompleted?: boolean
   referralsEnabled?: boolean
   createdAt?: Date | string
@@ -997,6 +1043,7 @@ export type UserUncheckedCreateWithoutAgentsInput = {
   conversationReads?: Prisma.ConversationReadUncheckedCreateNestedManyWithoutUserInput
   referralsMade?: Prisma.ReferralUncheckedCreateNestedManyWithoutReferrerInput
   referredBy?: Prisma.ReferralUncheckedCreateNestedOneWithoutReferredInput
+  paymentRequests?: Prisma.PaymentRequestUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAgentsInput = {
@@ -1036,6 +1083,7 @@ export type UserUpdateWithoutAgentsInput = {
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
   plan?: Prisma.StringFieldUpdateOperationsInput | string
+  subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   referralsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1045,6 +1093,7 @@ export type UserUpdateWithoutAgentsInput = {
   conversationReads?: Prisma.ConversationReadUpdateManyWithoutUserNestedInput
   referralsMade?: Prisma.ReferralUpdateManyWithoutReferrerNestedInput
   referredBy?: Prisma.ReferralUpdateOneWithoutReferredNestedInput
+  paymentRequests?: Prisma.PaymentRequestUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAgentsInput = {
@@ -1068,6 +1117,7 @@ export type UserUncheckedUpdateWithoutAgentsInput = {
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
   plan?: Prisma.StringFieldUpdateOperationsInput | string
+  subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   referralsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1077,6 +1127,7 @@ export type UserUncheckedUpdateWithoutAgentsInput = {
   conversationReads?: Prisma.ConversationReadUncheckedUpdateManyWithoutUserNestedInput
   referralsMade?: Prisma.ReferralUncheckedUpdateManyWithoutReferrerNestedInput
   referredBy?: Prisma.ReferralUncheckedUpdateOneWithoutReferredNestedInput
+  paymentRequests?: Prisma.PaymentRequestUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutLeadsInput = {
@@ -1100,6 +1151,7 @@ export type UserCreateWithoutLeadsInput = {
   businessWebsite?: string | null
   maxAgents?: number
   plan?: string
+  subscriptionExpiresAt?: Date | string | null
   onboardingCompleted?: boolean
   referralsEnabled?: boolean
   createdAt?: Date | string
@@ -1109,6 +1161,7 @@ export type UserCreateWithoutLeadsInput = {
   conversationReads?: Prisma.ConversationReadCreateNestedManyWithoutUserInput
   referralsMade?: Prisma.ReferralCreateNestedManyWithoutReferrerInput
   referredBy?: Prisma.ReferralCreateNestedOneWithoutReferredInput
+  paymentRequests?: Prisma.PaymentRequestCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutLeadsInput = {
@@ -1132,6 +1185,7 @@ export type UserUncheckedCreateWithoutLeadsInput = {
   businessWebsite?: string | null
   maxAgents?: number
   plan?: string
+  subscriptionExpiresAt?: Date | string | null
   onboardingCompleted?: boolean
   referralsEnabled?: boolean
   createdAt?: Date | string
@@ -1141,6 +1195,7 @@ export type UserUncheckedCreateWithoutLeadsInput = {
   conversationReads?: Prisma.ConversationReadUncheckedCreateNestedManyWithoutUserInput
   referralsMade?: Prisma.ReferralUncheckedCreateNestedManyWithoutReferrerInput
   referredBy?: Prisma.ReferralUncheckedCreateNestedOneWithoutReferredInput
+  paymentRequests?: Prisma.PaymentRequestUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutLeadsInput = {
@@ -1180,6 +1235,7 @@ export type UserUpdateWithoutLeadsInput = {
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
   plan?: Prisma.StringFieldUpdateOperationsInput | string
+  subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   referralsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1189,6 +1245,7 @@ export type UserUpdateWithoutLeadsInput = {
   conversationReads?: Prisma.ConversationReadUpdateManyWithoutUserNestedInput
   referralsMade?: Prisma.ReferralUpdateManyWithoutReferrerNestedInput
   referredBy?: Prisma.ReferralUpdateOneWithoutReferredNestedInput
+  paymentRequests?: Prisma.PaymentRequestUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutLeadsInput = {
@@ -1212,6 +1269,7 @@ export type UserUncheckedUpdateWithoutLeadsInput = {
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
   plan?: Prisma.StringFieldUpdateOperationsInput | string
+  subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   referralsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1221,6 +1279,7 @@ export type UserUncheckedUpdateWithoutLeadsInput = {
   conversationReads?: Prisma.ConversationReadUncheckedUpdateManyWithoutUserNestedInput
   referralsMade?: Prisma.ReferralUncheckedUpdateManyWithoutReferrerNestedInput
   referredBy?: Prisma.ReferralUncheckedUpdateOneWithoutReferredNestedInput
+  paymentRequests?: Prisma.PaymentRequestUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutConversationReadsInput = {
@@ -1244,6 +1303,7 @@ export type UserCreateWithoutConversationReadsInput = {
   businessWebsite?: string | null
   maxAgents?: number
   plan?: string
+  subscriptionExpiresAt?: Date | string | null
   onboardingCompleted?: boolean
   referralsEnabled?: boolean
   createdAt?: Date | string
@@ -1253,6 +1313,7 @@ export type UserCreateWithoutConversationReadsInput = {
   leads?: Prisma.LeadCreateNestedManyWithoutUserInput
   referralsMade?: Prisma.ReferralCreateNestedManyWithoutReferrerInput
   referredBy?: Prisma.ReferralCreateNestedOneWithoutReferredInput
+  paymentRequests?: Prisma.PaymentRequestCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutConversationReadsInput = {
@@ -1276,6 +1337,7 @@ export type UserUncheckedCreateWithoutConversationReadsInput = {
   businessWebsite?: string | null
   maxAgents?: number
   plan?: string
+  subscriptionExpiresAt?: Date | string | null
   onboardingCompleted?: boolean
   referralsEnabled?: boolean
   createdAt?: Date | string
@@ -1285,6 +1347,7 @@ export type UserUncheckedCreateWithoutConversationReadsInput = {
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutUserInput
   referralsMade?: Prisma.ReferralUncheckedCreateNestedManyWithoutReferrerInput
   referredBy?: Prisma.ReferralUncheckedCreateNestedOneWithoutReferredInput
+  paymentRequests?: Prisma.PaymentRequestUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutConversationReadsInput = {
@@ -1324,6 +1387,7 @@ export type UserUpdateWithoutConversationReadsInput = {
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
   plan?: Prisma.StringFieldUpdateOperationsInput | string
+  subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   referralsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1333,6 +1397,7 @@ export type UserUpdateWithoutConversationReadsInput = {
   leads?: Prisma.LeadUpdateManyWithoutUserNestedInput
   referralsMade?: Prisma.ReferralUpdateManyWithoutReferrerNestedInput
   referredBy?: Prisma.ReferralUpdateOneWithoutReferredNestedInput
+  paymentRequests?: Prisma.PaymentRequestUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutConversationReadsInput = {
@@ -1356,6 +1421,7 @@ export type UserUncheckedUpdateWithoutConversationReadsInput = {
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
   plan?: Prisma.StringFieldUpdateOperationsInput | string
+  subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   referralsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1365,6 +1431,7 @@ export type UserUncheckedUpdateWithoutConversationReadsInput = {
   leads?: Prisma.LeadUncheckedUpdateManyWithoutUserNestedInput
   referralsMade?: Prisma.ReferralUncheckedUpdateManyWithoutReferrerNestedInput
   referredBy?: Prisma.ReferralUncheckedUpdateOneWithoutReferredNestedInput
+  paymentRequests?: Prisma.PaymentRequestUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutReferralsMadeInput = {
@@ -1388,6 +1455,7 @@ export type UserCreateWithoutReferralsMadeInput = {
   businessWebsite?: string | null
   maxAgents?: number
   plan?: string
+  subscriptionExpiresAt?: Date | string | null
   onboardingCompleted?: boolean
   referralsEnabled?: boolean
   createdAt?: Date | string
@@ -1397,6 +1465,7 @@ export type UserCreateWithoutReferralsMadeInput = {
   leads?: Prisma.LeadCreateNestedManyWithoutUserInput
   conversationReads?: Prisma.ConversationReadCreateNestedManyWithoutUserInput
   referredBy?: Prisma.ReferralCreateNestedOneWithoutReferredInput
+  paymentRequests?: Prisma.PaymentRequestCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutReferralsMadeInput = {
@@ -1420,6 +1489,7 @@ export type UserUncheckedCreateWithoutReferralsMadeInput = {
   businessWebsite?: string | null
   maxAgents?: number
   plan?: string
+  subscriptionExpiresAt?: Date | string | null
   onboardingCompleted?: boolean
   referralsEnabled?: boolean
   createdAt?: Date | string
@@ -1429,6 +1499,7 @@ export type UserUncheckedCreateWithoutReferralsMadeInput = {
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutUserInput
   conversationReads?: Prisma.ConversationReadUncheckedCreateNestedManyWithoutUserInput
   referredBy?: Prisma.ReferralUncheckedCreateNestedOneWithoutReferredInput
+  paymentRequests?: Prisma.PaymentRequestUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutReferralsMadeInput = {
@@ -1457,6 +1528,7 @@ export type UserCreateWithoutReferredByInput = {
   businessWebsite?: string | null
   maxAgents?: number
   plan?: string
+  subscriptionExpiresAt?: Date | string | null
   onboardingCompleted?: boolean
   referralsEnabled?: boolean
   createdAt?: Date | string
@@ -1466,6 +1538,7 @@ export type UserCreateWithoutReferredByInput = {
   leads?: Prisma.LeadCreateNestedManyWithoutUserInput
   conversationReads?: Prisma.ConversationReadCreateNestedManyWithoutUserInput
   referralsMade?: Prisma.ReferralCreateNestedManyWithoutReferrerInput
+  paymentRequests?: Prisma.PaymentRequestCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutReferredByInput = {
@@ -1489,6 +1562,7 @@ export type UserUncheckedCreateWithoutReferredByInput = {
   businessWebsite?: string | null
   maxAgents?: number
   plan?: string
+  subscriptionExpiresAt?: Date | string | null
   onboardingCompleted?: boolean
   referralsEnabled?: boolean
   createdAt?: Date | string
@@ -1498,6 +1572,7 @@ export type UserUncheckedCreateWithoutReferredByInput = {
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutUserInput
   conversationReads?: Prisma.ConversationReadUncheckedCreateNestedManyWithoutUserInput
   referralsMade?: Prisma.ReferralUncheckedCreateNestedManyWithoutReferrerInput
+  paymentRequests?: Prisma.PaymentRequestUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutReferredByInput = {
@@ -1537,6 +1612,7 @@ export type UserUpdateWithoutReferralsMadeInput = {
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
   plan?: Prisma.StringFieldUpdateOperationsInput | string
+  subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   referralsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1546,6 +1622,7 @@ export type UserUpdateWithoutReferralsMadeInput = {
   leads?: Prisma.LeadUpdateManyWithoutUserNestedInput
   conversationReads?: Prisma.ConversationReadUpdateManyWithoutUserNestedInput
   referredBy?: Prisma.ReferralUpdateOneWithoutReferredNestedInput
+  paymentRequests?: Prisma.PaymentRequestUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutReferralsMadeInput = {
@@ -1569,6 +1646,7 @@ export type UserUncheckedUpdateWithoutReferralsMadeInput = {
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
   plan?: Prisma.StringFieldUpdateOperationsInput | string
+  subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   referralsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1578,6 +1656,7 @@ export type UserUncheckedUpdateWithoutReferralsMadeInput = {
   leads?: Prisma.LeadUncheckedUpdateManyWithoutUserNestedInput
   conversationReads?: Prisma.ConversationReadUncheckedUpdateManyWithoutUserNestedInput
   referredBy?: Prisma.ReferralUncheckedUpdateOneWithoutReferredNestedInput
+  paymentRequests?: Prisma.PaymentRequestUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUpsertWithoutReferredByInput = {
@@ -1612,6 +1691,7 @@ export type UserUpdateWithoutReferredByInput = {
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
   plan?: Prisma.StringFieldUpdateOperationsInput | string
+  subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   referralsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1621,6 +1701,7 @@ export type UserUpdateWithoutReferredByInput = {
   leads?: Prisma.LeadUpdateManyWithoutUserNestedInput
   conversationReads?: Prisma.ConversationReadUpdateManyWithoutUserNestedInput
   referralsMade?: Prisma.ReferralUpdateManyWithoutReferrerNestedInput
+  paymentRequests?: Prisma.PaymentRequestUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutReferredByInput = {
@@ -1644,6 +1725,7 @@ export type UserUncheckedUpdateWithoutReferredByInput = {
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
   plan?: Prisma.StringFieldUpdateOperationsInput | string
+  subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   referralsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1653,6 +1735,159 @@ export type UserUncheckedUpdateWithoutReferredByInput = {
   leads?: Prisma.LeadUncheckedUpdateManyWithoutUserNestedInput
   conversationReads?: Prisma.ConversationReadUncheckedUpdateManyWithoutUserNestedInput
   referralsMade?: Prisma.ReferralUncheckedUpdateManyWithoutReferrerNestedInput
+  paymentRequests?: Prisma.PaymentRequestUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutPaymentRequestsInput = {
+  id?: string
+  name: string
+  email: string
+  phone?: string | null
+  businessName: string
+  passwordHash: string
+  role?: $Enums.Role
+  status?: $Enums.UserStatus
+  resetToken?: string | null
+  resetTokenExpiry?: Date | string | null
+  emailVerified?: boolean
+  verificationCode?: string | null
+  verificationCodeExpiry?: Date | string | null
+  businessCategory?: string | null
+  businessDescription?: string | null
+  businessAddress?: string | null
+  businessEmail?: string | null
+  businessWebsite?: string | null
+  maxAgents?: number
+  plan?: string
+  subscriptionExpiresAt?: Date | string | null
+  onboardingCompleted?: boolean
+  referralsEnabled?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  referralCode?: string | null
+  agents?: Prisma.AgentCreateNestedManyWithoutUserInput
+  leads?: Prisma.LeadCreateNestedManyWithoutUserInput
+  conversationReads?: Prisma.ConversationReadCreateNestedManyWithoutUserInput
+  referralsMade?: Prisma.ReferralCreateNestedManyWithoutReferrerInput
+  referredBy?: Prisma.ReferralCreateNestedOneWithoutReferredInput
+}
+
+export type UserUncheckedCreateWithoutPaymentRequestsInput = {
+  id?: string
+  name: string
+  email: string
+  phone?: string | null
+  businessName: string
+  passwordHash: string
+  role?: $Enums.Role
+  status?: $Enums.UserStatus
+  resetToken?: string | null
+  resetTokenExpiry?: Date | string | null
+  emailVerified?: boolean
+  verificationCode?: string | null
+  verificationCodeExpiry?: Date | string | null
+  businessCategory?: string | null
+  businessDescription?: string | null
+  businessAddress?: string | null
+  businessEmail?: string | null
+  businessWebsite?: string | null
+  maxAgents?: number
+  plan?: string
+  subscriptionExpiresAt?: Date | string | null
+  onboardingCompleted?: boolean
+  referralsEnabled?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  referralCode?: string | null
+  agents?: Prisma.AgentUncheckedCreateNestedManyWithoutUserInput
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutUserInput
+  conversationReads?: Prisma.ConversationReadUncheckedCreateNestedManyWithoutUserInput
+  referralsMade?: Prisma.ReferralUncheckedCreateNestedManyWithoutReferrerInput
+  referredBy?: Prisma.ReferralUncheckedCreateNestedOneWithoutReferredInput
+}
+
+export type UserCreateOrConnectWithoutPaymentRequestsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutPaymentRequestsInput, Prisma.UserUncheckedCreateWithoutPaymentRequestsInput>
+}
+
+export type UserUpsertWithoutPaymentRequestsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutPaymentRequestsInput, Prisma.UserUncheckedUpdateWithoutPaymentRequestsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutPaymentRequestsInput, Prisma.UserUncheckedCreateWithoutPaymentRequestsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutPaymentRequestsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutPaymentRequestsInput, Prisma.UserUncheckedUpdateWithoutPaymentRequestsInput>
+}
+
+export type UserUpdateWithoutPaymentRequestsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  resetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resetTokenExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  verificationCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationCodeExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  businessCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
+  plan?: Prisma.StringFieldUpdateOperationsInput | string
+  subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  referralsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  referralCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  agents?: Prisma.AgentUpdateManyWithoutUserNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutUserNestedInput
+  conversationReads?: Prisma.ConversationReadUpdateManyWithoutUserNestedInput
+  referralsMade?: Prisma.ReferralUpdateManyWithoutReferrerNestedInput
+  referredBy?: Prisma.ReferralUpdateOneWithoutReferredNestedInput
+}
+
+export type UserUncheckedUpdateWithoutPaymentRequestsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  resetToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  resetTokenExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  verificationCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  verificationCodeExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  businessCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  maxAgents?: Prisma.IntFieldUpdateOperationsInput | number
+  plan?: Prisma.StringFieldUpdateOperationsInput | string
+  subscriptionExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  referralsEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  referralCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  agents?: Prisma.AgentUncheckedUpdateManyWithoutUserNestedInput
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutUserNestedInput
+  conversationReads?: Prisma.ConversationReadUncheckedUpdateManyWithoutUserNestedInput
+  referralsMade?: Prisma.ReferralUncheckedUpdateManyWithoutReferrerNestedInput
+  referredBy?: Prisma.ReferralUncheckedUpdateOneWithoutReferredNestedInput
 }
 
 
@@ -1665,6 +1900,7 @@ export type UserCountOutputType = {
   leads: number
   conversationReads: number
   referralsMade: number
+  paymentRequests: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1672,6 +1908,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   leads?: boolean | UserCountOutputTypeCountLeadsArgs
   conversationReads?: boolean | UserCountOutputTypeCountConversationReadsArgs
   referralsMade?: boolean | UserCountOutputTypeCountReferralsMadeArgs
+  paymentRequests?: boolean | UserCountOutputTypeCountPaymentRequestsArgs
 }
 
 /**
@@ -1712,6 +1949,13 @@ export type UserCountOutputTypeCountReferralsMadeArgs<ExtArgs extends runtime.Ty
   where?: Prisma.ReferralWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountPaymentRequestsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PaymentRequestWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1734,6 +1978,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   businessWebsite?: boolean
   maxAgents?: boolean
   plan?: boolean
+  subscriptionExpiresAt?: boolean
   onboardingCompleted?: boolean
   referralsEnabled?: boolean
   createdAt?: boolean
@@ -1744,6 +1989,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   conversationReads?: boolean | Prisma.User$conversationReadsArgs<ExtArgs>
   referralsMade?: boolean | Prisma.User$referralsMadeArgs<ExtArgs>
   referredBy?: boolean | Prisma.User$referredByArgs<ExtArgs>
+  paymentRequests?: boolean | Prisma.User$paymentRequestsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1768,6 +2014,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   businessWebsite?: boolean
   maxAgents?: boolean
   plan?: boolean
+  subscriptionExpiresAt?: boolean
   onboardingCompleted?: boolean
   referralsEnabled?: boolean
   createdAt?: boolean
@@ -1796,6 +2043,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   businessWebsite?: boolean
   maxAgents?: boolean
   plan?: boolean
+  subscriptionExpiresAt?: boolean
   onboardingCompleted?: boolean
   referralsEnabled?: boolean
   createdAt?: boolean
@@ -1824,6 +2072,7 @@ export type UserSelectScalar = {
   businessWebsite?: boolean
   maxAgents?: boolean
   plan?: boolean
+  subscriptionExpiresAt?: boolean
   onboardingCompleted?: boolean
   referralsEnabled?: boolean
   createdAt?: boolean
@@ -1831,13 +2080,14 @@ export type UserSelectScalar = {
   referralCode?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "phone" | "businessName" | "passwordHash" | "role" | "status" | "resetToken" | "resetTokenExpiry" | "emailVerified" | "verificationCode" | "verificationCodeExpiry" | "businessCategory" | "businessDescription" | "businessAddress" | "businessEmail" | "businessWebsite" | "maxAgents" | "plan" | "onboardingCompleted" | "referralsEnabled" | "createdAt" | "updatedAt" | "referralCode", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "phone" | "businessName" | "passwordHash" | "role" | "status" | "resetToken" | "resetTokenExpiry" | "emailVerified" | "verificationCode" | "verificationCodeExpiry" | "businessCategory" | "businessDescription" | "businessAddress" | "businessEmail" | "businessWebsite" | "maxAgents" | "plan" | "subscriptionExpiresAt" | "onboardingCompleted" | "referralsEnabled" | "createdAt" | "updatedAt" | "referralCode", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   agents?: boolean | Prisma.User$agentsArgs<ExtArgs>
   leads?: boolean | Prisma.User$leadsArgs<ExtArgs>
   conversationReads?: boolean | Prisma.User$conversationReadsArgs<ExtArgs>
   referralsMade?: boolean | Prisma.User$referralsMadeArgs<ExtArgs>
   referredBy?: boolean | Prisma.User$referredByArgs<ExtArgs>
+  paymentRequests?: boolean | Prisma.User$paymentRequestsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1851,6 +2101,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     conversationReads: Prisma.$ConversationReadPayload<ExtArgs>[]
     referralsMade: Prisma.$ReferralPayload<ExtArgs>[]
     referredBy: Prisma.$ReferralPayload<ExtArgs> | null
+    paymentRequests: Prisma.$PaymentRequestPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1873,6 +2124,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     businessWebsite: string | null
     maxAgents: number
     plan: string
+    subscriptionExpiresAt: Date | null
     onboardingCompleted: boolean
     referralsEnabled: boolean
     createdAt: Date
@@ -2277,6 +2529,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   conversationReads<T extends Prisma.User$conversationReadsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$conversationReadsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ConversationReadPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   referralsMade<T extends Prisma.User$referralsMadeArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$referralsMadeArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReferralPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   referredBy<T extends Prisma.User$referredByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$referredByArgs<ExtArgs>>): Prisma.Prisma__ReferralClient<runtime.Types.Result.GetResult<Prisma.$ReferralPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  paymentRequests<T extends Prisma.User$paymentRequestsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$paymentRequestsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PaymentRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2326,6 +2579,7 @@ export interface UserFieldRefs {
   readonly businessWebsite: Prisma.FieldRef<"User", 'String'>
   readonly maxAgents: Prisma.FieldRef<"User", 'Int'>
   readonly plan: Prisma.FieldRef<"User", 'String'>
+  readonly subscriptionExpiresAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly onboardingCompleted: Prisma.FieldRef<"User", 'Boolean'>
   readonly referralsEnabled: Prisma.FieldRef<"User", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
@@ -2836,6 +3090,30 @@ export type User$referredByArgs<ExtArgs extends runtime.Types.Extensions.Interna
    */
   include?: Prisma.ReferralInclude<ExtArgs> | null
   where?: Prisma.ReferralWhereInput
+}
+
+/**
+ * User.paymentRequests
+ */
+export type User$paymentRequestsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PaymentRequest
+   */
+  select?: Prisma.PaymentRequestSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PaymentRequest
+   */
+  omit?: Prisma.PaymentRequestOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PaymentRequestInclude<ExtArgs> | null
+  where?: Prisma.PaymentRequestWhereInput
+  orderBy?: Prisma.PaymentRequestOrderByWithRelationInput | Prisma.PaymentRequestOrderByWithRelationInput[]
+  cursor?: Prisma.PaymentRequestWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PaymentRequestScalarFieldEnum | Prisma.PaymentRequestScalarFieldEnum[]
 }
 
 /**

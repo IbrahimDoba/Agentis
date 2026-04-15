@@ -290,6 +290,9 @@ export function ConversationDrawer({ conversationId, agentId, onClose, isLead: i
               <span className={styles.metaChip}>{formatTime(startTime)}</span>
               <span className={styles.metaChip}>{formatDuration(duration)}</span>
               <span className={styles.metaChip}>{msgCount} {msgCount === 1 ? "msg" : "msgs"}</span>
+              {(convMeta?.creditsUsed ?? 0) > 0 && (
+                <span className={styles.metaChip}>⚡ {convMeta!.creditsUsed} credits</span>
+              )}
             </div>
 
             {/* Recording */}

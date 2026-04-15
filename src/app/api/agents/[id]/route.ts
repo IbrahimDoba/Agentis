@@ -4,7 +4,7 @@ import { db } from "@/lib/db"
 import { agentSchema, adminAgentUpdateSchema } from "@/lib/validations"
 import { sendAgentApprovedEmail } from "@/lib/email"
 import { buildAndSyncElevenLabsPrompt } from "@/lib/agentSync"
-import { setAgentWebhook, addCustomerHistoryTool } from "@/lib/elevenlabs"
+import { setAgentWebhook, addCustomerHistoryTool, setWhatsAppAccountAgent } from "@/lib/elevenlabs"
 import type { Product } from "@/types"
 
 interface Params {
@@ -108,6 +108,12 @@ export async function PATCH(req: NextRequest, { params }: Params) {
         if (parsed.data.elevenlabsAgentId) {
           setAgentWebhook(updated.elevenlabsAgentId)
             .catch((err) => console.error("[agentSync] Webhook setup failed:", err))
+        }
+
+        // If a WhatsApp account was assigned, link it to the ElevenLabs agent
+        if (parsed.data.whatsappPhoneNumberId && updated.elevenlabsAgentId) {
+          setWhatsAppAccountAgent(parsed.data.whatsappPhoneNumberId, updated.elevenlabsAgentId)
+            .catch((err) => console.error("[agentSync] WhatsApp account link failed:", err))
         }
       }
 

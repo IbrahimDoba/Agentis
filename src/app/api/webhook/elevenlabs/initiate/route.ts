@@ -131,7 +131,7 @@ export async function POST(req: NextRequest) {
   console.log(`[pre-call] Customer lookup: ${customer ? `found (name=${customer.name}, hasSummary=${!!customer.conversationSummary})` : "not found"}`)
 
   // First time caller — no prior conversations logged yet
-  if (!customer || !customer.conversationSummary) {
+  if (!customer || !customer.conversationSummary?.trim()) {
     console.log("[pre-call] No prior summary — returning new customer context")
     return NextResponse.json({
       type: "conversation_initiation_client_data",

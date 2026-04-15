@@ -10,6 +10,7 @@ const updateSchema = z.object({
   role: z.enum(["USER", "ADMIN"]).optional(),
   maxAgents: z.number().int().min(1).max(20).optional(),
   plan: z.enum(["free", "starter", "pro", "enterprise"]).optional(),
+  subscriptionExpiresAt: z.coerce.date().nullable().optional(),
 })
 
 interface Params {

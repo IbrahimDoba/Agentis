@@ -37,6 +37,10 @@ export default function ProfilePage() {
   const [referralsEnabled, setReferralsEnabled] = useState(false)
   const [togglingReferrals, setTogglingReferrals] = useState(false)
 
+  const [messagingEnabled, setMessagingEnabled] = useState(true)
+  const [togglingMessaging, setTogglingMessaging] = useState(false)
+  const [messagingError, setMessagingError] = useState("")
+
   const [form, setForm] = useState({
     name: "",
     phone: "",
@@ -59,6 +63,12 @@ export default function ProfilePage() {
   }, [data?.user?.referralsEnabled])
 
   useEffect(() => {
+    if (data?.agent) {
+      setMessagingEnabled(data.agent.messagingEnabled ?? true)
+    }
+  }, [data?.agent?.messagingEnabled])
+
+  useEffect(() => {
     if (data?.user) {
       const u = data.user
       setForm({
@@ -78,6 +88,27 @@ export default function ProfilePage() {
     const { name, value } = e.target
     setForm((f) => ({ ...f, [name]: value }))
     setErrors((prev) => ({ ...prev, [name]: "" }))
+  }
+
+  const handleToggleMessaging = async (enabled: boolean) => {
+    if (!data?.agent?.id) return
+    setMessagingEnabled(enabled)
+    setTogglingMessaging(true)
+    setMessagingError("")
+    try {
+      const res = await fetch(`/api/agents/${data.agent.id}/messaging`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enabled }),
+      })
+      if (!res.ok) throw new Error("Failed to update")
+      queryClient.invalidateQueries({ queryKey: ["me"] })
+    } catch {
+      setMessagingEnabled(!enabled)
+      setMessagingError("Failed to update. Please try again.")
+    } finally {
+      setTogglingMessaging(false)
+    }
   }
 
   const handleToggleReferrals = async (enabled: boolean) => {
@@ -295,6 +326,38 @@ export default function ProfilePage() {
             </button>
           </div>
         </div>
+
+        {/* AI Agent */}
+        {data?.agent && (
+          <div className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <div className={styles.sectionTitle}>AI Agent</div>
+              <div className={styles.sectionDesc}>Turn your WhatsApp AI agent on or off.</div>
+            </div>
+            {messagingError && <div className={styles.error} style={{ marginBottom: "1rem" }}>{messagingError}</div>}
+            <div className={styles.toggleRow}>
+              <div className={styles.toggleInfo}>
+                <div className={styles.toggleLabel}>
+                  {messagingEnabled ? "Agent is active" : "Agent is paused"}
+                </div>
+                <div className={styles.toggleDesc}>
+                  {messagingEnabled
+                    ? "Your AI agent is responding to WhatsApp messages."
+                    : "Your AI agent is paused and will not respond to messages."}
+                </div>
+              </div>
+              <label className={styles.toggle}>
+                <input
+                  type="checkbox"
+                  checked={messagingEnabled}
+                  disabled={togglingMessaging || !data.agent.elevenlabsAgentId}
+                  onChange={(e) => handleToggleMessaging(e.target.checked)}
+                />
+                <span className={styles.toggleTrack} />
+              </label>
+            </div>
+          </div>
+        )}
 
         {/* Referral Program */}
         <div className={styles.section}>

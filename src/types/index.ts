@@ -18,6 +18,7 @@ export interface UserPublic {
   businessWebsite?: string | null
   maxAgents?: number
   plan?: string
+  subscriptionExpiresAt?: string | null
   onboardingCompleted?: boolean
   referralsEnabled?: boolean
 }
@@ -67,6 +68,7 @@ export interface AgentPublic {
   whatsappPhoneNumber?: string
   qrCodeUrl?: string
   elevenlabsAgentId?: string
+  messagingEnabled?: boolean
   category?: string | null
   address?: string | null
   productsData?: Product[] | null
@@ -111,6 +113,7 @@ export interface Conversation {
   tool_names?: string[]
   metadata?: ConversationMeta
   transcript?: TranscriptMessage[]
+  creditsUsed?: number
 }
 
 export interface TranscriptMessage {

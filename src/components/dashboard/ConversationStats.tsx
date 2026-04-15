@@ -15,8 +15,17 @@ function SkeletonCard() {
   )
 }
 
+
 export function ConversationStats() {
-  const { data, isLoading } = useQuery<{ totalConversations: number; totalLeads: number; totalContacts: number }>({
+  const { data, isLoading } = useQuery<{
+    totalConversations: number
+    totalLeads: number
+    totalContacts: number
+    totalCreditsUsed: number
+    monthlyCreditsUsed: number
+    creditLimit: number
+    plan: string
+  }>({
     queryKey: ["conversation-stats"],
     queryFn: async () => {
       const res = await fetch("/api/conversations/stats")

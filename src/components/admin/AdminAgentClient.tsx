@@ -48,15 +48,11 @@ export function AdminAgentClient({ agent }: { agent: any }) {
         `Business: ${agent.businessName}`,
         agent.category ? `Category: ${agent.category}` : "",
         `Description: ${agent.businessDescription}`,
-        `Products/Services: ${agent.productsServices}`,
-        `Operating Hours: ${agent.operatingHours}`,
         agent.address ? `Address: ${agent.address}` : "",
         agent.contactEmail ? `Email: ${agent.contactEmail}` : "",
         agent.contactPhone ? `Phone: ${agent.contactPhone}` : "",
         agent.websiteLinks ? `Website: ${agent.websiteLinks}` : "",
-        `FAQs:\n${agent.faqs}`,
         agent.responseGuidelines ? `Response Guidelines:\n${agent.responseGuidelines}` : "",
-        agent.whatsappBusinessName ? `WhatsApp Business Name: ${agent.whatsappBusinessName}` : "",
         agent.whatsappPhoneNumber ? `WhatsApp Number: ${agent.whatsappPhoneNumber}` : "",
         agent.whatsappAgentLink ? `WhatsApp Link: ${agent.whatsappAgentLink}` : "",
     ].filter(Boolean).join("\n\n")
@@ -124,10 +120,6 @@ export function AdminAgentClient({ agent }: { agent: any }) {
                                 <div className={adminStyles.infoLabel}>Description</div>
                                 <div className={adminStyles.infoValue}>{agent.businessDescription}</div>
                             </div>
-                            <div className={adminStyles.infoRow}>
-                                <div className={adminStyles.infoLabel}>Products / Services</div>
-                                <div className={adminStyles.infoValue}>{agent.productsServices}</div>
-                            </div>
                             {Array.isArray(agent.productsData) && (agent.productsData as any[]).length > 0 && (
                                 <div className={adminStyles.infoRow}>
                                     <div className={adminStyles.infoLabel}>Product Catalogue</div>
@@ -143,15 +135,6 @@ export function AdminAgentClient({ agent }: { agent: any }) {
                                     </div>
                                 </div>
                             )}
-                            <div className={adminStyles.infoRow}>
-                                <div className={adminStyles.infoLabel}>Operating Hours</div>
-                                <div className={adminStyles.infoValue}>{agent.operatingHours}</div>
-                            </div>
-                            <div className={adminStyles.infoRow}>
-                                <div className={adminStyles.infoLabel}>FAQs</div>
-                                <div className={adminStyles.infoValue}>{agent.faqs}</div>
-                            </div>
-
                             <div style={{ marginTop: "1rem", marginBottom: "0.5rem", fontWeight: "600", fontSize: "1rem", color: "var(--foreground)" }}>Contact Details</div>
 
                             {agent.contactEmail && (
@@ -187,12 +170,6 @@ export function AdminAgentClient({ agent }: { agent: any }) {
 
                             <div style={{ marginTop: "1rem", marginBottom: "0.5rem", fontWeight: "600", fontSize: "1rem", color: "var(--foreground)" }}>WhatsApp Profile</div>
 
-                            {agent.whatsappBusinessName && (
-                                <div className={adminStyles.infoRow}>
-                                    <div className={adminStyles.infoLabel}>WhatsApp Business Name</div>
-                                    <div className={adminStyles.infoValue}>{agent.whatsappBusinessName}</div>
-                                </div>
-                            )}
                             {agent.whatsappPhoneNumber && (
                                 <div className={adminStyles.infoRow}>
                                     <div className={adminStyles.infoLabel}>WhatsApp Number</div>

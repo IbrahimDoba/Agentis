@@ -156,6 +156,134 @@
   transform: translateX(20px);
 }
 
+/* ── Plan & Billing ─────────────────────────────────────── */
+.billingCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.billingTopRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.billingPlanBadge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  background: var(--accent-light);
+  border: 1px solid rgba(0, 220, 130, 0.2);
+  border-radius: 100px;
+  padding: 3px 10px;
+}
+
+.billingActive {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.billingExpired {
+  font-size: 12px;
+  font-weight: 600;
+  color: #ef4444;
+}
+
+.billingUsageRow {
+  display: flex;
+  align-items: baseline;
+  gap: 0.375rem;
+}
+
+.billingUsed {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.billingOf {
+  font-size: 14px;
+  color: var(--text-muted);
+  flex: 1;
+}
+
+.billingPct {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.billingBarTrack {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.billingBarFill {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--accent);
+  transition: width 0.4s ease;
+}
+
+.billingWarning {
+  background: #f59e0b;
+  color: #f59e0b;
+}
+
+.billingDanger {
+  background: #ef4444;
+  color: #ef4444;
+}
+
+.billingOverage {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 13px;
+  color: #b45309;
+  font-weight: 600;
+  flex-wrap: wrap;
+}
+
+.billingOverageCharge {
+  font-size: 14px;
+  font-weight: 700;
+  color: #ef4444;
+}
+
+.billingAlert {
+  font-size: 13px;
+  color: #b45309;
+  margin: 0;
+}
+
+.billingUnlimited {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.billingUpgradeLink {
+  font-size: 13px;
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 500;
+  align-self: flex-start;
+}
+
+.billingUpgradeLink:hover {
+  text-decoration: underline;
+}
+
 /* ── Sign out ────────────────────────────────────────────── */
 .signOutBtn {
   display: inline-flex;

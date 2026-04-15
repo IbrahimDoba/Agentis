@@ -58,7 +58,8 @@ export const ModelName = {
   Customer: 'Customer',
   Referral: 'Referral',
   NewsletterSubscriber: 'NewsletterSubscriber',
-  ConversationLog: 'ConversationLog'
+  ConversationLog: 'ConversationLog',
+  PaymentRequest: 'PaymentRequest'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -98,6 +99,7 @@ export const UserScalarFieldEnum = {
   businessWebsite: 'businessWebsite',
   maxAgents: 'maxAgents',
   plan: 'plan',
+  subscriptionExpiresAt: 'subscriptionExpiresAt',
   onboardingCompleted: 'onboardingCompleted',
   referralsEnabled: 'referralsEnabled',
   createdAt: 'createdAt',
@@ -126,6 +128,8 @@ export const AgentScalarFieldEnum = {
   whatsappPhoneNumber: 'whatsappPhoneNumber',
   qrCodeUrl: 'qrCodeUrl',
   elevenlabsAgentId: 'elevenlabsAgentId',
+  whatsappPhoneNumberId: 'whatsappPhoneNumberId',
+  messagingEnabled: 'messagingEnabled',
   category: 'category',
   address: 'address',
   productsData: 'productsData',
@@ -219,11 +223,27 @@ export const ConversationLogScalarFieldEnum = {
   durationSecs: 'durationSecs',
   startTime: 'startTime',
   status: 'status',
+  creditsUsed: 'creditsUsed',
   rawPayload: 'rawPayload',
   createdAt: 'createdAt'
 } as const
 
 export type ConversationLogScalarFieldEnum = (typeof ConversationLogScalarFieldEnum)[keyof typeof ConversationLogScalarFieldEnum]
+
+
+export const PaymentRequestScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  plan: 'plan',
+  amountNaira: 'amountNaira',
+  status: 'status',
+  reference: 'reference',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PaymentRequestScalarFieldEnum = (typeof PaymentRequestScalarFieldEnum)[keyof typeof PaymentRequestScalarFieldEnum]
 
 
 export const SortOrder = {

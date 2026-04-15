@@ -13,15 +13,15 @@ const starterMonthly = {
 }
 
 const proMonthly = {
-  price: "₦100,000",
+  price: "₦85,000",
   priceNote: "/month",
-  annualPrice: "₦80,000",
+  annualPrice: "₦68,000",
   annualNote: "/month, billed annually",
 }
 
 const starterFeatures = [
   { text: "1 AI WhatsApp Agent", included: true },
-  { text: "Up to 1,000 conversations/month", included: true },
+  { text: "60,000 credits/month (~600 conversations)", included: true },
   { text: "Text responses only", included: true },
   { text: "Basic FAQ handling", included: true },
   { text: "Business hours configuration", included: true },
@@ -29,6 +29,7 @@ const starterFeatures = [
   { text: "Conversation monitoring dashboard", included: true },
   { text: "Email support", included: true },
   { text: "7-day free trial", included: true },
+  { text: "₦1,000 per 1,000 extra credits", included: true },
   { text: "Voice call capability", included: false },
   { text: "Image & media sending", included: false },
   { text: "Advanced AI personality", included: false },
@@ -39,7 +40,7 @@ const starterFeatures = [
 
 const proFeatures = [
   { text: "1 AI WhatsApp Agent", included: true },
-  { text: "Up to 5,000 conversations/month", included: true },
+  { text: "100,000 credits/month (~1,000 conversations)", included: true },
   { text: "Text + Voice call capability", included: true },
   { text: "Image & media sending", included: true },
   { text: "Automated follow-up messages", included: true },
@@ -49,6 +50,7 @@ const proFeatures = [
   { text: "Advanced analytics & insights", included: true },
   { text: "Custom response guidelines", included: true },
   { text: "7-day free trial", included: true },
+  { text: "₦800 per 1,000 extra credits", included: true },
 ]
 
 const faqs = [
@@ -61,8 +63,8 @@ const faqs = [
     a: "Absolutely. You can upgrade from Starter to Pro at any time and the change takes effect immediately. Downgrading happens at the start of your next billing cycle.",
   },
   {
-    q: "What happens if I exceed my conversation limit?",
-    a: "On the Starter plan, when you approach your 1,000 conversation limit, we'll notify you. Additional conversations are charged at ₦50 each. On Pro, the same applies above 5,000 at ₦30 each.",
+    q: "What happens if I exceed my credit limit?",
+    a: "On the Starter plan, additional credits beyond your 60,000 monthly allowance are charged at ₦1,000 per 1,000 credits. On the Pro plan, the overage rate is ₦800 per 1,000 credits. Free plan users are paused until the next month.",
   },
   {
     q: "Do you offer custom plans?",
@@ -202,7 +204,8 @@ export default function PricingPage() {
                 <div className={`${styles.comparisonPlanCol} ${styles.comparisonPlanColPro}`}>Pro</div>
               </div>
               {[
-                ["AI WhatsApp Conversations", "Up to 1,000/mo", "Up to 5,000/mo"],
+                ["Monthly Credits", "60,000 (~600 convos)", "100,000 (~1,000 convos)"],
+                ["Overage Rate", "₦1,000 / 1k credits", "₦800 / 1k credits"],
                 ["Response Type", "Text only", "Text + Voice"],
                 ["Media Sending", "—", "✓ Images, PDFs"],
                 ["FAQ Handling", "Basic", "Advanced AI"],

@@ -391,7 +391,8 @@ export const ModelName = {
   Customer: 'Customer',
   Referral: 'Referral',
   NewsletterSubscriber: 'NewsletterSubscriber',
-  ConversationLog: 'ConversationLog'
+  ConversationLog: 'ConversationLog',
+  PaymentRequest: 'PaymentRequest'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -407,7 +408,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "agent" | "lead" | "conversationRead" | "customer" | "referral" | "newsletterSubscriber" | "conversationLog"
+    modelProps: "user" | "agent" | "lead" | "conversationRead" | "customer" | "referral" | "newsletterSubscriber" | "conversationLog" | "paymentRequest"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1003,6 +1004,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    PaymentRequest: {
+      payload: Prisma.$PaymentRequestPayload<ExtArgs>
+      fields: Prisma.PaymentRequestFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PaymentRequestFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentRequestPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PaymentRequestFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentRequestPayload>
+        }
+        findFirst: {
+          args: Prisma.PaymentRequestFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentRequestPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PaymentRequestFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentRequestPayload>
+        }
+        findMany: {
+          args: Prisma.PaymentRequestFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentRequestPayload>[]
+        }
+        create: {
+          args: Prisma.PaymentRequestCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentRequestPayload>
+        }
+        createMany: {
+          args: Prisma.PaymentRequestCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PaymentRequestCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentRequestPayload>[]
+        }
+        delete: {
+          args: Prisma.PaymentRequestDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentRequestPayload>
+        }
+        update: {
+          args: Prisma.PaymentRequestUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentRequestPayload>
+        }
+        deleteMany: {
+          args: Prisma.PaymentRequestDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PaymentRequestUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PaymentRequestUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentRequestPayload>[]
+        }
+        upsert: {
+          args: Prisma.PaymentRequestUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PaymentRequestPayload>
+        }
+        aggregate: {
+          args: Prisma.PaymentRequestAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePaymentRequest>
+        }
+        groupBy: {
+          args: Prisma.PaymentRequestGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PaymentRequestGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PaymentRequestCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PaymentRequestCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1063,6 +1138,7 @@ export const UserScalarFieldEnum = {
   businessWebsite: 'businessWebsite',
   maxAgents: 'maxAgents',
   plan: 'plan',
+  subscriptionExpiresAt: 'subscriptionExpiresAt',
   onboardingCompleted: 'onboardingCompleted',
   referralsEnabled: 'referralsEnabled',
   createdAt: 'createdAt',
@@ -1091,6 +1167,8 @@ export const AgentScalarFieldEnum = {
   whatsappPhoneNumber: 'whatsappPhoneNumber',
   qrCodeUrl: 'qrCodeUrl',
   elevenlabsAgentId: 'elevenlabsAgentId',
+  whatsappPhoneNumberId: 'whatsappPhoneNumberId',
+  messagingEnabled: 'messagingEnabled',
   category: 'category',
   address: 'address',
   productsData: 'productsData',
@@ -1184,11 +1262,27 @@ export const ConversationLogScalarFieldEnum = {
   durationSecs: 'durationSecs',
   startTime: 'startTime',
   status: 'status',
+  creditsUsed: 'creditsUsed',
   rawPayload: 'rawPayload',
   createdAt: 'createdAt'
 } as const
 
 export type ConversationLogScalarFieldEnum = (typeof ConversationLogScalarFieldEnum)[keyof typeof ConversationLogScalarFieldEnum]
+
+
+export const PaymentRequestScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  plan: 'plan',
+  amountNaira: 'amountNaira',
+  status: 'status',
+  reference: 'reference',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PaymentRequestScalarFieldEnum = (typeof PaymentRequestScalarFieldEnum)[keyof typeof PaymentRequestScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1391,6 +1485,20 @@ export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, '
 export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
     
 
+
+/**
+ * Reference to a field of type 'PaymentStatus'
+ */
+export type EnumPaymentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'PaymentStatus[]'
+ */
+export type ListEnumPaymentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentStatus[]'>
+    
+
 /**
  * Batch Payload for updateMany & deleteMany & createMany
  */
@@ -1494,6 +1602,7 @@ export type GlobalOmitConfig = {
   referral?: Prisma.ReferralOmit
   newsletterSubscriber?: Prisma.NewsletterSubscriberOmit
   conversationLog?: Prisma.ConversationLogOmit
+  paymentRequest?: Prisma.PaymentRequestOmit
 }
 
 /* Types for Logging */

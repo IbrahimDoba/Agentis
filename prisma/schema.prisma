@@ -26,9 +26,10 @@ model User {
   businessAddress     String?
   businessEmail       String?
   businessWebsite     String?
-  maxAgents           Int        @default(1)
-  plan                String     @default("free")
-  onboardingCompleted Boolean    @default(false)
+  maxAgents               Int        @default(1)
+  plan                    String     @default("free")
+  subscriptionExpiresAt   DateTime?
+  onboardingCompleted     Boolean    @default(false)
   referralsEnabled    Boolean    @default(false)
   createdAt           DateTime   @default(now())
   updatedAt          DateTime   @updatedAt
@@ -38,6 +39,7 @@ model User {
   referralCode       String?    @unique
   referralsMade      Referral[] @relation("ReferralsMade")
   referredBy         Referral?  @relation("ReferredBy")
+  paymentRequests    PaymentRequest[]
 }
 
 model Agent {
@@ -59,6 +61,8 @@ model Agent {
   whatsappPhoneNumber  String?
   qrCodeUrl            String?
   elevenlabsAgentId    String?
+  whatsappPhoneNumberId String?
+  messagingEnabled     Boolean     @default(true)
   category             String?
   address              String?
   productsData         Json?
@@ -161,6 +165,12 @@ enum ReferralStatus {
   REWARDED
 }
 
+enum PaymentStatus {
+  PENDING
+  PAID
+  CANCELLED
+}
+
 model NewsletterSubscriber {
   id        String   @id @default(cuid())
   email     String   @unique
@@ -181,9 +191,23 @@ model ConversationLog {
   durationSecs      Int?
   startTime         DateTime?
   status            String?
+  creditsUsed       Int       @default(0)
   rawPayload        Json
   createdAt         DateTime  @default(now())
 
   agent             Agent?    @relation(fields: [agentId], references: [id], onDelete: SetNull)
   customer          Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+}
+
+model PaymentRequest {
+  id          String        @id @default(cuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan        String
+  amountNaira Int
+  status      PaymentStatus @default(PENDING)
+  reference   String        @unique @default(cuid())
+  notes       String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 }

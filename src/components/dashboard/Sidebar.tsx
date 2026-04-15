@@ -13,11 +13,15 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   GiftIcon,
+  CreditCardIcon,
+  TagIcon,
 } from "@heroicons/react/24/outline"
 import { LogoIcon } from "@/components/landing/Logo"
 import styles from "./Sidebar.module.css"
 import { cn } from "@/lib/utils"
 import { useDashboardData } from "@/hooks/useDashboardData"
+import { usePlanStats } from "@/hooks/usePlanStats"
+import { PLAN_LABELS } from "@/lib/plans"
 
 interface SidebarProps {
   userName: string
@@ -39,6 +43,8 @@ const baseNavItems: NavItem[] = [
   { href: "/dashboard/agents", label: "Agents", icon: CpuChipIcon },
   { href: "/dashboard/chats", label: "Conversations", icon: ChatBubbleLeftRightIcon },
   { href: "/dashboard/leads", label: "Leads", icon: FireIcon },
+  { href: "/dashboard/billing", label: "Billing", icon: CreditCardIcon },
+  { href: "/dashboard/subscription", label: "Subscription", icon: TagIcon },
 ]
 
 const referralNavItem: NavItem = { href: "/dashboard/referrals", label: "Referrals", icon: GiftIcon }
@@ -46,6 +52,7 @@ const referralNavItem: NavItem = { href: "/dashboard/referrals", label: "Referra
 export function Sidebar({ userName, businessName, isOpen, onClose, collapsed, onToggleCollapse }: SidebarProps) {
   const pathname = usePathname()
   const { data } = useDashboardData()
+  const { data: stats } = usePlanStats()
   const navItems = data?.user?.referralsEnabled
     ? [...baseNavItems, referralNavItem]
     : baseNavItems
@@ -137,6 +144,45 @@ export function Sidebar({ userName, businessName, isOpen, onClose, collapsed, on
           </Link>
           {collapsed && <span className={styles.tooltip}>What&apos;s New</span>}
         </div>
+
+        {!collapsed && stats && (() => {
+          const plan = stats.plan ?? "free"
+          const planLabel = PLAN_LABELS[plan] ?? plan
+          const used = stats.monthlyCreditsUsed ?? 0
+          const limit = stats.creditLimit ?? 0
+          const unlimited = limit === -1
+          const pct = unlimited ? 0 : limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : 0
+          const remaining = unlimited ? null : Math.max(0, limit - used)
+          const isWarning = !unlimited && pct >= 75
+          const isDanger = !unlimited && pct >= 90
+          return (
+            <Link href="/dashboard/billing" className={styles.usageMini} onClick={onClose}>
+              <div className={styles.usageMiniHeader}>
+                <span className={`${styles.usageMiniPlanDot} ${isDanger ? styles.dotDanger : isWarning ? styles.dotWarning : styles.dotOk}`} />
+                <span className={styles.usageMiniPlan}>{planLabel}</span>
+                <span className={`${styles.usageMiniPct} ${isDanger ? styles.textDanger : isWarning ? styles.textWarning : ""}`}>
+                  {unlimited ? "∞" : `${pct}%`}
+                </span>
+              </div>
+              {!unlimited && (
+                <div className={styles.usageMiniTrack}>
+                  <div
+                    className={`${styles.usageMiniFill} ${isDanger ? styles.fillDanger : isWarning ? styles.fillWarning : ""}`}
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+              )}
+              <div className={styles.usageMiniFooter}>
+                <span className={styles.usageMiniUsed}>{used.toLocaleString()} cr used</span>
+                {remaining !== null && (
+                  <span className={`${styles.usageMiniRem} ${isDanger ? styles.textDanger : isWarning ? styles.textWarning : ""}`}>
+                    {remaining.toLocaleString()} left
+                  </span>
+                )}
+              </div>
+            </Link>
+          )
+        })()}
 
         {!collapsed && (
           <div className={styles.userCard}>

@@ -89,7 +89,7 @@ const siteInfo = {
           "Perfect for small businesses getting started with AI-powered WhatsApp customer service.",
         features: [
           "1 AI WhatsApp Agent",
-          "Up to 1,000 conversations/month",
+          "60,000 credits/month (~600 conversations)",
           "Text responses only",
           "Basic FAQ handling",
           "Business hours configuration",
@@ -97,6 +97,7 @@ const siteInfo = {
           "Conversation monitoring dashboard",
           "Email support",
           "7-day free trial",
+          "₦1,000 per 1,000 extra credits",
         ],
         notIncluded: [
           "Voice call capability",
@@ -106,18 +107,18 @@ const siteInfo = {
           "Priority support",
           "Advanced analytics",
         ],
-        overageRate: "₦50 per additional conversation above 1,000",
+        overageRate: "₦1,000 per 1,000 credits above 60,000",
       },
       {
         name: "Pro",
-        monthlyPrice: "₦100,000/month",
-        annualPrice: "₦80,000/month (billed annually)",
+        monthlyPrice: "₦85,000/month",
+        annualPrice: "₦68,000/month (billed annually)",
         description:
           "For growing businesses that need advanced AI capabilities, higher volume, and priority support.",
         popular: true,
         features: [
           "1 AI WhatsApp Agent",
-          "Up to 5,000 conversations/month",
+          "100,000 credits/month (~1,000 conversations)",
           "Text + Voice call capability",
           "Image & media sending",
           "Automated follow-up messages",
@@ -127,8 +128,9 @@ const siteInfo = {
           "Advanced analytics & insights",
           "Custom response guidelines",
           "7-day free trial",
+          "₦800 per 1,000 extra credits",
         ],
-        overageRate: "₦30 per additional conversation above 5,000",
+        overageRate: "₦800 per 1,000 credits above 100,000",
       },
     ],
     enterprise: {
@@ -152,7 +154,7 @@ const siteInfo = {
     {
       question: "What happens if I exceed my conversation limit?",
       answer:
-        "On the Starter plan, when you approach your 1,000 conversation limit, we'll notify you. Additional conversations are charged at ₦50 each. On Pro, the same applies above 5,000 at ₦30 each.",
+        "On the Starter plan, additional credits beyond your 60,000 monthly allowance are charged at ₦1,000 per 1,000 credits. On the Pro plan, the overage rate is ₦800 per 1,000 credits. Free plan users are paused until the next month.",
     },
     {
       question: "Do you offer custom plans?",

@@ -28,10 +28,12 @@ export type AggregateConversationLog = {
 
 export type ConversationLogAvgAggregateOutputType = {
   durationSecs: number | null
+  creditsUsed: number | null
 }
 
 export type ConversationLogSumAggregateOutputType = {
   durationSecs: number | null
+  creditsUsed: number | null
 }
 
 export type ConversationLogMinAggregateOutputType = {
@@ -45,6 +47,7 @@ export type ConversationLogMinAggregateOutputType = {
   durationSecs: number | null
   startTime: Date | null
   status: string | null
+  creditsUsed: number | null
   createdAt: Date | null
 }
 
@@ -59,6 +62,7 @@ export type ConversationLogMaxAggregateOutputType = {
   durationSecs: number | null
   startTime: Date | null
   status: string | null
+  creditsUsed: number | null
   createdAt: Date | null
 }
 
@@ -74,6 +78,7 @@ export type ConversationLogCountAggregateOutputType = {
   durationSecs: number
   startTime: number
   status: number
+  creditsUsed: number
   rawPayload: number
   createdAt: number
   _all: number
@@ -82,10 +87,12 @@ export type ConversationLogCountAggregateOutputType = {
 
 export type ConversationLogAvgAggregateInputType = {
   durationSecs?: true
+  creditsUsed?: true
 }
 
 export type ConversationLogSumAggregateInputType = {
   durationSecs?: true
+  creditsUsed?: true
 }
 
 export type ConversationLogMinAggregateInputType = {
@@ -99,6 +106,7 @@ export type ConversationLogMinAggregateInputType = {
   durationSecs?: true
   startTime?: true
   status?: true
+  creditsUsed?: true
   createdAt?: true
 }
 
@@ -113,6 +121,7 @@ export type ConversationLogMaxAggregateInputType = {
   durationSecs?: true
   startTime?: true
   status?: true
+  creditsUsed?: true
   createdAt?: true
 }
 
@@ -128,6 +137,7 @@ export type ConversationLogCountAggregateInputType = {
   durationSecs?: true
   startTime?: true
   status?: true
+  creditsUsed?: true
   rawPayload?: true
   createdAt?: true
   _all?: true
@@ -231,6 +241,7 @@ export type ConversationLogGroupByOutputType = {
   durationSecs: number | null
   startTime: Date | null
   status: string | null
+  creditsUsed: number
   rawPayload: runtime.JsonValue
   createdAt: Date
   _count: ConversationLogCountAggregateOutputType | null
@@ -270,6 +281,7 @@ export type ConversationLogWhereInput = {
   durationSecs?: Prisma.IntNullableFilter<"ConversationLog"> | number | null
   startTime?: Prisma.DateTimeNullableFilter<"ConversationLog"> | Date | string | null
   status?: Prisma.StringNullableFilter<"ConversationLog"> | string | null
+  creditsUsed?: Prisma.IntFilter<"ConversationLog"> | number
   rawPayload?: Prisma.JsonFilter<"ConversationLog">
   createdAt?: Prisma.DateTimeFilter<"ConversationLog"> | Date | string
   agent?: Prisma.XOR<Prisma.AgentNullableScalarRelationFilter, Prisma.AgentWhereInput> | null
@@ -288,6 +300,7 @@ export type ConversationLogOrderByWithRelationInput = {
   durationSecs?: Prisma.SortOrderInput | Prisma.SortOrder
   startTime?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrderInput | Prisma.SortOrder
+  creditsUsed?: Prisma.SortOrder
   rawPayload?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   agent?: Prisma.AgentOrderByWithRelationInput
@@ -309,6 +322,7 @@ export type ConversationLogWhereUniqueInput = Prisma.AtLeast<{
   durationSecs?: Prisma.IntNullableFilter<"ConversationLog"> | number | null
   startTime?: Prisma.DateTimeNullableFilter<"ConversationLog"> | Date | string | null
   status?: Prisma.StringNullableFilter<"ConversationLog"> | string | null
+  creditsUsed?: Prisma.IntFilter<"ConversationLog"> | number
   rawPayload?: Prisma.JsonFilter<"ConversationLog">
   createdAt?: Prisma.DateTimeFilter<"ConversationLog"> | Date | string
   agent?: Prisma.XOR<Prisma.AgentNullableScalarRelationFilter, Prisma.AgentWhereInput> | null
@@ -327,6 +341,7 @@ export type ConversationLogOrderByWithAggregationInput = {
   durationSecs?: Prisma.SortOrderInput | Prisma.SortOrder
   startTime?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrderInput | Prisma.SortOrder
+  creditsUsed?: Prisma.SortOrder
   rawPayload?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.ConversationLogCountOrderByAggregateInput
@@ -351,6 +366,7 @@ export type ConversationLogScalarWhereWithAggregatesInput = {
   durationSecs?: Prisma.IntNullableWithAggregatesFilter<"ConversationLog"> | number | null
   startTime?: Prisma.DateTimeNullableWithAggregatesFilter<"ConversationLog"> | Date | string | null
   status?: Prisma.StringNullableWithAggregatesFilter<"ConversationLog"> | string | null
+  creditsUsed?: Prisma.IntWithAggregatesFilter<"ConversationLog"> | number
   rawPayload?: Prisma.JsonWithAggregatesFilter<"ConversationLog">
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"ConversationLog"> | Date | string
 }
@@ -365,6 +381,7 @@ export type ConversationLogCreateInput = {
   durationSecs?: number | null
   startTime?: Date | string | null
   status?: string | null
+  creditsUsed?: number
   rawPayload: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   agent?: Prisma.AgentCreateNestedOneWithoutConversationLogsInput
@@ -383,6 +400,7 @@ export type ConversationLogUncheckedCreateInput = {
   durationSecs?: number | null
   startTime?: Date | string | null
   status?: string | null
+  creditsUsed?: number
   rawPayload: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
 }
@@ -397,6 +415,7 @@ export type ConversationLogUpdateInput = {
   durationSecs?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   startTime?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  creditsUsed?: Prisma.IntFieldUpdateOperationsInput | number
   rawPayload?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   agent?: Prisma.AgentUpdateOneWithoutConversationLogsNestedInput
@@ -415,6 +434,7 @@ export type ConversationLogUncheckedUpdateInput = {
   durationSecs?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   startTime?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  creditsUsed?: Prisma.IntFieldUpdateOperationsInput | number
   rawPayload?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -431,6 +451,7 @@ export type ConversationLogCreateManyInput = {
   durationSecs?: number | null
   startTime?: Date | string | null
   status?: string | null
+  creditsUsed?: number
   rawPayload: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
 }
@@ -445,6 +466,7 @@ export type ConversationLogUpdateManyMutationInput = {
   durationSecs?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   startTime?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  creditsUsed?: Prisma.IntFieldUpdateOperationsInput | number
   rawPayload?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -461,6 +483,7 @@ export type ConversationLogUncheckedUpdateManyInput = {
   durationSecs?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   startTime?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  creditsUsed?: Prisma.IntFieldUpdateOperationsInput | number
   rawPayload?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -487,12 +510,14 @@ export type ConversationLogCountOrderByAggregateInput = {
   durationSecs?: Prisma.SortOrder
   startTime?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  creditsUsed?: Prisma.SortOrder
   rawPayload?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
 export type ConversationLogAvgOrderByAggregateInput = {
   durationSecs?: Prisma.SortOrder
+  creditsUsed?: Prisma.SortOrder
 }
 
 export type ConversationLogMaxOrderByAggregateInput = {
@@ -506,6 +531,7 @@ export type ConversationLogMaxOrderByAggregateInput = {
   durationSecs?: Prisma.SortOrder
   startTime?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  creditsUsed?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -520,11 +546,13 @@ export type ConversationLogMinOrderByAggregateInput = {
   durationSecs?: Prisma.SortOrder
   startTime?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  creditsUsed?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
 export type ConversationLogSumOrderByAggregateInput = {
   durationSecs?: Prisma.SortOrder
+  creditsUsed?: Prisma.SortOrder
 }
 
 export type ConversationLogCreateNestedManyWithoutAgentInput = {
@@ -629,6 +657,7 @@ export type ConversationLogCreateWithoutAgentInput = {
   durationSecs?: number | null
   startTime?: Date | string | null
   status?: string | null
+  creditsUsed?: number
   rawPayload: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   customer?: Prisma.CustomerCreateNestedOneWithoutConversationLogsInput
@@ -645,6 +674,7 @@ export type ConversationLogUncheckedCreateWithoutAgentInput = {
   durationSecs?: number | null
   startTime?: Date | string | null
   status?: string | null
+  creditsUsed?: number
   rawPayload: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
 }
@@ -690,6 +720,7 @@ export type ConversationLogScalarWhereInput = {
   durationSecs?: Prisma.IntNullableFilter<"ConversationLog"> | number | null
   startTime?: Prisma.DateTimeNullableFilter<"ConversationLog"> | Date | string | null
   status?: Prisma.StringNullableFilter<"ConversationLog"> | string | null
+  creditsUsed?: Prisma.IntFilter<"ConversationLog"> | number
   rawPayload?: Prisma.JsonFilter<"ConversationLog">
   createdAt?: Prisma.DateTimeFilter<"ConversationLog"> | Date | string
 }
@@ -704,6 +735,7 @@ export type ConversationLogCreateWithoutCustomerInput = {
   durationSecs?: number | null
   startTime?: Date | string | null
   status?: string | null
+  creditsUsed?: number
   rawPayload: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   agent?: Prisma.AgentCreateNestedOneWithoutConversationLogsInput
@@ -720,6 +752,7 @@ export type ConversationLogUncheckedCreateWithoutCustomerInput = {
   durationSecs?: number | null
   startTime?: Date | string | null
   status?: string | null
+  creditsUsed?: number
   rawPayload: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
 }
@@ -761,6 +794,7 @@ export type ConversationLogCreateManyAgentInput = {
   durationSecs?: number | null
   startTime?: Date | string | null
   status?: string | null
+  creditsUsed?: number
   rawPayload: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
 }
@@ -775,6 +809,7 @@ export type ConversationLogUpdateWithoutAgentInput = {
   durationSecs?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   startTime?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  creditsUsed?: Prisma.IntFieldUpdateOperationsInput | number
   rawPayload?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   customer?: Prisma.CustomerUpdateOneWithoutConversationLogsNestedInput
@@ -791,6 +826,7 @@ export type ConversationLogUncheckedUpdateWithoutAgentInput = {
   durationSecs?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   startTime?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  creditsUsed?: Prisma.IntFieldUpdateOperationsInput | number
   rawPayload?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -806,6 +842,7 @@ export type ConversationLogUncheckedUpdateManyWithoutAgentInput = {
   durationSecs?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   startTime?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  creditsUsed?: Prisma.IntFieldUpdateOperationsInput | number
   rawPayload?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -821,6 +858,7 @@ export type ConversationLogCreateManyCustomerInput = {
   durationSecs?: number | null
   startTime?: Date | string | null
   status?: string | null
+  creditsUsed?: number
   rawPayload: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
 }
@@ -835,6 +873,7 @@ export type ConversationLogUpdateWithoutCustomerInput = {
   durationSecs?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   startTime?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  creditsUsed?: Prisma.IntFieldUpdateOperationsInput | number
   rawPayload?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   agent?: Prisma.AgentUpdateOneWithoutConversationLogsNestedInput
@@ -851,6 +890,7 @@ export type ConversationLogUncheckedUpdateWithoutCustomerInput = {
   durationSecs?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   startTime?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  creditsUsed?: Prisma.IntFieldUpdateOperationsInput | number
   rawPayload?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -866,6 +906,7 @@ export type ConversationLogUncheckedUpdateManyWithoutCustomerInput = {
   durationSecs?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   startTime?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  creditsUsed?: Prisma.IntFieldUpdateOperationsInput | number
   rawPayload?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -884,6 +925,7 @@ export type ConversationLogSelect<ExtArgs extends runtime.Types.Extensions.Inter
   durationSecs?: boolean
   startTime?: boolean
   status?: boolean
+  creditsUsed?: boolean
   rawPayload?: boolean
   createdAt?: boolean
   agent?: boolean | Prisma.ConversationLog$agentArgs<ExtArgs>
@@ -902,6 +944,7 @@ export type ConversationLogSelectCreateManyAndReturn<ExtArgs extends runtime.Typ
   durationSecs?: boolean
   startTime?: boolean
   status?: boolean
+  creditsUsed?: boolean
   rawPayload?: boolean
   createdAt?: boolean
   agent?: boolean | Prisma.ConversationLog$agentArgs<ExtArgs>
@@ -920,6 +963,7 @@ export type ConversationLogSelectUpdateManyAndReturn<ExtArgs extends runtime.Typ
   durationSecs?: boolean
   startTime?: boolean
   status?: boolean
+  creditsUsed?: boolean
   rawPayload?: boolean
   createdAt?: boolean
   agent?: boolean | Prisma.ConversationLog$agentArgs<ExtArgs>
@@ -938,11 +982,12 @@ export type ConversationLogSelectScalar = {
   durationSecs?: boolean
   startTime?: boolean
   status?: boolean
+  creditsUsed?: boolean
   rawPayload?: boolean
   createdAt?: boolean
 }
 
-export type ConversationLogOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "conversationId" | "elevenlabsAgentId" | "agentId" | "customerId" | "phoneNumber" | "transcript" | "summary" | "durationSecs" | "startTime" | "status" | "rawPayload" | "createdAt", ExtArgs["result"]["conversationLog"]>
+export type ConversationLogOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "conversationId" | "elevenlabsAgentId" | "agentId" | "customerId" | "phoneNumber" | "transcript" | "summary" | "durationSecs" | "startTime" | "status" | "creditsUsed" | "rawPayload" | "createdAt", ExtArgs["result"]["conversationLog"]>
 export type ConversationLogInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   agent?: boolean | Prisma.ConversationLog$agentArgs<ExtArgs>
   customer?: boolean | Prisma.ConversationLog$customerArgs<ExtArgs>
@@ -974,6 +1019,7 @@ export type $ConversationLogPayload<ExtArgs extends runtime.Types.Extensions.Int
     durationSecs: number | null
     startTime: Date | null
     status: string | null
+    creditsUsed: number
     rawPayload: runtime.JsonValue
     createdAt: Date
   }, ExtArgs["result"]["conversationLog"]>
@@ -1412,6 +1458,7 @@ export interface ConversationLogFieldRefs {
   readonly durationSecs: Prisma.FieldRef<"ConversationLog", 'Int'>
   readonly startTime: Prisma.FieldRef<"ConversationLog", 'DateTime'>
   readonly status: Prisma.FieldRef<"ConversationLog", 'String'>
+  readonly creditsUsed: Prisma.FieldRef<"ConversationLog", 'Int'>
   readonly rawPayload: Prisma.FieldRef<"ConversationLog", 'Json'>
   readonly createdAt: Prisma.FieldRef<"ConversationLog", 'DateTime'>
 }

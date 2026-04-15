@@ -57,3 +57,8 @@ export type NewsletterSubscriber = Prisma.NewsletterSubscriberModel
  * 
  */
 export type ConversationLog = Prisma.ConversationLogModel
+/**
+ * Model PaymentRequest
+ * 
+ */
+export type PaymentRequest = Prisma.PaymentRequestModel

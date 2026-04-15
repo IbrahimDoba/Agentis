@@ -51,13 +51,16 @@ function extractPhoneNumber(payload: Record<string, unknown>): string | null {
   return null
 }
 
-// Build a new running summary by combining the existing one with this session's transcript
+// Build a new running summary and extract customer name from the conversation
 async function buildUpdatedSummary(
   existingSummary: string | null,
+  existingName: string | null,
   transcript: { role: string; message: string }[],
   sessionSummary: string | undefined
-): Promise<string> {
-  if (transcript.length === 0 && !sessionSummary) return existingSummary ?? ""
+): Promise<{ summary: string; name: string | null }> {
+  if (transcript.length === 0 && !sessionSummary) {
+    return { summary: existingSummary ?? "", name: existingName }
+  }
 
   const sessionText = sessionSummary
     ?? transcript.map((m) => `${m.role === "user" ? "Customer" : "Agent"}: ${m.message}`).join("\n")
@@ -71,8 +74,14 @@ ${existingSummary}
 New conversation that just ended:
 ${sessionText}
 
+Respond with JSON only, no markdown. Format:
+{"summary": "...", "name": "first name if mentioned, or null"}
+
 Update the summary to include the new conversation. Keep it to 4–6 sentences max. Focus on: who the customer is, what they've asked about, what was resolved, any personal details or preferences mentioned, and their purchase/order history.`
-    : `Summarise this customer conversation in 3–4 sentences. Focus on: what the customer wanted, what was resolved, and any personal details or preferences mentioned.
+    : `Summarise this customer conversation. Respond with JSON only, no markdown. Format:
+{"summary": "...", "name": "first name if mentioned, or null"}
+
+Summary should be 3–4 sentences focusing on: what the customer wanted, what was resolved, and any personal details or preferences mentioned.
 
 Conversation:
 ${sessionText}`
@@ -81,10 +90,19 @@ ${sessionText}`
     model: "gpt-4o-mini",
     temperature: 0.2,
     messages: [{ role: "user", content: prompt }],
-    max_tokens: 300,
+    max_tokens: 400,
+    response_format: { type: "json_object" },
   })
 
-  return completion.choices[0]?.message?.content?.trim() ?? existingSummary ?? ""
+  try {
+    const parsed = JSON.parse(completion.choices[0]?.message?.content ?? "{}")
+    return {
+      summary: parsed.summary?.trim() || existingSummary || "",
+      name: parsed.name && parsed.name !== "null" ? parsed.name.trim() : existingName,
+    }
+  } catch {
+    return { summary: existingSummary ?? "", name: existingName }
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -143,6 +161,7 @@ export async function POST(req: NextRequest) {
   const durationSecs = (metadata?.call_duration_secs ?? payload.call_duration_secs) as number | undefined
   const startTimeUnix = (metadata?.start_time_unix_secs ?? payload.start_time_unix_secs) as number | undefined
   const status = payload.status as string | undefined
+  const creditsUsed = typeof metadata?.cost === "number" ? metadata.cost : 0
 
   console.log(`[post-call] phone=${phoneNumber}, transcript_turns=${transcript.length}, summary=${summary ? "yes" : "no"}`)
 
@@ -158,19 +177,20 @@ export async function POST(req: NextRequest) {
   if (phoneNumber) {
     const existing = await db.customer.findUnique({
       where: { phoneNumber },
-      select: { id: true, conversationSummary: true },
+      select: { id: true, name: true, conversationSummary: true },
     })
 
     console.log(`[post-call] Existing customer: ${existing?.id ?? "new customer"}`)
 
-    // Build updated running summary
-    const updatedSummary = await buildUpdatedSummary(
+    // Build updated running summary and extract name
+    const { summary: updatedSummary, name: extractedName } = await buildUpdatedSummary(
       existing?.conversationSummary ?? null,
+      existing?.name ?? null,
       transcript,
       summary
     ).catch((err) => {
       console.error("[post-call] ❌ Summary generation failed:", err)
-      return existing?.conversationSummary ?? null
+      return { summary: existing?.conversationSummary ?? null, name: existing?.name ?? null }
     })
 
     const customer = await db.customer.upsert({
@@ -178,11 +198,13 @@ export async function POST(req: NextRequest) {
       create: {
         phoneNumber,
         agentId: agent?.id ?? null,
-        conversationSummary: updatedSummary ?? null,
+        name: extractedName ?? null,
+        conversationSummary: updatedSummary || null,
         lastSeen: new Date(),
       },
       update: {
-        conversationSummary: updatedSummary ?? undefined,
+        ...(extractedName ? { name: extractedName } : {}),
+        conversationSummary: updatedSummary || undefined,
         lastSeen: new Date(),
       },
     })
@@ -204,6 +226,7 @@ export async function POST(req: NextRequest) {
       durationSecs: durationSecs ?? null,
       startTime: startTimeUnix ? new Date(startTimeUnix * 1000) : null,
       status: status ?? null,
+      creditsUsed,
       rawPayload: payload,
     },
     update: {
@@ -213,10 +236,12 @@ export async function POST(req: NextRequest) {
       summary: summary ?? null,
       durationSecs: durationSecs ?? null,
       status: status ?? null,
+      creditsUsed,
       rawPayload: payload,
     },
   })
 
   console.log(`[post-call] ✅ ConversationLog saved for ${conversationId}`)
+
   return NextResponse.json({ received: true })
 }

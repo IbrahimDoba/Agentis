@@ -42,6 +42,8 @@ export type AgentMinAggregateOutputType = {
   whatsappPhoneNumber: string | null
   qrCodeUrl: string | null
   elevenlabsAgentId: string | null
+  whatsappPhoneNumberId: string | null
+  messagingEnabled: boolean | null
   category: string | null
   address: string | null
   status: $Enums.AgentStatus | null
@@ -67,6 +69,8 @@ export type AgentMaxAggregateOutputType = {
   whatsappPhoneNumber: string | null
   qrCodeUrl: string | null
   elevenlabsAgentId: string | null
+  whatsappPhoneNumberId: string | null
+  messagingEnabled: boolean | null
   category: string | null
   address: string | null
   status: $Enums.AgentStatus | null
@@ -92,6 +96,8 @@ export type AgentCountAggregateOutputType = {
   whatsappPhoneNumber: number
   qrCodeUrl: number
   elevenlabsAgentId: number
+  whatsappPhoneNumberId: number
+  messagingEnabled: number
   category: number
   address: number
   productsData: number
@@ -121,6 +127,8 @@ export type AgentMinAggregateInputType = {
   whatsappPhoneNumber?: true
   qrCodeUrl?: true
   elevenlabsAgentId?: true
+  whatsappPhoneNumberId?: true
+  messagingEnabled?: true
   category?: true
   address?: true
   status?: true
@@ -146,6 +154,8 @@ export type AgentMaxAggregateInputType = {
   whatsappPhoneNumber?: true
   qrCodeUrl?: true
   elevenlabsAgentId?: true
+  whatsappPhoneNumberId?: true
+  messagingEnabled?: true
   category?: true
   address?: true
   status?: true
@@ -171,6 +181,8 @@ export type AgentCountAggregateInputType = {
   whatsappPhoneNumber?: true
   qrCodeUrl?: true
   elevenlabsAgentId?: true
+  whatsappPhoneNumberId?: true
+  messagingEnabled?: true
   category?: true
   address?: true
   productsData?: true
@@ -271,6 +283,8 @@ export type AgentGroupByOutputType = {
   whatsappPhoneNumber: string | null
   qrCodeUrl: string | null
   elevenlabsAgentId: string | null
+  whatsappPhoneNumberId: string | null
+  messagingEnabled: boolean
   category: string | null
   address: string | null
   productsData: runtime.JsonValue | null
@@ -319,6 +333,8 @@ export type AgentWhereInput = {
   whatsappPhoneNumber?: Prisma.StringNullableFilter<"Agent"> | string | null
   qrCodeUrl?: Prisma.StringNullableFilter<"Agent"> | string | null
   elevenlabsAgentId?: Prisma.StringNullableFilter<"Agent"> | string | null
+  whatsappPhoneNumberId?: Prisma.StringNullableFilter<"Agent"> | string | null
+  messagingEnabled?: Prisma.BoolFilter<"Agent"> | boolean
   category?: Prisma.StringNullableFilter<"Agent"> | string | null
   address?: Prisma.StringNullableFilter<"Agent"> | string | null
   productsData?: Prisma.JsonNullableFilter<"Agent">
@@ -350,6 +366,8 @@ export type AgentOrderByWithRelationInput = {
   whatsappPhoneNumber?: Prisma.SortOrderInput | Prisma.SortOrder
   qrCodeUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   elevenlabsAgentId?: Prisma.SortOrderInput | Prisma.SortOrder
+  whatsappPhoneNumberId?: Prisma.SortOrderInput | Prisma.SortOrder
+  messagingEnabled?: Prisma.SortOrder
   category?: Prisma.SortOrderInput | Prisma.SortOrder
   address?: Prisma.SortOrderInput | Prisma.SortOrder
   productsData?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -384,6 +402,8 @@ export type AgentWhereUniqueInput = Prisma.AtLeast<{
   whatsappPhoneNumber?: Prisma.StringNullableFilter<"Agent"> | string | null
   qrCodeUrl?: Prisma.StringNullableFilter<"Agent"> | string | null
   elevenlabsAgentId?: Prisma.StringNullableFilter<"Agent"> | string | null
+  whatsappPhoneNumberId?: Prisma.StringNullableFilter<"Agent"> | string | null
+  messagingEnabled?: Prisma.BoolFilter<"Agent"> | boolean
   category?: Prisma.StringNullableFilter<"Agent"> | string | null
   address?: Prisma.StringNullableFilter<"Agent"> | string | null
   productsData?: Prisma.JsonNullableFilter<"Agent">
@@ -415,6 +435,8 @@ export type AgentOrderByWithAggregationInput = {
   whatsappPhoneNumber?: Prisma.SortOrderInput | Prisma.SortOrder
   qrCodeUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   elevenlabsAgentId?: Prisma.SortOrderInput | Prisma.SortOrder
+  whatsappPhoneNumberId?: Prisma.SortOrderInput | Prisma.SortOrder
+  messagingEnabled?: Prisma.SortOrder
   category?: Prisma.SortOrderInput | Prisma.SortOrder
   address?: Prisma.SortOrderInput | Prisma.SortOrder
   productsData?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -448,6 +470,8 @@ export type AgentScalarWhereWithAggregatesInput = {
   whatsappPhoneNumber?: Prisma.StringNullableWithAggregatesFilter<"Agent"> | string | null
   qrCodeUrl?: Prisma.StringNullableWithAggregatesFilter<"Agent"> | string | null
   elevenlabsAgentId?: Prisma.StringNullableWithAggregatesFilter<"Agent"> | string | null
+  whatsappPhoneNumberId?: Prisma.StringNullableWithAggregatesFilter<"Agent"> | string | null
+  messagingEnabled?: Prisma.BoolWithAggregatesFilter<"Agent"> | boolean
   category?: Prisma.StringNullableWithAggregatesFilter<"Agent"> | string | null
   address?: Prisma.StringNullableWithAggregatesFilter<"Agent"> | string | null
   productsData?: Prisma.JsonNullableWithAggregatesFilter<"Agent">
@@ -474,6 +498,8 @@ export type AgentCreateInput = {
   whatsappPhoneNumber?: string | null
   qrCodeUrl?: string | null
   elevenlabsAgentId?: string | null
+  whatsappPhoneNumberId?: string | null
+  messagingEnabled?: boolean
   category?: string | null
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -505,6 +531,8 @@ export type AgentUncheckedCreateInput = {
   whatsappPhoneNumber?: string | null
   qrCodeUrl?: string | null
   elevenlabsAgentId?: string | null
+  whatsappPhoneNumberId?: string | null
+  messagingEnabled?: boolean
   category?: string | null
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -534,6 +562,8 @@ export type AgentUpdateInput = {
   whatsappPhoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   qrCodeUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   elevenlabsAgentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappPhoneNumberId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messagingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -565,6 +595,8 @@ export type AgentUncheckedUpdateInput = {
   whatsappPhoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   qrCodeUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   elevenlabsAgentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappPhoneNumberId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messagingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -595,6 +627,8 @@ export type AgentCreateManyInput = {
   whatsappPhoneNumber?: string | null
   qrCodeUrl?: string | null
   elevenlabsAgentId?: string | null
+  whatsappPhoneNumberId?: string | null
+  messagingEnabled?: boolean
   category?: string | null
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -621,6 +655,8 @@ export type AgentUpdateManyMutationInput = {
   whatsappPhoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   qrCodeUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   elevenlabsAgentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappPhoneNumberId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messagingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -648,6 +684,8 @@ export type AgentUncheckedUpdateManyInput = {
   whatsappPhoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   qrCodeUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   elevenlabsAgentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappPhoneNumberId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messagingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -685,6 +723,8 @@ export type AgentCountOrderByAggregateInput = {
   whatsappPhoneNumber?: Prisma.SortOrder
   qrCodeUrl?: Prisma.SortOrder
   elevenlabsAgentId?: Prisma.SortOrder
+  whatsappPhoneNumberId?: Prisma.SortOrder
+  messagingEnabled?: Prisma.SortOrder
   category?: Prisma.SortOrder
   address?: Prisma.SortOrder
   productsData?: Prisma.SortOrder
@@ -712,6 +752,8 @@ export type AgentMaxOrderByAggregateInput = {
   whatsappPhoneNumber?: Prisma.SortOrder
   qrCodeUrl?: Prisma.SortOrder
   elevenlabsAgentId?: Prisma.SortOrder
+  whatsappPhoneNumberId?: Prisma.SortOrder
+  messagingEnabled?: Prisma.SortOrder
   category?: Prisma.SortOrder
   address?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -737,6 +779,8 @@ export type AgentMinOrderByAggregateInput = {
   whatsappPhoneNumber?: Prisma.SortOrder
   qrCodeUrl?: Prisma.SortOrder
   elevenlabsAgentId?: Prisma.SortOrder
+  whatsappPhoneNumberId?: Prisma.SortOrder
+  messagingEnabled?: Prisma.SortOrder
   category?: Prisma.SortOrder
   address?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -863,6 +907,8 @@ export type AgentCreateWithoutUserInput = {
   whatsappPhoneNumber?: string | null
   qrCodeUrl?: string | null
   elevenlabsAgentId?: string | null
+  whatsappPhoneNumberId?: string | null
+  messagingEnabled?: boolean
   category?: string | null
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -892,6 +938,8 @@ export type AgentUncheckedCreateWithoutUserInput = {
   whatsappPhoneNumber?: string | null
   qrCodeUrl?: string | null
   elevenlabsAgentId?: string | null
+  whatsappPhoneNumberId?: string | null
+  messagingEnabled?: boolean
   category?: string | null
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -951,6 +999,8 @@ export type AgentScalarWhereInput = {
   whatsappPhoneNumber?: Prisma.StringNullableFilter<"Agent"> | string | null
   qrCodeUrl?: Prisma.StringNullableFilter<"Agent"> | string | null
   elevenlabsAgentId?: Prisma.StringNullableFilter<"Agent"> | string | null
+  whatsappPhoneNumberId?: Prisma.StringNullableFilter<"Agent"> | string | null
+  messagingEnabled?: Prisma.BoolFilter<"Agent"> | boolean
   category?: Prisma.StringNullableFilter<"Agent"> | string | null
   address?: Prisma.StringNullableFilter<"Agent"> | string | null
   productsData?: Prisma.JsonNullableFilter<"Agent">
@@ -977,6 +1027,8 @@ export type AgentCreateWithoutLeadsInput = {
   whatsappPhoneNumber?: string | null
   qrCodeUrl?: string | null
   elevenlabsAgentId?: string | null
+  whatsappPhoneNumberId?: string | null
+  messagingEnabled?: boolean
   category?: string | null
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1007,6 +1059,8 @@ export type AgentUncheckedCreateWithoutLeadsInput = {
   whatsappPhoneNumber?: string | null
   qrCodeUrl?: string | null
   elevenlabsAgentId?: string | null
+  whatsappPhoneNumberId?: string | null
+  messagingEnabled?: boolean
   category?: string | null
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1051,6 +1105,8 @@ export type AgentUpdateWithoutLeadsInput = {
   whatsappPhoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   qrCodeUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   elevenlabsAgentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappPhoneNumberId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messagingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1081,6 +1137,8 @@ export type AgentUncheckedUpdateWithoutLeadsInput = {
   whatsappPhoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   qrCodeUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   elevenlabsAgentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappPhoneNumberId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messagingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1109,6 +1167,8 @@ export type AgentCreateWithoutCustomersInput = {
   whatsappPhoneNumber?: string | null
   qrCodeUrl?: string | null
   elevenlabsAgentId?: string | null
+  whatsappPhoneNumberId?: string | null
+  messagingEnabled?: boolean
   category?: string | null
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1139,6 +1199,8 @@ export type AgentUncheckedCreateWithoutCustomersInput = {
   whatsappPhoneNumber?: string | null
   qrCodeUrl?: string | null
   elevenlabsAgentId?: string | null
+  whatsappPhoneNumberId?: string | null
+  messagingEnabled?: boolean
   category?: string | null
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1183,6 +1245,8 @@ export type AgentUpdateWithoutCustomersInput = {
   whatsappPhoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   qrCodeUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   elevenlabsAgentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappPhoneNumberId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messagingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1213,6 +1277,8 @@ export type AgentUncheckedUpdateWithoutCustomersInput = {
   whatsappPhoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   qrCodeUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   elevenlabsAgentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappPhoneNumberId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messagingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1241,6 +1307,8 @@ export type AgentCreateWithoutConversationLogsInput = {
   whatsappPhoneNumber?: string | null
   qrCodeUrl?: string | null
   elevenlabsAgentId?: string | null
+  whatsappPhoneNumberId?: string | null
+  messagingEnabled?: boolean
   category?: string | null
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1271,6 +1339,8 @@ export type AgentUncheckedCreateWithoutConversationLogsInput = {
   whatsappPhoneNumber?: string | null
   qrCodeUrl?: string | null
   elevenlabsAgentId?: string | null
+  whatsappPhoneNumberId?: string | null
+  messagingEnabled?: boolean
   category?: string | null
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1315,6 +1385,8 @@ export type AgentUpdateWithoutConversationLogsInput = {
   whatsappPhoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   qrCodeUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   elevenlabsAgentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappPhoneNumberId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messagingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1345,6 +1417,8 @@ export type AgentUncheckedUpdateWithoutConversationLogsInput = {
   whatsappPhoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   qrCodeUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   elevenlabsAgentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappPhoneNumberId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messagingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1373,6 +1447,8 @@ export type AgentCreateManyUserInput = {
   whatsappPhoneNumber?: string | null
   qrCodeUrl?: string | null
   elevenlabsAgentId?: string | null
+  whatsappPhoneNumberId?: string | null
+  messagingEnabled?: boolean
   category?: string | null
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1399,6 +1475,8 @@ export type AgentUpdateWithoutUserInput = {
   whatsappPhoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   qrCodeUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   elevenlabsAgentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappPhoneNumberId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messagingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1428,6 +1506,8 @@ export type AgentUncheckedUpdateWithoutUserInput = {
   whatsappPhoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   qrCodeUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   elevenlabsAgentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappPhoneNumberId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messagingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1457,6 +1537,8 @@ export type AgentUncheckedUpdateManyWithoutUserInput = {
   whatsappPhoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   qrCodeUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   elevenlabsAgentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappPhoneNumberId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messagingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1533,6 +1615,8 @@ export type AgentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   whatsappPhoneNumber?: boolean
   qrCodeUrl?: boolean
   elevenlabsAgentId?: boolean
+  whatsappPhoneNumberId?: boolean
+  messagingEnabled?: boolean
   category?: boolean
   address?: boolean
   productsData?: boolean
@@ -1565,6 +1649,8 @@ export type AgentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   whatsappPhoneNumber?: boolean
   qrCodeUrl?: boolean
   elevenlabsAgentId?: boolean
+  whatsappPhoneNumberId?: boolean
+  messagingEnabled?: boolean
   category?: boolean
   address?: boolean
   productsData?: boolean
@@ -1593,6 +1679,8 @@ export type AgentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   whatsappPhoneNumber?: boolean
   qrCodeUrl?: boolean
   elevenlabsAgentId?: boolean
+  whatsappPhoneNumberId?: boolean
+  messagingEnabled?: boolean
   category?: boolean
   address?: boolean
   productsData?: boolean
@@ -1621,6 +1709,8 @@ export type AgentSelectScalar = {
   whatsappPhoneNumber?: boolean
   qrCodeUrl?: boolean
   elevenlabsAgentId?: boolean
+  whatsappPhoneNumberId?: boolean
+  messagingEnabled?: boolean
   category?: boolean
   address?: boolean
   productsData?: boolean
@@ -1630,7 +1720,7 @@ export type AgentSelectScalar = {
   updatedAt?: boolean
 }
 
-export type AgentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "businessName" | "businessDescription" | "productsServices" | "faqs" | "operatingHours" | "contactEmail" | "contactPhone" | "websiteLinks" | "responseGuidelines" | "profileImageUrl" | "whatsappBusinessName" | "whatsappAgentLink" | "whatsappPhoneNumber" | "qrCodeUrl" | "elevenlabsAgentId" | "category" | "address" | "productsData" | "toolsData" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["agent"]>
+export type AgentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "businessName" | "businessDescription" | "productsServices" | "faqs" | "operatingHours" | "contactEmail" | "contactPhone" | "websiteLinks" | "responseGuidelines" | "profileImageUrl" | "whatsappBusinessName" | "whatsappAgentLink" | "whatsappPhoneNumber" | "qrCodeUrl" | "elevenlabsAgentId" | "whatsappPhoneNumberId" | "messagingEnabled" | "category" | "address" | "productsData" | "toolsData" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["agent"]>
 export type AgentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   leads?: boolean | Prisma.Agent$leadsArgs<ExtArgs>
@@ -1671,6 +1761,8 @@ export type $AgentPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     whatsappPhoneNumber: string | null
     qrCodeUrl: string | null
     elevenlabsAgentId: string | null
+    whatsappPhoneNumberId: string | null
+    messagingEnabled: boolean
     category: string | null
     address: string | null
     productsData: runtime.JsonValue | null
@@ -2122,6 +2214,8 @@ export interface AgentFieldRefs {
   readonly whatsappPhoneNumber: Prisma.FieldRef<"Agent", 'String'>
   readonly qrCodeUrl: Prisma.FieldRef<"Agent", 'String'>
   readonly elevenlabsAgentId: Prisma.FieldRef<"Agent", 'String'>
+  readonly whatsappPhoneNumberId: Prisma.FieldRef<"Agent", 'String'>
+  readonly messagingEnabled: Prisma.FieldRef<"Agent", 'Boolean'>
   readonly category: Prisma.FieldRef<"Agent", 'String'>
   readonly address: Prisma.FieldRef<"Agent", 'String'>
   readonly productsData: Prisma.FieldRef<"Agent", 'Json'>

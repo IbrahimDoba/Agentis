@@ -31,6 +31,7 @@ export default async function AdminUsersPage() {
     businessWebsite: u.businessWebsite ?? null,
     maxAgents: u.maxAgents ?? 1,
     plan: u.plan ?? "free",
+    subscriptionExpiresAt: u.subscriptionExpiresAt ? u.subscriptionExpiresAt.toISOString() : null,
     onboardingCompleted: u.onboardingCompleted ?? false,
     _count: u._count,
   }))

@@ -270,6 +270,48 @@ export async function addCustomerHistoryTool(elevenlabsAgentId: string): Promise
   console.log(`[addCustomerHistoryTool] ✅ Tool added to agent ${elevenlabsAgentId}`)
 }
 
+export async function listWhatsAppAccounts(): Promise<{ phone_number_id: string; assigned_agent_id: string | null; enable_messaging: boolean; [key: string]: unknown }[]> {
+  const res = await fetch(`${BASE_URL}/convai/whatsapp-accounts`, {
+    headers: headers(),
+  })
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`ElevenLabs listWhatsAppAccounts failed: ${text}`)
+  }
+  const data = await res.json()
+  return data.items ?? data.accounts ?? data ?? []
+}
+
+export async function setWhatsAppAccountAgent(phoneNumberId: string, agentId: string | null) {
+  const res = await fetch(`${BASE_URL}/convai/whatsapp-accounts/${phoneNumberId}`, {
+    method: "PATCH",
+    headers: headers(),
+    body: JSON.stringify({ assigned_agent_id: agentId }),
+  })
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`ElevenLabs setWhatsAppAccountAgent failed: ${text}`)
+  }
+  return res.json()
+}
+
+export async function setAgentMessaging(elevenlabsAgentId: string, enabled: boolean) {
+  const res = await fetch(`${BASE_URL}/convai/agents/${elevenlabsAgentId}`, {
+    method: "PATCH",
+    headers: headers(),
+    body: JSON.stringify({
+      platform_settings: {
+        whatsapp: { enable_messaging: enabled },
+      },
+    }),
+  })
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(`ElevenLabs setAgentMessaging failed: ${text}`)
+  }
+  return res.json()
+}
+
 export async function updateAgentPrompt(elevenlabsAgentId: string, systemPrompt: string) {
   const res = await fetch(`${BASE_URL}/convai/agents/${elevenlabsAgentId}`, {
     method: "PATCH",

@@ -246,6 +246,94 @@
   transform: scale(1.15);
 }
 
+/* ── Usage mini widget ──────────────────────────────────── */
+.usageMini {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 0.75rem;
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  text-decoration: none;
+  margin-bottom: 0.25rem;
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.usageMini:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent);
+}
+
+.usageMiniHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.usageMiniPlanDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dotOk      { background: var(--accent); box-shadow: 0 0 5px rgba(0, 220, 130, 0.5); }
+.dotWarning { background: #f59e0b; box-shadow: 0 0 5px rgba(245, 158, 11, 0.5); }
+.dotDanger  { background: #ef4444; box-shadow: 0 0 5px rgba(239, 68, 68, 0.5); }
+
+.usageMiniPlan {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-secondary);
+  flex: 1;
+}
+
+.usageMiniPct {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.textWarning { color: #f59e0b; }
+.textDanger  { color: #ef4444; }
+
+.usageMiniTrack {
+  height: 5px;
+  border-radius: 100px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.usageMiniFill {
+  height: 100%;
+  border-radius: 100px;
+  background: var(--accent);
+  transition: width 0.4s ease;
+}
+
+.fillWarning { background: #f59e0b; }
+.fillDanger  { background: #ef4444; }
+
+.usageMiniFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.usageMiniUsed {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.usageMiniRem {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
 .userCard {
   padding: 0.75rem;
   border-radius: var(--radius-md);
