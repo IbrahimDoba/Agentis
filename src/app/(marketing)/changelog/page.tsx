@@ -42,36 +42,6 @@ const updates = [
   },
   {
     date: "15 April 2026",
-    tag: "New",
-    tagColor: "green",
-    title: "Admin Payments Panel",
-    description:
-      "A dedicated payments page in the admin panel shows all incoming subscription upgrade requests. Admins can filter by status and approve requests with a single click — automatically upgrading the user's plan.",
-    bullets: [
-      "New /admin/payments page listing all payment requests",
-      "Filter tabs: All, Pending, Paid, Cancelled",
-      "Shows user info, current plan, requested plan, amount, reference, and date",
-      "Approve button upgrades the user's plan and sets subscription expiry to +1 month",
-      "Status badges: amber for Pending, green for Paid, grey for Cancelled",
-    ],
-  },
-  {
-    date: "15 April 2026",
-    tag: "Improvement",
-    tagColor: "blue",
-    title: "Admin User Modal — 3 Tabs",
-    description:
-      "The admin user detail modal has been redesigned into three focused tabs: Account, Subscription, and Agents — making it much easier to manage users without scrolling through a wall of fields.",
-    bullets: [
-      "Account tab: personal info, business details, role, status, and onboarding state",
-      "Subscription tab: plan selector, expiry date with quick-renew buttons (+1mo/+3mo/+1yr), credit usage stats and progress bar",
-      "Agents tab: per-agent cards showing business name, WhatsApp number, status badge, and a messaging on/off toggle",
-      "Messaging toggle physically links/unlinks the agent from WhatsApp",
-      "Credit stats show monthly used, limit, percentage, and all-time total",
-    ],
-  },
-  {
-    date: "15 April 2026",
     tag: "Improvement",
     tagColor: "blue",
     title: "Sidebar Usage Widget",
@@ -102,14 +72,14 @@ const updates = [
     date: "15 April 2026",
     tag: "Improvement",
     tagColor: "blue",
-    title: "Customer Memory — Name Recognition",
+    title: "Customer Memory Improvements",
     description:
-      "The AI agent now remembers returning customers by name. After each conversation, the customer's first name is extracted automatically and stored — so next time they call, the agent greets them personally.",
+      "The AI agent now remembers returning customers more reliably — recognising them by name and building a richer picture of past interactions over time.",
     bullets: [
-      "Customer name extracted from conversation transcript using AI",
-      "Name stored on the customer record and injected into the next conversation",
-      "Fixed a bug where returning customers were treated as new if their summary was an empty string",
-      "Memory context now includes name, past topics, and unresolved items",
+      "Agent learns and remembers the customer's first name from conversation",
+      "Returning customers are greeted by name on every call",
+      "Memory context includes name, topics discussed, and unresolved items",
+      "Fixed a bug where some returning customers were incorrectly treated as new",
     ],
   },
   {
