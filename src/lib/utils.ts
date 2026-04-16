@@ -80,15 +80,18 @@ export function formatPhoneNumber(raw: string): string {
 export function toE164(raw: string): string | null {
   // Strip JID suffix (e.g. "27791952410:123@s.whatsapp.net" → "27791952410")
   const jidMatch = raw.match(/^(\d+)[:@]/)
-  // Strip everything except digits and leading +
   const cleaned = jidMatch ? jidMatch[1] : raw.replace(/[^\d+]/g, "")
-  // Remove leading + — wa.me links just need bare digits
-  const digits = cleaned.replace(/\D/g, "")
+  let digits = cleaned.replace(/\D/g, "")
 
   if (!digits || digits.length < 7) return null
 
-  // WhatsApp Business always sends full international numbers (no leading 0).
-  // Trust the number as-is — no country-specific transformation needed.
+  // Local format: starts with 0 — strip leading 0 and prepend Nigerian country code.
+  // WhatsApp Business normally sends international format, but numbers stored in local
+  // format (e.g. 08098365700) need this to produce a valid wa.me link.
+  if (digits.startsWith("0")) {
+    digits = "234" + digits.slice(1)
+  }
+
   return digits
 }
 

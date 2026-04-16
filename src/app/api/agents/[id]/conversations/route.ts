@@ -13,7 +13,9 @@ const PAGE_SIZE = 20
 function normalizePhone(raw: string): string | null {
   const jidMatch = raw.match(/^(\d+)[:@]/)
   const cleaned = jidMatch ? jidMatch[1] : raw.replace(/\D/g, "")
-  return cleaned.length >= 7 ? cleaned : null
+  if (cleaned.length < 7) return null
+  if (cleaned.startsWith("0")) return "234" + cleaned.slice(1)
+  return cleaned
 }
 
 /**
@@ -31,7 +33,7 @@ async function syncFromElevenLabs(elevenlabsAgentId: string, dbAgentId: string) 
     const ids = convs.map((c: any) => c.conversation_id).filter(Boolean)
     const existing = await db.conversationLog.findMany({
       where: { conversationId: { in: ids } },
-      select: { conversationId: true, status: true, phoneNumber: true },
+      select: { conversationId: true, status: true, phoneNumber: true, creditsUsed: true },
     })
     const existingIds = new Set(existing.map((e) => e.conversationId))
 
@@ -95,6 +97,51 @@ async function syncFromElevenLabs(elevenlabsAgentId: string, dbAgentId: string) 
       )
     }
 
+    // 3. Auto-patch credits for done conversations that still have 0 credits.
+    //    The list API never includes metadata.cost — only the detail endpoint does.
+    //    Cap at 8 per sync to avoid hammering the ElevenLabs API on every page load.
+    const zeroCreditIds = new Set(
+      existing
+        .filter((e: any) => e.creditsUsed === 0 && e.status === "done")
+        .map((e: any) => e.conversationId)
+    )
+    const needCreditsPatch = convs
+      .filter((c: any) => zeroCreditIds.has(c.conversation_id) && c.status === "done")
+      .slice(0, 8)
+
+    if (needCreditsPatch.length) {
+      await Promise.all(
+        needCreditsPatch.map(async (c: any) => {
+          try {
+            const detail = await getConversation(c.conversation_id)
+            const meta = detail?.metadata as Record<string, any> | undefined
+            const analysis = detail?.analysis as Record<string, any> | undefined
+            const rawCost =
+              meta?.cost ??
+              meta?.credits_used ??
+              meta?.credits ??
+              analysis?.cost ??
+              analysis?.credits_used ??
+              detail?.credits_used ??
+              detail?.cost
+            const credits = typeof rawCost === "number" ? rawCost : (typeof rawCost === "string" ? parseFloat(rawCost) || 0 : 0)
+            // Also grab phone from detail while we have it — never lose a phone number
+            const detailPhone = detail?.user_id ? normalizePhone(detail.user_id as string) : null
+            const patch: Record<string, any> = {}
+            if (credits > 0) patch.creditsUsed = Math.round(credits)
+            if (detailPhone) patch.phoneNumber = detailPhone
+            if (Object.keys(patch).length) {
+              await db.conversationLog.update({
+                where: { conversationId: c.conversation_id },
+                data: patch,
+              })
+            }
+          } catch { /* non-fatal */ }
+        })
+      )
+      console.log(`[sync] ✅ Patched credits for up to ${needCreditsPatch.length} conversations`)
+    }
+
     const toUpsert = [...newConvs, ...staleConvs]
     if (!toUpsert.length) return
 
@@ -135,6 +182,8 @@ async function syncFromElevenLabs(elevenlabsAgentId: string, dbAgentId: string) 
             durationSecs: c.call_duration_secs ?? undefined,
             status: c.status ?? undefined,
             ...(creditsUsed > 0 ? { creditsUsed } : {}),
+            // Persist phone if we have it — never let a known number get lost when rawPayload is overwritten
+            ...(phoneNumber ? { phoneNumber } : {}),
             rawPayload: c,
           },
         })

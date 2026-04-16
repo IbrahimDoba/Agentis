@@ -9,10 +9,12 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 // e.g. "2348012345678:123@s.whatsapp.net" → "2348012345678"
 // e.g. "+234 801 234 5678" → "2348012345678"
 function normalizePhone(raw: string): string | null {
-  // Handle WhatsApp JID: take digits before the first : or @
   const jidMatch = raw.match(/^(\d+)[:@]/)
   const cleaned = jidMatch ? jidMatch[1] : raw.replace(/\D/g, "")
-  return cleaned.length >= 7 ? cleaned : null
+  if (cleaned.length < 7) return null
+  // Convert local format (leading 0) to Nigerian international format
+  if (cleaned.startsWith("0")) return "234" + cleaned.slice(1)
+  return cleaned
 }
 
 // Extract phone number from ElevenLabs conversation payload
