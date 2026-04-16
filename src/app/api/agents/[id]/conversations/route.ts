@@ -109,6 +109,9 @@ async function syncFromElevenLabs(elevenlabsAgentId: string, dbAgentId: string) 
 
         const callTime = c.start_time_unix_secs ? new Date(c.start_time_unix_secs * 1000) : undefined
 
+        const cost = (metadata?.cost ?? metadata?.credits_used) as number | undefined
+        const creditsUsed = typeof cost === "number" ? cost : 0
+
         return db.conversationLog.upsert({
           where: { conversationId: c.conversation_id },
           create: {
@@ -124,12 +127,14 @@ async function syncFromElevenLabs(elevenlabsAgentId: string, dbAgentId: string) 
             // not the time the sync ran.
             ...(callTime ? { createdAt: callTime } : {}),
             status: c.status ?? null,
+            creditsUsed,
             rawPayload: c,
           },
           update: {
             summary: c.transcript_summary ?? undefined,
             durationSecs: c.call_duration_secs ?? undefined,
             status: c.status ?? undefined,
+            ...(creditsUsed > 0 ? { creditsUsed } : {}),
             rawPayload: c,
           },
         })

@@ -197,10 +197,27 @@ export async function POST(req: NextRequest) {
   const durationSecs = (metadata?.call_duration_secs ?? payload.call_duration_secs) as number | undefined
   const startTimeUnix = (metadata?.start_time_unix_secs ?? payload.start_time_unix_secs) as number | undefined
   const status = payload.status as string | undefined
-  const rawCost = metadata?.cost ?? analysis?.credits_used ?? payload.credits_used ?? payload.cost
+  // Search all likely locations ElevenLabs may put cost/credits
+  const rawCost =
+    metadata?.cost ??
+    metadata?.credits_used ??
+    metadata?.credits ??
+    analysis?.cost ??
+    analysis?.credits_used ??
+    analysis?.credits ??
+    payload.credits_used ??
+    payload.cost ??
+    payload.credits
   const creditsUsed = typeof rawCost === "number" ? rawCost : (typeof rawCost === "string" ? parseFloat(rawCost) || 0 : 0)
 
-  console.log(`[post-call] phone=${phoneNumber}, transcript_turns=${transcript.length}, summary=${summary ? "yes" : "no"}`)
+  console.log(`[post-call] phone=${phoneNumber}, transcript_turns=${transcript.length}, summary=${summary ? "yes" : "no"}, creditsUsed=${creditsUsed}`)
+  // Log full metadata and analysis so we can identify the correct cost field
+  if (creditsUsed === 0) {
+    console.log("[post-call] ⚠️ creditsUsed=0 — metadata keys:", Object.keys(metadata ?? {}))
+    console.log("[post-call] ⚠️ metadata values:", JSON.stringify(metadata ?? {}))
+    console.log("[post-call] ⚠️ analysis keys:", Object.keys(analysis ?? {}))
+    console.log("[post-call] ⚠️ payload top-level keys:", Object.keys(payload))
+  }
 
   // Find the matching agent in our DB by ElevenLabs agent ID
   const agent = await db.agent.findFirst({
@@ -272,12 +289,13 @@ export async function POST(req: NextRequest) {
     },
     update: {
       customerId,
-      phoneNumber: phoneNumber ?? null,
+      // Only overwrite phoneNumber if we actually have one — never blank it out
+      ...(phoneNumber ? { phoneNumber } : {}),
       transcript: payload.transcript ?? [],
       summary: summary ?? null,
       durationSecs: durationSecs ?? null,
       status: status ?? null,
-      creditsUsed,
+      ...(creditsUsed > 0 ? { creditsUsed } : {}),
       rawPayload: payload,
     },
   })
