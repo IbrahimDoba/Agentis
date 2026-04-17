@@ -29,30 +29,6 @@
     ]
   },
   {
-    "date": "17 April 2026",
-    "tag": "Fix",
-    "tagColor": "orange",
-    "title": "Phone Number Preserved on Completed Conversations",
-    "description": "Phone numbers were disappearing from conversations once they moved from in-progress to done. This is now fixed — the number is always retained regardless of conversation status.",
-    "bullets": [
-      "Phone number stored separately from the raw conversation payload",
-      "Number no longer lost when ElevenLabs overwrites conversation data on sync",
-      "Also backfilled during the credit auto-patch sync for older conversations"
-    ]
-  },
-  {
-    "date": "17 April 2026",
-    "tag": "Fix",
-    "tagColor": "orange",
-    "title": "WhatsApp Button Works for All Country Codes",
-    "description": "The Send on WhatsApp button was failing for numbers stored in local format (e.g. 080...). It now correctly converts any local Nigerian number to international format before opening WhatsApp.",
-    "bullets": [
-      "Numbers starting with 0 are automatically converted to +234 format",
-      "Fixes 'missing or wrong country code' error from WhatsApp",
-      "Works for both new and existing conversations"
-    ]
-  },
-  {
     "date": "16 April 2026",
     "tag": "New",
     "tagColor": "green",

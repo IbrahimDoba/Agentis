@@ -69,30 +69,41 @@ export function formatPhoneNumber(raw: string): string {
   return digits.replace(/(\d{3})(?=\d)/g, "$1 ").trim()
 }
 
+// Dial codes sorted longest-first so "+234" is matched before "+23" and "+2"
+import countryCodes from "@/data/country-code.json"
+
+const DIAL_CODES: string[] = countryCodes.countries
+  .map((c) => c.dialCode.replace("+", ""))
+  .sort((a, b) => b.length - a.length)
+
 /**
  * Convert any phone number string to E.164 digits (no +) suitable for wa.me links.
+ * Uses country-code.json to detect the dial code prefix instead of assuming any country.
+ *
  * Handles:
- *  - WhatsApp JIDs:   2348012345678:12@s.whatsapp.net → 2348012345678
- *  - International:   +234 801 234 5678 → 2348012345678
- *  - Nigerian local:  08012345678 → 2348012345678
- *  - Already correct: 2348012345678 → 2348012345678
+ *  - WhatsApp JIDs:     2348012345678:12@s.whatsapp.net → 2348012345678
+ *  - International:     +234 801 234 5678 → 2348012345678
+ *  - Already E.164:     2348012345678 → 2348012345678
+ *  - Local 0-prefix:    08012345678 → null (country unknown without context)
  */
 export function toE164(raw: string): string | null {
   // Strip JID suffix (e.g. "27791952410:123@s.whatsapp.net" → "27791952410")
   const jidMatch = raw.match(/^(\d+)[:@]/)
   const cleaned = jidMatch ? jidMatch[1] : raw.replace(/[^\d+]/g, "")
-  let digits = cleaned.replace(/\D/g, "")
+  const digits = cleaned.replace(/\D/g, "")
 
   if (!digits || digits.length < 7) return null
 
-  // Local format: starts with 0 — strip leading 0 and prepend Nigerian country code.
-  // WhatsApp Business normally sends international format, but numbers stored in local
-  // format (e.g. 08098365700) need this to produce a valid wa.me link.
-  if (digits.startsWith("0")) {
-    digits = "234" + digits.slice(1)
+  // If it starts with 0 we can't determine the country without context
+  if (digits.startsWith("0")) return null
+
+  // Check if it already starts with a known dial code (longest match wins)
+  for (const code of DIAL_CODES) {
+    if (digits.startsWith(code)) return digits
   }
 
-  return digits
+  // Doesn't match any known dial code — not a valid international number
+  return null
 }
 
 export function getCallerIdentifier(conv: {
