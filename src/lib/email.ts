@@ -588,3 +588,45 @@ export async function sendNewsletter(data: {
     html,
   })
 }
+
+export async function sendWorkspaceInviteEmail(data: {
+  inviteeEmail: string
+  ownerName: string
+  ownerBusiness: string
+  role: string
+  inviteLink: string
+  isExistingUser: boolean
+}) {
+  const roleLabel = data.role === "ADMIN" ? "Admin" : "Member"
+  const html = baseTemplate(`
+    <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#111111;">You've been invited to join a workspace</h2>
+    <p style="margin:0 0 24px;color:#555555;">
+      <strong>${data.ownerName}</strong> has invited you to join their <strong>${data.ownerBusiness}</strong> workspace on D-Zero AI as a <strong>${roleLabel}</strong>.
+    </p>
+    ${divider()}
+    <p style="margin:20px 0 8px;color:#555555;">As a ${roleLabel}, you'll be able to:</p>
+    <ul style="margin:0 0 24px;padding-left:20px;color:#555555;line-height:1.8;">
+      <li>View all conversations and transcripts</li>
+      <li>Generate and send follow-up messages</li>
+      <li>Manage leads and add notes</li>
+      ${data.role === "ADMIN" ? "<li>Manage team members</li>" : ""}
+    </ul>
+    ${divider()}
+    <p style="margin:20px 0 8px;color:#555555;">
+      ${data.isExistingUser
+        ? "Since you already have a D-Zero AI account, just click below to accept:"
+        : "Click below to accept the invite and create your account — it only takes a moment:"}
+    </p>
+    ${btn("Accept Invite", data.inviteLink)}
+    <p style="margin:24px 0 0;font-size:13px;color:#888888;">
+      This invite link expires in 7 days. If you didn't expect this, you can safely ignore this email.
+    </p>
+  `)
+
+  await resend().emails.send({
+    from: FROM,
+    to: data.inviteeEmail,
+    subject: `${data.ownerName} invited you to ${data.ownerBusiness} on D-Zero AI`,
+    html,
+  })
+}

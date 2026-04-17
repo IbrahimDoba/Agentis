@@ -15,6 +15,7 @@ import {
   GiftIcon,
   CreditCardIcon,
   TagIcon,
+  UsersIcon,
 } from "@heroicons/react/24/outline"
 import { LogoIcon } from "@/components/landing/Logo"
 import styles from "./Sidebar.module.css"
@@ -22,10 +23,13 @@ import { cn } from "@/lib/utils"
 import { useDashboardData } from "@/hooks/useDashboardData"
 import { usePlanStats } from "@/hooks/usePlanStats"
 import { PLAN_LABELS } from "@/lib/plans"
+import { WorkspaceSwitcher } from "./WorkspaceSwitcher"
 
 interface SidebarProps {
   userName: string
   businessName: string
+  currentUserId: string
+  currentWorkspaceId: string | null
   isOpen?: boolean
   onClose?: () => void
   collapsed?: boolean
@@ -43,13 +47,13 @@ const baseNavItems: NavItem[] = [
   { href: "/dashboard/agents", label: "Agents", icon: CpuChipIcon },
   { href: "/dashboard/chats", label: "Conversations", icon: ChatBubbleLeftRightIcon },
   { href: "/dashboard/leads", label: "Leads", icon: FireIcon },
+  { href: "/dashboard/team", label: "Team", icon: UsersIcon },
   { href: "/dashboard/billing", label: "Billing", icon: CreditCardIcon },
-  // { href: "/dashboard/subscription", label: "Subscription", icon: TagIcon },
 ]
 
 const referralNavItem: NavItem = { href: "/dashboard/referrals", label: "Referrals", icon: GiftIcon }
 
-export function Sidebar({ userName, businessName, isOpen, onClose, collapsed, onToggleCollapse }: SidebarProps) {
+export function Sidebar({ userName, businessName, currentUserId, currentWorkspaceId, isOpen, onClose, collapsed, onToggleCollapse }: SidebarProps) {
   const pathname = usePathname()
   const { data } = useDashboardData()
   const { data: stats } = usePlanStats()
@@ -183,6 +187,14 @@ export function Sidebar({ userName, businessName, isOpen, onClose, collapsed, on
             </Link>
           )
         })()}
+
+        {!collapsed && (
+          <WorkspaceSwitcher
+            currentUserId={currentUserId}
+            currentWorkspaceId={currentWorkspaceId}
+            businessName={businessName}
+          />
+        )}
 
         {!collapsed && (
           <div className={styles.userCard}>

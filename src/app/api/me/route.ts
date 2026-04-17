@@ -1,14 +1,17 @@
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { profileUpdateSchema } from "@/lib/validations"
+import { getWorkspaceContext } from "@/lib/workspace"
 import { NextRequest, NextResponse } from "next/server"
 
 export async function GET() {
   const session = await auth()
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
+  const { ownerId, isOwner } = await getWorkspaceContext(session.user.id)
+
   const user = await db.user.findUnique({
-    where: { id: session.user.id },
+    where: { id: ownerId },
     include: { agents: true },
   })
 
@@ -17,6 +20,7 @@ export async function GET() {
   const agent = user.agents[0] ?? null
 
   return NextResponse.json({
+    isOwnWorkspace: isOwner,
     user: {
       id: user.id,
       name: user.name,

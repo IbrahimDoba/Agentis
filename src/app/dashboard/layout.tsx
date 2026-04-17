@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { redirect } from "next/navigation"
+import { cookies } from "next/headers"
 import { DashboardShell } from "@/components/dashboard/DashboardShell"
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -36,10 +37,15 @@ export default async function DashboardLayout({ children }: { children: React.Re
     }
   }
 
+  const cookieStore = await cookies()
+  const currentWorkspaceId = cookieStore.get("dzero_workspace")?.value ?? null
+
   return (
     <DashboardShell
       userName={session.user.name ?? "User"}
       businessName={session.user.businessName ?? ""}
+      currentUserId={session.user.id}
+      currentWorkspaceId={currentWorkspaceId}
     >
       {children}
     </DashboardShell>

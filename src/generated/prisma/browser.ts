@@ -63,6 +63,11 @@ export type NewsletterSubscriber = Prisma.NewsletterSubscriberModel
  */
 export type ConversationLog = Prisma.ConversationLogModel
 /**
+ * Model WorkspaceMember
+ * 
+ */
+export type WorkspaceMember = Prisma.WorkspaceMemberModel
+/**
  * Model PaymentRequest
  * 
  */

@@ -3,6 +3,19 @@
     "date": "16 April 2026",
     "tag": "New",
     "tagColor": "green",
+    "title": "Sign in with Google",
+    "description": "You can now create an account or sign in to D-Zero AI using your Google account — no password required.",
+    "bullets": [
+      "One-click sign in from the login and signup pages",
+      "Existing accounts are automatically linked if the email matches",
+      "New Google sign-ups go through the same approval flow as email sign-ups",
+      "No password needed — Google handles authentication securely"
+    ]
+  },
+  {
+    "date": "16 April 2026",
+    "tag": "New",
+    "tagColor": "green",
     "title": "Personalized Follow-up Generator",
     "description": "Business owners can now generate personalized WhatsApp follow-up messages for any conversation — written in their own voice, referencing exactly what the customer discussed.",
     "bullets": [

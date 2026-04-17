@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
 import type { AgentPublic, UserPublic } from "@/types"
 
-async function fetchDashboardData(): Promise<{ user: UserPublic; agent: AgentPublic | null }> {
+async function fetchDashboardData(): Promise<{ user: UserPublic; agent: AgentPublic | null; isOwnWorkspace: boolean }> {
   const res = await fetch("/api/me")
   if (!res.ok) throw new Error("Failed to load dashboard data")
   return res.json()

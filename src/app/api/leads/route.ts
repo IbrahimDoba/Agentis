@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
+import { getWorkspaceContext } from "@/lib/workspace"
 
 const ELEVENLABS_BASE = "https://api.elevenlabs.io/v1"
 
@@ -39,8 +40,10 @@ export async function GET() {
   const session = await auth()
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
+  const { ownerId } = await getWorkspaceContext(session.user.id)
+
   const leads = await db.lead.findMany({
-    where: { userId: session.user.id },
+    where: { userId: ownerId },
     include: {
       agent: { select: { businessName: true, profileImageUrl: true, elevenlabsAgentId: true } },
     },
@@ -99,6 +102,8 @@ export async function POST(req: NextRequest) {
   const session = await auth()
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
+  const { ownerId } = await getWorkspaceContext(session.user.id)
+
   const body = await req.json()
   const { conversationId, agentId, callerNumber, summary, aiDetected = false } = body
 
@@ -106,15 +111,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "conversationId and agentId are required" }, { status: 400 })
   }
 
-  // Verify agent belongs to user
+  // Verify agent belongs to the active workspace owner
   const agent = await db.agent.findUnique({ where: { id: agentId }, select: { userId: true } })
-  if (!agent || agent.userId !== session.user.id) {
+  if (!agent || agent.userId !== ownerId) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
   // Toggle: if already a lead, remove it
   const existing = await db.lead.findUnique({
-    where: { conversationId_userId: { conversationId, userId: session.user.id } },
+    where: { conversationId_userId: { conversationId, userId: ownerId } },
   })
 
   if (existing) {
@@ -127,7 +132,7 @@ export async function POST(req: NextRequest) {
       id: Math.random().toString(36).slice(2, 12),
       conversationId,
       agentId,
-      userId: session.user.id,
+      userId: ownerId,
       callerNumber: callerNumber ?? null,
       summary: summary ?? null,
       aiDetected,

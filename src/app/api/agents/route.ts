@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { agentSchema } from "@/lib/validations"
 import { sendAgentSubmittedNotification } from "@/lib/email"
+import { getWorkspaceContext } from "@/lib/workspace"
 
 export async function GET(req: NextRequest) {
   try {
@@ -12,8 +13,10 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const { ownerId } = await getWorkspaceContext(session.user.id)
+
     const agents = await db.agent.findMany({
-      where: { userId: session.user.id },
+      where: { userId: ownerId },
       orderBy: { createdAt: "desc" },
       include: {
         user: {

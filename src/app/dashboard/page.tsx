@@ -4,6 +4,7 @@ import Link from "next/link"
 import styles from "./page.module.css"
 import { AgentCard } from "@/components/dashboard/AgentCard"
 import { ConversationStats } from "@/components/dashboard/ConversationStats"
+import { ActivityChart } from "@/components/dashboard/ActivityChart"
 import Button from "@/components/ui/Button"
 import { formatDate } from "@/lib/utils"
 import { useDashboardData } from "@/hooks/useDashboardData"
@@ -81,7 +82,10 @@ export default function DashboardPage() {
             animation: "pulse 1.5s ease-in-out infinite",
           }} />
         ) : agent ? (
-          <AgentCard agent={agent} />
+          <>
+            <AgentCard agent={agent} />
+            {agent.elevenlabsAgentId && <ActivityChart agentId={agent.id} />}
+          </>
         ) : (
           <div className={styles.emptyCard}>
             <div className={styles.emptyIcon}>🤖</div>

@@ -9,10 +9,12 @@ import styles from "./DashboardShell.module.css"
 interface Props {
   userName: string
   businessName: string
+  currentUserId: string
+  currentWorkspaceId: string | null
   children: React.ReactNode
 }
 
-export function DashboardShell({ userName, businessName, children }: Props) {
+export function DashboardShell({ userName, businessName, currentUserId, currentWorkspaceId, children }: Props) {
   const [isOpen, setIsOpen] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
 
@@ -56,6 +58,8 @@ export function DashboardShell({ userName, businessName, children }: Props) {
       <Sidebar
         userName={userName}
         businessName={businessName}
+        currentUserId={currentUserId}
+        currentWorkspaceId={currentWorkspaceId}
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         collapsed={collapsed}

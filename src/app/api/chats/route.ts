@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { getConversations } from "@/lib/elevenlabs"
+import { getWorkspaceContext } from "@/lib/workspace"
 
 export async function GET(req: NextRequest) {
   try {
@@ -11,8 +12,10 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const { ownerId } = await getWorkspaceContext(session.user.id)
+
     const agent = await db.agent.findFirst({
-      where: { userId: session.user.id },
+      where: { userId: ownerId },
     })
 
     if (!agent) {

@@ -60,6 +60,7 @@ export const ModelName = {
   Referral: 'Referral',
   NewsletterSubscriber: 'NewsletterSubscriber',
   ConversationLog: 'ConversationLog',
+  WorkspaceMember: 'WorkspaceMember',
   PaymentRequest: 'PaymentRequest'
 } as const
 
@@ -242,6 +243,21 @@ export const ConversationLogScalarFieldEnum = {
 } as const
 
 export type ConversationLogScalarFieldEnum = (typeof ConversationLogScalarFieldEnum)[keyof typeof ConversationLogScalarFieldEnum]
+
+
+export const WorkspaceMemberScalarFieldEnum = {
+  id: 'id',
+  workspaceId: 'workspaceId',
+  userId: 'userId',
+  email: 'email',
+  role: 'role',
+  status: 'status',
+  inviteToken: 'inviteToken',
+  invitedAt: 'invitedAt',
+  joinedAt: 'joinedAt'
+} as const
+
+export type WorkspaceMemberScalarFieldEnum = (typeof WorkspaceMemberScalarFieldEnum)[keyof typeof WorkspaceMemberScalarFieldEnum]
 
 
 export const PaymentRequestScalarFieldEnum = {

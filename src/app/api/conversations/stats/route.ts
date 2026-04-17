@@ -2,18 +2,21 @@ import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { NextResponse } from "next/server"
 import { PLAN_CREDIT_LIMITS } from "@/lib/plans"
+import { getWorkspaceContext } from "@/lib/workspace"
 
 export async function GET() {
   const session = await auth()
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
+  const { ownerId } = await getWorkspaceContext(session.user.id)
+
   const user = await db.user.findUnique({
-    where: { id: session.user.id },
+    where: { id: ownerId },
     select: { plan: true, subscriptionExpiresAt: true },
   })
 
   const agent = await db.agent.findFirst({
-    where: { userId: session.user.id },
+    where: { userId: ownerId },
     select: { id: true, elevenlabsAgentId: true },
   })
 
@@ -36,7 +39,7 @@ export async function GET() {
 
   const [totalConversations, totalLeads, totalContacts, creditsAgg, monthlyCreditsAgg] = await Promise.all([
     agentFilter ? db.conversationLog.count({ where: agentFilter }) : 0,
-    db.lead.count({ where: { userId: session.user.id } }),
+    db.lead.count({ where: { userId: ownerId } }),
     agentFilter
       ? db.conversationLog.groupBy({
           by: ["phoneNumber"],

@@ -37,6 +37,7 @@ export function Footer() {
             <li><Link href="/features" className={styles.link}>Features</Link></li>
             <li><Link href="/how-it-works" className={styles.link}>How It Works</Link></li>
             <li><Link href="/pricing" className={styles.link}>Pricing</Link></li>
+            <li><Link href="/changelog" className={styles.link}>What&apos;s New</Link></li>
             <li><Link href="/signup" className={styles.link}>Get Started</Link></li>
           </ul>
         </div>

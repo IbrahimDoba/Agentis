@@ -16,6 +16,8 @@ model User {
   passwordHash   String?
   role           Role       @default(USER)
   status         UserStatus @default(PENDING)
+  workspaceMembers   WorkspaceMember[] @relation("WorkspaceOwner")
+  memberOf           WorkspaceMember[] @relation("WorkspaceMemberUser")
   resetToken            String?    @unique
   resetTokenExpiry      DateTime?
   emailVerified         Boolean    @default(false)
@@ -208,6 +210,34 @@ model ConversationLog {
 
   agent             Agent?    @relation(fields: [agentId], references: [id], onDelete: SetNull)
   customer          Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+}
+
+model WorkspaceMember {
+  id          String              @id @default(cuid())
+  workspaceId String
+  userId      String?
+  email       String
+  role        WorkspaceRole       @default(MEMBER)
+  status      WorkspaceInviteStatus @default(PENDING)
+  inviteToken String?             @unique
+  invitedAt   DateTime            @default(now())
+  joinedAt    DateTime?
+
+  workspace   User                @relation("WorkspaceOwner", fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User?               @relation("WorkspaceMemberUser", fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([workspaceId, email])
+}
+
+enum WorkspaceRole {
+  ADMIN
+  MEMBER
+}
+
+enum WorkspaceInviteStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
 }
 
 model PaymentRequest {

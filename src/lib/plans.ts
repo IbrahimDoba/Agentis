@@ -66,6 +66,14 @@ export const PLAN_FEATURES: Record<string, string[]> = {
 
 export const PLAN_ORDER = ["free", "starter", "pro", "enterprise"]
 
+// Max workspace members per plan (0 = team feature not available)
+export const PLAN_SEAT_LIMITS: Record<string, number> = {
+  free: 0,
+  starter: 2,
+  pro: 5,
+  enterprise: -1, // unlimited
+}
+
 export const COMMISSION_RATE = 0.15
 
 export function calcCommission(plan: string): number | null {
