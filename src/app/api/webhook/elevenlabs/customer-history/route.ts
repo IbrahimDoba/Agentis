@@ -119,7 +119,7 @@ export async function POST(req: NextRequest) {
                 ]
             },
             orderBy: { createdAt: "desc" },
-            take: 6
+            take: 10
         })
 
         // Also check if we have a rolling AI summary of the customer globally
@@ -129,10 +129,6 @@ export async function POST(req: NextRequest) {
         }) : null
 
         let summary = ""
-
-        if (customerProfile?.conversationSummary) {
-            summary += `[General Customer Memory]:\n${customerProfile.conversationSummary}\n\n`
-        }
 
         if (dbLogs.length > 0) {
             summary += `This customer has contacted us before. Here are their most recent interactions:\n\n`
@@ -152,7 +148,7 @@ export async function POST(req: NextRequest) {
                         const liveConv = await getConversation(log.conversationId)
                         if (liveConv && liveConv.transcript) {
                             transcriptArray = liveConv.transcript
-                            logSummary = liveConv.transcript_summary || liveConv.call_summary_title
+                            logSummary = liveConv.analysis?.transcript_summary || liveConv.transcript_summary || liveConv.call_summary_title
                         }
                     } catch (err) {
                         // Silently fail fallback and use DB state
@@ -164,7 +160,7 @@ export async function POST(req: NextRequest) {
                 } else if (transcriptArray.length > 0) {
                     // Fallback to a snippet of the transcript if summary is missing
                     summary += `Recent Transcript:\n`
-                    transcriptArray.slice(0, 10).forEach((turn: any) => {
+                    transcriptArray.slice(0, 15).forEach((turn: any) => {
                         const role = turn.role === 'user' ? 'Customer' : agentName
                         summary += `${role}: ${turn.message}\n`
                     })
