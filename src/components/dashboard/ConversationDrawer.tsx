@@ -250,9 +250,15 @@ export function ConversationDrawer({ conversationId, agentId, onClose, isLead: i
   }
 
   const sendOnWhatsApp = () => {
-    const phone = convMeta ? getCallerIdentifier(convMeta) : (detail ? getCallerIdentifier(detail) : null)
-    if (!phone || !followup) return
-    const digits = toE164(phone)
+    const conv = convMeta ?? detail
+    if (!conv || !followup) return
+    // Use raw user_id (international digits) — getCallerIdentifier formats for display
+    // and adds a leading 0 which toE164 cannot match against dial codes
+    const rawPhone = conv.user_id ??
+      (conv.metadata as Record<string, unknown> | undefined)?.from_number as string | undefined ??
+      (conv.metadata as Record<string, unknown> | undefined)?.caller_id as string | undefined
+    if (!rawPhone) return
+    const digits = toE164(rawPhone)
     if (!digits) return
     const url = `https://wa.me/${digits}?text=${encodeURIComponent(followup)}`
     window.open(url, "_blank", "noopener,noreferrer")

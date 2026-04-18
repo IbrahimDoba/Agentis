@@ -38,35 +38,27 @@ export function formatPhoneNumber(raw: string): string {
   // Strip any non-digit chars
   const digits = cleaned.replace(/\D/g, "")
 
-  // Country code lookup: prefix, local prefix (replaces country code), digit grouping
-  const patterns: Array<{ prefix: string; local: string; groups: number[] }> = [
-    { prefix: "234", local: "0", groups: [4, 3, 4] },  // Nigeria  0801 234 5678
-    { prefix: "1",   local: "",  groups: [3, 3, 4] },   // US/Canada (XXX) XXX-XXXX
-    { prefix: "44",  local: "0", groups: [4, 3, 4] },   // UK       0XXXX XXX XXXX
-    { prefix: "27",  local: "0", groups: [2, 3, 4] },   // South Africa
-    { prefix: "254", local: "0", groups: [3, 3, 3] },   // Kenya
-    { prefix: "233", local: "0", groups: [2, 3, 4] },   // Ghana
-    { prefix: "255", local: "0", groups: [3, 3, 3] },   // Tanzania
-  ]
-
-  for (const { prefix, local, groups } of patterns) {
-    if (digits.startsWith(prefix)) {
-      const subscriber = digits.slice(prefix.length)
-      const full = local + subscriber
-      const parts: string[] = []
-      let pos = 0
-      for (const len of groups) {
-        if (pos >= full.length) break
-        parts.push(full.slice(pos, pos + len))
-        pos += len
-      }
-      if (pos < full.length) parts.push(full.slice(pos))
-      return parts.join(" ")
+  // Nigeria: convert to local 0-prefix format  0801 234 5678
+  if (digits.startsWith("234")) {
+    const subscriber = digits.slice(3)
+    const full = "0" + subscriber
+    const groups = [4, 3, 4]
+    const parts: string[] = []
+    let pos = 0
+    for (const len of groups) {
+      if (pos >= full.length) break
+      parts.push(full.slice(pos, pos + len))
+      pos += len
     }
+    if (pos < full.length) parts.push(full.slice(pos))
+    return parts.join(" ")
   }
 
-  // Generic fallback: group in 3s
-  return digits.replace(/(\d{3})(?=\d)/g, "$1 ").trim()
+  // All other international numbers: display as +<digits>
+  if (digits.length >= 7) return "+" + digits
+
+  // Very short / unrecognised — return as-is
+  return digits
 }
 
 // Dial codes sorted longest-first so "+234" is matched before "+23" and "+2"
