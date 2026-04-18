@@ -69,6 +69,7 @@ model Agent {
   address              String?
   productsData         Json?
   toolsData            Json?
+  transportType        String      @default("waba")
   status               AgentStatus @default(PENDING_REVIEW)
   createdAt            DateTime    @default(now())
   updatedAt            DateTime    @updatedAt
@@ -76,6 +77,7 @@ model Agent {
   conversationLogs     ConversationLog[]
   customers            Customer[]
   templates            MessageTemplate[]
+  baileysSession       BaileysSession?
 }
 
 model MessageTemplate {
@@ -251,4 +253,55 @@ model PaymentRequest {
   notes       String?
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
+}
+
+model BaileysSession {
+  id                   String           @id @default(cuid())
+  agentId              String           @unique
+  agent                Agent            @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  phoneNumber          String?
+  status               BaileysStatus    @default(DISCONNECTED)
+  lastConnectedAt      DateTime?
+  lastDisconnectReason String?
+  linkedDeviceName     String           @default("Dailzero AI")
+  authBackupPath       String?
+  warmupStartedAt      DateTime?
+  warmupTier           Int              @default(1)
+  dailyMessageCount    Int              @default(0)
+  dailyCountResetAt    DateTime         @default(now())
+  businessHoursStart   String           @default("08:00")
+  businessHoursEnd     String           @default("21:00")
+  timezone             String           @default("Africa/Lagos")
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  outboundLogs         BaileysOutboundLog[]
+}
+
+model BaileysOutboundLog {
+  id             String                 @id @default(cuid())
+  sessionId      String
+  session        BaileysSession         @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  conversationId String?
+  toJid          String
+  messagePreview String?
+  queuedAt       DateTime               @default(now())
+  sentAt         DateTime?
+  delayAppliedMs Int?
+  status         BaileysOutboundStatus  @default(QUEUED)
+}
+
+enum BaileysStatus {
+  DISCONNECTED
+  QR_PENDING
+  CONNECTING
+  CONNECTED
+  LOGGED_OUT
+  BANNED
+}
+
+enum BaileysOutboundStatus {
+  QUEUED
+  SENT
+  FAILED
+  RATE_LIMITED
 }

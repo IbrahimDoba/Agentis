@@ -394,7 +394,9 @@ export const ModelName = {
   NewsletterSubscriber: 'NewsletterSubscriber',
   ConversationLog: 'ConversationLog',
   WorkspaceMember: 'WorkspaceMember',
-  PaymentRequest: 'PaymentRequest'
+  PaymentRequest: 'PaymentRequest',
+  BaileysSession: 'BaileysSession',
+  BaileysOutboundLog: 'BaileysOutboundLog'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -410,7 +412,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "agent" | "messageTemplate" | "lead" | "conversationRead" | "customer" | "referral" | "newsletterSubscriber" | "conversationLog" | "workspaceMember" | "paymentRequest"
+    modelProps: "user" | "agent" | "messageTemplate" | "lead" | "conversationRead" | "customer" | "referral" | "newsletterSubscriber" | "conversationLog" | "workspaceMember" | "paymentRequest" | "baileysSession" | "baileysOutboundLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1228,6 +1230,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    BaileysSession: {
+      payload: Prisma.$BaileysSessionPayload<ExtArgs>
+      fields: Prisma.BaileysSessionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.BaileysSessionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BaileysSessionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.BaileysSessionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BaileysSessionPayload>
+        }
+        findFirst: {
+          args: Prisma.BaileysSessionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BaileysSessionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.BaileysSessionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BaileysSessionPayload>
+        }
+        findMany: {
+          args: Prisma.BaileysSessionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BaileysSessionPayload>[]
+        }
+        create: {
+          args: Prisma.BaileysSessionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BaileysSessionPayload>
+        }
+        createMany: {
+          args: Prisma.BaileysSessionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.BaileysSessionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BaileysSessionPayload>[]
+        }
+        delete: {
+          args: Prisma.BaileysSessionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BaileysSessionPayload>
+        }
+        update: {
+          args: Prisma.BaileysSessionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BaileysSessionPayload>
+        }
+        deleteMany: {
+          args: Prisma.BaileysSessionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.BaileysSessionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.BaileysSessionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BaileysSessionPayload>[]
+        }
+        upsert: {
+          args: Prisma.BaileysSessionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BaileysSessionPayload>
+        }
+        aggregate: {
+          args: Prisma.BaileysSessionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateBaileysSession>
+        }
+        groupBy: {
+          args: Prisma.BaileysSessionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BaileysSessionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.BaileysSessionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BaileysSessionCountAggregateOutputType> | number
+        }
+      }
+    }
+    BaileysOutboundLog: {
+      payload: Prisma.$BaileysOutboundLogPayload<ExtArgs>
+      fields: Prisma.BaileysOutboundLogFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.BaileysOutboundLogFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BaileysOutboundLogPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.BaileysOutboundLogFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BaileysOutboundLogPayload>
+        }
+        findFirst: {
+          args: Prisma.BaileysOutboundLogFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BaileysOutboundLogPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.BaileysOutboundLogFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BaileysOutboundLogPayload>
+        }
+        findMany: {
+          args: Prisma.BaileysOutboundLogFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BaileysOutboundLogPayload>[]
+        }
+        create: {
+          args: Prisma.BaileysOutboundLogCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BaileysOutboundLogPayload>
+        }
+        createMany: {
+          args: Prisma.BaileysOutboundLogCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.BaileysOutboundLogCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BaileysOutboundLogPayload>[]
+        }
+        delete: {
+          args: Prisma.BaileysOutboundLogDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BaileysOutboundLogPayload>
+        }
+        update: {
+          args: Prisma.BaileysOutboundLogUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BaileysOutboundLogPayload>
+        }
+        deleteMany: {
+          args: Prisma.BaileysOutboundLogDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.BaileysOutboundLogUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.BaileysOutboundLogUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BaileysOutboundLogPayload>[]
+        }
+        upsert: {
+          args: Prisma.BaileysOutboundLogUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BaileysOutboundLogPayload>
+        }
+        aggregate: {
+          args: Prisma.BaileysOutboundLogAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateBaileysOutboundLog>
+        }
+        groupBy: {
+          args: Prisma.BaileysOutboundLogGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BaileysOutboundLogGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.BaileysOutboundLogCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BaileysOutboundLogCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1323,6 +1473,7 @@ export const AgentScalarFieldEnum = {
   address: 'address',
   productsData: 'productsData',
   toolsData: 'toolsData',
+  transportType: 'transportType',
   status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -1460,6 +1611,44 @@ export const PaymentRequestScalarFieldEnum = {
 } as const
 
 export type PaymentRequestScalarFieldEnum = (typeof PaymentRequestScalarFieldEnum)[keyof typeof PaymentRequestScalarFieldEnum]
+
+
+export const BaileysSessionScalarFieldEnum = {
+  id: 'id',
+  agentId: 'agentId',
+  phoneNumber: 'phoneNumber',
+  status: 'status',
+  lastConnectedAt: 'lastConnectedAt',
+  lastDisconnectReason: 'lastDisconnectReason',
+  linkedDeviceName: 'linkedDeviceName',
+  authBackupPath: 'authBackupPath',
+  warmupStartedAt: 'warmupStartedAt',
+  warmupTier: 'warmupTier',
+  dailyMessageCount: 'dailyMessageCount',
+  dailyCountResetAt: 'dailyCountResetAt',
+  businessHoursStart: 'businessHoursStart',
+  businessHoursEnd: 'businessHoursEnd',
+  timezone: 'timezone',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BaileysSessionScalarFieldEnum = (typeof BaileysSessionScalarFieldEnum)[keyof typeof BaileysSessionScalarFieldEnum]
+
+
+export const BaileysOutboundLogScalarFieldEnum = {
+  id: 'id',
+  sessionId: 'sessionId',
+  conversationId: 'conversationId',
+  toJid: 'toJid',
+  messagePreview: 'messagePreview',
+  queuedAt: 'queuedAt',
+  sentAt: 'sentAt',
+  delayAppliedMs: 'delayAppliedMs',
+  status: 'status'
+} as const
+
+export type BaileysOutboundLogScalarFieldEnum = (typeof BaileysOutboundLogScalarFieldEnum)[keyof typeof BaileysOutboundLogScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1704,6 +1893,34 @@ export type EnumPaymentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$Pr
 export type ListEnumPaymentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentStatus[]'>
     
 
+
+/**
+ * Reference to a field of type 'BaileysStatus'
+ */
+export type EnumBaileysStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BaileysStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'BaileysStatus[]'
+ */
+export type ListEnumBaileysStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BaileysStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'BaileysOutboundStatus'
+ */
+export type EnumBaileysOutboundStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BaileysOutboundStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'BaileysOutboundStatus[]'
+ */
+export type ListEnumBaileysOutboundStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BaileysOutboundStatus[]'>
+    
+
 /**
  * Batch Payload for updateMany & deleteMany & createMany
  */
@@ -1810,6 +2027,8 @@ export type GlobalOmitConfig = {
   conversationLog?: Prisma.ConversationLogOmit
   workspaceMember?: Prisma.WorkspaceMemberOmit
   paymentRequest?: Prisma.PaymentRequestOmit
+  baileysSession?: Prisma.BaileysSessionOmit
+  baileysOutboundLog?: Prisma.BaileysOutboundLogOmit
 }
 
 /* Types for Logging */

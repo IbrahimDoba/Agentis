@@ -96,3 +96,13 @@ export type WorkspaceMember = Prisma.WorkspaceMemberModel
  * 
  */
 export type PaymentRequest = Prisma.PaymentRequestModel
+/**
+ * Model BaileysSession
+ * 
+ */
+export type BaileysSession = Prisma.BaileysSessionModel
+/**
+ * Model BaileysOutboundLog
+ * 
+ */
+export type BaileysOutboundLog = Prisma.BaileysOutboundLogModel

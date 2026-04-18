@@ -61,7 +61,9 @@ export const ModelName = {
   NewsletterSubscriber: 'NewsletterSubscriber',
   ConversationLog: 'ConversationLog',
   WorkspaceMember: 'WorkspaceMember',
-  PaymentRequest: 'PaymentRequest'
+  PaymentRequest: 'PaymentRequest',
+  BaileysSession: 'BaileysSession',
+  BaileysOutboundLog: 'BaileysOutboundLog'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -136,6 +138,7 @@ export const AgentScalarFieldEnum = {
   address: 'address',
   productsData: 'productsData',
   toolsData: 'toolsData',
+  transportType: 'transportType',
   status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -273,6 +276,44 @@ export const PaymentRequestScalarFieldEnum = {
 } as const
 
 export type PaymentRequestScalarFieldEnum = (typeof PaymentRequestScalarFieldEnum)[keyof typeof PaymentRequestScalarFieldEnum]
+
+
+export const BaileysSessionScalarFieldEnum = {
+  id: 'id',
+  agentId: 'agentId',
+  phoneNumber: 'phoneNumber',
+  status: 'status',
+  lastConnectedAt: 'lastConnectedAt',
+  lastDisconnectReason: 'lastDisconnectReason',
+  linkedDeviceName: 'linkedDeviceName',
+  authBackupPath: 'authBackupPath',
+  warmupStartedAt: 'warmupStartedAt',
+  warmupTier: 'warmupTier',
+  dailyMessageCount: 'dailyMessageCount',
+  dailyCountResetAt: 'dailyCountResetAt',
+  businessHoursStart: 'businessHoursStart',
+  businessHoursEnd: 'businessHoursEnd',
+  timezone: 'timezone',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BaileysSessionScalarFieldEnum = (typeof BaileysSessionScalarFieldEnum)[keyof typeof BaileysSessionScalarFieldEnum]
+
+
+export const BaileysOutboundLogScalarFieldEnum = {
+  id: 'id',
+  sessionId: 'sessionId',
+  conversationId: 'conversationId',
+  toJid: 'toJid',
+  messagePreview: 'messagePreview',
+  queuedAt: 'queuedAt',
+  sentAt: 'sentAt',
+  delayAppliedMs: 'delayAppliedMs',
+  status: 'status'
+} as const
+
+export type BaileysOutboundLogScalarFieldEnum = (typeof BaileysOutboundLogScalarFieldEnum)[keyof typeof BaileysOutboundLogScalarFieldEnum]
 
 
 export const SortOrder = {

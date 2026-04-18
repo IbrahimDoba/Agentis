@@ -494,6 +494,40 @@ export type EnumPaymentStatusWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumPaymentStatusFilter<$PrismaModel>
 }
 
+export type EnumBaileysStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.BaileysStatus | Prisma.EnumBaileysStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.BaileysStatus[] | Prisma.ListEnumBaileysStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.BaileysStatus[] | Prisma.ListEnumBaileysStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumBaileysStatusFilter<$PrismaModel> | $Enums.BaileysStatus
+}
+
+export type EnumBaileysStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.BaileysStatus | Prisma.EnumBaileysStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.BaileysStatus[] | Prisma.ListEnumBaileysStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.BaileysStatus[] | Prisma.ListEnumBaileysStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumBaileysStatusWithAggregatesFilter<$PrismaModel> | $Enums.BaileysStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumBaileysStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumBaileysStatusFilter<$PrismaModel>
+}
+
+export type EnumBaileysOutboundStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.BaileysOutboundStatus | Prisma.EnumBaileysOutboundStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.BaileysOutboundStatus[] | Prisma.ListEnumBaileysOutboundStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.BaileysOutboundStatus[] | Prisma.ListEnumBaileysOutboundStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumBaileysOutboundStatusFilter<$PrismaModel> | $Enums.BaileysOutboundStatus
+}
+
+export type EnumBaileysOutboundStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.BaileysOutboundStatus | Prisma.EnumBaileysOutboundStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.BaileysOutboundStatus[] | Prisma.ListEnumBaileysOutboundStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.BaileysOutboundStatus[] | Prisma.ListEnumBaileysOutboundStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumBaileysOutboundStatusWithAggregatesFilter<$PrismaModel> | $Enums.BaileysOutboundStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumBaileysOutboundStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumBaileysOutboundStatusFilter<$PrismaModel>
+}
+
 export type NestedStringFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel>
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
@@ -909,6 +943,40 @@ export type NestedEnumPaymentStatusWithAggregatesFilter<$PrismaModel = never> = 
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumPaymentStatusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumPaymentStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumBaileysStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.BaileysStatus | Prisma.EnumBaileysStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.BaileysStatus[] | Prisma.ListEnumBaileysStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.BaileysStatus[] | Prisma.ListEnumBaileysStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumBaileysStatusFilter<$PrismaModel> | $Enums.BaileysStatus
+}
+
+export type NestedEnumBaileysStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.BaileysStatus | Prisma.EnumBaileysStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.BaileysStatus[] | Prisma.ListEnumBaileysStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.BaileysStatus[] | Prisma.ListEnumBaileysStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumBaileysStatusWithAggregatesFilter<$PrismaModel> | $Enums.BaileysStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumBaileysStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumBaileysStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumBaileysOutboundStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.BaileysOutboundStatus | Prisma.EnumBaileysOutboundStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.BaileysOutboundStatus[] | Prisma.ListEnumBaileysOutboundStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.BaileysOutboundStatus[] | Prisma.ListEnumBaileysOutboundStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumBaileysOutboundStatusFilter<$PrismaModel> | $Enums.BaileysOutboundStatus
+}
+
+export type NestedEnumBaileysOutboundStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.BaileysOutboundStatus | Prisma.EnumBaileysOutboundStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.BaileysOutboundStatus[] | Prisma.ListEnumBaileysOutboundStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.BaileysOutboundStatus[] | Prisma.ListEnumBaileysOutboundStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumBaileysOutboundStatusWithAggregatesFilter<$PrismaModel> | $Enums.BaileysOutboundStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumBaileysOutboundStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumBaileysOutboundStatusFilter<$PrismaModel>
 }
 
 
