@@ -16,6 +16,7 @@ import {
   CreditCardIcon,
   TagIcon,
   UsersIcon,
+  DevicePhoneMobileIcon,
 } from "@heroicons/react/24/outline"
 import { LogoIcon } from "@/components/landing/Logo"
 import styles from "./Sidebar.module.css"
@@ -48,6 +49,7 @@ const baseNavItems: NavItem[] = [
   { href: "/dashboard/chats", label: "Conversations", icon: ChatBubbleLeftRightIcon },
   { href: "/dashboard/leads", label: "Leads", icon: FireIcon },
   { href: "/dashboard/team", label: "Team", icon: UsersIcon },
+  { href: "/dashboard/channels/whatsapp-web", label: "Channels", icon: DevicePhoneMobileIcon },
   { href: "/dashboard/billing", label: "Billing", icon: CreditCardIcon },
 ]
 

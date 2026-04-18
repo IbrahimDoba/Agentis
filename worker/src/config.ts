@@ -20,7 +20,7 @@ const schema = z.object({
   AUTH_ENCRYPTION_KEY: z.string().min(32),
   AUTH_STORAGE_BUCKET: z.string().default("baileys-auth-backups"),
 
-  ALERT_WEBHOOK_URL: z.string().url().optional(),
+  ALERT_WEBHOOK_URL: z.string().url().optional().or(z.literal("").transform(() => undefined)),
   LOG_LEVEL: z.enum(["trace", "debug", "info", "warn", "error", "fatal"]).default("info"),
 
   DEFAULT_TIMEZONE: z.string().default("Africa/Lagos"),
