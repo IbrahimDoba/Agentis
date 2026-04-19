@@ -46,14 +46,19 @@ export async function checkAndIncrement(agentId: string, warmupTier: number): Pr
  * §7.4 — Check if the same text was sent to another contact in the last 5 minutes.
  * Prevents broadcast-like behavior.
  */
-export async function checkDuplicateText(text: string): Promise<void> {
+export async function checkDuplicateText(text: string, jid: string): Promise<void> {
   const redis = getRedis()
-  const key = `rl:text:${Buffer.from(text).toString("base64").slice(0, 64)}`
-  const count = await redis.incr(key)
-  if (count === 1) await redis.expire(key, 300)
-  if (count > 1) {
-    throw new RateLimitError("Same message sent to multiple contacts within 5 minutes")
-  }
+  const textHash = Buffer.from(text).toString("base64").slice(0, 64)
+  const key = `rl:text:${textHash}`
+  // Store the JID that first sent this text
+  const existing = await redis.set(key, jid, "EX", 300, "NX")
+  if (existing === "OK") return // first time — allowed
+
+  // Key exists — check if it's the same contact (retry) or different (broadcast)
+  const storedJid = await redis.get(key)
+  if (storedJid === jid) return // same contact, allow retry
+
+  throw new RateLimitError("Same message sent to multiple contacts within 5 minutes")
 }
 
 /**

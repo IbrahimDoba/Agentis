@@ -1,8 +1,6 @@
 import type { WASocket } from "baileys"
-import { getOrCreateCustomer, getRecentConversationLogs, getAgent } from "../db/queries.js"
-import { elevenlabsClient } from "../agent/elevenlabs-client.js"
-import { outboundQueue } from "../queue/outbound-queue.js"
 import { webhookEmitter } from "../dashboard/webhook-emitter.js"
+import { config } from "../config.js"
 import { logger as rootLogger } from "../lib/logger.js"
 
 const logger = rootLogger.child({ module: "event-handlers" })
@@ -32,7 +30,6 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
         null
 
       if (!text) {
-        // Media message — log and skip for now (phase 2)
         logger.debug({ agentId, senderJid }, "Non-text message received, skipping")
         continue
       }
@@ -48,7 +45,7 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
         }
       }, readDelay())
 
-      // Emit to dashboard (human-mode passthrough)
+      // Emit to dashboard
       webhookEmitter.emit("message.inbound", {
         agentId,
         senderJid,
@@ -58,44 +55,46 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
         timestamp: (msg.messageTimestamp as number) * 1000,
       })
 
-      // Look up agent to check mode and get ElevenLabs agent ID
-      const agent = await getAgent(agentId)
-      if (!agent?.elevenlabsAgentId) {
-        logger.warn({ agentId }, "Agent has no ElevenLabs agent ID — cannot respond")
-        continue
-      }
-
-      // Get/create customer for context injection
-      const customer = await getOrCreateCustomer(phoneNumber, agentId)
-      const history = await getRecentConversationLogs(phoneNumber, agentId, 10)
-
-      // §9 — Call ElevenLabs text agent via WebSocket
+      // Forward to orchestrator for AI processing
       try {
-        const reply = await elevenlabsClient.sendMessage({
-          elevenlabsAgentId: agent.elevenlabsAgentId,
-          userMessage: text,
-          phoneNumber,
-          customerName: customer?.name ?? null,
-          conversationHistory: history,
-          customerSummary: customer?.conversationSummary ?? null,
+        await forwardToOrchestrator({
+          agentId,
+          messageId: msg.key.id ?? `${Date.now()}`,
+          fromPhone: phoneNumber,
+          senderJid,
+          text,
+          timestamp: (msg.messageTimestamp as number) * 1000,
         })
-
-        if (!reply) continue
-
-        // §7.7 — Additional delay before typing indicator (1–3s)
-        const typingDelay = 1000 + Math.random() * 2000
-        setTimeout(async () => {
-          await outboundQueue.enqueue({
-            agentId,
-            toJid: senderJid,
-            text: reply,
-            conversationId: undefined,
-            source: "ai",
-          })
-        }, typingDelay)
       } catch (err) {
-        logger.error({ err, agentId, senderJid }, "ElevenLabs call failed")
+        logger.error({ err, agentId, senderJid }, "Failed to forward to orchestrator")
       }
     }
   })
+}
+
+async function forwardToOrchestrator(payload: {
+  agentId: string
+  messageId: string
+  fromPhone: string
+  senderJid: string
+  text: string
+  timestamp: number
+}): Promise<void> {
+  const url = `${config.ORCHESTRATOR_URL}/v1/inbound`
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${config.ORCHESTRATOR_API_KEY}`,
+    },
+    body: JSON.stringify(payload),
+  })
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => "")
+    throw new Error(`Orchestrator returned ${res.status}: ${body}`)
+  }
+
+  logger.info({ agentId: payload.agentId, fromPhone: payload.fromPhone }, "Forwarded to orchestrator")
 }

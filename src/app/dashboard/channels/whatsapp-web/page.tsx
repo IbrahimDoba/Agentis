@@ -30,7 +30,7 @@ async function fetchAgents(): Promise<Agent[]> {
   const res = await fetch("/api/agents")
   if (!res.ok) throw new Error("Failed to fetch agents")
   const data = await res.json()
-  return data.agents ?? []
+  return Array.isArray(data) ? data : (data.agents ?? [])
 }
 
 async function fetchSession(agentId: string): Promise<SessionStatus | null> {
@@ -58,6 +58,10 @@ export default function WhatsAppWebPage() {
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
   const [sseStatus, setSseStatus] = useState<string | null>(null)
   const sseRef = useRef<EventSource | null>(null)
+  const [connectMethod, setConnectMethod] = useState<"qr" | "code">("qr")
+  const [pairingPhone, setPairingPhone] = useState("")
+  const [pairingCode, setPairingCode] = useState<string | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
 
   const { data: agents = [] } = useQuery({ queryKey: ["agents"], queryFn: fetchAgents })
   const { data: session, refetch: refetchSession } = useQuery({
@@ -78,33 +82,58 @@ export default function WhatsAppWebPage() {
       return res.json()
     },
     onSuccess: () => {
+      setActionError(null)
       refetchSession()
-      startQrStream(selectedAgentId!)
+      if (connectMethod === "qr") startQrStream(selectedAgentId!)
     },
+    onError: (err: Error) => setActionError(err.message),
+  })
+
+  const requestPairingCode = useMutation({
+    mutationFn: async ({ agentId, phoneNumber }: { agentId: string; phoneNumber: string }) => {
+      const res = await fetch(`/api/baileys/sessions/${agentId}/pairing-code`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phoneNumber }),
+      })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({})) as Record<string, string>
+        throw new Error(err.error ?? err.message ?? `Request failed (${res.status})`)
+      }
+      return res.json() as Promise<{ code: string }>
+    },
+    onSuccess: (data) => { setActionError(null); setPairingCode(data.code) },
+    onError: (err: Error) => setActionError(err.message),
   })
 
   const disconnect = useMutation({
     mutationFn: async (agentId: string) => {
       const res = await fetch(`/api/baileys/sessions/${agentId}`, { method: "DELETE" })
-      if (!res.ok && res.status !== 404) throw new Error("Failed to disconnect")
+      if (!res.ok && res.status !== 404) throw new Error(`Worker error ${res.status} — try again`)
     },
     onSuccess: () => {
+      setActionError(null)
       stopQrStream()
       setQrDataUrl(null)
       setSseStatus(null)
+      setPairingCode(null)
       qc.invalidateQueries({ queryKey: ["baileys-session", selectedAgentId] })
     },
+    onError: (err: Error) => setActionError(err.message),
   })
 
   const restart = useMutation({
     mutationFn: async (agentId: string) => {
       const res = await fetch(`/api/baileys/sessions/${agentId}/restart`, { method: "POST" })
-      if (!res.ok) throw new Error("Failed to restart")
+      if (!res.ok) throw new Error(`Worker error ${res.status} — try again`)
     },
     onSuccess: () => {
+      setActionError(null)
+      setPairingCode(null)
       refetchSession()
-      startQrStream(selectedAgentId!)
+      if (connectMethod === "qr") startQrStream(selectedAgentId!)
     },
+    onError: (err: Error) => setActionError(err.message),
   })
 
   function stopQrStream() {
@@ -140,7 +169,7 @@ export default function WhatsAppWebPage() {
   }
 
   useEffect(() => {
-    if (session?.status === "QR_PENDING" && selectedAgentId && !sseRef.current) {
+    if (session?.status === "QR_PENDING" && selectedAgentId && !sseRef.current && connectMethod === "qr") {
       startQrStream(selectedAgentId)
     }
     if (session?.status === "CONNECTED") {
@@ -148,9 +177,18 @@ export default function WhatsAppWebPage() {
       setQrDataUrl(null)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session?.status, selectedAgentId])
+  }, [session?.status, selectedAgentId, connectMethod])
 
   useEffect(() => () => stopQrStream(), [])
+
+  // Clear pairing code only when agent changes or session connects successfully
+  useEffect(() => {
+    if (!selectedAgentId) setPairingCode(null)
+  }, [selectedAgentId])
+
+  useEffect(() => {
+    if (session?.status === "CONNECTED") setPairingCode(null)
+  }, [session?.status])
 
   const selectedAgent = agents.find((a) => a.id === selectedAgentId)
   const isConnected = session?.status === "CONNECTED"
@@ -222,27 +260,92 @@ export default function WhatsAppWebPage() {
                 <span className={styles.statusLabel}>
                   {isBanned ? "Banned — contact support"
                     : isConnected ? `Connected · ${session?.phoneNumber ?? ""}`
+                    : isConnecting && connectMethod === "code" ? "Waiting for pairing code entry…"
                     : isConnecting ? "Connecting — scan QR below"
                     : session?.lastDisconnectReason ? `Disconnected (${session.lastDisconnectReason})`
                     : "Not connected"}
                 </span>
               </div>
 
-              {/* QR Code */}
-              {qrDataUrl && (
+              {/* QR Code — only in QR mode */}
+              {connectMethod === "qr" && qrDataUrl && (
                 <div className={styles.qrWrap}>
                   <Image src={qrDataUrl} alt="WhatsApp QR Code" width={256} height={256} className={styles.qr} unoptimized />
                   <p className={styles.qrHint}>Open WhatsApp → Linked Devices → Link a device → scan</p>
                 </div>
               )}
 
-              {isConnecting && !qrDataUrl && (
+              {connectMethod === "qr" && isConnecting && !qrDataUrl && (
                 <div className={styles.loadingQr}>Generating QR code…</div>
+              )}
+
+              {/* Connect method toggle — only shown when not yet connected */}
+              {(!session || session.status === "DISCONNECTED" || session.status === "LOGGED_OUT") && (
+                <div className={styles.methodToggle}>
+                  <button
+                    className={`${styles.methodBtn} ${connectMethod === "qr" ? styles.methodBtnActive : ""}`}
+                    onClick={() => setConnectMethod("qr")}
+                  >QR Code</button>
+                  <button
+                    className={`${styles.methodBtn} ${connectMethod === "code" ? styles.methodBtnActive : ""}`}
+                    onClick={() => setConnectMethod("code")}
+                  >Phone Number</button>
+                </div>
+              )}
+
+              {/* Pairing code UI */}
+              {connectMethod === "code" && (
+                <div className={styles.pairingWrap}>
+                  {pairingCode ? (
+                    <div className={styles.pairingCode}>
+                      <div className={styles.pairingCodeLabel}>Enter this code in WhatsApp</div>
+                      <div className={styles.pairingCodeValue}>{pairingCode}</div>
+                      <div className={styles.pairingCodeHint}>
+                        WhatsApp → Linked Devices → Link a device → Link with phone number instead
+                      </div>
+                    </div>
+                  ) : (!session || session.status === "DISCONNECTED" || session.status === "LOGGED_OUT") ? (
+                    <div className={styles.pairingInput}>
+                      <input
+                        className={styles.phoneInput}
+                        type="tel"
+                        placeholder="e.g. 2348012345678"
+                        value={pairingPhone}
+                        onChange={(e) => setPairingPhone(e.target.value)}
+                      />
+                    </div>
+                  ) : null}
+                </div>
+              )}
+
+              {/* Error banner */}
+              {actionError && (
+                <div className={styles.errorBanner}>
+                  {actionError}
+                  <button className={styles.errorDismiss} onClick={() => setActionError(null)}>✕</button>
+                </div>
               )}
 
               {/* Actions */}
               <div className={styles.actions}>
                 {!session || session.status === "DISCONNECTED" || session.status === "LOGGED_OUT" ? (
+                  connectMethod === "code" && !pairingCode ? (
+                    <button
+                      className={styles.btnPrimary}
+                      onClick={async () => {
+                        try {
+                          const needsCreate = !session || session.status === "DISCONNECTED" || session.status === "LOGGED_OUT"
+                          if (needsCreate) await connect.mutateAsync(selectedAgentId!)
+                          requestPairingCode.mutate({ agentId: selectedAgentId!, phoneNumber: pairingPhone })
+                        } catch {
+                          // connect.onError already sets actionError
+                        }
+                      }}
+                      disabled={connect.isPending || requestPairingCode.isPending || !pairingPhone}
+                    >
+                      {connect.isPending || requestPairingCode.isPending ? "Getting code…" : "Get Pairing Code"}
+                    </button>
+                  ) : connectMethod === "qr" ? (
                   <button
                     className={styles.btnPrimary}
                     onClick={() => connect.mutate(selectedAgentId)}
@@ -250,6 +353,7 @@ export default function WhatsAppWebPage() {
                   >
                     {connect.isPending ? "Starting…" : "Connect WhatsApp"}
                   </button>
+                  ) : null
                 ) : isBanned ? (
                   <button className={styles.btnDanger} onClick={() => disconnect.mutate(selectedAgentId)}>
                     Remove session

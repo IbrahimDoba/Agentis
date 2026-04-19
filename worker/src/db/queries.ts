@@ -1,4 +1,5 @@
-import { supabase } from "./supabase.js"
+import { sql } from "./client.js"
+import { randomUUID } from "crypto"
 
 export type BaileysStatus =
   | "DISCONNECTED"
@@ -32,38 +33,54 @@ export interface Agent {
   id: string
   elevenlabsAgentId: string | null
   transportType: string
-  businessHoursStart?: string
-  businessHoursEnd?: string
-  timezone?: string
 }
 
 // ── Sessions ──────────────────────────────────────────────────────────────────
 
 export async function getSessionByAgentId(agentId: string): Promise<BaileysSession | null> {
-  const { data, error } = await supabase
-    .from("BaileysSession")
-    .select("*")
-    .eq("agentId", agentId)
-    .single()
-  if (error?.code === "PGRST116") return null
-  if (error) throw error
-  return data
+  const rows = await sql<BaileysSession[]>`
+    SELECT * FROM "BaileysSession" WHERE "agentId" = ${agentId} LIMIT 1
+  `
+  return rows[0] ?? null
 }
 
 export async function upsertSession(
   agentId: string,
   fields: Partial<Omit<BaileysSession, "id" | "agentId" | "createdAt">>
 ): Promise<BaileysSession> {
-  const { data, error } = await supabase
-    .from("BaileysSession")
-    .upsert(
-      { agentId, ...fields, updatedAt: new Date().toISOString() },
-      { onConflict: "agentId" }
+  const now = new Date().toISOString()
+  const id = randomUUID()
+  const rows = await sql<BaileysSession[]>`
+    INSERT INTO "BaileysSession" ("id", "agentId", "status", "warmupTier", "dailyMessageCount",
+      "dailyCountResetAt", "linkedDeviceName", "businessHoursStart", "businessHoursEnd",
+      "timezone", "createdAt", "updatedAt",
+      "phoneNumber", "warmupStartedAt", "lastConnectedAt", "lastDisconnectReason", "authBackupPath")
+    VALUES (
+      ${id}, ${agentId},
+      ${(fields.status ?? "DISCONNECTED") as string},
+      ${fields.warmupTier ?? 1},
+      ${fields.dailyMessageCount ?? 0},
+      ${fields.dailyCountResetAt ?? now},
+      ${fields.linkedDeviceName ?? "Dailzero AI"},
+      ${fields.businessHoursStart ?? "08:00"},
+      ${fields.businessHoursEnd ?? "21:00"},
+      ${fields.timezone ?? "Africa/Lagos"},
+      ${now}, ${now},
+      ${fields.phoneNumber ?? null},
+      ${fields.warmupStartedAt ?? null},
+      ${fields.lastConnectedAt ?? null},
+      ${fields.lastDisconnectReason ?? null},
+      ${fields.authBackupPath ?? null}
     )
-    .select()
-    .single()
-  if (error) throw error
-  return data
+    ON CONFLICT ("agentId") DO UPDATE SET
+      "status" = EXCLUDED."status",
+      "phoneNumber" = COALESCE(EXCLUDED."phoneNumber", "BaileysSession"."phoneNumber"),
+      "warmupTier" = EXCLUDED."warmupTier",
+      "dailyMessageCount" = EXCLUDED."dailyMessageCount",
+      "updatedAt" = ${now}
+    RETURNING *
+  `
+  return rows[0]
 }
 
 export async function updateSessionStatus(
@@ -71,16 +88,21 @@ export async function updateSessionStatus(
   status: BaileysStatus,
   extra?: Partial<BaileysSession>
 ): Promise<void> {
-  const { error } = await supabase
-    .from("BaileysSession")
-    .update({ status, ...extra, updatedAt: new Date().toISOString() })
-    .eq("agentId", agentId)
-  if (error) throw error
+  const now = new Date().toISOString()
+  await sql`
+    UPDATE "BaileysSession" SET
+      "status" = ${status as string},
+      "phoneNumber" = COALESCE(${extra?.phoneNumber ?? null}, "phoneNumber"),
+      "lastConnectedAt" = COALESCE(${extra?.lastConnectedAt ?? null}::timestamptz, "lastConnectedAt"),
+      "lastDisconnectReason" = COALESCE(${extra?.lastDisconnectReason ?? null}, "lastDisconnectReason"),
+      "warmupStartedAt" = COALESCE(${extra?.warmupStartedAt ?? null}::timestamptz, "warmupStartedAt"),
+      "updatedAt" = ${now}
+    WHERE "agentId" = ${agentId}
+  `
 }
 
 export async function deleteSession(agentId: string): Promise<void> {
-  const { error } = await supabase.from("BaileysSession").delete().eq("agentId", agentId)
-  if (error) throw error
+  await sql`DELETE FROM "BaileysSession" WHERE "agentId" = ${agentId}`
 }
 
 // ── Outbound log ──────────────────────────────────────────────────────────────
@@ -94,68 +116,65 @@ export async function logOutbound(entry: {
   status: "QUEUED" | "SENT" | "FAILED" | "RATE_LIMITED"
   sentAt?: string
 }): Promise<void> {
-  const { error } = await supabase.from("BaileysOutboundLog").insert(entry)
-  if (error) throw error
+  await sql`
+    INSERT INTO "BaileysOutboundLog"
+      ("sessionId", "conversationId", "toJid", "messagePreview", "delayAppliedMs", "status", "sentAt")
+    VALUES (
+      ${entry.sessionId}, ${entry.conversationId ?? null}, ${entry.toJid},
+      ${entry.messagePreview ?? null}, ${entry.delayAppliedMs ?? null},
+      ${entry.status}, ${entry.sentAt ?? null}
+    )
+  `
 }
 
 export async function markOutboundSent(id: string, delayAppliedMs: number): Promise<void> {
-  const { error } = await supabase
-    .from("BaileysOutboundLog")
-    .update({ status: "SENT", sentAt: new Date().toISOString(), delayAppliedMs })
-    .eq("id", id)
-  if (error) throw error
+  await sql`
+    UPDATE "BaileysOutboundLog"
+    SET "status" = 'SENT', "sentAt" = NOW(), "delayAppliedMs" = ${delayAppliedMs}
+    WHERE "id" = ${id}
+  `
 }
 
 // ── Agent ─────────────────────────────────────────────────────────────────────
 
 export async function getAgent(agentId: string): Promise<Agent | null> {
-  const { data, error } = await supabase
-    .from("Agent")
-    .select("id, elevenlabsAgentId, transportType")
-    .eq("id", agentId)
-    .single()
-  if (error?.code === "PGRST116") return null
-  if (error) throw error
-  return data
+  const rows = await sql<Agent[]>`
+    SELECT "id", "elevenlabsAgentId", "transportType"
+    FROM "Agent" WHERE "id" = ${agentId} LIMIT 1
+  `
+  return rows[0] ?? null
 }
 
 // ── Customer / conversation lookup ───────────────────────────────────────────
 
 export async function getOrCreateCustomer(phoneNumber: string, agentId: string) {
-  const { data: existing } = await supabase
-    .from("Customer")
-    .select("id, phoneNumber, name, conversationSummary")
-    .eq("phoneNumber", phoneNumber)
-    .eq("agentId", agentId)
-    .single()
-
-  if (existing) {
-    await supabase
-      .from("Customer")
-      .update({ lastSeen: new Date().toISOString() })
-      .eq("id", existing.id)
-    return existing
+  const rows = await sql<{ id: string; phoneNumber: string; name: string | null; conversationSummary: string | null }[]>`
+    SELECT "id", "phoneNumber", "name", "conversationSummary"
+    FROM "Customer"
+    WHERE "phoneNumber" = ${phoneNumber} AND "agentId" = ${agentId}
+    LIMIT 1
+  `
+  if (rows[0]) {
+    await sql`UPDATE "Customer" SET "lastSeen" = NOW() WHERE "id" = ${rows[0].id}`
+    return rows[0]
   }
-
-  const { data: created, error } = await supabase
-    .from("Customer")
-    .insert({ phoneNumber, agentId })
-    .select("id, phoneNumber, name, conversationSummary")
-    .single()
-  if (error) throw error
-  return created
+  const id = randomUUID()
+  const created = await sql<{ id: string; phoneNumber: string; name: string | null; conversationSummary: string | null }[]>`
+    INSERT INTO "Customer" ("id", "phoneNumber", "agentId", "lastSeen", "createdAt", "updatedAt")
+    VALUES (${id}, ${phoneNumber}, ${agentId}, NOW(), NOW(), NOW())
+    RETURNING "id", "phoneNumber", "name", "conversationSummary"
+  `
+  return created[0]
 }
 
 export async function getRecentConversationLogs(phoneNumber: string, agentId: string, limit = 10) {
-  const { data, error } = await supabase
-    .from("ConversationLog")
-    .select("conversationId, summary, durationSecs, startTime, status")
-    .eq("phoneNumber", phoneNumber)
-    .eq("agentId", agentId)
-    .order("startTime", { ascending: false })
-    .limit(limit)
-  if (error) throw error
-  return data ?? []
+  return sql<{ conversationId: string; summary?: string; durationSecs?: number; startTime?: string; status?: string }[]>`
+    SELECT "conversationId", "summary", "durationSecs", "startTime", "status"
+    FROM "ConversationLog"
+    WHERE "phoneNumber" = ${phoneNumber} AND "agentId" = ${agentId}
+    ORDER BY "startTime" DESC
+    LIMIT ${limit}
+  `
 }
 
 export async function upsertConversationLog(entry: {
@@ -171,8 +190,20 @@ export async function upsertConversationLog(entry: {
   creditsUsed?: number
   rawPayload: unknown
 }) {
-  const { error } = await supabase
-    .from("ConversationLog")
-    .upsert(entry, { onConflict: "conversationId" })
-  if (error) throw error
+  await sql`
+    INSERT INTO "ConversationLog"
+      ("conversationId", "elevenlabsAgentId", "agentId", "phoneNumber", "transcript",
+       "summary", "durationSecs", "startTime", "status", "creditsUsed", "rawPayload", "createdAt")
+    VALUES (
+      ${entry.conversationId}, ${entry.elevenlabsAgentId}, ${entry.agentId},
+      ${entry.phoneNumber ?? null}, ${JSON.stringify(entry.transcript)},
+      ${entry.summary ?? null}, ${entry.durationSecs ?? null},
+      ${entry.startTime ?? null}, ${entry.status ?? null},
+      ${entry.creditsUsed ?? 0}, ${JSON.stringify(entry.rawPayload)}, NOW()
+    )
+    ON CONFLICT ("conversationId") DO UPDATE SET
+      "summary" = EXCLUDED."summary",
+      "status" = EXCLUDED."status",
+      "creditsUsed" = EXCLUDED."creditsUsed"
+  `
 }

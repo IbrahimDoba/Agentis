@@ -27,10 +27,21 @@ export const sessionManager = {
     if (sessions.has(agentId)) {
       return { agentId, status: "already_active" }
     }
-
     await upsertSession(agentId, { status: "QR_PENDING" })
     await startSession(agentId)
     return { agentId, status: "qr_pending" }
+  },
+
+  async requestPairingCode(agentId: string, phoneNumber: string): Promise<string> {
+    const active = sessions.get(agentId)
+    if (!active) throw new SessionError("Session not started — call create first")
+    if (active.sock.authState.creds.registered) {
+      throw new SessionError("Already registered — pairing code not needed")
+    }
+    const digits = phoneNumber.replace(/\D/g, "")
+    const code = await active.sock.requestPairingCode(digits)
+    logger.info({ agentId, digits }, "Pairing code requested")
+    return code
   },
 
   async destroy(agentId: string): Promise<void> {
@@ -137,7 +148,12 @@ async function startSession(agentId: string, reconnectAttempt = 0): Promise<void
       await updateSessionStatus(agentId, "DISCONNECTED", { lastDisconnectReason: reason })
       webhookEmitter.emit("session.disconnected", { agentId, reason })
 
-      if (!shouldReconnect) return
+      if (!shouldReconnect) {
+        // Purge stale auth files so the next connect starts fresh
+        await purgeAuthFiles(agentId)
+        sessions.delete(agentId)
+        return
+      }
       if (reconnectAttempt >= MAX_RECONNECT_ATTEMPTS) {
         logger.error({ agentId }, "Max reconnect attempts reached")
         return

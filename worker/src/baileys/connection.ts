@@ -1,4 +1,5 @@
 import makeWASocket, {
+  Browsers,
   DisconnectReason,
   fetchLatestBaileysVersion,
   makeCacheableSignalKeyStore,
@@ -27,15 +28,15 @@ export async function createConnection(opts: ConnectionOptions): Promise<WASocke
       creds: opts.authState.creds,
       keys: makeCacheableSignalKeyStore(opts.authState.keys, log as never),
     },
-    printQRInTerminal: false,
     logger: log as never,
-    browser: ["Dailzero AI", "Chrome", "1.0.0"],
+    browser: Browsers.macOS("Chrome"),
     connectTimeoutMs: 30_000,
     retryRequestDelayMs: 2_000,
-    markOnlineOnConnect: false, // avoid unnecessary online presence broadcasts
+    markOnlineOnConnect: false,
   })
 
-  sock.ev.on("creds.update", opts.authState.keys.set as never)
+  // NOTE: creds.update is handled in session-manager.ts via saveCreds
+  // Do NOT add a creds.update handler here
 
   sock.ev.on("connection.update", (update) => {
     const { connection, lastDisconnect, qr } = update
@@ -55,21 +56,20 @@ export async function createConnection(opts: ConnectionOptions): Promise<WASocke
       const err = lastDisconnect?.error as Boom | undefined
       const statusCode = err?.output?.statusCode
 
-      // Permanent errors — do not reconnect
-      const banned =
-        statusCode === 401 ||
-        statusCode === 403 ||
-        err?.output?.payload?.error === "loggedOut"
-
-      if (banned) {
-        log.warn({ statusCode }, "Session appears banned/logged out")
+      // 403 = account banned/restricted by WhatsApp
+      if (statusCode === 403) {
+        log.warn({ statusCode }, "Session banned by WhatsApp")
         opts.onBanned()
         return
       }
 
-      const shouldReconnect = statusCode !== DisconnectReason.loggedOut
+      // 401 = session logged out (normal logout, pairing expired, replaced device)
+      // Do not reconnect, but not a ban
+      const shouldReconnect =
+        statusCode !== DisconnectReason.loggedOut && // 401
+        statusCode !== DisconnectReason.connectionReplaced // 440
       const reason = err?.message ?? `statusCode=${statusCode}`
-      log.info({ reason, shouldReconnect }, "Connection closed")
+      log.info({ reason, statusCode, shouldReconnect }, "Connection closed")
       opts.onDisconnected(reason, shouldReconnect)
     }
   })

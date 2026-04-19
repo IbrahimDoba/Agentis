@@ -50,4 +50,11 @@ export const sessionRoutes: FastifyPluginAsync = async (app) => {
     await sessionManager.restart(req.params.agentId)
     reply.send({ ok: true })
   })
+
+  // POST /v1/sessions/:agentId/pairing-code — request pairing code (no camera needed)
+  app.post<{ Params: { agentId: string } }>("/sessions/:agentId/pairing-code", async (req, reply) => {
+    const body = z.object({ phoneNumber: z.string().min(7) }).parse(req.body)
+    const code = await sessionManager.requestPairingCode(req.params.agentId, body.phoneNumber)
+    reply.send({ code })
+  })
 }

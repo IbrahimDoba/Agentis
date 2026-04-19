@@ -60,7 +60,20 @@ async function encryptLocalFiles(dir: string) {
   }
 }
 
+let bucketExists: boolean | null = null
+
 async function backupToStorage(agentId: string, dir: string) {
+  // Check bucket exists once; skip silently if not found
+  if (bucketExists === null) {
+    const { data, error } = await supabase.storage.getBucket(config.AUTH_STORAGE_BUCKET)
+    bucketExists = !error && !!data
+    if (!bucketExists) {
+      logger.warn({ bucket: config.AUTH_STORAGE_BUCKET }, "Auth backup bucket not found — skipping storage backup. Create the bucket in Supabase to enable backups.")
+      return
+    }
+  }
+  if (!bucketExists) return
+
   const { readdirSync } = await import("fs")
   const files = readdirSync(dir).filter((f) => f.endsWith(".enc"))
   for (const file of files) {

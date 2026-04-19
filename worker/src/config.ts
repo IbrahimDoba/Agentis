@@ -9,13 +9,14 @@ const schema = z.object({
   DASHBOARD_URL: z.string().url(),
   DASHBOARD_WEBHOOK_SECRET: z.string().min(16),
 
+  DATABASE_URL: z.string().min(1),
   SUPABASE_URL: z.string().url(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
 
   REDIS_URL: z.string().min(1),
 
-  ELEVENLABS_API_KEY: z.string().min(1),
-  ELEVENLABS_AGENT_ID_DEFAULT: z.string().optional(),
+  ORCHESTRATOR_URL: z.string().url().default("http://localhost:4100"),
+  ORCHESTRATOR_API_KEY: z.string().min(16),
 
   AUTH_ENCRYPTION_KEY: z.string().min(32),
   AUTH_STORAGE_BUCKET: z.string().default("baileys-auth-backups"),

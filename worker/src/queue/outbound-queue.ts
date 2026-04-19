@@ -1,4 +1,5 @@
 import { Queue, Worker, type Job } from "bullmq"
+import { randomUUID } from "crypto"
 import { getRedis } from "./redis.js"
 import { sessionManager } from "../baileys/session-manager.js"
 import { sendWithPacing, businessHoursCheck } from "../anti-ban/pacing.js"
@@ -67,7 +68,7 @@ const worker = new Worker<OutboundJob>(
 
     // §7.4 — Duplicate text check (AI messages only — human messages bypass)
     if (source === "ai") {
-      await checkDuplicateText(text)
+      await checkDuplicateText(text, toJid)
     }
 
     // Rate limiting
@@ -102,6 +103,23 @@ worker.on("failed", (job, err) => {
   logger.error({ jobId: job?.id, err: err.message }, "Outbound job failed")
 })
 
+// Drain stale jobs from previous worker runs on startup
+;(async () => {
+  try {
+    const stale = await queue.getJobs(["failed", "delayed", "waiting"], 0, 50)
+    let cleaned = 0
+    for (const job of stale) {
+      if (job && Date.now() - job.timestamp > 60_000) {
+        await job.remove().catch(() => {})
+        cleaned++
+      }
+    }
+    if (cleaned > 0) logger.info({ cleaned }, "Cleaned stale BullMQ jobs on startup")
+  } catch (err) {
+    logger.warn({ err }, "Failed to clean stale BullMQ jobs")
+  }
+})()
+
 async function logOutboundEntry(opts: {
   session: { id: string }
   toJid: string
@@ -109,20 +127,18 @@ async function logOutboundEntry(opts: {
   conversationId?: string
 }): Promise<string | null> {
   try {
-    // We can't easily get the inserted ID from logOutbound — use a direct insert
-    const { supabase } = await import("../db/supabase.js")
-    const { data } = await supabase
-      .from("BaileysOutboundLog")
-      .insert({
-        sessionId: opts.session.id,
-        toJid: opts.toJid,
-        messagePreview: opts.text.slice(0, 80),
-        conversationId: opts.conversationId,
-        status: "QUEUED",
-      })
-      .select("id")
-      .single()
-    return data?.id ?? null
+    const { sql } = await import("../db/client.js")
+    const id = randomUUID()
+    const rows = await sql<{ id: string }[]>`
+      INSERT INTO "BaileysOutboundLog"
+        ("id", "sessionId", "toJid", "messagePreview", "conversationId", "status")
+      VALUES (
+        ${id}, ${opts.session.id}, ${opts.toJid}, ${opts.text.slice(0, 80)},
+        ${opts.conversationId ?? null}, 'QUEUED'
+      )
+      RETURNING "id"
+    `
+    return rows[0]?.id ?? null
   } catch {
     return null
   }

@@ -1,7 +1,7 @@
 {
-  "name": "dailzero-wa-worker",
+  "name": "dailzero-orchestrator",
   "version": "1.0.0",
-  "description": "Dailzero WhatsApp Web (Baileys) worker service",
+  "description": "Dailzero LLM orchestrator for WhatsApp AI agents",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
@@ -16,25 +16,18 @@
     "@fastify/cors": "^10.0.2",
     "@fastify/helmet": "^13.0.1",
     "@fastify/rate-limit": "^10.2.2",
-    "@hapi/boom": "^10.0.1",
-    "@supabase/supabase-js": "^2.49.4",
-    "baileys": "7.0.0-rc.9",
     "bullmq": "^5.51.0",
     "dotenv-safe": "^9.1.0",
     "fastify": "^5.3.2",
     "ioredis": "^5.6.0",
-    "link": "^2.1.1",
+    "openai": "^4.85.0",
     "pino": "^9.6.0",
     "pino-pretty": "^13.0.0",
     "postgres": "^3.4.9",
-    "qrcode": "^1.5.4",
-    "sharp": "^0.34.2",
     "zod": "^3.25.20"
   },
   "devDependencies": {
     "@types/node": "^22.15.18",
-    "@types/qrcode": "^1.5.5",
-    "@types/ws": "^8.18.1",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3",
     "vitest": "^3.1.3"

@@ -70,6 +70,7 @@ model Agent {
   productsData         Json?
   toolsData            Json?
   transportType        String      @default("waba")
+  agentRuntime         String      @default("elevenlabs")
   status               AgentStatus @default(PENDING_REVIEW)
   createdAt            DateTime    @default(now())
   updatedAt            DateTime    @updatedAt
@@ -78,6 +79,67 @@ model Agent {
   customers            Customer[]
   templates            MessageTemplate[]
   baileysSession       BaileysSession?
+  orchestratorAgents   OrchestratorAgent[]
+  conversations        Conversation[]
+}
+
+model OrchestratorAgent {
+  id               String         @id @default(cuid())
+  agentId          String
+  agent            Agent          @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  name             String
+  systemPrompt     String         @db.Text
+  personality      String?        @db.Text
+  model            String         @default("gpt-4o-mini")
+  temperature      Decimal        @default(0.7) @db.Decimal(3, 2)
+  maxOutputTokens  Int            @default(800)
+  shortTermWindow  Int            @default(20)
+  summarizeAfter   Int            @default(30)
+  isActive         Boolean        @default(true)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  conversations    Conversation[]
+}
+
+model Conversation {
+  id                   String              @id @default(cuid())
+  agentId              String
+  agent                Agent               @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  orchestratorAgentId  String?
+  orchestratorAgent    OrchestratorAgent?  @relation(fields: [orchestratorAgentId], references: [id], onDelete: SetNull)
+  phoneNumber          String
+  mode                 String              @default("ai")
+  lastActivityAt       DateTime?           @default(now())
+  factsExtractedAt     DateTime?
+  createdAt            DateTime            @default(now())
+  messages             Message[]
+  summary              ConversationSummary?
+
+  @@unique([agentId, phoneNumber])
+}
+
+model Message {
+  id               String       @id @default(cuid())
+  conversationId   String
+  conversation     Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  direction        String
+  content          String       @db.Text
+  mediaUrl         String?
+  mediaDescription String?      @db.Text
+  toolCalls        Json?
+  tokensInput      Int?
+  tokensOutput     Int?
+  modelUsed        String?
+  createdAt        DateTime     @default(now())
+}
+
+model ConversationSummary {
+  conversationId             String       @id
+  conversation               Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  summary                    String       @db.Text
+  messagesCovered            Int
+  summarizedThroughMessageId String?
+  updatedAt                  DateTime     @default(now()) @updatedAt
 }
 
 model MessageTemplate {
