@@ -21,8 +21,7 @@ WORKDIR /app/worker
 RUN pnpm build
 
 # Auth sessions stored in a named volume — never baked into the image
-VOLUME ["/app/worker/auth_sessions"]
-
+# Auth sessions should be mapped to a Railway Volume via the Railway Dashboard
 ENV NODE_ENV=production
 EXPOSE 4000
 
