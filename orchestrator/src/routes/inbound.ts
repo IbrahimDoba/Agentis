@@ -13,6 +13,7 @@ const inboundSchema = z.object({
   senderJid: z.string().min(1),
   text: z.string().min(1),
   timestamp: z.number(),
+  pushName: z.string().optional(),
   transportType: z.string().optional(),
 })
 
@@ -23,7 +24,7 @@ export async function inboundRoutes(app: FastifyInstance) {
       return reply.code(400).send({ error: "Invalid payload", details: parsed.error.flatten() })
     }
 
-    const { agentId, messageId, fromPhone, senderJid, text, timestamp } = parsed.data
+    const { agentId, messageId, fromPhone, senderJid, text, timestamp, pushName } = parsed.data
 
     // Dedup check
     if (await isDuplicate(messageId)) {
@@ -39,6 +40,7 @@ export async function inboundRoutes(app: FastifyInstance) {
       senderJid,
       text,
       timestamp,
+      pushName,
     })
 
     logger.info({ agentId, fromPhone, messageId }, "Inbound message enqueued")

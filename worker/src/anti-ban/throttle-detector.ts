@@ -43,6 +43,12 @@ export function recordAckSuccess(agentId: string): void {
   failedAcks.set(agentId, 0)
 }
 
+/** Call on successful reconnect to clear error state */
+export function resetErrors(agentId: string): void {
+  recentErrors.delete(agentId)
+  failedAcks.delete(agentId)
+}
+
 function triggerPause(agentId: string, reason: string): void {
   logger.warn({ agentId, reason }, "Pausing session outbound (throttle detected)")
   sessionManager.pause(agentId)

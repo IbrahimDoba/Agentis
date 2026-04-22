@@ -6,7 +6,13 @@
 const WORKER_URL = process.env.WORKER_URL ?? "http://localhost:4000"
 const WORKER_API_KEY = process.env.WORKER_API_KEY ?? ""
 
-function headers() {
+function authHeaders() {
+  return {
+    Authorization: `Bearer ${WORKER_API_KEY}`,
+  }
+}
+
+function jsonHeaders() {
   return {
     "Content-Type": "application/json",
     Authorization: `Bearer ${WORKER_API_KEY}`,
@@ -29,11 +35,24 @@ export interface WorkerSessionStatus {
   createdAt: string
 }
 
+export interface WorkerBroadcastCampaign {
+  id: string
+  agentId: string
+  message: string
+  status: "pending" | "running" | "paused" | "completed" | "cancelled" | "failed"
+  totalCount: number
+  sentCount: number
+  failedCount: number
+  createdAt: string
+  startedAt: string | null
+  completedAt: string | null
+}
+
 export const baileysClient = {
   async createSession(agentId: string): Promise<{ agentId: string; status: string }> {
     const res = await fetch(`${WORKER_URL}/v1/sessions`, {
       method: "POST",
-      headers: headers(),
+      headers: jsonHeaders(),
       body: JSON.stringify({ agentId }),
     })
     if (!res.ok) throw new Error(`Worker error: ${res.status}`)
@@ -42,7 +61,7 @@ export const baileysClient = {
 
   async getSession(agentId: string): Promise<WorkerSessionStatus | null> {
     const res = await fetch(`${WORKER_URL}/v1/sessions/${agentId}`, {
-      headers: headers(),
+      headers: authHeaders(),
       cache: "no-store",
     })
     if (res.status === 404) return null
@@ -50,10 +69,18 @@ export const baileysClient = {
     return res.json()
   },
 
+  async disconnectSession(agentId: string): Promise<void> {
+    const res = await fetch(`${WORKER_URL}/v1/sessions/${agentId}/disconnect`, {
+      method: "POST",
+      headers: authHeaders(),
+    })
+    if (!res.ok && res.status !== 404) throw new Error(`Worker error: ${res.status}`)
+  },
+
   async deleteSession(agentId: string): Promise<void> {
     const res = await fetch(`${WORKER_URL}/v1/sessions/${agentId}`, {
       method: "DELETE",
-      headers: headers(),
+      headers: authHeaders(),
     })
     if (!res.ok && res.status !== 404) throw new Error(`Worker error: ${res.status}`)
   },
@@ -61,9 +88,22 @@ export const baileysClient = {
   async restartSession(agentId: string): Promise<void> {
     const res = await fetch(`${WORKER_URL}/v1/sessions/${agentId}/restart`, {
       method: "POST",
-      headers: headers(),
+      headers: authHeaders(),
     })
     if (!res.ok) throw new Error(`Worker error: ${res.status}`)
+  },
+
+  async resolvePhones(agentId: string, ids: string[]): Promise<{ resolved: Array<{ id: string; phoneNumber: string }> }> {
+    const res = await fetch(`${WORKER_URL}/v1/sessions/${agentId}/resolve-phones`, {
+      method: "POST",
+      headers: jsonHeaders(),
+      body: JSON.stringify({ ids }),
+    })
+    if (!res.ok) {
+      const errorText = await res.text().catch(() => "")
+      throw new Error(`Worker error: ${res.status}${errorText ? `: ${errorText}` : ""}`)
+    }
+    return res.json()
   },
 
   async sendMessage(payload: {
@@ -75,11 +115,62 @@ export const baileysClient = {
   }): Promise<{ jobId: string; status: string }> {
     const res = await fetch(`${WORKER_URL}/v1/messages/send`, {
       method: "POST",
-      headers: headers(),
+      headers: jsonHeaders(),
       body: JSON.stringify(payload),
     })
     if (!res.ok) throw new Error(`Worker error: ${res.status}`)
     return res.json()
+  },
+
+  async createBroadcast(payload: {
+    agentId: string
+    message: string
+    phoneNumbers: string[]
+  }): Promise<{
+    broadcast: WorkerBroadcastCampaign
+    eligibleCount?: number
+    trimmed?: number
+    skipped?: number
+    message?: string
+  }> {
+    const res = await fetch(`${WORKER_URL}/v1/broadcasts`, {
+      method: "POST",
+      headers: jsonHeaders(),
+      body: JSON.stringify(payload),
+    })
+    if (!res.ok) {
+      const errorText = await res.text()
+      throw new Error(errorText || `Worker error: ${res.status}`)
+    }
+    return res.json()
+  },
+
+  async listBroadcasts(agentId: string): Promise<{ broadcasts: WorkerBroadcastCampaign[] }> {
+    const res = await fetch(`${WORKER_URL}/v1/broadcasts?agentId=${agentId}`, {
+      headers: authHeaders(),
+      cache: "no-store",
+    })
+    if (!res.ok) {
+      const errorText = await res.text().catch(() => "")
+      throw new Error(`Worker error: ${res.status}${errorText ? `: ${errorText}` : ""}`)
+    }
+    return res.json()
+  },
+
+  async cancelBroadcast(broadcastId: string): Promise<void> {
+    const res = await fetch(`${WORKER_URL}/v1/broadcasts/${broadcastId}/cancel`, {
+      method: "POST",
+      headers: authHeaders(),
+    })
+    if (!res.ok) throw new Error(`Worker error: ${res.status}`)
+  },
+
+  async resumeBroadcast(broadcastId: string): Promise<void> {
+    const res = await fetch(`${WORKER_URL}/v1/broadcasts/${broadcastId}/resume`, {
+      method: "POST",
+      headers: authHeaders(),
+    })
+    if (!res.ok) throw new Error(`Worker error: ${res.status}`)
   },
 
   async getHealth(): Promise<{ status: string; redis: string; uptime: number } | null> {

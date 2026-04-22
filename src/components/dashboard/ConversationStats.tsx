@@ -1,9 +1,9 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
-import Link from "next/link"
 import { ChatBubbleLeftRightIcon, UsersIcon, FireIcon, ArrowTrendingUpIcon } from "@heroicons/react/24/outline"
 import styles from "@/app/dashboard/page.module.css"
+import type { RuntimePreference } from "@/hooks/useRuntimePreference"
 
 function SkeletonCard() {
   return (
@@ -16,7 +16,12 @@ function SkeletonCard() {
 }
 
 
-export function ConversationStats() {
+interface ConversationStatsProps {
+  runtime: RuntimePreference
+  agentId?: string
+}
+
+export function ConversationStats({ runtime, agentId }: ConversationStatsProps) {
   const { data, isLoading } = useQuery<{
     totalConversations: number
     totalLeads: number
@@ -26,9 +31,11 @@ export function ConversationStats() {
     creditLimit: number
     plan: string
   }>({
-    queryKey: ["conversation-stats"],
+    queryKey: ["conversation-stats", runtime, agentId ?? "all"],
     queryFn: async () => {
-      const res = await fetch("/api/conversations/stats")
+      const params = new URLSearchParams({ runtime })
+      if (agentId) params.set("agentId", agentId)
+      const res = await fetch(`/api/conversations/stats?${params}`)
       if (!res.ok) throw new Error("Failed to fetch stats")
       return res.json()
     },
@@ -71,14 +78,14 @@ export function ConversationStats() {
         <div className={styles.statSub}>Unique callers reached</div>
       </div>
 
-      <Link href="/dashboard/leads" className={styles.statCard} style={{ textDecoration: "none" }}>
+      <div className={styles.statCard}>
         <div className={styles.statCardIcon} style={{ background: "rgba(245, 158, 11, 0.12)", color: "#f59e0b" }}>
           <FireIcon width={18} height={18} />
         </div>
         <div className={styles.statLabel}>Total Leads</div>
         <div className={styles.statValue}>{leads}</div>
-        <div className={styles.statSub}>View all leads →</div>
-      </Link>
+        <div className={styles.statSub}>Tracked from conversations</div>
+      </div>
 
       <div className={styles.statCard}>
         <div className={styles.statCardIcon} style={{ background: "rgba(167, 139, 250, 0.12)", color: "#a78bfa" }}>

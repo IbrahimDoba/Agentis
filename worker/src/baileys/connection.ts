@@ -1,11 +1,10 @@
-import makeWASocket, {
-  Browsers,
+import {
+  makeWASocket,
   DisconnectReason,
-  fetchLatestBaileysVersion,
   makeCacheableSignalKeyStore,
   type WASocket,
   type AuthenticationState,
-} from "baileys"
+} from "@whiskeysockets/baileys"
 import { Boom } from "@hapi/boom"
 import { logger as rootLogger } from "../lib/logger.js"
 
@@ -18,21 +17,23 @@ export interface ConnectionOptions {
   onBanned: () => void
 }
 
+
 export async function createConnection(opts: ConnectionOptions): Promise<WASocket> {
   const log = rootLogger.child({ agentId: opts.agentId })
-  const { version } = await fetchLatestBaileysVersion()
 
   const sock = makeWASocket({
-    version,
     auth: {
       creds: opts.authState.creds,
       keys: makeCacheableSignalKeyStore(opts.authState.keys, log as never),
     },
     logger: log as never,
-    browser: Browsers.macOS("Chrome"),
+    // Pin to a version WhatsApp currently accepts (fetched from Baileys GitHub)
+    version: [2, 3000, 1035194821],
+    browser: ["Mac OS", "Chrome", "131.0.0"] as [string, string, string],
     connectTimeoutMs: 30_000,
     retryRequestDelayMs: 2_000,
     markOnlineOnConnect: false,
+    defaultQueryTimeoutMs: undefined,
   })
 
   // NOTE: creds.update is handled in session-manager.ts via saveCreds

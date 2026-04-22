@@ -5,6 +5,31 @@
 
 .header {
   margin-bottom: 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.guideLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-decoration: none;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+
+.guideLink:hover {
+  color: var(--text-primary);
+  border-color: var(--text-muted);
 }
 
 .title {
@@ -305,6 +330,16 @@
   gap: 8px;
 }
 
+.prevConnection {
+  font-size: 13px;
+  color: var(--text-secondary);
+  padding: 8px 12px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 4px;
+}
+
 .btnPrimary {
   width: 100%;
   background: var(--accent);
@@ -351,6 +386,20 @@
 
 .btnDanger:hover { background: rgba(239,68,68,0.18); }
 .btnDanger:disabled { opacity: 0.5; cursor: not-allowed; }
+
+@media (max-width: 768px) {
+  .methodToggle,
+  .pairingInput,
+  .actionGroup {
+    flex-direction: column;
+  }
+
+  .methodBtn,
+  .btnSecondary,
+  .btnDanger {
+    width: 100%;
+  }
+}
 
 /* Health panel */
 .health {

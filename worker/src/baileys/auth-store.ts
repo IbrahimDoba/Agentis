@@ -1,4 +1,4 @@
-import { useMultiFileAuthState } from "baileys"
+import { useMultiFileAuthState } from "@whiskeysockets/baileys"
 import { readFile, writeFile, mkdir, rm } from "fs/promises"
 import { existsSync } from "fs"
 import path from "path"

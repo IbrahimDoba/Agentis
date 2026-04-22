@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { PLAN_CREDIT_LIMITS, PLAN_OVERAGE_RATE_PER_1K } from "@/lib/plans"
+import { sumCreditsForAgents } from "@/lib/creditUsage"
 
 interface Params {
   params: Promise<{ id: string }>
@@ -35,7 +36,7 @@ export async function GET(req: NextRequest, { params }: Params) {
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
   const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1)
 
-  const [monthlyAgg, totalAgg] = await Promise.all([
+  const [monthlyAgg, totalAgg, orchestratorMonthly, orchestratorTotal] = await Promise.all([
     agentIds.length
       ? db.conversationLog.aggregate({
           where: {
@@ -54,11 +55,13 @@ export async function GET(req: NextRequest, { params }: Params) {
           _sum: { creditsUsed: true },
         })
       : null,
+    sumCreditsForAgents(agentIds, monthStart, monthEnd),
+    sumCreditsForAgents(agentIds),
   ])
 
   const plan = user.plan ?? "free"
-  const monthlyCreditsUsed = monthlyAgg?._sum?.creditsUsed ?? 0
-  const totalCreditsUsed = totalAgg?._sum?.creditsUsed ?? 0
+  const monthlyCreditsUsed = (monthlyAgg?._sum?.creditsUsed ?? 0) + orchestratorMonthly
+  const totalCreditsUsed = (totalAgg?._sum?.creditsUsed ?? 0) + orchestratorTotal
   const creditLimit = PLAN_CREDIT_LIMITS[plan] ?? PLAN_CREDIT_LIMITS.free
   const overageCredits = creditLimit === -1 ? 0 : Math.max(0, monthlyCreditsUsed - creditLimit)
   const overageRate = PLAN_OVERAGE_RATE_PER_1K[plan] ?? null

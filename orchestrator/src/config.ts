@@ -18,6 +18,12 @@ const schema = z.object({
   OPENAI_CHAT_MODEL: z.string().default("gpt-4o-mini"),
   OPENAI_EMBEDDING_MODEL: z.string().default("text-embedding-3-small"),
 
+  CLOUDFLARE_R2_ACCOUNT_ID: z.string().min(1),
+  CLOUDFLARE_R2_BUCKET: z.string().min(1),
+  CLOUDFLARE_R2_ACCESS_KEY_ID: z.string().min(1),
+  CLOUDFLARE_R2_SECRET_ACCESS_KEY: z.string().min(1),
+  CLOUDFLARE_R2_PUBLIC_URL: z.string().url().optional().or(z.literal("").transform(() => undefined)),
+
   ALERT_WEBHOOK_URL: z.string().url().optional().or(z.literal("").transform(() => undefined)),
 })
 

@@ -1,8 +1,9 @@
 export interface ChatMessage {
   role: "system" | "user" | "assistant" | "tool"
-  content: string
+  content: string | null
   tool_call_id?: string
   name?: string
+  tool_calls?: { id: string; name: string; arguments: Record<string, unknown> }[]
 }
 
 export interface ToolDefinition {

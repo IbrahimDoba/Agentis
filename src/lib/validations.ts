@@ -38,6 +38,7 @@ export const agentSchema = z.object({
   whatsappBusinessName: z.string().optional(),
   category: z.string().optional(),
   address: z.string().optional(),
+  agentRuntime: z.enum(["elevenlabs", "orchestrator"]).optional(),
   productsData: z.array(z.object({
     id: z.string(),
     name: z.string(),
@@ -45,7 +46,12 @@ export const agentSchema = z.object({
     price: z.string().optional(),
     link: z.string().optional(),
     imageUrl: z.string().optional(),
+    mediaId: z.string().optional(),
   })).optional(),
+  // Orchestrator-specific fields
+  orchestratorModel: z.string().optional(),
+  orchestratorTemperature: z.coerce.number().min(0).max(2).optional(),
+  orchestratorMaxTokens: z.coerce.number().min(100).max(4096).optional(),
 })
 
 export const adminAgentUpdateSchema = z.object({

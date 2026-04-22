@@ -16,6 +16,7 @@ interface KBDoc {
 interface KnowledgeBaseTabProps {
   agentId: string
   elevenlabsAgentId?: string | null
+  agentRuntime?: string
 }
 
 function formatDocType(type: string) {
@@ -29,7 +30,7 @@ function DocIcon({ type }: { type: string }) {
   return <DocumentTextIcon width={16} height={16} />
 }
 
-export function KnowledgeBaseTab({ agentId, elevenlabsAgentId }: KnowledgeBaseTabProps) {
+export function KnowledgeBaseTab({ agentId, elevenlabsAgentId, agentRuntime }: KnowledgeBaseTabProps) {
   const queryClient = useQueryClient()
   const fileInputRef = useRef<HTMLInputElement>(null)
 

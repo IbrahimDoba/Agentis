@@ -12,12 +12,14 @@ export default async function ChatsPage() {
 
   const agents = await db.agent.findMany({
     where: { userId: session.user.id },
-    select: { id: true, businessName: true, elevenlabsAgentId: true, profileImageUrl: true },
+    select: { id: true, businessName: true, elevenlabsAgentId: true, profileImageUrl: true, agentRuntime: true, status: true },
     orderBy: { createdAt: "asc" },
   })
 
   const hasAny = agents.length > 0
-  const hasConnected = agents.some((a) => !!a.elevenlabsAgentId)
+  const hasElevenLabs = agents.some((a) => !!a.elevenlabsAgentId)
+  const hasOrchestrator = agents.some((a) => a.agentRuntime === "orchestrator" && a.status === "ACTIVE")
+  const hasAnyActive = hasElevenLabs || hasOrchestrator
 
   return (
     <div className={styles.page}>
@@ -25,7 +27,7 @@ export default async function ChatsPage() {
         <div>
           <h1 className={styles.title}>Conversations</h1>
           <p className={styles.subtitle}>
-            {hasConnected ? "All conversations with your AI agents" : "Connect your agent to see conversations"}
+            {hasAnyActive ? "All conversations with your AI agents" : "Connect your agent to see conversations"}
           </p>
         </div>
       </div>
@@ -41,7 +43,7 @@ export default async function ChatsPage() {
         </div>
       )}
 
-      {hasAny && !hasConnected && (
+      {hasAny && !hasAnyActive && (
         <div className={styles.notActive}>
           <div className={styles.notActiveIcon}>⚙️</div>
           <div className={styles.notActiveTitle}>Agent not yet connected</div>
@@ -51,7 +53,7 @@ export default async function ChatsPage() {
         </div>
       )}
 
-      {hasConnected && <ChatsClient agents={agents} />}
+      {hasAnyActive && <ChatsClient agents={agents} />}
     </div>
   )
 }

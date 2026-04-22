@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createHmac, timingSafeEqual } from "crypto"
 import { db } from "@/lib/db"
+import { push } from "@/lib/sse-store"
 
 function verify(body: string, signature: string): boolean {
   const secret = process.env.BAILEYS_WEBHOOK_SECRET ?? ""
@@ -53,8 +54,11 @@ export async function POST(req: Request) {
       break
 
     case "message.inbound":
-      // Stored by the worker directly in the DB — nothing extra needed here yet.
-      // This hook is available for real-time push notifications in the future.
+      push(agentId, "message", { agentId })
+      break
+
+    case "message.sent":
+      push(agentId, "message", { agentId })
       break
   }
 

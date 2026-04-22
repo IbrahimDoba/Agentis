@@ -3,6 +3,7 @@ import { z } from "zod"
 import { sessionManager } from "../baileys/session-manager.js"
 import { getSessionByAgentId, deleteSession } from "../db/queries.js"
 import { NotFoundError } from "../lib/errors.js"
+import { resolvePhone } from "../baileys/contacts-store.js"
 
 export const sessionRoutes: FastifyPluginAsync = async (app) => {
   // POST /v1/sessions — create a new session
@@ -19,7 +20,13 @@ export const sessionRoutes: FastifyPluginAsync = async (app) => {
     reply.send(session)
   })
 
-  // DELETE /v1/sessions/:agentId — logout and delete session
+  // POST /v1/sessions/:agentId/disconnect — stop socket, preserve auth + DB record
+  app.post<{ Params: { agentId: string } }>("/sessions/:agentId/disconnect", async (req, reply) => {
+    await sessionManager.disconnect(req.params.agentId)
+    reply.send({ ok: true })
+  })
+
+  // DELETE /v1/sessions/:agentId — full wipe: logout, delete auth files + DB record
   app.delete<{ Params: { agentId: string } }>("/sessions/:agentId", async (req, reply) => {
     await sessionManager.destroy(req.params.agentId)
     reply.code(204).send()
@@ -49,6 +56,28 @@ export const sessionRoutes: FastifyPluginAsync = async (app) => {
   app.post<{ Params: { agentId: string } }>("/sessions/:agentId/restart", async (req, reply) => {
     await sessionManager.restart(req.params.agentId)
     reply.send({ ok: true })
+  })
+
+  // POST /v1/sessions/:agentId/resolve-phones — resolve LID/JID identifiers to phone numbers
+  app.post<{ Params: { agentId: string } }>("/sessions/:agentId/resolve-phones", async (req, reply) => {
+    const body = z.object({ ids: z.array(z.string()).max(500) }).parse(req.body)
+    const { agentId } = req.params
+
+    const resolved = body.ids.map((raw) => {
+      const input = raw.trim()
+      if (!input) return { id: raw, phoneNumber: "" }
+
+      const normalized = input.includes("@")
+        ? input
+        : `${input.replace(/\D/g, "")}@${input.replace(/\D/g, "").length > 13 ? "lid" : "s.whatsapp.net"}`
+
+      return {
+        id: raw,
+        phoneNumber: resolvePhone(agentId, normalized),
+      }
+    })
+
+    reply.send({ resolved })
   })
 
   // POST /v1/sessions/:agentId/pairing-code — request pairing code (no camera needed)

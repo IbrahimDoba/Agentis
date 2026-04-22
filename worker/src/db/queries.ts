@@ -35,6 +35,12 @@ export interface Agent {
   transportType: string
 }
 
+export interface AgentBillingInfo {
+  id: string
+  plan: string
+  subscriptionExpiresAt: string | null
+}
+
 // ── Sessions ──────────────────────────────────────────────────────────────────
 
 export async function getSessionByAgentId(agentId: string): Promise<BaileysSession | null> {
@@ -96,6 +102,7 @@ export async function updateSessionStatus(
       "lastConnectedAt" = COALESCE(${extra?.lastConnectedAt ?? null}::timestamptz, "lastConnectedAt"),
       "lastDisconnectReason" = COALESCE(${extra?.lastDisconnectReason ?? null}, "lastDisconnectReason"),
       "warmupStartedAt" = COALESCE(${extra?.warmupStartedAt ?? null}::timestamptz, "warmupStartedAt"),
+      "warmupTier" = COALESCE(${extra?.warmupTier != null ? extra.warmupTier : null}::int, "warmupTier"),
       "updatedAt" = ${now}
     WHERE "agentId" = ${agentId}
   `
@@ -143,6 +150,49 @@ export async function getAgent(agentId: string): Promise<Agent | null> {
     FROM "Agent" WHERE "id" = ${agentId} LIMIT 1
   `
   return rows[0] ?? null
+}
+
+export async function getAgentBillingInfo(agentId: string): Promise<AgentBillingInfo | null> {
+  const rows = await sql<AgentBillingInfo[]>`
+    SELECT a."id", COALESCE(u."plan", 'free') as "plan", u."subscriptionExpiresAt"
+    FROM "Agent" a
+    JOIN "User" u ON u."id" = a."userId"
+    WHERE a."id" = ${agentId}
+    LIMIT 1
+  `
+  return rows[0] ?? null
+}
+
+export async function getMonthlyCreditsUsed(agentId: string, monthStart: Date, monthEnd: Date): Promise<number> {
+  const rows = await sql<{ total: number | null }[]>`
+    SELECT COALESCE(SUM("creditsUsed"), 0)::int as total
+    FROM "CreditUsage"
+    WHERE "agentId" = ${agentId}
+      AND "createdAt" >= ${monthStart.toISOString()}::timestamptz
+      AND "createdAt" < ${monthEnd.toISOString()}::timestamptz
+  `
+  return Number(rows[0]?.total ?? 0)
+}
+
+export async function insertCreditUsage(entry: {
+  agentId: string
+  conversationId?: string
+  messageType: "text" | "image"
+  source?: "ai" | "human"
+  creditsUsed: number
+}): Promise<void> {
+  await sql`
+    INSERT INTO "CreditUsage"
+      ("agentId", "conversationId", "messageType", "source", "creditsUsed", "createdAt")
+    VALUES (
+      ${entry.agentId},
+      ${entry.conversationId ?? null},
+      ${entry.messageType},
+      ${entry.source ?? "ai"},
+      ${entry.creditsUsed},
+      NOW()
+    )
+  `
 }
 
 // ── Customer / conversation lookup ───────────────────────────────────────────

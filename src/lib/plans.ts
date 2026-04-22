@@ -5,13 +5,19 @@ export const PLAN_PRICES: Record<string, number> = {
   enterprise: 0, // custom — commission set manually by admin
 }
 
-// Monthly ElevenLabs credit allowances per plan
+// Monthly Dailzero AI credit allowances per plan
 export const PLAN_CREDIT_LIMITS: Record<string, number> = {
   free: 2000,
   starter: 60000,
   pro: 100000,
   enterprise: -1,   // -1 = unlimited
 }
+
+// Dailzero orchestrator usage policy (80% target margin)
+export const AI_CREDIT_COSTS = {
+  text: 5,
+  image: 8,
+} as const
 
 // Overage rate in Naira per 1,000 credits (null = no overage allowed)
 export const PLAN_OVERAGE_RATE_PER_1K: Record<string, number | null> = {
@@ -39,16 +45,19 @@ export const PLAN_FEATURES: Record<string, string[]> = {
   ],
   starter: [
     "60,000 credits / month",
+    "~923 text conversations/mo (avg 13 AI msgs each)",
     "1 AI agent",
     "WhatsApp integration",
     "Conversation logs & analytics",
     "Lead detection",
+    `Usage: ${AI_CREDIT_COSTS.text} credits per AI text, ${AI_CREDIT_COSTS.image} per AI image`,
     "Customer memory & context",
     `Overage: ₦1,000 / 1k credits`,
     "Email support",
   ],
   pro: [
     "100,000 credits / month",
+    "~1,538 text conversations/mo (avg 13 AI msgs each)",
     "2 AI agents",
     "Everything in Starter",
     "Priority email support",

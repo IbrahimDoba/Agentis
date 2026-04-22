@@ -105,6 +105,9 @@ export function AgentForm({ initialData, agentId }: AgentFormProps) {
       }
 
       setSuccess(agentId ? "Agent updated successfully!" : "Agent created! Our team will review and set it up.")
+      if (Array.isArray(data.productsData)) {
+        setProducts(data.productsData as Product[])
+      }
       queryClient.invalidateQueries({ queryKey: ["me"] })
       if (!agentId) {
         router.push(`/dashboard/agent/${data.id}`)

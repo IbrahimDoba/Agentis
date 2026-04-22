@@ -106,13 +106,27 @@ export class OpenAIProvider implements LLMProvider {
     if (msg.role === "tool") {
       return {
         role: "tool",
-        content: msg.content,
+        content: msg.content ?? "",
         tool_call_id: msg.tool_call_id ?? "",
       }
     }
     if (msg.role === "assistant") {
-      return { role: "assistant", content: msg.content }
+      if (msg.tool_calls && msg.tool_calls.length > 0) {
+        return {
+          role: "assistant",
+          content: msg.content ?? null,
+          tool_calls: msg.tool_calls.map((tc) => ({
+            id: tc.id,
+            type: "function" as const,
+            function: {
+              name: tc.name,
+              arguments: JSON.stringify(tc.arguments),
+            },
+          })),
+        }
+      }
+      return { role: "assistant", content: msg.content ?? "" }
     }
-    return { role: "user", content: msg.content }
+    return { role: "user", content: msg.content ?? "" }
   }
 }

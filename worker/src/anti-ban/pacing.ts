@@ -1,4 +1,4 @@
-import type { WASocket } from "baileys"
+import type { WASocket } from "@whiskeysockets/baileys"
 import { truncatedNormal } from "./distribution.js"
 import { getTierConfig } from "./warmup.js"
 import { logger as rootLogger } from "../lib/logger.js"
@@ -55,6 +55,43 @@ export async function sendWithPacing(
   // §7.3 — Inter-message delay (truncated normal distribution)
   const delay = truncatedNormal(tier.minDelayMs, tier.maxDelayMs)
   logger.debug({ jid, delay, tier: warmupTier }, "Pacing delay applied")
+  await sleep(delay)
+}
+
+/**
+ * Send an image with human-like pacing (composing indicator before send).
+ */
+export async function sendImageWithPacing(
+  sock: WASocket,
+  jid: string,
+  imageUrl: string,
+  caption: string,
+  warmupTier: number
+): Promise<void> {
+  const tier = getTierConfig(warmupTier)
+
+  try {
+    await sock.sendPresenceUpdate("composing", jid)
+  } catch (err) {
+    logger.debug({ err }, "Failed to send composing presence")
+  }
+
+  // Fixed delay simulating the time to "look up" and send the image
+  await sleep(1500)
+
+  await sock.sendMessage(jid, {
+    image: { url: imageUrl },
+    caption: caption || undefined,
+  })
+
+  try {
+    await sock.sendPresenceUpdate("paused", jid)
+  } catch {
+    // Non-critical
+  }
+
+  const delay = truncatedNormal(tier.minDelayMs, tier.maxDelayMs)
+  logger.debug({ jid, delay, tier: warmupTier }, "Pacing delay applied after image send")
   await sleep(delay)
 }
 

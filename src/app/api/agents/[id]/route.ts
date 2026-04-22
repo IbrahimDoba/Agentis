@@ -6,6 +6,7 @@ import { sendAgentApprovedEmail } from "@/lib/email"
 import { buildAndSyncElevenLabsPrompt } from "@/lib/agentSync"
 import { setAgentWebhook, addCustomerHistoryTool, setWhatsAppAccountAgent } from "@/lib/elevenlabs"
 import type { Product } from "@/types"
+import { syncProductImagesToOrchestratorMedia } from "@/lib/orchestrator-media-sync"
 
 interface Params {
   params: Promise<{ id: string }>
@@ -91,11 +92,23 @@ export async function PATCH(req: NextRequest, { params }: Params) {
         return NextResponse.json({ error: "Invalid data" }, { status: 400 })
       }
 
-      const updated = await db.agent.update({
+      let updated = await db.agent.update({
         where: { id },
         data: parsed.data,
         include: { user: { select: { name: true, email: true } } },
       })
+
+      if (updated.agentRuntime === "orchestrator" && Array.isArray(parsed.data.productsData)) {
+        const syncedProducts = await syncProductImagesToOrchestratorMedia(id, parsed.data.productsData as Product[])
+        const hasMediaIds = syncedProducts.some((p) => Boolean(p.mediaId))
+        if (hasMediaIds) {
+          updated = await db.agent.update({
+            where: { id },
+            data: { productsData: syncedProducts as any },
+            include: { user: { select: { name: true, email: true } } },
+          })
+        }
+      }
 
       // Fire-and-forget: sync to ElevenLabs if agent is connected
       if (updated.elevenlabsAgentId) {
@@ -151,10 +164,21 @@ export async function PATCH(req: NextRequest, { params }: Params) {
         return NextResponse.json({ errors }, { status: 400 })
       }
 
-      const updated = await db.agent.update({
+      let updated = await db.agent.update({
         where: { id },
         data: parsed.data,
       })
+
+      if (updated.agentRuntime === "orchestrator" && Array.isArray(parsed.data.productsData)) {
+        const syncedProducts = await syncProductImagesToOrchestratorMedia(id, parsed.data.productsData as Product[])
+        const hasMediaIds = syncedProducts.some((p) => Boolean(p.mediaId))
+        if (hasMediaIds) {
+          updated = await db.agent.update({
+            where: { id },
+            data: { productsData: syncedProducts as any },
+          })
+        }
+      }
 
       // Fire-and-forget: sync to ElevenLabs if agent is connected
       if (updated.elevenlabsAgentId) {

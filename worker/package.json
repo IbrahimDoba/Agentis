@@ -18,6 +18,7 @@
     "@fastify/rate-limit": "^10.2.2",
     "@hapi/boom": "^10.0.1",
     "@supabase/supabase-js": "^2.49.4",
+    "@whiskeysockets/baileys": "6.17.16",
     "baileys": "7.0.0-rc.9",
     "bullmq": "^5.51.0",
     "dotenv-safe": "^9.1.0",

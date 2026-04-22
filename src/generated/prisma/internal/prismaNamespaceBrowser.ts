@@ -53,6 +53,15 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   User: 'User',
   Agent: 'Agent',
+  BroadcastCampaign: 'BroadcastCampaign',
+  BroadcastRecipient: 'BroadcastRecipient',
+  OrchestratorAgent: 'OrchestratorAgent',
+  Document: 'Document',
+  DocumentChunk: 'DocumentChunk',
+  MediaItem: 'MediaItem',
+  Conversation: 'Conversation',
+  Message: 'Message',
+  ConversationSummary: 'ConversationSummary',
   MessageTemplate: 'MessageTemplate',
   Lead: 'Lead',
   ConversationRead: 'ConversationRead',
@@ -139,12 +148,148 @@ export const AgentScalarFieldEnum = {
   productsData: 'productsData',
   toolsData: 'toolsData',
   transportType: 'transportType',
+  agentRuntime: 'agentRuntime',
   status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type AgentScalarFieldEnum = (typeof AgentScalarFieldEnum)[keyof typeof AgentScalarFieldEnum]
+
+
+export const BroadcastCampaignScalarFieldEnum = {
+  id: 'id',
+  agentId: 'agentId',
+  message: 'message',
+  status: 'status',
+  totalCount: 'totalCount',
+  sentCount: 'sentCount',
+  failedCount: 'failedCount',
+  createdAt: 'createdAt',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt'
+} as const
+
+export type BroadcastCampaignScalarFieldEnum = (typeof BroadcastCampaignScalarFieldEnum)[keyof typeof BroadcastCampaignScalarFieldEnum]
+
+
+export const BroadcastRecipientScalarFieldEnum = {
+  id: 'id',
+  broadcastId: 'broadcastId',
+  phoneNumber: 'phoneNumber',
+  jid: 'jid',
+  contactName: 'contactName',
+  status: 'status',
+  error: 'error',
+  sentAt: 'sentAt'
+} as const
+
+export type BroadcastRecipientScalarFieldEnum = (typeof BroadcastRecipientScalarFieldEnum)[keyof typeof BroadcastRecipientScalarFieldEnum]
+
+
+export const OrchestratorAgentScalarFieldEnum = {
+  id: 'id',
+  agentId: 'agentId',
+  name: 'name',
+  systemPrompt: 'systemPrompt',
+  personality: 'personality',
+  model: 'model',
+  temperature: 'temperature',
+  maxOutputTokens: 'maxOutputTokens',
+  shortTermWindow: 'shortTermWindow',
+  summarizeAfter: 'summarizeAfter',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OrchestratorAgentScalarFieldEnum = (typeof OrchestratorAgentScalarFieldEnum)[keyof typeof OrchestratorAgentScalarFieldEnum]
+
+
+export const DocumentScalarFieldEnum = {
+  id: 'id',
+  agentId: 'agentId',
+  filename: 'filename',
+  mimeType: 'mimeType',
+  sizeBytes: 'sizeBytes',
+  r2Key: 'r2Key',
+  status: 'status',
+  error: 'error',
+  chunkCount: 'chunkCount',
+  createdAt: 'createdAt'
+} as const
+
+export type DocumentScalarFieldEnum = (typeof DocumentScalarFieldEnum)[keyof typeof DocumentScalarFieldEnum]
+
+
+export const DocumentChunkScalarFieldEnum = {
+  id: 'id',
+  documentId: 'documentId',
+  agentId: 'agentId',
+  chunkIndex: 'chunkIndex',
+  content: 'content',
+  metadata: 'metadata',
+  createdAt: 'createdAt'
+} as const
+
+export type DocumentChunkScalarFieldEnum = (typeof DocumentChunkScalarFieldEnum)[keyof typeof DocumentChunkScalarFieldEnum]
+
+
+export const MediaItemScalarFieldEnum = {
+  id: 'id',
+  agentId: 'agentId',
+  filename: 'filename',
+  mimeType: 'mimeType',
+  r2Key: 'r2Key',
+  description: 'description',
+  tags: 'tags',
+  createdAt: 'createdAt'
+} as const
+
+export type MediaItemScalarFieldEnum = (typeof MediaItemScalarFieldEnum)[keyof typeof MediaItemScalarFieldEnum]
+
+
+export const ConversationScalarFieldEnum = {
+  id: 'id',
+  agentId: 'agentId',
+  orchestratorAgentId: 'orchestratorAgentId',
+  phoneNumber: 'phoneNumber',
+  contactName: 'contactName',
+  mode: 'mode',
+  lastActivityAt: 'lastActivityAt',
+  factsExtractedAt: 'factsExtractedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type ConversationScalarFieldEnum = (typeof ConversationScalarFieldEnum)[keyof typeof ConversationScalarFieldEnum]
+
+
+export const MessageScalarFieldEnum = {
+  id: 'id',
+  conversationId: 'conversationId',
+  direction: 'direction',
+  content: 'content',
+  mediaUrl: 'mediaUrl',
+  mediaDescription: 'mediaDescription',
+  toolCalls: 'toolCalls',
+  tokensInput: 'tokensInput',
+  tokensOutput: 'tokensOutput',
+  modelUsed: 'modelUsed',
+  createdAt: 'createdAt'
+} as const
+
+export type MessageScalarFieldEnum = (typeof MessageScalarFieldEnum)[keyof typeof MessageScalarFieldEnum]
+
+
+export const ConversationSummaryScalarFieldEnum = {
+  conversationId: 'conversationId',
+  summary: 'summary',
+  messagesCovered: 'messagesCovered',
+  summarizedThroughMessageId: 'summarizedThroughMessageId',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ConversationSummaryScalarFieldEnum = (typeof ConversationSummaryScalarFieldEnum)[keyof typeof ConversationSummaryScalarFieldEnum]
 
 
 export const MessageTemplateScalarFieldEnum = {

@@ -1,6 +1,8 @@
 "use client"
 
 import Link from "next/link"
+import { useEffect, useMemo } from "react"
+import { useQuery } from "@tanstack/react-query"
 import styles from "./page.module.css"
 import { AgentCard } from "@/components/dashboard/AgentCard"
 import { ConversationStats } from "@/components/dashboard/ConversationStats"
@@ -9,7 +11,16 @@ import Button from "@/components/ui/Button"
 import { formatDate } from "@/lib/utils"
 import { useDashboardData } from "@/hooks/useDashboardData"
 import { usePlanStats } from "@/hooks/usePlanStats"
-import { PLAN_LABELS } from "@/lib/plans"
+import { PLAN_LABELS, PLAN_OVERAGE_RATE_PER_1K, formatNaira } from "@/lib/plans"
+import { useRuntimePreference, type RuntimePreference } from "@/hooks/useRuntimePreference"
+import type { AgentPublic } from "@/types"
+
+async function fetchAgents(): Promise<AgentPublic[]> {
+  const res = await fetch("/api/agents")
+  if (!res.ok) throw new Error("Failed to fetch agents")
+  const data = await res.json()
+  return Array.isArray(data) ? data : (data.agents ?? [])
+}
 
 function SkeletonCard() {
   return (
@@ -24,10 +35,33 @@ function SkeletonCard() {
 export default function DashboardPage() {
   const { data, isLoading } = useDashboardData()
   const { data: stats } = usePlanStats()
+  const { runtime, setRuntime } = useRuntimePreference("orchestrator")
+  const { data: agents = [] } = useQuery({
+    queryKey: ["agents", "overview"],
+    queryFn: fetchAgents,
+    staleTime: 60 * 1000,
+  })
 
   const user = data?.user
-  const agent = data?.agent ?? null
+  const fallbackAgent = data?.agent ?? null
   const firstName = user?.name.split(" ")[0] ?? ""
+
+  const runtimeAgents = useMemo(() => ({
+    orchestrator: agents.filter((a) => a.agentRuntime === "orchestrator"),
+    elevenlabs: agents.filter((a) => (a.agentRuntime === "elevenlabs") || !!a.elevenlabsAgentId),
+  }), [agents])
+
+  const availableRuntimes = useMemo<RuntimePreference[]>(
+    () => (["orchestrator", "elevenlabs"] as RuntimePreference[]).filter((rt) => runtimeAgents[rt].length > 0),
+    [runtimeAgents]
+  )
+
+  const effectiveRuntime = (availableRuntimes.includes(runtime) ? runtime : (availableRuntimes[0] ?? "orchestrator")) as RuntimePreference
+  const selectedRuntimeAgent = runtimeAgents[effectiveRuntime][0] ?? fallbackAgent ?? null
+
+  useEffect(() => {
+    if (effectiveRuntime !== runtime) setRuntime(effectiveRuntime)
+  }, [effectiveRuntime, runtime, setRuntime])
 
   const plan = stats?.plan ?? "free"
   const planLabel = PLAN_LABELS[plan] ?? plan
@@ -37,6 +71,12 @@ export default function DashboardPage() {
   const pct = isUnlimited ? 0 : creditLimit > 0 ? Math.min(100, Math.round((monthlyUsed / creditLimit) * 100)) : 0
   const isDanger = !isUnlimited && pct >= 90
   const isWarning = !isUnlimited && pct >= 75
+  const overageRate = PLAN_OVERAGE_RATE_PER_1K[plan] ?? null
+  const overageCredits = isUnlimited ? 0 : Math.max(0, monthlyUsed - creditLimit)
+  const overageCharge = overageRate !== null && overageCredits > 0
+    ? Math.ceil(overageCredits / 1000) * overageRate
+    : 0
+  const overageActive = overageCredits > 0 && overageRate !== null
 
   return (
     <div className={styles.page}>
@@ -56,6 +96,53 @@ export default function DashboardPage() {
         <p className={styles.subtitle}>
           Here&apos;s an overview of your D-Zero AI account — {formatDate(new Date().toISOString())}
         </p>
+        {overageActive && (
+          <Link href="/dashboard/billing" className={styles.overageBadge}>
+            Overage Active · {overageCredits.toLocaleString()} credits · {formatNaira(overageCharge)} due
+          </Link>
+        )}
+        {availableRuntimes.length > 1 && (
+          <div style={{
+            display: "inline-flex",
+            gap: "0.4rem",
+            background: "var(--bg-card)",
+            border: "1px solid var(--border)",
+            borderRadius: 10,
+            padding: "0.25rem",
+            marginTop: "0.9rem",
+          }}>
+            <button
+              onClick={() => setRuntime("orchestrator")}
+              style={{
+                border: "none",
+                borderRadius: 8,
+                padding: "0.4rem 0.85rem",
+                background: effectiveRuntime === "orchestrator" ? "var(--accent)" : "transparent",
+                color: effectiveRuntime === "orchestrator" ? "#000" : "var(--text-muted)",
+                fontWeight: 700,
+                cursor: "pointer",
+                fontFamily: "inherit",
+              }}
+            >
+              DZero AI
+            </button>
+            <button
+              onClick={() => setRuntime("elevenlabs")}
+              style={{
+                border: "none",
+                borderRadius: 8,
+                padding: "0.4rem 0.85rem",
+                background: effectiveRuntime === "elevenlabs" ? "var(--accent)" : "transparent",
+                color: effectiveRuntime === "elevenlabs" ? "#000" : "var(--text-muted)",
+                fontWeight: 700,
+                cursor: "pointer",
+                fontFamily: "inherit",
+              }}
+            >
+              ElevenLabs
+            </button>
+          </div>
+        )}
       </div>
 
       <div className={styles.grid}>
@@ -68,7 +155,7 @@ export default function DashboardPage() {
           </>
         ) : (
           <>
-            {agent?.elevenlabsAgentId && <ConversationStats />}
+            <ConversationStats runtime={effectiveRuntime} agentId={selectedRuntimeAgent?.id} />
           </>
         )}
       </div>
@@ -81,10 +168,10 @@ export default function DashboardPage() {
             height: 180,
             animation: "pulse 1.5s ease-in-out infinite",
           }} />
-        ) : agent ? (
+        ) : selectedRuntimeAgent ? (
           <>
-            <AgentCard agent={agent} />
-            {agent.elevenlabsAgentId && <ActivityChart agentId={agent.id} />}
+            <AgentCard agent={selectedRuntimeAgent} />
+            <ActivityChart agentId={selectedRuntimeAgent.id} />
           </>
         ) : (
           <div className={styles.emptyCard}>

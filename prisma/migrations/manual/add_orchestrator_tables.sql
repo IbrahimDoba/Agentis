@@ -62,3 +62,6 @@ CREATE TABLE IF NOT EXISTS "ConversationSummary" (
   "summarizedThroughMessageId" TEXT,
   "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- Add contactName to Conversation (nullable, added after initial migration)
+ALTER TABLE "Conversation" ADD COLUMN IF NOT EXISTS "contactName" TEXT;

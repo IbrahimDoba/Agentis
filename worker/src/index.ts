@@ -9,6 +9,8 @@ import { getRedis, closeRedis } from "./queue/redis.js"
 import { healthRoutes } from "./routes/health.js"
 import { sessionRoutes } from "./routes/sessions.js"
 import { messageRoutes } from "./routes/messages.js"
+import { broadcastRoutes } from "./routes/broadcasts.js"
+import { closeBroadcastQueue } from "./queue/broadcast-queue.js"
 
 const app = Fastify({ logger: false }) // we use pino directly
 
@@ -35,10 +37,12 @@ app.addHook("onRequest", async (req, reply) => {
 await app.register(healthRoutes, { prefix: "/v1" })
 await app.register(sessionRoutes, { prefix: "/v1" })
 await app.register(messageRoutes, { prefix: "/v1" })
+await app.register(broadcastRoutes, { prefix: "/v1" })
 
 // Graceful shutdown
 const shutdown = async () => {
   logger.info("Shutting down...")
+  await closeBroadcastQueue()
   await app.close()
   // closeConversations() — removed, orchestrator handles LLM
   await closeRedis()

@@ -11,15 +11,18 @@ import { AgentProfileForm } from "@/components/dashboard/AgentProfileForm"
 import { KnowledgeBaseTab } from "@/components/dashboard/KnowledgeBaseTab"
 import { ToolsTab } from "@/components/dashboard/ToolsTab"
 import { TemplatesTab } from "@/components/dashboard/TemplatesTab"
+import { DocumentsTab } from "@/components/dashboard/DocumentsTab"
 import { StatusBadge } from "@/components/ui/Badge"
 import { TestAgentWidget } from "@/components/dashboard/TestAgentWidget"
 import { useAgent } from "@/hooks/useAgent"
 import { cn } from "@/lib/utils"
 
-const TABS = [
+const TABS = (agentRuntime: string) => [
   { id: "profile", label: "Profile" },
   { id: "configuration", label: "Configuration" },
-  { id: "knowledge-base", label: "Knowledge Base" },
+  ...(agentRuntime === "orchestrator"
+    ? [{ id: "documents", label: "Documents" }]
+    : [{ id: "knowledge-base", label: "Knowledge Base" }]),
   { id: "tools", label: "Tools" },
   { id: "templates", label: "Templates" },
 ]
@@ -96,7 +99,18 @@ export default function AgentDetailPage() {
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-          {agent.status === "ACTIVE" && agent.elevenlabsAgentId && (
+          <span style={{
+            fontSize: 11,
+            fontWeight: 600,
+            padding: "0.2rem 0.55rem",
+            borderRadius: 99,
+            background: agent.agentRuntime === "orchestrator" ? "rgba(34, 197, 94, 0.1)" : "rgba(99, 102, 241, 0.1)",
+            color: agent.agentRuntime === "orchestrator" ? "var(--accent)" : "#6366f1",
+            border: `1px solid ${agent.agentRuntime === "orchestrator" ? "rgba(34, 197, 94, 0.25)" : "rgba(99, 102, 241, 0.25)"}`,
+          }}>
+            {agent.agentRuntime === "orchestrator" ? "DZero AI" : "ElevenLabs"}
+          </span>
+          {agent.status === "ACTIVE" && agent.agentRuntime === "elevenlabs" && agent.elevenlabsAgentId && (
             <TestAgentWidget agentId={agent.elevenlabsAgentId} />
           )}
           <StatusBadge status={agent.status} />
@@ -105,7 +119,7 @@ export default function AgentDetailPage() {
 
       {/* Tabs */}
       <div className={styles.tabs}>
-        {TABS.map((tab) => (
+        {TABS(agent.agentRuntime ?? "orchestrator").map((tab) => (
           <button
             key={tab.id}
             className={cn(styles.tab, activeTab === tab.id ? styles.tabActive : undefined)}
@@ -125,13 +139,18 @@ export default function AgentDetailPage() {
           <AgentForm initialData={agent} agentId={agent.id} />
         )}
         {activeTab === "knowledge-base" && (
-          <KnowledgeBaseTab agentId={agent.id} elevenlabsAgentId={agent.elevenlabsAgentId} />
+          <KnowledgeBaseTab agentId={agent.id} elevenlabsAgentId={agent.elevenlabsAgentId} agentRuntime={agent.agentRuntime} />
+        )}
+        {activeTab === "documents" && (
+          <DocumentsTab agentId={agent.id} />
         )}
         {activeTab === "tools" && (
           <ToolsTab
             agentId={agent.id}
             initialTools={agent.toolsData as any}
             elevenlabsAgentId={agent.elevenlabsAgentId}
+            agentRuntime={agent.agentRuntime}
+            agentStatus={agent.status}
           />
         )}
         {activeTab === "templates" && <TemplatesTab agentId={agent.id} />}

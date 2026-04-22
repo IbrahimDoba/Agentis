@@ -45,3 +45,47 @@ export async function dispatchReply(opts: DispatchOptions): Promise<void> {
     preview: opts.text.slice(0, 60),
   }, "Reply dispatched to worker")
 }
+
+export interface DispatchMediaOptions {
+  agentId: string
+  conversationId: string
+  toJid: string
+  mediaUrl: string
+  caption?: string
+}
+
+/**
+ * Dispatch an image to the worker.
+ */
+export async function dispatchMedia(opts: DispatchMediaOptions): Promise<void> {
+  const url = `${config.WA_WORKER_URL}/v1/messages/send`
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${config.WORKER_API_KEY}`,
+    },
+    body: JSON.stringify({
+      agentId: opts.agentId,
+      to: opts.toJid,
+      text: opts.caption || "",
+      mediaUrl: opts.mediaUrl,
+      type: "image",
+      conversationId: opts.conversationId,
+      source: "ai",
+    }),
+  })
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => "")
+    logger.error({ status: res.status, body, agentId: opts.agentId }, "Failed to dispatch media to worker")
+    throw new Error(`Worker send media failed: ${res.status}`)
+  }
+
+  logger.info({
+    agentId: opts.agentId,
+    toJid: opts.toJid,
+    hasCaption: !!opts.caption,
+  }, "Media dispatched to worker")
+}

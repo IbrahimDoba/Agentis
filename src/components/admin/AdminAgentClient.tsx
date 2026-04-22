@@ -211,6 +211,8 @@ export function AdminAgentClient({ agent }: { agent: any }) {
                         agentId={agent.id}
                         initialTools={agent.toolsData || []}
                         elevenlabsAgentId={agent.elevenlabsAgentId}
+                        agentRuntime={agent.agentRuntime}
+                        agentStatus={agent.status}
                     />
                 )}
             </div>

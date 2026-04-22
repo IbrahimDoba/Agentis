@@ -30,6 +30,14 @@ export default function SubscriptionPage() {
   const [error, setError] = useState("")
 
   const currentPlan = stats?.plan ?? "free"
+  const monthlyUsed = stats?.monthlyCreditsUsed ?? 0
+  const limit = stats?.creditLimit ?? -1
+  const overageRateForCurrent = PLAN_OVERAGE_RATE_PER_1K[currentPlan] ?? null
+  const overageCreditsForCurrent = limit === -1 ? 0 : Math.max(0, monthlyUsed - limit)
+  const overageChargeForCurrent = overageRateForCurrent !== null && overageCreditsForCurrent > 0
+    ? Math.ceil(overageCreditsForCurrent / 1000) * overageRateForCurrent
+    : 0
+  const overageActive = overageCreditsForCurrent > 0 && overageRateForCurrent !== null
 
   useEffect(() => {
     fetch("/api/subscription/request")
@@ -120,6 +128,12 @@ export default function SubscriptionPage() {
       )}
 
       {error && <div className={styles.errorBanner}>{error}</div>}
+      {overageActive && (
+        <div className={styles.overageBanner}>
+          Overage active on your current plan: {overageCreditsForCurrent.toLocaleString()} credits over limit
+          ({formatNaira(overageChargeForCurrent)} accrued). Service remains active.
+        </div>
+      )}
 
       <div className={styles.grid}>
         {PLAN_ORDER.map((plan) => {
@@ -163,6 +177,11 @@ export default function SubscriptionPage() {
                 {overageRate !== null && !isEnterprise && (
                   <div className={styles.planOverage}>Overage: {formatNaira(overageRate)} / 1k cr</div>
                 )}
+                {isCurrent && overageActive && (
+                  <div className={styles.planOverageBadge}>
+                    Overage Active
+                  </div>
+                )}
               </div>
 
               <ul className={styles.featureList}>
@@ -201,8 +220,8 @@ export default function SubscriptionPage() {
       </div>
 
       <div className={styles.footer}>
-        All plans include a WhatsApp AI voice agent, conversation logs, and lead detection.
-        Credits are ElevenLabs conversation credits — usage varies by call duration and voice quality.
+        All plans include the Dailzero WhatsApp AI agent, conversation logs, and lead detection.
+        Credits are consumed on successful AI sends: 5 credits per AI text and 8 credits per AI image.
       </div>
     </div>
   )

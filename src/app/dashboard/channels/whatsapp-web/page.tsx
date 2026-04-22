@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import Image from "next/image"
+import Link from "next/link"
 import QRCode from "qrcode"
 import styles from "./page.module.css"
 
@@ -108,7 +109,8 @@ export default function WhatsAppWebPage() {
 
   const disconnect = useMutation({
     mutationFn: async (agentId: string) => {
-      const res = await fetch(`/api/baileys/sessions/${agentId}`, { method: "DELETE" })
+      // Disconnect stops the socket but preserves auth files + warmup tier
+      const res = await fetch(`/api/baileys/sessions/${agentId}/disconnect`, { method: "POST" })
       if (!res.ok && res.status !== 404) throw new Error(`Worker error ${res.status} — try again`)
     },
     onSuccess: () => {
@@ -194,12 +196,18 @@ export default function WhatsAppWebPage() {
   const isConnected = session?.status === "CONNECTED"
   const isConnecting = session?.status === "QR_PENDING" || session?.status === "CONNECTING"
   const isBanned = session?.status === "BANNED"
+  const wasConnected = session?.status === "DISCONNECTED" && !!session?.phoneNumber
 
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <h1 className={styles.title}>WhatsApp Web</h1>
-        <p className={styles.subtitle}>Connect any WhatsApp number to your AI agent in seconds</p>
+        <div>
+          <h1 className={styles.title}>WhatsApp Web</h1>
+          <p className={styles.subtitle}>Connect any WhatsApp number to your AI agent in seconds</p>
+        </div>
+        <Link href="/dashboard/channels/whatsapp-web/guide" className={styles.guideLink}>
+          📖 Guide
+        </Link>
       </div>
 
       {/* Disclaimer */}
@@ -253,7 +261,6 @@ export default function WhatsAppWebPage() {
           ) : (
             <>
               <div className={styles.cardTitle}>{selectedAgent?.businessName}</div>
-
               {/* Status */}
               <div className={styles.statusRow}>
                 <span className={`${styles.statusDot} ${styles[`dot_${session?.status?.toLowerCase() ?? "disconnected"}`]}`} />
@@ -267,7 +274,6 @@ export default function WhatsAppWebPage() {
                 </span>
               </div>
 
-              {/* QR Code — only in QR mode */}
               {connectMethod === "qr" && qrDataUrl && (
                 <div className={styles.qrWrap}>
                   <Image src={qrDataUrl} alt="WhatsApp QR Code" width={256} height={256} className={styles.qr} unoptimized />
@@ -279,8 +285,7 @@ export default function WhatsAppWebPage() {
                 <div className={styles.loadingQr}>Generating QR code…</div>
               )}
 
-              {/* Connect method toggle — only shown when not yet connected */}
-              {(!session || session.status === "DISCONNECTED" || session.status === "LOGGED_OUT") && (
+              {(!wasConnected && (!session || session.status === "DISCONNECTED" || session.status === "LOGGED_OUT")) && (
                 <div className={styles.methodToggle}>
                   <button
                     className={`${styles.methodBtn} ${connectMethod === "qr" ? styles.methodBtnActive : ""}`}
@@ -293,8 +298,7 @@ export default function WhatsAppWebPage() {
                 </div>
               )}
 
-              {/* Pairing code UI */}
-              {connectMethod === "code" && (
+              {!wasConnected && connectMethod === "code" && (
                 <div className={styles.pairingWrap}>
                   {pairingCode ? (
                     <div className={styles.pairingCode}>
@@ -318,7 +322,6 @@ export default function WhatsAppWebPage() {
                 </div>
               )}
 
-              {/* Error banner */}
               {actionError && (
                 <div className={styles.errorBanner}>
                   {actionError}
@@ -326,9 +329,31 @@ export default function WhatsAppWebPage() {
                 </div>
               )}
 
-              {/* Actions */}
               <div className={styles.actions}>
-                {!session || session.status === "DISCONNECTED" || session.status === "LOGGED_OUT" ? (
+                {wasConnected ? (
+                  <div>
+                    <div className={styles.prevConnection}>
+                      Previously connected: <strong>+{session!.phoneNumber}</strong>
+                    </div>
+                    <div className={styles.actionGroup}>
+                      <button
+                        className={styles.btnSecondary}
+                        style={{ flex: 2 }}
+                        onClick={() => restart.mutate(selectedAgentId)}
+                        disabled={restart.isPending}
+                      >
+                        {restart.isPending ? "Reconnecting…" : "Reconnect"}
+                      </button>
+                      <button
+                        className={styles.btnDanger}
+                        onClick={() => disconnect.mutate(selectedAgentId)}
+                        disabled={disconnect.isPending}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                ) : !session || session.status === "DISCONNECTED" || session.status === "LOGGED_OUT" ? (
                   connectMethod === "code" && !pairingCode ? (
                     <button
                       className={styles.btnPrimary}
@@ -346,13 +371,13 @@ export default function WhatsAppWebPage() {
                       {connect.isPending || requestPairingCode.isPending ? "Getting code…" : "Get Pairing Code"}
                     </button>
                   ) : connectMethod === "qr" ? (
-                  <button
-                    className={styles.btnPrimary}
-                    onClick={() => connect.mutate(selectedAgentId)}
-                    disabled={connect.isPending}
-                  >
-                    {connect.isPending ? "Starting…" : "Connect WhatsApp"}
-                  </button>
+                    <button
+                      className={styles.btnPrimary}
+                      onClick={() => connect.mutate(selectedAgentId)}
+                      disabled={connect.isPending}
+                    >
+                      {connect.isPending ? "Starting…" : "Connect WhatsApp"}
+                    </button>
                   ) : null
                 ) : isBanned ? (
                   <button className={styles.btnDanger} onClick={() => disconnect.mutate(selectedAgentId)}>
@@ -380,7 +405,6 @@ export default function WhatsAppWebPage() {
                 )}
               </div>
 
-              {/* Health panel — shown when connected */}
               {session && isConnected && (
                 <div className={styles.health}>
                   <div className={styles.healthTitle}>Session Health</div>

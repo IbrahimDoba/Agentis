@@ -7,7 +7,10 @@ import { logger } from "./lib/logger.js"
 import { getRedis, closeRedis } from "./queue/redis.js"
 import { healthRoutes } from "./routes/health.js"
 import { inboundRoutes } from "./routes/inbound.js"
+import { documentsRoutes } from "./routes/documents.js"
+import { mediaRoutes } from "./routes/media.js"
 import { startInboundWorker } from "./queue/workers/inbound-worker.js"
+import { startEmbedWorker } from "./queue/workers/embed-worker.js"
 
 const app = Fastify({ logger: false })
 
@@ -18,7 +21,6 @@ await app.register(rateLimit, {
   max: 500,
   timeWindow: "1 minute",
   keyGenerator: (req) => {
-    // Rate limit by agentId from body or header
     const body = req.body as Record<string, unknown> | undefined
     return (body?.agentId as string) ?? req.ip
   },
@@ -36,14 +38,18 @@ app.addHook("onRequest", async (req, reply) => {
 
 await app.register(healthRoutes, { prefix: "/v1" })
 await app.register(inboundRoutes, { prefix: "/v1" })
+await app.register(documentsRoutes, { prefix: "/v1" })
+await app.register(mediaRoutes, { prefix: "/v1" })
 
 // Start BullMQ workers
 const inboundWorker = startInboundWorker()
+const embedWorker = startEmbedWorker()
 
 // Graceful shutdown
 const shutdown = async () => {
   logger.info("Shutting down orchestrator...")
   await inboundWorker.close()
+  await embedWorker.close()
   await app.close()
   await closeRedis()
   process.exit(0)

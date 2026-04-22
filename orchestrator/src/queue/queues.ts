@@ -10,3 +10,13 @@ export const inboundQueue = new Queue("orchestrator-inbound", {
     removeOnFail: 500,
   },
 })
+
+export const embedQueue = new Queue("orchestrator-embed", {
+  connection: getRedis(),
+  defaultJobOptions: {
+    attempts: 3,
+    backoff: { type: "exponential", delay: 5000 },
+    removeOnComplete: 100,
+    removeOnFail: 500,
+  },
+})

@@ -27,7 +27,9 @@ export interface Message {
 export async function getOrCreateConversation(
   agentId: string,
   phoneNumber: string,
-  orchestratorAgentId: string | null
+  orchestratorAgentId: string | null,
+  contactName?: string,
+  defaultMode: "ai" | "human" = "ai"
 ): Promise<Conversation> {
   // Try to find existing
   const existing = await sql<Conversation[]>`
@@ -39,17 +41,24 @@ export async function getOrCreateConversation(
   if (existing[0]) {
     await sql`
       UPDATE "Conversation"
-      SET "lastActivityAt" = NOW(), "orchestratorAgentId" = COALESCE(${orchestratorAgentId}, "orchestratorAgentId")
+      SET "lastActivityAt" = NOW(),
+          "orchestratorAgentId" = COALESCE(${orchestratorAgentId}, "orchestratorAgentId"),
+          "contactName" = COALESCE(${contactName ?? null}, "contactName"),
+          "mode" = ${defaultMode}
       WHERE "id" = ${existing[0].id}
     `
-    return { ...existing[0], orchestratorAgentId: orchestratorAgentId ?? existing[0].orchestratorAgentId }
+    return {
+      ...existing[0],
+      orchestratorAgentId: orchestratorAgentId ?? existing[0].orchestratorAgentId,
+      mode: defaultMode,
+    }
   }
 
   // Create new
   const id = randomUUID()
   const rows = await sql<Conversation[]>`
-    INSERT INTO "Conversation" ("id", "agentId", "orchestratorAgentId", "phoneNumber", "mode", "lastActivityAt", "createdAt")
-    VALUES (${id}, ${agentId}, ${orchestratorAgentId}, ${phoneNumber}, 'ai', NOW(), NOW())
+    INSERT INTO "Conversation" ("id", "agentId", "orchestratorAgentId", "phoneNumber", "contactName", "mode", "lastActivityAt", "createdAt")
+    VALUES (${id}, ${agentId}, ${orchestratorAgentId}, ${phoneNumber}, ${contactName ?? null}, ${defaultMode}, NOW(), NOW())
     RETURNING "id", "agentId", "orchestratorAgentId", "phoneNumber", "mode", "lastActivityAt"
   `
   return rows[0]

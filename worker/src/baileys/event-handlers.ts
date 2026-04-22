@@ -1,7 +1,8 @@
-import type { WASocket } from "baileys"
+import type { WASocket } from "@whiskeysockets/baileys"
 import { webhookEmitter } from "../dashboard/webhook-emitter.js"
 import { config } from "../config.js"
 import { logger as rootLogger } from "../lib/logger.js"
+import { resolvePhone } from "./contacts-store.js"
 
 const logger = rootLogger.child({ module: "event-handlers" })
 
@@ -22,7 +23,12 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
       if (!msg.key.remoteJid) continue
 
       const senderJid = msg.key.remoteJid
-      const phoneNumber = senderJid.split("@")[0]
+      // remoteJidAlt is the PN (real phone JID) when remoteJid is a LID — available since Baileys 6.8.0
+      const altJid = (msg.key as Record<string, unknown>).remoteJidAlt as string | undefined
+      const phoneNumber = altJid
+        ? altJid.split("@")[0].split(":")[0]
+        : resolvePhone(agentId, senderJid)
+      const pushName = msg.pushName ?? undefined
 
       const text =
         msg.message?.conversation ??
@@ -34,7 +40,7 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
         continue
       }
 
-      logger.info({ agentId, senderJid, preview: text.slice(0, 60) }, "Inbound message")
+      logger.info({ agentId, senderJid, pushName: msg.pushName ?? null, preview: text.slice(0, 60) }, "Inbound message")
 
       // §7.7 — Mark read with natural delay
       setTimeout(async () => {
@@ -64,6 +70,7 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
           senderJid,
           text,
           timestamp: (msg.messageTimestamp as number) * 1000,
+          pushName,
         })
       } catch (err) {
         logger.error({ err, agentId, senderJid }, "Failed to forward to orchestrator")
@@ -79,6 +86,7 @@ async function forwardToOrchestrator(payload: {
   senderJid: string
   text: string
   timestamp: number
+  pushName?: string
 }): Promise<void> {
   const url = `${config.ORCHESTRATOR_URL}/v1/inbound`
 
