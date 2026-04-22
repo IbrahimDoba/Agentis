@@ -1,0 +1,29 @@
+FROM node:20.19.0-slim
+
+WORKDIR /app
+
+# Install pnpm and pm2
+RUN npm install -g pnpm pm2
+
+# Copy workspace root files first (for better caching)
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+
+# Copy all packages (Worker workspace requires context)
+COPY orchestrator ./orchestrator
+COPY worker ./worker
+COPY prisma ./prisma
+
+# Install all workspace dependencies
+RUN pnpm install --frozen-lockfile
+
+# Build worker only
+WORKDIR /app/worker
+RUN pnpm build
+
+# Auth sessions stored in a named volume — never baked into the image
+VOLUME ["/app/worker/auth_sessions"]
+
+ENV NODE_ENV=production
+EXPOSE 4000
+
+CMD ["pm2-runtime", "ecosystem.config.cjs"]
