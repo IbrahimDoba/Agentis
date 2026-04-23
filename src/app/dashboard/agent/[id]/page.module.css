@@ -77,3 +77,24 @@
 .tabContent {
   width: 100%;
 }
+
+@media (max-width: 768px) {
+  .tabs {
+    flex-direction: column;
+    gap: 0.5rem;
+    border-bottom: none;
+  }
+
+  .tab {
+    width: 100%;
+    text-align: left;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    margin-bottom: 0;
+  }
+
+  .tabActive {
+    border-color: var(--accent);
+    background: rgba(34, 197, 94, 0.06);
+  }
+}

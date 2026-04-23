@@ -639,14 +639,6 @@ export type ConversationLogUncheckedUpdateManyWithoutCustomerNestedInput = {
   deleteMany?: Prisma.ConversationLogScalarWhereInput | Prisma.ConversationLogScalarWhereInput[]
 }
 
-export type NullableIntFieldUpdateOperationsInput = {
-  set?: number | null
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type ConversationLogCreateWithoutAgentInput = {
   id?: string
   conversationId: string

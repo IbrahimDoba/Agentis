@@ -21,9 +21,10 @@ const proMonthly = {
 
 const starterFeatures = [
   { text: "1 AI WhatsApp Agent", included: true },
-  { text: "60,000 credits/month (~600 conversations)", included: true },
-  { text: "Text responses only", included: true },
-  { text: "Basic FAQ handling", included: true },
+  { text: "60,000 credits/month (~923 text convos @ 13 AI msgs)", included: true },
+  { text: "Dailzero AI usage: 5 credits/text, 8 credits/image", included: true },
+  { text: "Text + image responses", included: true },
+  { text: "Advanced FAQ handling", included: true },
   { text: "Business hours configuration", included: true },
   { text: "Custom greeting & sign-off", included: true },
   { text: "Conversation monitoring dashboard", included: true },
@@ -31,7 +32,6 @@ const starterFeatures = [
   { text: "7-day free trial", included: true },
   { text: "₦1,000 per 1,000 extra credits", included: true },
   { text: "Voice call capability", included: false },
-  { text: "Image & media sending", included: false },
   { text: "Advanced AI personality", included: false },
   { text: "Multi-language support", included: false },
   { text: "Priority support", included: false },
@@ -39,10 +39,10 @@ const starterFeatures = [
 ]
 
 const proFeatures = [
-  { text: "1 AI WhatsApp Agent", included: true },
-  { text: "100,000 credits/month (~1,000 conversations)", included: true },
-  { text: "Text + Voice call capability", included: true },
-  { text: "Image & media sending", included: true },
+  { text: "2 AI WhatsApp Agents", included: true },
+  { text: "100,000 credits/month (~1,538 text convos @ 13 AI msgs)", included: true },
+  { text: "Dailzero AI usage: 5 credits/text, 8 credits/image", included: true },
+  { text: "Text + image + media sending", included: true },
   { text: "Automated follow-up messages", included: true },
   { text: "Advanced AI with custom personality", included: true },
   { text: "Multi-language support (English + any)", included: true },
@@ -64,7 +64,7 @@ const faqs = [
   },
   {
     q: "What happens if I exceed my credit limit?",
-    a: "On the Starter plan, additional credits beyond your 60,000 monthly allowance are charged at ₦1,000 per 1,000 credits. On the Pro plan, the overage rate is ₦800 per 1,000 credits. Free plan users are paused until the next month.",
+    a: "On Starter, additional credits beyond 60,000/month are charged at ₦1,000 per 1,000 credits. On Pro, overage is ₦800 per 1,000 credits. Dailzero AI usage is billed per successful AI send (5 credits per AI text, 8 per AI image).",
   },
   {
     q: "Do you offer custom plans?",
@@ -204,11 +204,12 @@ export default function PricingPage() {
                 <div className={`${styles.comparisonPlanCol} ${styles.comparisonPlanColPro}`}>Pro</div>
               </div>
               {[
-                ["Monthly Credits", "60,000 (~600 convos)", "100,000 (~1,000 convos)"],
+                ["Monthly Credits", "60,000 (~923 text convos)", "100,000 (~1,538 text convos)"],
+                ["Credit Burn", "5 text / 8 image", "5 text / 8 image"],
                 ["Overage Rate", "₦1,000 / 1k credits", "₦800 / 1k credits"],
-                ["Response Type", "Text only", "Text + Voice"],
-                ["Media Sending", "—", "✓ Images, PDFs"],
-                ["FAQ Handling", "Basic", "Advanced AI"],
+                ["Response Type", "Text + Image", "Text + Image + Media"],
+                ["Media Sending", "✓ Images", "✓ Images, PDFs"],
+                ["FAQ Handling", "Advanced", "Advanced AI"],
                 ["Follow-up Messages", "—", "✓ Automated"],
                 ["AI Personality", "Standard", "Fully customisable"],
                 ["Languages", "English", "English + any language"],

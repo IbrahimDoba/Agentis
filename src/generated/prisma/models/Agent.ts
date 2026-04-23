@@ -46,6 +46,8 @@ export type AgentMinAggregateOutputType = {
   messagingEnabled: boolean | null
   category: string | null
   address: string | null
+  transportType: string | null
+  agentRuntime: string | null
   status: $Enums.AgentStatus | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -73,6 +75,8 @@ export type AgentMaxAggregateOutputType = {
   messagingEnabled: boolean | null
   category: string | null
   address: string | null
+  transportType: string | null
+  agentRuntime: string | null
   status: $Enums.AgentStatus | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -102,6 +106,8 @@ export type AgentCountAggregateOutputType = {
   address: number
   productsData: number
   toolsData: number
+  transportType: number
+  agentRuntime: number
   status: number
   createdAt: number
   updatedAt: number
@@ -131,6 +137,8 @@ export type AgentMinAggregateInputType = {
   messagingEnabled?: true
   category?: true
   address?: true
+  transportType?: true
+  agentRuntime?: true
   status?: true
   createdAt?: true
   updatedAt?: true
@@ -158,6 +166,8 @@ export type AgentMaxAggregateInputType = {
   messagingEnabled?: true
   category?: true
   address?: true
+  transportType?: true
+  agentRuntime?: true
   status?: true
   createdAt?: true
   updatedAt?: true
@@ -187,6 +197,8 @@ export type AgentCountAggregateInputType = {
   address?: true
   productsData?: true
   toolsData?: true
+  transportType?: true
+  agentRuntime?: true
   status?: true
   createdAt?: true
   updatedAt?: true
@@ -289,6 +301,8 @@ export type AgentGroupByOutputType = {
   address: string | null
   productsData: runtime.JsonValue | null
   toolsData: runtime.JsonValue | null
+  transportType: string
+  agentRuntime: string
   status: $Enums.AgentStatus
   createdAt: Date
   updatedAt: Date
@@ -339,6 +353,8 @@ export type AgentWhereInput = {
   address?: Prisma.StringNullableFilter<"Agent"> | string | null
   productsData?: Prisma.JsonNullableFilter<"Agent">
   toolsData?: Prisma.JsonNullableFilter<"Agent">
+  transportType?: Prisma.StringFilter<"Agent"> | string
+  agentRuntime?: Prisma.StringFilter<"Agent"> | string
   status?: Prisma.EnumAgentStatusFilter<"Agent"> | $Enums.AgentStatus
   createdAt?: Prisma.DateTimeFilter<"Agent"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Agent"> | Date | string
@@ -347,6 +363,10 @@ export type AgentWhereInput = {
   conversationLogs?: Prisma.ConversationLogListRelationFilter
   customers?: Prisma.CustomerListRelationFilter
   templates?: Prisma.MessageTemplateListRelationFilter
+  baileysSession?: Prisma.XOR<Prisma.BaileysSessionNullableScalarRelationFilter, Prisma.BaileysSessionWhereInput> | null
+  orchestratorAgents?: Prisma.OrchestratorAgentListRelationFilter
+  conversations?: Prisma.ConversationListRelationFilter
+  broadcasts?: Prisma.BroadcastCampaignListRelationFilter
 }
 
 export type AgentOrderByWithRelationInput = {
@@ -373,6 +393,8 @@ export type AgentOrderByWithRelationInput = {
   address?: Prisma.SortOrderInput | Prisma.SortOrder
   productsData?: Prisma.SortOrderInput | Prisma.SortOrder
   toolsData?: Prisma.SortOrderInput | Prisma.SortOrder
+  transportType?: Prisma.SortOrder
+  agentRuntime?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -381,6 +403,10 @@ export type AgentOrderByWithRelationInput = {
   conversationLogs?: Prisma.ConversationLogOrderByRelationAggregateInput
   customers?: Prisma.CustomerOrderByRelationAggregateInput
   templates?: Prisma.MessageTemplateOrderByRelationAggregateInput
+  baileysSession?: Prisma.BaileysSessionOrderByWithRelationInput
+  orchestratorAgents?: Prisma.OrchestratorAgentOrderByRelationAggregateInput
+  conversations?: Prisma.ConversationOrderByRelationAggregateInput
+  broadcasts?: Prisma.BroadcastCampaignOrderByRelationAggregateInput
 }
 
 export type AgentWhereUniqueInput = Prisma.AtLeast<{
@@ -410,6 +436,8 @@ export type AgentWhereUniqueInput = Prisma.AtLeast<{
   address?: Prisma.StringNullableFilter<"Agent"> | string | null
   productsData?: Prisma.JsonNullableFilter<"Agent">
   toolsData?: Prisma.JsonNullableFilter<"Agent">
+  transportType?: Prisma.StringFilter<"Agent"> | string
+  agentRuntime?: Prisma.StringFilter<"Agent"> | string
   status?: Prisma.EnumAgentStatusFilter<"Agent"> | $Enums.AgentStatus
   createdAt?: Prisma.DateTimeFilter<"Agent"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Agent"> | Date | string
@@ -418,6 +446,10 @@ export type AgentWhereUniqueInput = Prisma.AtLeast<{
   conversationLogs?: Prisma.ConversationLogListRelationFilter
   customers?: Prisma.CustomerListRelationFilter
   templates?: Prisma.MessageTemplateListRelationFilter
+  baileysSession?: Prisma.XOR<Prisma.BaileysSessionNullableScalarRelationFilter, Prisma.BaileysSessionWhereInput> | null
+  orchestratorAgents?: Prisma.OrchestratorAgentListRelationFilter
+  conversations?: Prisma.ConversationListRelationFilter
+  broadcasts?: Prisma.BroadcastCampaignListRelationFilter
 }, "id">
 
 export type AgentOrderByWithAggregationInput = {
@@ -444,6 +476,8 @@ export type AgentOrderByWithAggregationInput = {
   address?: Prisma.SortOrderInput | Prisma.SortOrder
   productsData?: Prisma.SortOrderInput | Prisma.SortOrder
   toolsData?: Prisma.SortOrderInput | Prisma.SortOrder
+  transportType?: Prisma.SortOrder
+  agentRuntime?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -479,6 +513,8 @@ export type AgentScalarWhereWithAggregatesInput = {
   address?: Prisma.StringNullableWithAggregatesFilter<"Agent"> | string | null
   productsData?: Prisma.JsonNullableWithAggregatesFilter<"Agent">
   toolsData?: Prisma.JsonNullableWithAggregatesFilter<"Agent">
+  transportType?: Prisma.StringWithAggregatesFilter<"Agent"> | string
+  agentRuntime?: Prisma.StringWithAggregatesFilter<"Agent"> | string
   status?: Prisma.EnumAgentStatusWithAggregatesFilter<"Agent"> | $Enums.AgentStatus
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Agent"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Agent"> | Date | string
@@ -507,6 +543,8 @@ export type AgentCreateInput = {
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: string
+  agentRuntime?: string
   status?: $Enums.AgentStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -515,6 +553,10 @@ export type AgentCreateInput = {
   conversationLogs?: Prisma.ConversationLogCreateNestedManyWithoutAgentInput
   customers?: Prisma.CustomerCreateNestedManyWithoutAgentInput
   templates?: Prisma.MessageTemplateCreateNestedManyWithoutAgentInput
+  baileysSession?: Prisma.BaileysSessionCreateNestedOneWithoutAgentInput
+  orchestratorAgents?: Prisma.OrchestratorAgentCreateNestedManyWithoutAgentInput
+  conversations?: Prisma.ConversationCreateNestedManyWithoutAgentInput
+  broadcasts?: Prisma.BroadcastCampaignCreateNestedManyWithoutAgentInput
 }
 
 export type AgentUncheckedCreateInput = {
@@ -541,6 +583,8 @@ export type AgentUncheckedCreateInput = {
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: string
+  agentRuntime?: string
   status?: $Enums.AgentStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -548,6 +592,10 @@ export type AgentUncheckedCreateInput = {
   conversationLogs?: Prisma.ConversationLogUncheckedCreateNestedManyWithoutAgentInput
   customers?: Prisma.CustomerUncheckedCreateNestedManyWithoutAgentInput
   templates?: Prisma.MessageTemplateUncheckedCreateNestedManyWithoutAgentInput
+  baileysSession?: Prisma.BaileysSessionUncheckedCreateNestedOneWithoutAgentInput
+  orchestratorAgents?: Prisma.OrchestratorAgentUncheckedCreateNestedManyWithoutAgentInput
+  conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutAgentInput
+  broadcasts?: Prisma.BroadcastCampaignUncheckedCreateNestedManyWithoutAgentInput
 }
 
 export type AgentUpdateInput = {
@@ -573,6 +621,8 @@ export type AgentUpdateInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: Prisma.StringFieldUpdateOperationsInput | string
+  agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -581,6 +631,10 @@ export type AgentUpdateInput = {
   conversationLogs?: Prisma.ConversationLogUpdateManyWithoutAgentNestedInput
   customers?: Prisma.CustomerUpdateManyWithoutAgentNestedInput
   templates?: Prisma.MessageTemplateUpdateManyWithoutAgentNestedInput
+  baileysSession?: Prisma.BaileysSessionUpdateOneWithoutAgentNestedInput
+  orchestratorAgents?: Prisma.OrchestratorAgentUpdateManyWithoutAgentNestedInput
+  conversations?: Prisma.ConversationUpdateManyWithoutAgentNestedInput
+  broadcasts?: Prisma.BroadcastCampaignUpdateManyWithoutAgentNestedInput
 }
 
 export type AgentUncheckedUpdateInput = {
@@ -607,6 +661,8 @@ export type AgentUncheckedUpdateInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: Prisma.StringFieldUpdateOperationsInput | string
+  agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -614,6 +670,10 @@ export type AgentUncheckedUpdateInput = {
   conversationLogs?: Prisma.ConversationLogUncheckedUpdateManyWithoutAgentNestedInput
   customers?: Prisma.CustomerUncheckedUpdateManyWithoutAgentNestedInput
   templates?: Prisma.MessageTemplateUncheckedUpdateManyWithoutAgentNestedInput
+  baileysSession?: Prisma.BaileysSessionUncheckedUpdateOneWithoutAgentNestedInput
+  orchestratorAgents?: Prisma.OrchestratorAgentUncheckedUpdateManyWithoutAgentNestedInput
+  conversations?: Prisma.ConversationUncheckedUpdateManyWithoutAgentNestedInput
+  broadcasts?: Prisma.BroadcastCampaignUncheckedUpdateManyWithoutAgentNestedInput
 }
 
 export type AgentCreateManyInput = {
@@ -640,6 +700,8 @@ export type AgentCreateManyInput = {
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: string
+  agentRuntime?: string
   status?: $Enums.AgentStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -668,6 +730,8 @@ export type AgentUpdateManyMutationInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: Prisma.StringFieldUpdateOperationsInput | string
+  agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -697,6 +761,8 @@ export type AgentUncheckedUpdateManyInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: Prisma.StringFieldUpdateOperationsInput | string
+  agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -736,6 +802,8 @@ export type AgentCountOrderByAggregateInput = {
   address?: Prisma.SortOrder
   productsData?: Prisma.SortOrder
   toolsData?: Prisma.SortOrder
+  transportType?: Prisma.SortOrder
+  agentRuntime?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -763,6 +831,8 @@ export type AgentMaxOrderByAggregateInput = {
   messagingEnabled?: Prisma.SortOrder
   category?: Prisma.SortOrder
   address?: Prisma.SortOrder
+  transportType?: Prisma.SortOrder
+  agentRuntime?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -790,6 +860,8 @@ export type AgentMinOrderByAggregateInput = {
   messagingEnabled?: Prisma.SortOrder
   category?: Prisma.SortOrder
   address?: Prisma.SortOrder
+  transportType?: Prisma.SortOrder
+  agentRuntime?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -849,6 +921,48 @@ export type AgentUncheckedUpdateManyWithoutUserNestedInput = {
 
 export type EnumAgentStatusFieldUpdateOperationsInput = {
   set?: $Enums.AgentStatus
+}
+
+export type AgentCreateNestedOneWithoutBroadcastsInput = {
+  create?: Prisma.XOR<Prisma.AgentCreateWithoutBroadcastsInput, Prisma.AgentUncheckedCreateWithoutBroadcastsInput>
+  connectOrCreate?: Prisma.AgentCreateOrConnectWithoutBroadcastsInput
+  connect?: Prisma.AgentWhereUniqueInput
+}
+
+export type AgentUpdateOneRequiredWithoutBroadcastsNestedInput = {
+  create?: Prisma.XOR<Prisma.AgentCreateWithoutBroadcastsInput, Prisma.AgentUncheckedCreateWithoutBroadcastsInput>
+  connectOrCreate?: Prisma.AgentCreateOrConnectWithoutBroadcastsInput
+  upsert?: Prisma.AgentUpsertWithoutBroadcastsInput
+  connect?: Prisma.AgentWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.AgentUpdateToOneWithWhereWithoutBroadcastsInput, Prisma.AgentUpdateWithoutBroadcastsInput>, Prisma.AgentUncheckedUpdateWithoutBroadcastsInput>
+}
+
+export type AgentCreateNestedOneWithoutOrchestratorAgentsInput = {
+  create?: Prisma.XOR<Prisma.AgentCreateWithoutOrchestratorAgentsInput, Prisma.AgentUncheckedCreateWithoutOrchestratorAgentsInput>
+  connectOrCreate?: Prisma.AgentCreateOrConnectWithoutOrchestratorAgentsInput
+  connect?: Prisma.AgentWhereUniqueInput
+}
+
+export type AgentUpdateOneRequiredWithoutOrchestratorAgentsNestedInput = {
+  create?: Prisma.XOR<Prisma.AgentCreateWithoutOrchestratorAgentsInput, Prisma.AgentUncheckedCreateWithoutOrchestratorAgentsInput>
+  connectOrCreate?: Prisma.AgentCreateOrConnectWithoutOrchestratorAgentsInput
+  upsert?: Prisma.AgentUpsertWithoutOrchestratorAgentsInput
+  connect?: Prisma.AgentWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.AgentUpdateToOneWithWhereWithoutOrchestratorAgentsInput, Prisma.AgentUpdateWithoutOrchestratorAgentsInput>, Prisma.AgentUncheckedUpdateWithoutOrchestratorAgentsInput>
+}
+
+export type AgentCreateNestedOneWithoutConversationsInput = {
+  create?: Prisma.XOR<Prisma.AgentCreateWithoutConversationsInput, Prisma.AgentUncheckedCreateWithoutConversationsInput>
+  connectOrCreate?: Prisma.AgentCreateOrConnectWithoutConversationsInput
+  connect?: Prisma.AgentWhereUniqueInput
+}
+
+export type AgentUpdateOneRequiredWithoutConversationsNestedInput = {
+  create?: Prisma.XOR<Prisma.AgentCreateWithoutConversationsInput, Prisma.AgentUncheckedCreateWithoutConversationsInput>
+  connectOrCreate?: Prisma.AgentCreateOrConnectWithoutConversationsInput
+  upsert?: Prisma.AgentUpsertWithoutConversationsInput
+  connect?: Prisma.AgentWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.AgentUpdateToOneWithWhereWithoutConversationsInput, Prisma.AgentUpdateWithoutConversationsInput>, Prisma.AgentUncheckedUpdateWithoutConversationsInput>
 }
 
 export type AgentCreateNestedOneWithoutTemplatesInput = {
@@ -911,6 +1025,20 @@ export type AgentUpdateOneWithoutConversationLogsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.AgentUpdateToOneWithWhereWithoutConversationLogsInput, Prisma.AgentUpdateWithoutConversationLogsInput>, Prisma.AgentUncheckedUpdateWithoutConversationLogsInput>
 }
 
+export type AgentCreateNestedOneWithoutBaileysSessionInput = {
+  create?: Prisma.XOR<Prisma.AgentCreateWithoutBaileysSessionInput, Prisma.AgentUncheckedCreateWithoutBaileysSessionInput>
+  connectOrCreate?: Prisma.AgentCreateOrConnectWithoutBaileysSessionInput
+  connect?: Prisma.AgentWhereUniqueInput
+}
+
+export type AgentUpdateOneRequiredWithoutBaileysSessionNestedInput = {
+  create?: Prisma.XOR<Prisma.AgentCreateWithoutBaileysSessionInput, Prisma.AgentUncheckedCreateWithoutBaileysSessionInput>
+  connectOrCreate?: Prisma.AgentCreateOrConnectWithoutBaileysSessionInput
+  upsert?: Prisma.AgentUpsertWithoutBaileysSessionInput
+  connect?: Prisma.AgentWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.AgentUpdateToOneWithWhereWithoutBaileysSessionInput, Prisma.AgentUpdateWithoutBaileysSessionInput>, Prisma.AgentUncheckedUpdateWithoutBaileysSessionInput>
+}
+
 export type AgentCreateWithoutUserInput = {
   id?: string
   businessName: string
@@ -934,6 +1062,8 @@ export type AgentCreateWithoutUserInput = {
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: string
+  agentRuntime?: string
   status?: $Enums.AgentStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -941,6 +1071,10 @@ export type AgentCreateWithoutUserInput = {
   conversationLogs?: Prisma.ConversationLogCreateNestedManyWithoutAgentInput
   customers?: Prisma.CustomerCreateNestedManyWithoutAgentInput
   templates?: Prisma.MessageTemplateCreateNestedManyWithoutAgentInput
+  baileysSession?: Prisma.BaileysSessionCreateNestedOneWithoutAgentInput
+  orchestratorAgents?: Prisma.OrchestratorAgentCreateNestedManyWithoutAgentInput
+  conversations?: Prisma.ConversationCreateNestedManyWithoutAgentInput
+  broadcasts?: Prisma.BroadcastCampaignCreateNestedManyWithoutAgentInput
 }
 
 export type AgentUncheckedCreateWithoutUserInput = {
@@ -966,6 +1100,8 @@ export type AgentUncheckedCreateWithoutUserInput = {
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: string
+  agentRuntime?: string
   status?: $Enums.AgentStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -973,6 +1109,10 @@ export type AgentUncheckedCreateWithoutUserInput = {
   conversationLogs?: Prisma.ConversationLogUncheckedCreateNestedManyWithoutAgentInput
   customers?: Prisma.CustomerUncheckedCreateNestedManyWithoutAgentInput
   templates?: Prisma.MessageTemplateUncheckedCreateNestedManyWithoutAgentInput
+  baileysSession?: Prisma.BaileysSessionUncheckedCreateNestedOneWithoutAgentInput
+  orchestratorAgents?: Prisma.OrchestratorAgentUncheckedCreateNestedManyWithoutAgentInput
+  conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutAgentInput
+  broadcasts?: Prisma.BroadcastCampaignUncheckedCreateNestedManyWithoutAgentInput
 }
 
 export type AgentCreateOrConnectWithoutUserInput = {
@@ -1028,9 +1168,515 @@ export type AgentScalarWhereInput = {
   address?: Prisma.StringNullableFilter<"Agent"> | string | null
   productsData?: Prisma.JsonNullableFilter<"Agent">
   toolsData?: Prisma.JsonNullableFilter<"Agent">
+  transportType?: Prisma.StringFilter<"Agent"> | string
+  agentRuntime?: Prisma.StringFilter<"Agent"> | string
   status?: Prisma.EnumAgentStatusFilter<"Agent"> | $Enums.AgentStatus
   createdAt?: Prisma.DateTimeFilter<"Agent"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Agent"> | Date | string
+}
+
+export type AgentCreateWithoutBroadcastsInput = {
+  id?: string
+  businessName: string
+  businessDescription: string
+  productsServices: string
+  faqs: string
+  operatingHours: string
+  contactEmail?: string | null
+  contactPhone?: string | null
+  websiteLinks?: string | null
+  responseGuidelines?: string | null
+  profileImageUrl?: string | null
+  whatsappBusinessName?: string | null
+  whatsappAgentLink?: string | null
+  whatsappPhoneNumber?: string | null
+  qrCodeUrl?: string | null
+  elevenlabsAgentId?: string | null
+  whatsappPhoneNumberId?: string | null
+  messagingEnabled?: boolean
+  category?: string | null
+  address?: string | null
+  productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: string
+  agentRuntime?: string
+  status?: $Enums.AgentStatus
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  user: Prisma.UserCreateNestedOneWithoutAgentsInput
+  leads?: Prisma.LeadCreateNestedManyWithoutAgentInput
+  conversationLogs?: Prisma.ConversationLogCreateNestedManyWithoutAgentInput
+  customers?: Prisma.CustomerCreateNestedManyWithoutAgentInput
+  templates?: Prisma.MessageTemplateCreateNestedManyWithoutAgentInput
+  baileysSession?: Prisma.BaileysSessionCreateNestedOneWithoutAgentInput
+  orchestratorAgents?: Prisma.OrchestratorAgentCreateNestedManyWithoutAgentInput
+  conversations?: Prisma.ConversationCreateNestedManyWithoutAgentInput
+}
+
+export type AgentUncheckedCreateWithoutBroadcastsInput = {
+  id?: string
+  userId: string
+  businessName: string
+  businessDescription: string
+  productsServices: string
+  faqs: string
+  operatingHours: string
+  contactEmail?: string | null
+  contactPhone?: string | null
+  websiteLinks?: string | null
+  responseGuidelines?: string | null
+  profileImageUrl?: string | null
+  whatsappBusinessName?: string | null
+  whatsappAgentLink?: string | null
+  whatsappPhoneNumber?: string | null
+  qrCodeUrl?: string | null
+  elevenlabsAgentId?: string | null
+  whatsappPhoneNumberId?: string | null
+  messagingEnabled?: boolean
+  category?: string | null
+  address?: string | null
+  productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: string
+  agentRuntime?: string
+  status?: $Enums.AgentStatus
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutAgentInput
+  conversationLogs?: Prisma.ConversationLogUncheckedCreateNestedManyWithoutAgentInput
+  customers?: Prisma.CustomerUncheckedCreateNestedManyWithoutAgentInput
+  templates?: Prisma.MessageTemplateUncheckedCreateNestedManyWithoutAgentInput
+  baileysSession?: Prisma.BaileysSessionUncheckedCreateNestedOneWithoutAgentInput
+  orchestratorAgents?: Prisma.OrchestratorAgentUncheckedCreateNestedManyWithoutAgentInput
+  conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutAgentInput
+}
+
+export type AgentCreateOrConnectWithoutBroadcastsInput = {
+  where: Prisma.AgentWhereUniqueInput
+  create: Prisma.XOR<Prisma.AgentCreateWithoutBroadcastsInput, Prisma.AgentUncheckedCreateWithoutBroadcastsInput>
+}
+
+export type AgentUpsertWithoutBroadcastsInput = {
+  update: Prisma.XOR<Prisma.AgentUpdateWithoutBroadcastsInput, Prisma.AgentUncheckedUpdateWithoutBroadcastsInput>
+  create: Prisma.XOR<Prisma.AgentCreateWithoutBroadcastsInput, Prisma.AgentUncheckedCreateWithoutBroadcastsInput>
+  where?: Prisma.AgentWhereInput
+}
+
+export type AgentUpdateToOneWithWhereWithoutBroadcastsInput = {
+  where?: Prisma.AgentWhereInput
+  data: Prisma.XOR<Prisma.AgentUpdateWithoutBroadcastsInput, Prisma.AgentUncheckedUpdateWithoutBroadcastsInput>
+}
+
+export type AgentUpdateWithoutBroadcastsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessDescription?: Prisma.StringFieldUpdateOperationsInput | string
+  productsServices?: Prisma.StringFieldUpdateOperationsInput | string
+  faqs?: Prisma.StringFieldUpdateOperationsInput | string
+  operatingHours?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  websiteLinks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  responseGuidelines?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappBusinessName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappAgentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappPhoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  qrCodeUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  elevenlabsAgentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappPhoneNumberId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messagingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: Prisma.StringFieldUpdateOperationsInput | string
+  agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneRequiredWithoutAgentsNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutAgentNestedInput
+  conversationLogs?: Prisma.ConversationLogUpdateManyWithoutAgentNestedInput
+  customers?: Prisma.CustomerUpdateManyWithoutAgentNestedInput
+  templates?: Prisma.MessageTemplateUpdateManyWithoutAgentNestedInput
+  baileysSession?: Prisma.BaileysSessionUpdateOneWithoutAgentNestedInput
+  orchestratorAgents?: Prisma.OrchestratorAgentUpdateManyWithoutAgentNestedInput
+  conversations?: Prisma.ConversationUpdateManyWithoutAgentNestedInput
+}
+
+export type AgentUncheckedUpdateWithoutBroadcastsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessDescription?: Prisma.StringFieldUpdateOperationsInput | string
+  productsServices?: Prisma.StringFieldUpdateOperationsInput | string
+  faqs?: Prisma.StringFieldUpdateOperationsInput | string
+  operatingHours?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  websiteLinks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  responseGuidelines?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappBusinessName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappAgentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappPhoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  qrCodeUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  elevenlabsAgentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappPhoneNumberId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messagingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: Prisma.StringFieldUpdateOperationsInput | string
+  agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutAgentNestedInput
+  conversationLogs?: Prisma.ConversationLogUncheckedUpdateManyWithoutAgentNestedInput
+  customers?: Prisma.CustomerUncheckedUpdateManyWithoutAgentNestedInput
+  templates?: Prisma.MessageTemplateUncheckedUpdateManyWithoutAgentNestedInput
+  baileysSession?: Prisma.BaileysSessionUncheckedUpdateOneWithoutAgentNestedInput
+  orchestratorAgents?: Prisma.OrchestratorAgentUncheckedUpdateManyWithoutAgentNestedInput
+  conversations?: Prisma.ConversationUncheckedUpdateManyWithoutAgentNestedInput
+}
+
+export type AgentCreateWithoutOrchestratorAgentsInput = {
+  id?: string
+  businessName: string
+  businessDescription: string
+  productsServices: string
+  faqs: string
+  operatingHours: string
+  contactEmail?: string | null
+  contactPhone?: string | null
+  websiteLinks?: string | null
+  responseGuidelines?: string | null
+  profileImageUrl?: string | null
+  whatsappBusinessName?: string | null
+  whatsappAgentLink?: string | null
+  whatsappPhoneNumber?: string | null
+  qrCodeUrl?: string | null
+  elevenlabsAgentId?: string | null
+  whatsappPhoneNumberId?: string | null
+  messagingEnabled?: boolean
+  category?: string | null
+  address?: string | null
+  productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: string
+  agentRuntime?: string
+  status?: $Enums.AgentStatus
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  user: Prisma.UserCreateNestedOneWithoutAgentsInput
+  leads?: Prisma.LeadCreateNestedManyWithoutAgentInput
+  conversationLogs?: Prisma.ConversationLogCreateNestedManyWithoutAgentInput
+  customers?: Prisma.CustomerCreateNestedManyWithoutAgentInput
+  templates?: Prisma.MessageTemplateCreateNestedManyWithoutAgentInput
+  baileysSession?: Prisma.BaileysSessionCreateNestedOneWithoutAgentInput
+  conversations?: Prisma.ConversationCreateNestedManyWithoutAgentInput
+  broadcasts?: Prisma.BroadcastCampaignCreateNestedManyWithoutAgentInput
+}
+
+export type AgentUncheckedCreateWithoutOrchestratorAgentsInput = {
+  id?: string
+  userId: string
+  businessName: string
+  businessDescription: string
+  productsServices: string
+  faqs: string
+  operatingHours: string
+  contactEmail?: string | null
+  contactPhone?: string | null
+  websiteLinks?: string | null
+  responseGuidelines?: string | null
+  profileImageUrl?: string | null
+  whatsappBusinessName?: string | null
+  whatsappAgentLink?: string | null
+  whatsappPhoneNumber?: string | null
+  qrCodeUrl?: string | null
+  elevenlabsAgentId?: string | null
+  whatsappPhoneNumberId?: string | null
+  messagingEnabled?: boolean
+  category?: string | null
+  address?: string | null
+  productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: string
+  agentRuntime?: string
+  status?: $Enums.AgentStatus
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutAgentInput
+  conversationLogs?: Prisma.ConversationLogUncheckedCreateNestedManyWithoutAgentInput
+  customers?: Prisma.CustomerUncheckedCreateNestedManyWithoutAgentInput
+  templates?: Prisma.MessageTemplateUncheckedCreateNestedManyWithoutAgentInput
+  baileysSession?: Prisma.BaileysSessionUncheckedCreateNestedOneWithoutAgentInput
+  conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutAgentInput
+  broadcasts?: Prisma.BroadcastCampaignUncheckedCreateNestedManyWithoutAgentInput
+}
+
+export type AgentCreateOrConnectWithoutOrchestratorAgentsInput = {
+  where: Prisma.AgentWhereUniqueInput
+  create: Prisma.XOR<Prisma.AgentCreateWithoutOrchestratorAgentsInput, Prisma.AgentUncheckedCreateWithoutOrchestratorAgentsInput>
+}
+
+export type AgentUpsertWithoutOrchestratorAgentsInput = {
+  update: Prisma.XOR<Prisma.AgentUpdateWithoutOrchestratorAgentsInput, Prisma.AgentUncheckedUpdateWithoutOrchestratorAgentsInput>
+  create: Prisma.XOR<Prisma.AgentCreateWithoutOrchestratorAgentsInput, Prisma.AgentUncheckedCreateWithoutOrchestratorAgentsInput>
+  where?: Prisma.AgentWhereInput
+}
+
+export type AgentUpdateToOneWithWhereWithoutOrchestratorAgentsInput = {
+  where?: Prisma.AgentWhereInput
+  data: Prisma.XOR<Prisma.AgentUpdateWithoutOrchestratorAgentsInput, Prisma.AgentUncheckedUpdateWithoutOrchestratorAgentsInput>
+}
+
+export type AgentUpdateWithoutOrchestratorAgentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessDescription?: Prisma.StringFieldUpdateOperationsInput | string
+  productsServices?: Prisma.StringFieldUpdateOperationsInput | string
+  faqs?: Prisma.StringFieldUpdateOperationsInput | string
+  operatingHours?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  websiteLinks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  responseGuidelines?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappBusinessName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappAgentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappPhoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  qrCodeUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  elevenlabsAgentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappPhoneNumberId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messagingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: Prisma.StringFieldUpdateOperationsInput | string
+  agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneRequiredWithoutAgentsNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutAgentNestedInput
+  conversationLogs?: Prisma.ConversationLogUpdateManyWithoutAgentNestedInput
+  customers?: Prisma.CustomerUpdateManyWithoutAgentNestedInput
+  templates?: Prisma.MessageTemplateUpdateManyWithoutAgentNestedInput
+  baileysSession?: Prisma.BaileysSessionUpdateOneWithoutAgentNestedInput
+  conversations?: Prisma.ConversationUpdateManyWithoutAgentNestedInput
+  broadcasts?: Prisma.BroadcastCampaignUpdateManyWithoutAgentNestedInput
+}
+
+export type AgentUncheckedUpdateWithoutOrchestratorAgentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessDescription?: Prisma.StringFieldUpdateOperationsInput | string
+  productsServices?: Prisma.StringFieldUpdateOperationsInput | string
+  faqs?: Prisma.StringFieldUpdateOperationsInput | string
+  operatingHours?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  websiteLinks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  responseGuidelines?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappBusinessName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappAgentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappPhoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  qrCodeUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  elevenlabsAgentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappPhoneNumberId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messagingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: Prisma.StringFieldUpdateOperationsInput | string
+  agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutAgentNestedInput
+  conversationLogs?: Prisma.ConversationLogUncheckedUpdateManyWithoutAgentNestedInput
+  customers?: Prisma.CustomerUncheckedUpdateManyWithoutAgentNestedInput
+  templates?: Prisma.MessageTemplateUncheckedUpdateManyWithoutAgentNestedInput
+  baileysSession?: Prisma.BaileysSessionUncheckedUpdateOneWithoutAgentNestedInput
+  conversations?: Prisma.ConversationUncheckedUpdateManyWithoutAgentNestedInput
+  broadcasts?: Prisma.BroadcastCampaignUncheckedUpdateManyWithoutAgentNestedInput
+}
+
+export type AgentCreateWithoutConversationsInput = {
+  id?: string
+  businessName: string
+  businessDescription: string
+  productsServices: string
+  faqs: string
+  operatingHours: string
+  contactEmail?: string | null
+  contactPhone?: string | null
+  websiteLinks?: string | null
+  responseGuidelines?: string | null
+  profileImageUrl?: string | null
+  whatsappBusinessName?: string | null
+  whatsappAgentLink?: string | null
+  whatsappPhoneNumber?: string | null
+  qrCodeUrl?: string | null
+  elevenlabsAgentId?: string | null
+  whatsappPhoneNumberId?: string | null
+  messagingEnabled?: boolean
+  category?: string | null
+  address?: string | null
+  productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: string
+  agentRuntime?: string
+  status?: $Enums.AgentStatus
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  user: Prisma.UserCreateNestedOneWithoutAgentsInput
+  leads?: Prisma.LeadCreateNestedManyWithoutAgentInput
+  conversationLogs?: Prisma.ConversationLogCreateNestedManyWithoutAgentInput
+  customers?: Prisma.CustomerCreateNestedManyWithoutAgentInput
+  templates?: Prisma.MessageTemplateCreateNestedManyWithoutAgentInput
+  baileysSession?: Prisma.BaileysSessionCreateNestedOneWithoutAgentInput
+  orchestratorAgents?: Prisma.OrchestratorAgentCreateNestedManyWithoutAgentInput
+  broadcasts?: Prisma.BroadcastCampaignCreateNestedManyWithoutAgentInput
+}
+
+export type AgentUncheckedCreateWithoutConversationsInput = {
+  id?: string
+  userId: string
+  businessName: string
+  businessDescription: string
+  productsServices: string
+  faqs: string
+  operatingHours: string
+  contactEmail?: string | null
+  contactPhone?: string | null
+  websiteLinks?: string | null
+  responseGuidelines?: string | null
+  profileImageUrl?: string | null
+  whatsappBusinessName?: string | null
+  whatsappAgentLink?: string | null
+  whatsappPhoneNumber?: string | null
+  qrCodeUrl?: string | null
+  elevenlabsAgentId?: string | null
+  whatsappPhoneNumberId?: string | null
+  messagingEnabled?: boolean
+  category?: string | null
+  address?: string | null
+  productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: string
+  agentRuntime?: string
+  status?: $Enums.AgentStatus
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutAgentInput
+  conversationLogs?: Prisma.ConversationLogUncheckedCreateNestedManyWithoutAgentInput
+  customers?: Prisma.CustomerUncheckedCreateNestedManyWithoutAgentInput
+  templates?: Prisma.MessageTemplateUncheckedCreateNestedManyWithoutAgentInput
+  baileysSession?: Prisma.BaileysSessionUncheckedCreateNestedOneWithoutAgentInput
+  orchestratorAgents?: Prisma.OrchestratorAgentUncheckedCreateNestedManyWithoutAgentInput
+  broadcasts?: Prisma.BroadcastCampaignUncheckedCreateNestedManyWithoutAgentInput
+}
+
+export type AgentCreateOrConnectWithoutConversationsInput = {
+  where: Prisma.AgentWhereUniqueInput
+  create: Prisma.XOR<Prisma.AgentCreateWithoutConversationsInput, Prisma.AgentUncheckedCreateWithoutConversationsInput>
+}
+
+export type AgentUpsertWithoutConversationsInput = {
+  update: Prisma.XOR<Prisma.AgentUpdateWithoutConversationsInput, Prisma.AgentUncheckedUpdateWithoutConversationsInput>
+  create: Prisma.XOR<Prisma.AgentCreateWithoutConversationsInput, Prisma.AgentUncheckedCreateWithoutConversationsInput>
+  where?: Prisma.AgentWhereInput
+}
+
+export type AgentUpdateToOneWithWhereWithoutConversationsInput = {
+  where?: Prisma.AgentWhereInput
+  data: Prisma.XOR<Prisma.AgentUpdateWithoutConversationsInput, Prisma.AgentUncheckedUpdateWithoutConversationsInput>
+}
+
+export type AgentUpdateWithoutConversationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessDescription?: Prisma.StringFieldUpdateOperationsInput | string
+  productsServices?: Prisma.StringFieldUpdateOperationsInput | string
+  faqs?: Prisma.StringFieldUpdateOperationsInput | string
+  operatingHours?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  websiteLinks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  responseGuidelines?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappBusinessName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappAgentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappPhoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  qrCodeUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  elevenlabsAgentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappPhoneNumberId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messagingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: Prisma.StringFieldUpdateOperationsInput | string
+  agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneRequiredWithoutAgentsNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutAgentNestedInput
+  conversationLogs?: Prisma.ConversationLogUpdateManyWithoutAgentNestedInput
+  customers?: Prisma.CustomerUpdateManyWithoutAgentNestedInput
+  templates?: Prisma.MessageTemplateUpdateManyWithoutAgentNestedInput
+  baileysSession?: Prisma.BaileysSessionUpdateOneWithoutAgentNestedInput
+  orchestratorAgents?: Prisma.OrchestratorAgentUpdateManyWithoutAgentNestedInput
+  broadcasts?: Prisma.BroadcastCampaignUpdateManyWithoutAgentNestedInput
+}
+
+export type AgentUncheckedUpdateWithoutConversationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessDescription?: Prisma.StringFieldUpdateOperationsInput | string
+  productsServices?: Prisma.StringFieldUpdateOperationsInput | string
+  faqs?: Prisma.StringFieldUpdateOperationsInput | string
+  operatingHours?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  websiteLinks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  responseGuidelines?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappBusinessName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappAgentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappPhoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  qrCodeUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  elevenlabsAgentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappPhoneNumberId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messagingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: Prisma.StringFieldUpdateOperationsInput | string
+  agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutAgentNestedInput
+  conversationLogs?: Prisma.ConversationLogUncheckedUpdateManyWithoutAgentNestedInput
+  customers?: Prisma.CustomerUncheckedUpdateManyWithoutAgentNestedInput
+  templates?: Prisma.MessageTemplateUncheckedUpdateManyWithoutAgentNestedInput
+  baileysSession?: Prisma.BaileysSessionUncheckedUpdateOneWithoutAgentNestedInput
+  orchestratorAgents?: Prisma.OrchestratorAgentUncheckedUpdateManyWithoutAgentNestedInput
+  broadcasts?: Prisma.BroadcastCampaignUncheckedUpdateManyWithoutAgentNestedInput
 }
 
 export type AgentCreateWithoutTemplatesInput = {
@@ -1056,6 +1702,8 @@ export type AgentCreateWithoutTemplatesInput = {
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: string
+  agentRuntime?: string
   status?: $Enums.AgentStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1063,6 +1711,10 @@ export type AgentCreateWithoutTemplatesInput = {
   leads?: Prisma.LeadCreateNestedManyWithoutAgentInput
   conversationLogs?: Prisma.ConversationLogCreateNestedManyWithoutAgentInput
   customers?: Prisma.CustomerCreateNestedManyWithoutAgentInput
+  baileysSession?: Prisma.BaileysSessionCreateNestedOneWithoutAgentInput
+  orchestratorAgents?: Prisma.OrchestratorAgentCreateNestedManyWithoutAgentInput
+  conversations?: Prisma.ConversationCreateNestedManyWithoutAgentInput
+  broadcasts?: Prisma.BroadcastCampaignCreateNestedManyWithoutAgentInput
 }
 
 export type AgentUncheckedCreateWithoutTemplatesInput = {
@@ -1089,12 +1741,18 @@ export type AgentUncheckedCreateWithoutTemplatesInput = {
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: string
+  agentRuntime?: string
   status?: $Enums.AgentStatus
   createdAt?: Date | string
   updatedAt?: Date | string
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutAgentInput
   conversationLogs?: Prisma.ConversationLogUncheckedCreateNestedManyWithoutAgentInput
   customers?: Prisma.CustomerUncheckedCreateNestedManyWithoutAgentInput
+  baileysSession?: Prisma.BaileysSessionUncheckedCreateNestedOneWithoutAgentInput
+  orchestratorAgents?: Prisma.OrchestratorAgentUncheckedCreateNestedManyWithoutAgentInput
+  conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutAgentInput
+  broadcasts?: Prisma.BroadcastCampaignUncheckedCreateNestedManyWithoutAgentInput
 }
 
 export type AgentCreateOrConnectWithoutTemplatesInput = {
@@ -1136,6 +1794,8 @@ export type AgentUpdateWithoutTemplatesInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: Prisma.StringFieldUpdateOperationsInput | string
+  agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1143,6 +1803,10 @@ export type AgentUpdateWithoutTemplatesInput = {
   leads?: Prisma.LeadUpdateManyWithoutAgentNestedInput
   conversationLogs?: Prisma.ConversationLogUpdateManyWithoutAgentNestedInput
   customers?: Prisma.CustomerUpdateManyWithoutAgentNestedInput
+  baileysSession?: Prisma.BaileysSessionUpdateOneWithoutAgentNestedInput
+  orchestratorAgents?: Prisma.OrchestratorAgentUpdateManyWithoutAgentNestedInput
+  conversations?: Prisma.ConversationUpdateManyWithoutAgentNestedInput
+  broadcasts?: Prisma.BroadcastCampaignUpdateManyWithoutAgentNestedInput
 }
 
 export type AgentUncheckedUpdateWithoutTemplatesInput = {
@@ -1169,12 +1833,18 @@ export type AgentUncheckedUpdateWithoutTemplatesInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: Prisma.StringFieldUpdateOperationsInput | string
+  agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   leads?: Prisma.LeadUncheckedUpdateManyWithoutAgentNestedInput
   conversationLogs?: Prisma.ConversationLogUncheckedUpdateManyWithoutAgentNestedInput
   customers?: Prisma.CustomerUncheckedUpdateManyWithoutAgentNestedInput
+  baileysSession?: Prisma.BaileysSessionUncheckedUpdateOneWithoutAgentNestedInput
+  orchestratorAgents?: Prisma.OrchestratorAgentUncheckedUpdateManyWithoutAgentNestedInput
+  conversations?: Prisma.ConversationUncheckedUpdateManyWithoutAgentNestedInput
+  broadcasts?: Prisma.BroadcastCampaignUncheckedUpdateManyWithoutAgentNestedInput
 }
 
 export type AgentCreateWithoutLeadsInput = {
@@ -1200,6 +1870,8 @@ export type AgentCreateWithoutLeadsInput = {
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: string
+  agentRuntime?: string
   status?: $Enums.AgentStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1207,6 +1879,10 @@ export type AgentCreateWithoutLeadsInput = {
   conversationLogs?: Prisma.ConversationLogCreateNestedManyWithoutAgentInput
   customers?: Prisma.CustomerCreateNestedManyWithoutAgentInput
   templates?: Prisma.MessageTemplateCreateNestedManyWithoutAgentInput
+  baileysSession?: Prisma.BaileysSessionCreateNestedOneWithoutAgentInput
+  orchestratorAgents?: Prisma.OrchestratorAgentCreateNestedManyWithoutAgentInput
+  conversations?: Prisma.ConversationCreateNestedManyWithoutAgentInput
+  broadcasts?: Prisma.BroadcastCampaignCreateNestedManyWithoutAgentInput
 }
 
 export type AgentUncheckedCreateWithoutLeadsInput = {
@@ -1233,12 +1909,18 @@ export type AgentUncheckedCreateWithoutLeadsInput = {
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: string
+  agentRuntime?: string
   status?: $Enums.AgentStatus
   createdAt?: Date | string
   updatedAt?: Date | string
   conversationLogs?: Prisma.ConversationLogUncheckedCreateNestedManyWithoutAgentInput
   customers?: Prisma.CustomerUncheckedCreateNestedManyWithoutAgentInput
   templates?: Prisma.MessageTemplateUncheckedCreateNestedManyWithoutAgentInput
+  baileysSession?: Prisma.BaileysSessionUncheckedCreateNestedOneWithoutAgentInput
+  orchestratorAgents?: Prisma.OrchestratorAgentUncheckedCreateNestedManyWithoutAgentInput
+  conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutAgentInput
+  broadcasts?: Prisma.BroadcastCampaignUncheckedCreateNestedManyWithoutAgentInput
 }
 
 export type AgentCreateOrConnectWithoutLeadsInput = {
@@ -1280,6 +1962,8 @@ export type AgentUpdateWithoutLeadsInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: Prisma.StringFieldUpdateOperationsInput | string
+  agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1287,6 +1971,10 @@ export type AgentUpdateWithoutLeadsInput = {
   conversationLogs?: Prisma.ConversationLogUpdateManyWithoutAgentNestedInput
   customers?: Prisma.CustomerUpdateManyWithoutAgentNestedInput
   templates?: Prisma.MessageTemplateUpdateManyWithoutAgentNestedInput
+  baileysSession?: Prisma.BaileysSessionUpdateOneWithoutAgentNestedInput
+  orchestratorAgents?: Prisma.OrchestratorAgentUpdateManyWithoutAgentNestedInput
+  conversations?: Prisma.ConversationUpdateManyWithoutAgentNestedInput
+  broadcasts?: Prisma.BroadcastCampaignUpdateManyWithoutAgentNestedInput
 }
 
 export type AgentUncheckedUpdateWithoutLeadsInput = {
@@ -1313,12 +2001,18 @@ export type AgentUncheckedUpdateWithoutLeadsInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: Prisma.StringFieldUpdateOperationsInput | string
+  agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   conversationLogs?: Prisma.ConversationLogUncheckedUpdateManyWithoutAgentNestedInput
   customers?: Prisma.CustomerUncheckedUpdateManyWithoutAgentNestedInput
   templates?: Prisma.MessageTemplateUncheckedUpdateManyWithoutAgentNestedInput
+  baileysSession?: Prisma.BaileysSessionUncheckedUpdateOneWithoutAgentNestedInput
+  orchestratorAgents?: Prisma.OrchestratorAgentUncheckedUpdateManyWithoutAgentNestedInput
+  conversations?: Prisma.ConversationUncheckedUpdateManyWithoutAgentNestedInput
+  broadcasts?: Prisma.BroadcastCampaignUncheckedUpdateManyWithoutAgentNestedInput
 }
 
 export type AgentCreateWithoutCustomersInput = {
@@ -1344,6 +2038,8 @@ export type AgentCreateWithoutCustomersInput = {
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: string
+  agentRuntime?: string
   status?: $Enums.AgentStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1351,6 +2047,10 @@ export type AgentCreateWithoutCustomersInput = {
   leads?: Prisma.LeadCreateNestedManyWithoutAgentInput
   conversationLogs?: Prisma.ConversationLogCreateNestedManyWithoutAgentInput
   templates?: Prisma.MessageTemplateCreateNestedManyWithoutAgentInput
+  baileysSession?: Prisma.BaileysSessionCreateNestedOneWithoutAgentInput
+  orchestratorAgents?: Prisma.OrchestratorAgentCreateNestedManyWithoutAgentInput
+  conversations?: Prisma.ConversationCreateNestedManyWithoutAgentInput
+  broadcasts?: Prisma.BroadcastCampaignCreateNestedManyWithoutAgentInput
 }
 
 export type AgentUncheckedCreateWithoutCustomersInput = {
@@ -1377,12 +2077,18 @@ export type AgentUncheckedCreateWithoutCustomersInput = {
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: string
+  agentRuntime?: string
   status?: $Enums.AgentStatus
   createdAt?: Date | string
   updatedAt?: Date | string
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutAgentInput
   conversationLogs?: Prisma.ConversationLogUncheckedCreateNestedManyWithoutAgentInput
   templates?: Prisma.MessageTemplateUncheckedCreateNestedManyWithoutAgentInput
+  baileysSession?: Prisma.BaileysSessionUncheckedCreateNestedOneWithoutAgentInput
+  orchestratorAgents?: Prisma.OrchestratorAgentUncheckedCreateNestedManyWithoutAgentInput
+  conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutAgentInput
+  broadcasts?: Prisma.BroadcastCampaignUncheckedCreateNestedManyWithoutAgentInput
 }
 
 export type AgentCreateOrConnectWithoutCustomersInput = {
@@ -1424,6 +2130,8 @@ export type AgentUpdateWithoutCustomersInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: Prisma.StringFieldUpdateOperationsInput | string
+  agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1431,6 +2139,10 @@ export type AgentUpdateWithoutCustomersInput = {
   leads?: Prisma.LeadUpdateManyWithoutAgentNestedInput
   conversationLogs?: Prisma.ConversationLogUpdateManyWithoutAgentNestedInput
   templates?: Prisma.MessageTemplateUpdateManyWithoutAgentNestedInput
+  baileysSession?: Prisma.BaileysSessionUpdateOneWithoutAgentNestedInput
+  orchestratorAgents?: Prisma.OrchestratorAgentUpdateManyWithoutAgentNestedInput
+  conversations?: Prisma.ConversationUpdateManyWithoutAgentNestedInput
+  broadcasts?: Prisma.BroadcastCampaignUpdateManyWithoutAgentNestedInput
 }
 
 export type AgentUncheckedUpdateWithoutCustomersInput = {
@@ -1457,12 +2169,18 @@ export type AgentUncheckedUpdateWithoutCustomersInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: Prisma.StringFieldUpdateOperationsInput | string
+  agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   leads?: Prisma.LeadUncheckedUpdateManyWithoutAgentNestedInput
   conversationLogs?: Prisma.ConversationLogUncheckedUpdateManyWithoutAgentNestedInput
   templates?: Prisma.MessageTemplateUncheckedUpdateManyWithoutAgentNestedInput
+  baileysSession?: Prisma.BaileysSessionUncheckedUpdateOneWithoutAgentNestedInput
+  orchestratorAgents?: Prisma.OrchestratorAgentUncheckedUpdateManyWithoutAgentNestedInput
+  conversations?: Prisma.ConversationUncheckedUpdateManyWithoutAgentNestedInput
+  broadcasts?: Prisma.BroadcastCampaignUncheckedUpdateManyWithoutAgentNestedInput
 }
 
 export type AgentCreateWithoutConversationLogsInput = {
@@ -1488,6 +2206,8 @@ export type AgentCreateWithoutConversationLogsInput = {
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: string
+  agentRuntime?: string
   status?: $Enums.AgentStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1495,6 +2215,10 @@ export type AgentCreateWithoutConversationLogsInput = {
   leads?: Prisma.LeadCreateNestedManyWithoutAgentInput
   customers?: Prisma.CustomerCreateNestedManyWithoutAgentInput
   templates?: Prisma.MessageTemplateCreateNestedManyWithoutAgentInput
+  baileysSession?: Prisma.BaileysSessionCreateNestedOneWithoutAgentInput
+  orchestratorAgents?: Prisma.OrchestratorAgentCreateNestedManyWithoutAgentInput
+  conversations?: Prisma.ConversationCreateNestedManyWithoutAgentInput
+  broadcasts?: Prisma.BroadcastCampaignCreateNestedManyWithoutAgentInput
 }
 
 export type AgentUncheckedCreateWithoutConversationLogsInput = {
@@ -1521,12 +2245,18 @@ export type AgentUncheckedCreateWithoutConversationLogsInput = {
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: string
+  agentRuntime?: string
   status?: $Enums.AgentStatus
   createdAt?: Date | string
   updatedAt?: Date | string
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutAgentInput
   customers?: Prisma.CustomerUncheckedCreateNestedManyWithoutAgentInput
   templates?: Prisma.MessageTemplateUncheckedCreateNestedManyWithoutAgentInput
+  baileysSession?: Prisma.BaileysSessionUncheckedCreateNestedOneWithoutAgentInput
+  orchestratorAgents?: Prisma.OrchestratorAgentUncheckedCreateNestedManyWithoutAgentInput
+  conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutAgentInput
+  broadcasts?: Prisma.BroadcastCampaignUncheckedCreateNestedManyWithoutAgentInput
 }
 
 export type AgentCreateOrConnectWithoutConversationLogsInput = {
@@ -1568,6 +2298,8 @@ export type AgentUpdateWithoutConversationLogsInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: Prisma.StringFieldUpdateOperationsInput | string
+  agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1575,6 +2307,10 @@ export type AgentUpdateWithoutConversationLogsInput = {
   leads?: Prisma.LeadUpdateManyWithoutAgentNestedInput
   customers?: Prisma.CustomerUpdateManyWithoutAgentNestedInput
   templates?: Prisma.MessageTemplateUpdateManyWithoutAgentNestedInput
+  baileysSession?: Prisma.BaileysSessionUpdateOneWithoutAgentNestedInput
+  orchestratorAgents?: Prisma.OrchestratorAgentUpdateManyWithoutAgentNestedInput
+  conversations?: Prisma.ConversationUpdateManyWithoutAgentNestedInput
+  broadcasts?: Prisma.BroadcastCampaignUpdateManyWithoutAgentNestedInput
 }
 
 export type AgentUncheckedUpdateWithoutConversationLogsInput = {
@@ -1601,12 +2337,186 @@ export type AgentUncheckedUpdateWithoutConversationLogsInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: Prisma.StringFieldUpdateOperationsInput | string
+  agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   leads?: Prisma.LeadUncheckedUpdateManyWithoutAgentNestedInput
   customers?: Prisma.CustomerUncheckedUpdateManyWithoutAgentNestedInput
   templates?: Prisma.MessageTemplateUncheckedUpdateManyWithoutAgentNestedInput
+  baileysSession?: Prisma.BaileysSessionUncheckedUpdateOneWithoutAgentNestedInput
+  orchestratorAgents?: Prisma.OrchestratorAgentUncheckedUpdateManyWithoutAgentNestedInput
+  conversations?: Prisma.ConversationUncheckedUpdateManyWithoutAgentNestedInput
+  broadcasts?: Prisma.BroadcastCampaignUncheckedUpdateManyWithoutAgentNestedInput
+}
+
+export type AgentCreateWithoutBaileysSessionInput = {
+  id?: string
+  businessName: string
+  businessDescription: string
+  productsServices: string
+  faqs: string
+  operatingHours: string
+  contactEmail?: string | null
+  contactPhone?: string | null
+  websiteLinks?: string | null
+  responseGuidelines?: string | null
+  profileImageUrl?: string | null
+  whatsappBusinessName?: string | null
+  whatsappAgentLink?: string | null
+  whatsappPhoneNumber?: string | null
+  qrCodeUrl?: string | null
+  elevenlabsAgentId?: string | null
+  whatsappPhoneNumberId?: string | null
+  messagingEnabled?: boolean
+  category?: string | null
+  address?: string | null
+  productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: string
+  agentRuntime?: string
+  status?: $Enums.AgentStatus
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  user: Prisma.UserCreateNestedOneWithoutAgentsInput
+  leads?: Prisma.LeadCreateNestedManyWithoutAgentInput
+  conversationLogs?: Prisma.ConversationLogCreateNestedManyWithoutAgentInput
+  customers?: Prisma.CustomerCreateNestedManyWithoutAgentInput
+  templates?: Prisma.MessageTemplateCreateNestedManyWithoutAgentInput
+  orchestratorAgents?: Prisma.OrchestratorAgentCreateNestedManyWithoutAgentInput
+  conversations?: Prisma.ConversationCreateNestedManyWithoutAgentInput
+  broadcasts?: Prisma.BroadcastCampaignCreateNestedManyWithoutAgentInput
+}
+
+export type AgentUncheckedCreateWithoutBaileysSessionInput = {
+  id?: string
+  userId: string
+  businessName: string
+  businessDescription: string
+  productsServices: string
+  faqs: string
+  operatingHours: string
+  contactEmail?: string | null
+  contactPhone?: string | null
+  websiteLinks?: string | null
+  responseGuidelines?: string | null
+  profileImageUrl?: string | null
+  whatsappBusinessName?: string | null
+  whatsappAgentLink?: string | null
+  whatsappPhoneNumber?: string | null
+  qrCodeUrl?: string | null
+  elevenlabsAgentId?: string | null
+  whatsappPhoneNumberId?: string | null
+  messagingEnabled?: boolean
+  category?: string | null
+  address?: string | null
+  productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: string
+  agentRuntime?: string
+  status?: $Enums.AgentStatus
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutAgentInput
+  conversationLogs?: Prisma.ConversationLogUncheckedCreateNestedManyWithoutAgentInput
+  customers?: Prisma.CustomerUncheckedCreateNestedManyWithoutAgentInput
+  templates?: Prisma.MessageTemplateUncheckedCreateNestedManyWithoutAgentInput
+  orchestratorAgents?: Prisma.OrchestratorAgentUncheckedCreateNestedManyWithoutAgentInput
+  conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutAgentInput
+  broadcasts?: Prisma.BroadcastCampaignUncheckedCreateNestedManyWithoutAgentInput
+}
+
+export type AgentCreateOrConnectWithoutBaileysSessionInput = {
+  where: Prisma.AgentWhereUniqueInput
+  create: Prisma.XOR<Prisma.AgentCreateWithoutBaileysSessionInput, Prisma.AgentUncheckedCreateWithoutBaileysSessionInput>
+}
+
+export type AgentUpsertWithoutBaileysSessionInput = {
+  update: Prisma.XOR<Prisma.AgentUpdateWithoutBaileysSessionInput, Prisma.AgentUncheckedUpdateWithoutBaileysSessionInput>
+  create: Prisma.XOR<Prisma.AgentCreateWithoutBaileysSessionInput, Prisma.AgentUncheckedCreateWithoutBaileysSessionInput>
+  where?: Prisma.AgentWhereInput
+}
+
+export type AgentUpdateToOneWithWhereWithoutBaileysSessionInput = {
+  where?: Prisma.AgentWhereInput
+  data: Prisma.XOR<Prisma.AgentUpdateWithoutBaileysSessionInput, Prisma.AgentUncheckedUpdateWithoutBaileysSessionInput>
+}
+
+export type AgentUpdateWithoutBaileysSessionInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessDescription?: Prisma.StringFieldUpdateOperationsInput | string
+  productsServices?: Prisma.StringFieldUpdateOperationsInput | string
+  faqs?: Prisma.StringFieldUpdateOperationsInput | string
+  operatingHours?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  websiteLinks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  responseGuidelines?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappBusinessName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappAgentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappPhoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  qrCodeUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  elevenlabsAgentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappPhoneNumberId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messagingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: Prisma.StringFieldUpdateOperationsInput | string
+  agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneRequiredWithoutAgentsNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutAgentNestedInput
+  conversationLogs?: Prisma.ConversationLogUpdateManyWithoutAgentNestedInput
+  customers?: Prisma.CustomerUpdateManyWithoutAgentNestedInput
+  templates?: Prisma.MessageTemplateUpdateManyWithoutAgentNestedInput
+  orchestratorAgents?: Prisma.OrchestratorAgentUpdateManyWithoutAgentNestedInput
+  conversations?: Prisma.ConversationUpdateManyWithoutAgentNestedInput
+  broadcasts?: Prisma.BroadcastCampaignUpdateManyWithoutAgentNestedInput
+}
+
+export type AgentUncheckedUpdateWithoutBaileysSessionInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessDescription?: Prisma.StringFieldUpdateOperationsInput | string
+  productsServices?: Prisma.StringFieldUpdateOperationsInput | string
+  faqs?: Prisma.StringFieldUpdateOperationsInput | string
+  operatingHours?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  websiteLinks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  responseGuidelines?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappBusinessName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappAgentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappPhoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  qrCodeUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  elevenlabsAgentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappPhoneNumberId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messagingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: Prisma.StringFieldUpdateOperationsInput | string
+  agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutAgentNestedInput
+  conversationLogs?: Prisma.ConversationLogUncheckedUpdateManyWithoutAgentNestedInput
+  customers?: Prisma.CustomerUncheckedUpdateManyWithoutAgentNestedInput
+  templates?: Prisma.MessageTemplateUncheckedUpdateManyWithoutAgentNestedInput
+  orchestratorAgents?: Prisma.OrchestratorAgentUncheckedUpdateManyWithoutAgentNestedInput
+  conversations?: Prisma.ConversationUncheckedUpdateManyWithoutAgentNestedInput
+  broadcasts?: Prisma.BroadcastCampaignUncheckedUpdateManyWithoutAgentNestedInput
 }
 
 export type AgentCreateManyUserInput = {
@@ -1632,6 +2542,8 @@ export type AgentCreateManyUserInput = {
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: string
+  agentRuntime?: string
   status?: $Enums.AgentStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1660,6 +2572,8 @@ export type AgentUpdateWithoutUserInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: Prisma.StringFieldUpdateOperationsInput | string
+  agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1667,6 +2581,10 @@ export type AgentUpdateWithoutUserInput = {
   conversationLogs?: Prisma.ConversationLogUpdateManyWithoutAgentNestedInput
   customers?: Prisma.CustomerUpdateManyWithoutAgentNestedInput
   templates?: Prisma.MessageTemplateUpdateManyWithoutAgentNestedInput
+  baileysSession?: Prisma.BaileysSessionUpdateOneWithoutAgentNestedInput
+  orchestratorAgents?: Prisma.OrchestratorAgentUpdateManyWithoutAgentNestedInput
+  conversations?: Prisma.ConversationUpdateManyWithoutAgentNestedInput
+  broadcasts?: Prisma.BroadcastCampaignUpdateManyWithoutAgentNestedInput
 }
 
 export type AgentUncheckedUpdateWithoutUserInput = {
@@ -1692,6 +2610,8 @@ export type AgentUncheckedUpdateWithoutUserInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: Prisma.StringFieldUpdateOperationsInput | string
+  agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1699,6 +2619,10 @@ export type AgentUncheckedUpdateWithoutUserInput = {
   conversationLogs?: Prisma.ConversationLogUncheckedUpdateManyWithoutAgentNestedInput
   customers?: Prisma.CustomerUncheckedUpdateManyWithoutAgentNestedInput
   templates?: Prisma.MessageTemplateUncheckedUpdateManyWithoutAgentNestedInput
+  baileysSession?: Prisma.BaileysSessionUncheckedUpdateOneWithoutAgentNestedInput
+  orchestratorAgents?: Prisma.OrchestratorAgentUncheckedUpdateManyWithoutAgentNestedInput
+  conversations?: Prisma.ConversationUncheckedUpdateManyWithoutAgentNestedInput
+  broadcasts?: Prisma.BroadcastCampaignUncheckedUpdateManyWithoutAgentNestedInput
 }
 
 export type AgentUncheckedUpdateManyWithoutUserInput = {
@@ -1724,6 +2648,8 @@ export type AgentUncheckedUpdateManyWithoutUserInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  transportType?: Prisma.StringFieldUpdateOperationsInput | string
+  agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1739,6 +2665,9 @@ export type AgentCountOutputType = {
   conversationLogs: number
   customers: number
   templates: number
+  orchestratorAgents: number
+  conversations: number
+  broadcasts: number
 }
 
 export type AgentCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1746,6 +2675,9 @@ export type AgentCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.
   conversationLogs?: boolean | AgentCountOutputTypeCountConversationLogsArgs
   customers?: boolean | AgentCountOutputTypeCountCustomersArgs
   templates?: boolean | AgentCountOutputTypeCountTemplatesArgs
+  orchestratorAgents?: boolean | AgentCountOutputTypeCountOrchestratorAgentsArgs
+  conversations?: boolean | AgentCountOutputTypeCountConversationsArgs
+  broadcasts?: boolean | AgentCountOutputTypeCountBroadcastsArgs
 }
 
 /**
@@ -1786,6 +2718,27 @@ export type AgentCountOutputTypeCountTemplatesArgs<ExtArgs extends runtime.Types
   where?: Prisma.MessageTemplateWhereInput
 }
 
+/**
+ * AgentCountOutputType without action
+ */
+export type AgentCountOutputTypeCountOrchestratorAgentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.OrchestratorAgentWhereInput
+}
+
+/**
+ * AgentCountOutputType without action
+ */
+export type AgentCountOutputTypeCountConversationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ConversationWhereInput
+}
+
+/**
+ * AgentCountOutputType without action
+ */
+export type AgentCountOutputTypeCountBroadcastsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.BroadcastCampaignWhereInput
+}
+
 
 export type AgentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1811,6 +2764,8 @@ export type AgentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   address?: boolean
   productsData?: boolean
   toolsData?: boolean
+  transportType?: boolean
+  agentRuntime?: boolean
   status?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1819,6 +2774,10 @@ export type AgentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   conversationLogs?: boolean | Prisma.Agent$conversationLogsArgs<ExtArgs>
   customers?: boolean | Prisma.Agent$customersArgs<ExtArgs>
   templates?: boolean | Prisma.Agent$templatesArgs<ExtArgs>
+  baileysSession?: boolean | Prisma.Agent$baileysSessionArgs<ExtArgs>
+  orchestratorAgents?: boolean | Prisma.Agent$orchestratorAgentsArgs<ExtArgs>
+  conversations?: boolean | Prisma.Agent$conversationsArgs<ExtArgs>
+  broadcasts?: boolean | Prisma.Agent$broadcastsArgs<ExtArgs>
   _count?: boolean | Prisma.AgentCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["agent"]>
 
@@ -1846,6 +2805,8 @@ export type AgentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   address?: boolean
   productsData?: boolean
   toolsData?: boolean
+  transportType?: boolean
+  agentRuntime?: boolean
   status?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1876,6 +2837,8 @@ export type AgentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   address?: boolean
   productsData?: boolean
   toolsData?: boolean
+  transportType?: boolean
+  agentRuntime?: boolean
   status?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1906,18 +2869,24 @@ export type AgentSelectScalar = {
   address?: boolean
   productsData?: boolean
   toolsData?: boolean
+  transportType?: boolean
+  agentRuntime?: boolean
   status?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type AgentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "businessName" | "businessDescription" | "productsServices" | "faqs" | "operatingHours" | "contactEmail" | "contactPhone" | "websiteLinks" | "responseGuidelines" | "profileImageUrl" | "whatsappBusinessName" | "whatsappAgentLink" | "whatsappPhoneNumber" | "qrCodeUrl" | "elevenlabsAgentId" | "whatsappPhoneNumberId" | "messagingEnabled" | "category" | "address" | "productsData" | "toolsData" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["agent"]>
+export type AgentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "businessName" | "businessDescription" | "productsServices" | "faqs" | "operatingHours" | "contactEmail" | "contactPhone" | "websiteLinks" | "responseGuidelines" | "profileImageUrl" | "whatsappBusinessName" | "whatsappAgentLink" | "whatsappPhoneNumber" | "qrCodeUrl" | "elevenlabsAgentId" | "whatsappPhoneNumberId" | "messagingEnabled" | "category" | "address" | "productsData" | "toolsData" | "transportType" | "agentRuntime" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["agent"]>
 export type AgentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   leads?: boolean | Prisma.Agent$leadsArgs<ExtArgs>
   conversationLogs?: boolean | Prisma.Agent$conversationLogsArgs<ExtArgs>
   customers?: boolean | Prisma.Agent$customersArgs<ExtArgs>
   templates?: boolean | Prisma.Agent$templatesArgs<ExtArgs>
+  baileysSession?: boolean | Prisma.Agent$baileysSessionArgs<ExtArgs>
+  orchestratorAgents?: boolean | Prisma.Agent$orchestratorAgentsArgs<ExtArgs>
+  conversations?: boolean | Prisma.Agent$conversationsArgs<ExtArgs>
+  broadcasts?: boolean | Prisma.Agent$broadcastsArgs<ExtArgs>
   _count?: boolean | Prisma.AgentCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type AgentIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1935,6 +2904,10 @@ export type $AgentPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     conversationLogs: Prisma.$ConversationLogPayload<ExtArgs>[]
     customers: Prisma.$CustomerPayload<ExtArgs>[]
     templates: Prisma.$MessageTemplatePayload<ExtArgs>[]
+    baileysSession: Prisma.$BaileysSessionPayload<ExtArgs> | null
+    orchestratorAgents: Prisma.$OrchestratorAgentPayload<ExtArgs>[]
+    conversations: Prisma.$ConversationPayload<ExtArgs>[]
+    broadcasts: Prisma.$BroadcastCampaignPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1960,6 +2933,8 @@ export type $AgentPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     address: string | null
     productsData: runtime.JsonValue | null
     toolsData: runtime.JsonValue | null
+    transportType: string
+    agentRuntime: string
     status: $Enums.AgentStatus
     createdAt: Date
     updatedAt: Date
@@ -2362,6 +3337,10 @@ export interface Prisma__AgentClient<T, Null = never, ExtArgs extends runtime.Ty
   conversationLogs<T extends Prisma.Agent$conversationLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Agent$conversationLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ConversationLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   customers<T extends Prisma.Agent$customersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Agent$customersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CustomerPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   templates<T extends Prisma.Agent$templatesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Agent$templatesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MessageTemplatePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  baileysSession<T extends Prisma.Agent$baileysSessionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Agent$baileysSessionArgs<ExtArgs>>): Prisma.Prisma__BaileysSessionClient<runtime.Types.Result.GetResult<Prisma.$BaileysSessionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  orchestratorAgents<T extends Prisma.Agent$orchestratorAgentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Agent$orchestratorAgentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrchestratorAgentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  conversations<T extends Prisma.Agent$conversationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Agent$conversationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ConversationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  broadcasts<T extends Prisma.Agent$broadcastsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Agent$broadcastsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BroadcastCampaignPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2414,6 +3393,8 @@ export interface AgentFieldRefs {
   readonly address: Prisma.FieldRef<"Agent", 'String'>
   readonly productsData: Prisma.FieldRef<"Agent", 'Json'>
   readonly toolsData: Prisma.FieldRef<"Agent", 'Json'>
+  readonly transportType: Prisma.FieldRef<"Agent", 'String'>
+  readonly agentRuntime: Prisma.FieldRef<"Agent", 'String'>
   readonly status: Prisma.FieldRef<"Agent", 'AgentStatus'>
   readonly createdAt: Prisma.FieldRef<"Agent", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Agent", 'DateTime'>
@@ -2911,6 +3892,97 @@ export type Agent$templatesArgs<ExtArgs extends runtime.Types.Extensions.Interna
   take?: number
   skip?: number
   distinct?: Prisma.MessageTemplateScalarFieldEnum | Prisma.MessageTemplateScalarFieldEnum[]
+}
+
+/**
+ * Agent.baileysSession
+ */
+export type Agent$baileysSessionArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the BaileysSession
+   */
+  select?: Prisma.BaileysSessionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the BaileysSession
+   */
+  omit?: Prisma.BaileysSessionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BaileysSessionInclude<ExtArgs> | null
+  where?: Prisma.BaileysSessionWhereInput
+}
+
+/**
+ * Agent.orchestratorAgents
+ */
+export type Agent$orchestratorAgentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the OrchestratorAgent
+   */
+  select?: Prisma.OrchestratorAgentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the OrchestratorAgent
+   */
+  omit?: Prisma.OrchestratorAgentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OrchestratorAgentInclude<ExtArgs> | null
+  where?: Prisma.OrchestratorAgentWhereInput
+  orderBy?: Prisma.OrchestratorAgentOrderByWithRelationInput | Prisma.OrchestratorAgentOrderByWithRelationInput[]
+  cursor?: Prisma.OrchestratorAgentWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.OrchestratorAgentScalarFieldEnum | Prisma.OrchestratorAgentScalarFieldEnum[]
+}
+
+/**
+ * Agent.conversations
+ */
+export type Agent$conversationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Conversation
+   */
+  select?: Prisma.ConversationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Conversation
+   */
+  omit?: Prisma.ConversationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ConversationInclude<ExtArgs> | null
+  where?: Prisma.ConversationWhereInput
+  orderBy?: Prisma.ConversationOrderByWithRelationInput | Prisma.ConversationOrderByWithRelationInput[]
+  cursor?: Prisma.ConversationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ConversationScalarFieldEnum | Prisma.ConversationScalarFieldEnum[]
+}
+
+/**
+ * Agent.broadcasts
+ */
+export type Agent$broadcastsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the BroadcastCampaign
+   */
+  select?: Prisma.BroadcastCampaignSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the BroadcastCampaign
+   */
+  omit?: Prisma.BroadcastCampaignOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BroadcastCampaignInclude<ExtArgs> | null
+  where?: Prisma.BroadcastCampaignWhereInput
+  orderBy?: Prisma.BroadcastCampaignOrderByWithRelationInput | Prisma.BroadcastCampaignOrderByWithRelationInput[]
+  cursor?: Prisma.BroadcastCampaignWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.BroadcastCampaignScalarFieldEnum | Prisma.BroadcastCampaignScalarFieldEnum[]
 }
 
 /**

@@ -1,0 +1,25 @@
+FROM node:20.19.0-alpine
+
+WORKDIR /app
+
+# Install pnpm
+RUN npm install -g pnpm
+
+# Copy workspace root files first (for better caching)
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+
+# Copy all packages
+COPY orchestrator ./orchestrator
+COPY worker ./worker
+COPY prisma ./prisma
+
+# Install all workspace dependencies
+RUN pnpm install --frozen-lockfile
+
+# Build orchestrator only
+WORKDIR /app/orchestrator
+RUN pnpm run build
+
+EXPOSE 8080
+
+CMD ["pnpm", "run", "start"]

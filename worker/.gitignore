@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.env
+.env.local
+
+# Baileys auth state folders (contain WhatsApp session credentials — never commit)
+auth_sessions/
+
+# Logs
+logs/
+*.log

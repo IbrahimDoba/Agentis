@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { startOfDay, subDays, subWeeks, subMonths, format, eachDayOfInterval } from "date-fns"
+import { listAgentCreditEvents } from "@/lib/creditUsage"
 
 interface Params {
   params: Promise<{ id: string }>
@@ -14,7 +15,7 @@ export async function GET(req: NextRequest, { params }: Params) {
   const { id } = await params
   const agent = await db.agent.findUnique({
     where: { id },
-    select: { userId: true, elevenlabsAgentId: true },
+    select: { userId: true, elevenlabsAgentId: true, agentRuntime: true },
   })
 
   if (!agent) return NextResponse.json({ error: "Agent not found" }, { status: 404 })
@@ -44,22 +45,48 @@ export async function GET(req: NextRequest, { params }: Params) {
     from = startOfDay(subDays(now, 6))
   }
 
-  const agentFilter = {
-    OR: [
-      { agentId: id },
-      ...(agent.elevenlabsAgentId ? [{ elevenlabsAgentId: agent.elevenlabsAgentId }] : []),
-    ],
-  }
+  const rangeEnd = new Date(to.getTime() + 86400000)
 
-  // Fetch all conversations in the date range
-  const logs = await db.conversationLog.findMany({
-    where: {
-      ...agentFilter,
-      startTime: { gte: from, lte: new Date(to.getTime() + 86400000) },
-    },
-    select: { startTime: true, creditsUsed: true },
-    orderBy: { startTime: "asc" },
-  })
+  let conversationPoints: Date[] = []
+  let creditPoints: { at: Date; credits: number }[] = []
+
+  if (agent.agentRuntime === "orchestrator") {
+    const rows = await db.conversation.findMany({
+      where: {
+        agentId: id,
+        OR: [
+          { lastActivityAt: { gte: from, lte: rangeEnd } },
+          { createdAt: { gte: from, lte: rangeEnd } },
+        ],
+      },
+      select: { lastActivityAt: true, createdAt: true },
+      orderBy: { lastActivityAt: "asc" },
+    })
+
+    conversationPoints = rows.map((row) => row.lastActivityAt ?? row.createdAt)
+    creditPoints = await listAgentCreditEvents(id, from, rangeEnd)
+  } else {
+    const agentFilter = {
+      OR: [
+        { agentId: id },
+        ...(agent.elevenlabsAgentId ? [{ elevenlabsAgentId: agent.elevenlabsAgentId }] : []),
+      ],
+    }
+
+    const logs = await db.conversationLog.findMany({
+      where: {
+        ...agentFilter,
+        startTime: { gte: from, lte: rangeEnd },
+      },
+      select: { startTime: true, creditsUsed: true },
+      orderBy: { startTime: "asc" },
+    })
+
+    creditPoints = logs
+      .filter((log) => !!log.startTime)
+      .map((log) => ({ at: log.startTime as Date, credits: log.creditsUsed }))
+    conversationPoints = creditPoints.map((p) => p.at)
+  }
 
   // Group by day / week / month
   type Bucket = { label: string; conversations: number; credits: number }
@@ -72,35 +99,52 @@ export async function GET(req: NextRequest, { params }: Params) {
       const key = format(d, "yyyy-MM-dd")
       buckets.set(key, { label: format(d, "d MMM"), conversations: 0, credits: 0 })
     }
-    for (const log of logs) {
-      if (!log.startTime) continue
-      const key = format(log.startTime, "yyyy-MM-dd")
+    for (const point of conversationPoints) {
+      const key = format(point, "yyyy-MM-dd")
       const b = buckets.get(key)
-      if (b) { b.conversations++; b.credits += log.creditsUsed }
+      if (b) b.conversations++
+    }
+    for (const point of creditPoints) {
+      const key = format(point.at, "yyyy-MM-dd")
+      const b = buckets.get(key)
+      if (b) b.credits += point.credits
     }
   } else if (range === "week") {
     // Group into ISO week buckets
-    for (const log of logs) {
-      if (!log.startTime) continue
-      const weekStart = startOfDay(subDays(log.startTime, log.startTime.getDay()))
+    for (const point of conversationPoints) {
+      const weekStart = startOfDay(subDays(point, point.getDay()))
       const key = format(weekStart, "yyyy-MM-dd")
       if (!buckets.has(key)) {
         buckets.set(key, { label: format(weekStart, "d MMM"), conversations: 0, credits: 0 })
       }
       const b = buckets.get(key)!
       b.conversations++
-      b.credits += log.creditsUsed
+    }
+    for (const point of creditPoints) {
+      const weekStart = startOfDay(subDays(point.at, point.at.getDay()))
+      const key = format(weekStart, "yyyy-MM-dd")
+      if (!buckets.has(key)) {
+        buckets.set(key, { label: format(weekStart, "d MMM"), conversations: 0, credits: 0 })
+      }
+      const b = buckets.get(key)!
+      b.credits += point.credits
     }
   } else if (range === "month") {
-    for (const log of logs) {
-      if (!log.startTime) continue
-      const key = format(log.startTime, "yyyy-MM")
+    for (const point of conversationPoints) {
+      const key = format(point, "yyyy-MM")
       if (!buckets.has(key)) {
-        buckets.set(key, { label: format(log.startTime, "MMM yy"), conversations: 0, credits: 0 })
+        buckets.set(key, { label: format(point, "MMM yy"), conversations: 0, credits: 0 })
       }
       const b = buckets.get(key)!
       b.conversations++
-      b.credits += log.creditsUsed
+    }
+    for (const point of creditPoints) {
+      const key = format(point.at, "yyyy-MM")
+      if (!buckets.has(key)) {
+        buckets.set(key, { label: format(point.at, "MMM yy"), conversations: 0, credits: 0 })
+      }
+      const b = buckets.get(key)!
+      b.credits += point.credits
     }
   }
 
@@ -110,14 +154,13 @@ export async function GET(req: NextRequest, { params }: Params) {
     .map(([, v]) => v)
 
   // Summary stats
-  const totalConversations = logs.length
-  const totalCredits = logs.reduce((s, l) => s + l.creditsUsed, 0)
+  const totalConversations = conversationPoints.length
+  const totalCredits = creditPoints.reduce((s, p) => s + p.credits, 0)
 
   // Busiest day (always per-day regardless of range)
   const dayMap = new Map<string, number>()
-  for (const log of logs) {
-    if (!log.startTime) continue
-    const key = format(log.startTime, "EEEE") // Monday, Tuesday…
+  for (const point of conversationPoints) {
+    const key = format(point, "EEEE") // Monday, Tuesday…
     dayMap.set(key, (dayMap.get(key) ?? 0) + 1)
   }
   let busiestDay: string | null = null

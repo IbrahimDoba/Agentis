@@ -150,7 +150,7 @@ export default function BillingPage() {
               </div>
             )}
             <p className={styles.overageNote}>
-              Your agent has been paused. Contact support or upgrade your plan to restore access.
+              Overage is active on your plan. Your agent keeps running and this amount is billable.
             </p>
           </div>
         )}

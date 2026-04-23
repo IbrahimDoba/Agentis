@@ -79,3 +79,25 @@ export const WorkspaceInviteStatus = {
 } as const
 
 export type WorkspaceInviteStatus = (typeof WorkspaceInviteStatus)[keyof typeof WorkspaceInviteStatus]
+
+
+export const BaileysStatus = {
+  DISCONNECTED: 'DISCONNECTED',
+  QR_PENDING: 'QR_PENDING',
+  CONNECTING: 'CONNECTING',
+  CONNECTED: 'CONNECTED',
+  LOGGED_OUT: 'LOGGED_OUT',
+  BANNED: 'BANNED'
+} as const
+
+export type BaileysStatus = (typeof BaileysStatus)[keyof typeof BaileysStatus]
+
+
+export const BaileysOutboundStatus = {
+  QUEUED: 'QUEUED',
+  SENT: 'SENT',
+  FAILED: 'FAILED',
+  RATE_LIMITED: 'RATE_LIMITED'
+} as const
+
+export type BaileysOutboundStatus = (typeof BaileysOutboundStatus)[keyof typeof BaileysOutboundStatus]

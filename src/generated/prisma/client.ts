@@ -52,6 +52,51 @@ export type User = Prisma.UserModel
  */
 export type Agent = Prisma.AgentModel
 /**
+ * Model BroadcastCampaign
+ * 
+ */
+export type BroadcastCampaign = Prisma.BroadcastCampaignModel
+/**
+ * Model BroadcastRecipient
+ * 
+ */
+export type BroadcastRecipient = Prisma.BroadcastRecipientModel
+/**
+ * Model OrchestratorAgent
+ * 
+ */
+export type OrchestratorAgent = Prisma.OrchestratorAgentModel
+/**
+ * Model Document
+ * 
+ */
+export type Document = Prisma.DocumentModel
+/**
+ * Model DocumentChunk
+ * 
+ */
+export type DocumentChunk = Prisma.DocumentChunkModel
+/**
+ * Model MediaItem
+ * 
+ */
+export type MediaItem = Prisma.MediaItemModel
+/**
+ * Model Conversation
+ * 
+ */
+export type Conversation = Prisma.ConversationModel
+/**
+ * Model Message
+ * 
+ */
+export type Message = Prisma.MessageModel
+/**
+ * Model ConversationSummary
+ * 
+ */
+export type ConversationSummary = Prisma.ConversationSummaryModel
+/**
  * Model MessageTemplate
  * 
  */
@@ -96,3 +141,13 @@ export type WorkspaceMember = Prisma.WorkspaceMemberModel
  * 
  */
 export type PaymentRequest = Prisma.PaymentRequestModel
+/**
+ * Model BaileysSession
+ * 
+ */
+export type BaileysSession = Prisma.BaileysSessionModel
+/**
+ * Model BaileysOutboundLog
+ * 
+ */
+export type BaileysOutboundLog = Prisma.BaileysOutboundLogModel

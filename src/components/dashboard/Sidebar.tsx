@@ -6,7 +6,6 @@ import {
   Squares2X2Icon,
   CpuChipIcon,
   ChatBubbleLeftRightIcon,
-  FireIcon,
   UserIcon,
   SparklesIcon,
   XMarkIcon,
@@ -16,6 +15,8 @@ import {
   CreditCardIcon,
   TagIcon,
   UsersIcon,
+  DevicePhoneMobileIcon,
+  MegaphoneIcon,
 } from "@heroicons/react/24/outline"
 import { LogoIcon } from "@/components/landing/Logo"
 import styles from "./Sidebar.module.css"
@@ -46,8 +47,9 @@ const baseNavItems: NavItem[] = [
   { href: "/dashboard", label: "Overview", icon: Squares2X2Icon },
   { href: "/dashboard/agents", label: "Agents", icon: CpuChipIcon },
   { href: "/dashboard/chats", label: "Conversations", icon: ChatBubbleLeftRightIcon },
-  { href: "/dashboard/leads", label: "Leads", icon: FireIcon },
+  { href: "/dashboard/broadcasts", label: "Broadcasts", icon: MegaphoneIcon },
   { href: "/dashboard/team", label: "Team", icon: UsersIcon },
+  { href: "/dashboard/channels/whatsapp-web", label: "Channels", icon: DevicePhoneMobileIcon },
   { href: "/dashboard/billing", label: "Billing", icon: CreditCardIcon },
 ]
 

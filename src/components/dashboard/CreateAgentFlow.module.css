@@ -64,6 +64,54 @@
   line-height: 1.55;
 }
 
+/* ── Runtime Toggle ── */
+.runtimeToggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 680px;
+}
+
+.runtimeOption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 1rem 1.25rem;
+  background: var(--bg-card);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.runtimeOption:hover {
+  border-color: var(--text-muted);
+}
+
+.runtimeActive {
+  border-color: var(--accent);
+  background: rgba(34, 197, 94, 0.06);
+}
+
+.runtimeIcon {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.runtimeLabel {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.runtimeDesc {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
 /* ── Step 2: Tabbed form ── */
 .root {
   width: 100%;
@@ -338,4 +386,35 @@
   .row { grid-template-columns: 1fr; }
   .avatarSection { flex-direction: column; text-align: center; }
   .sectionHeader { flex-direction: column; }
+}
+
+@media (max-width: 768px) {
+  .runtimeToggle {
+    grid-template-columns: 1fr;
+  }
+
+  .tabs {
+    flex-direction: column;
+    align-items: stretch;
+    border-bottom: none;
+    gap: 0.5rem;
+  }
+
+  .tab {
+    width: 100%;
+    text-align: left;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    margin-bottom: 0;
+  }
+
+  .tabActive {
+    border-color: var(--accent);
+    background: rgba(34, 197, 94, 0.06);
+  }
+
+  .changeTemplate {
+    margin-left: 0;
+    align-self: flex-start;
+  }
 }

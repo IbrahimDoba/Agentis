@@ -31,13 +31,15 @@ interface ToolsTabProps {
   agentId: string
   initialTools?: AgentTool[] | null
   elevenlabsAgentId?: string | null
+  agentRuntime?: string
+  agentStatus?: string
 }
 
 function toSnakeCase(str: string) {
   return str.toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "")
 }
 
-export function ToolsTab({ agentId, initialTools, elevenlabsAgentId }: ToolsTabProps) {
+export function ToolsTab({ agentId, initialTools, elevenlabsAgentId, agentRuntime, agentStatus }: ToolsTabProps) {
   const [tools, setTools] = useState<AgentTool[]>(initialTools ?? [])
   const [loadingTools, setLoadingTools] = useState(!!elevenlabsAgentId)
   const [expandedId, setExpandedId] = useState<string | null>(null)
@@ -58,13 +60,20 @@ export function ToolsTab({ agentId, initialTools, elevenlabsAgentId }: ToolsTabP
       .finally(() => setLoadingTools(false))
   }, [agentId, elevenlabsAgentId])
 
-  if (!elevenlabsAgentId) {
+  const isOrchestrator = agentRuntime === "orchestrator"
+  const canUseTools = isOrchestrator || !!elevenlabsAgentId
+
+  if (!canUseTools) {
     return (
       <div className={styles.notConnected}>
         <LockClosedIcon width={32} height={32} className={styles.notConnectedIcon} />
-        <div className={styles.notConnectedTitle}>Tools not available yet</div>
+        <div className={styles.notConnectedTitle}>
+          {agentStatus !== "ACTIVE" ? "Tools not available yet" : "Connect ElevenLabs to use Tools"}
+        </div>
         <div className={styles.notConnectedDesc}>
-          Your agent is still being set up. Tools will be available once setup is complete.
+          {agentStatus !== "ACTIVE"
+            ? "Your agent is still being set up. Tools will be available once setup is complete."
+            : "This agent is using ElevenLabs runtime but is not linked to an ElevenLabs agent ID yet."}
         </div>
       </div>
     )

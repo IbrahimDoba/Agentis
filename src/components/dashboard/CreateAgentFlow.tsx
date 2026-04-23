@@ -31,6 +31,9 @@ export function CreateAgentFlow() {
   const queryClient = useQueryClient()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // Runtime toggle
+  const [agentRuntime, setAgentRuntime] = useState<"orchestrator" | "elevenlabs">("orchestrator")
+
   // Step 1: null = picker shown. After picking, holds the system prompt.
   const [selectedPrompt, setSelectedPrompt] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<Tab>("profile")
@@ -56,6 +59,11 @@ export function CreateAgentFlow() {
   const [enhancing, setEnhancing] = useState(false)
   const [enhanced, setEnhanced] = useState(false)
 
+  // Orchestrator-specific config
+  const [orchestratorModel, setOrchestratorModel] = useState("gpt-4o-mini")
+  const [orchestratorTemperature, setOrchestratorTemperature] = useState(0.7)
+  const [orchestratorMaxTokens, setOrchestratorMaxTokens] = useState(800)
+
   // Submit state
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -64,6 +72,26 @@ export function CreateAgentFlow() {
   if (selectedPrompt === null) {
     return (
       <div className={styles.pickerRoot}>
+        {/* Runtime toggle */}
+        <div className={styles.runtimeToggle}>
+          <button
+            className={cn(styles.runtimeOption, agentRuntime === "orchestrator" && styles.runtimeActive)}
+            onClick={() => setAgentRuntime("orchestrator")}
+          >
+            <span className={styles.runtimeIcon}>⚡</span>
+            <span className={styles.runtimeLabel}>DZero AI</span>
+            <span className={styles.runtimeDesc}>Our built-in AI engine</span>
+          </button>
+          <button
+            className={cn(styles.runtimeOption, agentRuntime === "elevenlabs" && styles.runtimeActive)}
+            onClick={() => setAgentRuntime("elevenlabs")}
+          >
+            <span className={styles.runtimeIcon}>🔗</span>
+            <span className={styles.runtimeLabel}>ElevenLabs</span>
+            <span className={styles.runtimeDesc}>External voice AI agent</span>
+          </button>
+        </div>
+
         <p className={styles.pickerHint}>Choose a starting point for your AI agent</p>
         <div className={styles.pickerGrid}>
           {AGENT_TEMPLATES.map((tpl) => (
@@ -161,7 +189,17 @@ export function CreateAgentFlow() {
       const res = await fetch("/api/agents", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...profile, responseGuidelines: systemPrompt, productsData: products }),
+        body: JSON.stringify({
+          ...profile,
+          responseGuidelines: systemPrompt,
+          productsData: products,
+          agentRuntime,
+          ...(agentRuntime === "orchestrator" && {
+            orchestratorModel,
+            orchestratorTemperature,
+            orchestratorMaxTokens,
+          }),
+        }),
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error || "Failed to create agent"); return }
@@ -277,6 +315,38 @@ export function CreateAgentFlow() {
               style={{ minHeight: 300, fontFamily: "monospace", fontSize: 13 }}
             />
           </div>
+
+          {/* Orchestrator model settings */}
+          {agentRuntime === "orchestrator" && (
+            <div className={styles.section}>
+              <div className={styles.sectionTitle}>Model Settings</div>
+              <div className={styles.fields}>
+                <div className={styles.selectWrap}>
+                  <label className={styles.selectLabel}>Model</label>
+                  <select className={styles.select} value={orchestratorModel} onChange={(e) => setOrchestratorModel(e.target.value)}>
+                    <option value="gpt-4o-mini">GPT-4o Mini (fast, cost-effective)</option>
+                    <option value="gpt-4o">GPT-4o (most capable)</option>
+                  </select>
+                </div>
+                <div className={styles.row}>
+                  <Input
+                    label="Temperature"
+                    type="number"
+                    value={String(orchestratorTemperature)}
+                    onChange={(e) => setOrchestratorTemperature(Math.min(2, Math.max(0, parseFloat(e.target.value) || 0)))}
+                    placeholder="0.7"
+                  />
+                  <Input
+                    label="Max Output Tokens"
+                    type="number"
+                    value={String(orchestratorMaxTokens)}
+                    onChange={(e) => setOrchestratorMaxTokens(Math.min(4096, Math.max(100, parseInt(e.target.value) || 800)))}
+                    placeholder="800"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className={styles.section}>
             <div className={styles.sectionTitle}>Product Catalogue <span className={styles.optional}>(optional)</span></div>

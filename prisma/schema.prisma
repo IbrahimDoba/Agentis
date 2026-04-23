@@ -1,10 +1,13 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider        = "prisma-client-js"
+  output          = "../src/generated/prisma"
+  previewFeatures = ["postgresqlExtensions"]
+  binaryTargets   = ["native", "linux-musl"]
 }
 
 datasource db {
-  provider = "postgresql"
+  provider   = "postgresql"
+  extensions = [vector]
 }
 
 model User {
@@ -69,6 +72,8 @@ model Agent {
   address              String?
   productsData         Json?
   toolsData            Json?
+  transportType        String      @default("waba")
+  agentRuntime         String      @default("elevenlabs")
   status               AgentStatus @default(PENDING_REVIEW)
   createdAt            DateTime    @default(now())
   updatedAt            DateTime    @updatedAt
@@ -76,6 +81,143 @@ model Agent {
   conversationLogs     ConversationLog[]
   customers            Customer[]
   templates            MessageTemplate[]
+  baileysSession       BaileysSession?
+  orchestratorAgents   OrchestratorAgent[]
+  conversations        Conversation[]
+  broadcasts           BroadcastCampaign[]
+}
+
+model BroadcastCampaign {
+  id          String               @id @default(cuid())
+  agentId     String
+  agent       Agent                @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  message     String               @db.Text
+  status      String               @default("pending") // pending | running | paused | completed | cancelled | failed
+  totalCount  Int                  @default(0)
+  sentCount   Int                  @default(0)
+  failedCount Int                  @default(0)
+  createdAt   DateTime             @default(now())
+  startedAt   DateTime?
+  completedAt DateTime?
+  recipients  BroadcastRecipient[]
+
+  @@index([agentId])
+}
+
+model BroadcastRecipient {
+  id          String            @id @default(cuid())
+  broadcastId String
+  broadcast   BroadcastCampaign @relation(fields: [broadcastId], references: [id], onDelete: Cascade)
+  phoneNumber String
+  jid         String
+  contactName String?
+  status      String            @default("pending") // pending | sent | failed | skipped
+  error       String?
+  sentAt      DateTime?
+
+  @@index([broadcastId])
+}
+
+model OrchestratorAgent {
+  id               String         @id @default(cuid())
+  agentId          String
+  agent            Agent          @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  name             String
+  systemPrompt     String         @db.Text
+  personality      String?        @db.Text
+  model            String         @default("gpt-4o-mini")
+  temperature      Decimal        @default(0.7) @db.Decimal(3, 2)
+  maxOutputTokens  Int            @default(800)
+  shortTermWindow  Int            @default(20)
+  summarizeAfter   Int            @default(30)
+  isActive         Boolean        @default(true)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  conversations    Conversation[]
+}
+
+model Document {
+  id               String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  agentId          String
+  filename         String
+  mimeType         String
+  sizeBytes        BigInt
+  r2Key            String
+  status           String          @default("pending")
+  error            String?
+  chunkCount       Int?            @default(0)
+  createdAt        DateTime        @default(now()) @db.Timestamptz()
+  chunks           DocumentChunk[]
+}
+
+model DocumentChunk {
+  id               String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  documentId       String          @db.Uuid
+  document         Document        @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  agentId          String
+  chunkIndex       Int
+  content          String
+  // Using Unsupported for pgvector as Prisma requires native support for vector
+  embedding        Unsupported("vector(1536)")?
+  metadata         Json?           @default("{}")
+  createdAt        DateTime        @default(now()) @db.Timestamptz()
+
+  @@index([agentId])
+}
+
+model MediaItem {
+  id               String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  agentId          String
+  filename         String
+  mimeType         String
+  r2Key            String
+  description      String
+  tags             String[]        @default([])
+  createdAt        DateTime        @default(now()) @db.Timestamptz()
+
+  @@index([agentId])
+}
+
+model Conversation {
+  id                   String              @id @default(cuid())
+  agentId              String
+  agent                Agent               @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  orchestratorAgentId  String?
+  orchestratorAgent    OrchestratorAgent?  @relation(fields: [orchestratorAgentId], references: [id], onDelete: SetNull)
+  phoneNumber          String
+  contactName          String?
+  mode                 String              @default("ai")
+  lastActivityAt       DateTime?           @default(now())
+  factsExtractedAt     DateTime?
+  createdAt            DateTime            @default(now())
+  messages             Message[]
+  summary              ConversationSummary?
+
+  @@unique([agentId, phoneNumber])
+}
+
+model Message {
+  id               String       @id @default(cuid())
+  conversationId   String
+  conversation     Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  direction        String
+  content          String       @db.Text
+  mediaUrl         String?
+  mediaDescription String?      @db.Text
+  toolCalls        Json?
+  tokensInput      Int?
+  tokensOutput     Int?
+  modelUsed        String?
+  createdAt        DateTime     @default(now())
+}
+
+model ConversationSummary {
+  conversationId             String       @id
+  conversation               Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  summary                    String       @db.Text
+  messagesCovered            Int
+  summarizedThroughMessageId String?
+  updatedAt                  DateTime     @default(now()) @updatedAt
 }
 
 model MessageTemplate {
@@ -251,4 +393,55 @@ model PaymentRequest {
   notes       String?
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
+}
+
+model BaileysSession {
+  id                   String           @id @default(cuid())
+  agentId              String           @unique
+  agent                Agent            @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  phoneNumber          String?
+  status               BaileysStatus    @default(DISCONNECTED)
+  lastConnectedAt      DateTime?
+  lastDisconnectReason String?
+  linkedDeviceName     String           @default("Dailzero AI")
+  authBackupPath       String?
+  warmupStartedAt      DateTime?
+  warmupTier           Int              @default(1)
+  dailyMessageCount    Int              @default(0)
+  dailyCountResetAt    DateTime         @default(now())
+  businessHoursStart   String           @default("08:00")
+  businessHoursEnd     String           @default("21:00")
+  timezone             String           @default("Africa/Lagos")
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  outboundLogs         BaileysOutboundLog[]
+}
+
+model BaileysOutboundLog {
+  id             String                 @id @default(cuid())
+  sessionId      String
+  session        BaileysSession         @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  conversationId String?
+  toJid          String
+  messagePreview String?
+  queuedAt       DateTime               @default(now())
+  sentAt         DateTime?
+  delayAppliedMs Int?
+  status         BaileysOutboundStatus  @default(QUEUED)
+}
+
+enum BaileysStatus {
+  DISCONNECTED
+  QR_PENDING
+  CONNECTING
+  CONNECTED
+  LOGGED_OUT
+  BANNED
+}
+
+enum BaileysOutboundStatus {
+  QUEUED
+  SENT
+  FAILED
+  RATE_LIMITED
 }

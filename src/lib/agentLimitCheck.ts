@@ -1,5 +1,6 @@
 import { db } from "@/lib/db"
-import { PLAN_CREDIT_LIMITS } from "@/lib/plans"
+import { PLAN_CREDIT_LIMITS, PLAN_OVERAGE_RATE_PER_1K } from "@/lib/plans"
+import { sumCreditsForAgents } from "@/lib/creditUsage"
 
 /**
  * Checks whether an agent should be disabled (subscription expired or monthly
@@ -33,10 +34,11 @@ export async function checkAndEnforceAgentLimit(agentId: string): Promise<void> 
   })
 
   // Only enforce on active, fully-configured agents
-  if (!agent || !agent.elevenlabsAgentId) return
+  if (!agent) return
   if (agent.status !== "ACTIVE") return
 
   const { plan, subscriptionExpiresAt } = agent.user
+  const overageAllowed = (PLAN_OVERAGE_RATE_PER_1K[plan] ?? null) !== null
 
   // Check 1: Subscription period expired
   const subscriptionExpired = subscriptionExpiresAt ? new Date() > subscriptionExpiresAt : false
@@ -50,23 +52,23 @@ export async function checkAndEnforceAgentLimit(agentId: string): Promise<void> 
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
     const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1)
 
-    const { _sum } = await db.conversationLog.aggregate({
-      where: {
-        agentId: agent.id,
-        OR: [
-          { startTime: { gte: monthStart, lt: monthEnd } },
-          { startTime: null, createdAt: { gte: monthStart, lt: monthEnd } },
-        ],
-      },
-      _sum: { creditsUsed: true },
-    })
-
-    const used = _sum.creditsUsed ?? 0
+    const used = agent.elevenlabsAgentId
+      ? (await db.conversationLog.aggregate({
+          where: {
+            agentId: agent.id,
+            OR: [
+              { startTime: { gte: monthStart, lt: monthEnd } },
+              { startTime: null, createdAt: { gte: monthStart, lt: monthEnd } },
+            ],
+          },
+          _sum: { creditsUsed: true },
+        }))._sum.creditsUsed ?? 0
+      : await sumCreditsForAgents([agent.id], monthStart, monthEnd)
     creditsExceeded = used >= creditLimit
     console.log(`[agentLimit] Agent ${agentId}: used=${used}, limit=${creditLimit}, exceeded=${creditsExceeded}`)
   }
 
-  const shouldDisable = subscriptionExpired || creditsExceeded
+  const shouldDisable = subscriptionExpired || (creditsExceeded && !overageAllowed)
 
   if (shouldDisable && agent.messagingEnabled) {
     try {

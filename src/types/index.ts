@@ -48,6 +48,7 @@ export interface Product {
   price?: string
   link?: string
   imageUrl?: string
+  mediaId?: string
 }
 
 export interface AgentPublic {
@@ -68,6 +69,7 @@ export interface AgentPublic {
   whatsappPhoneNumber?: string
   qrCodeUrl?: string
   elevenlabsAgentId?: string
+  agentRuntime?: string
   messagingEnabled?: boolean
   category?: string | null
   address?: string | null

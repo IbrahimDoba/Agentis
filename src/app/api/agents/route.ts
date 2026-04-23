@@ -4,6 +4,7 @@ import { db } from "@/lib/db"
 import { agentSchema } from "@/lib/validations"
 import { sendAgentSubmittedNotification } from "@/lib/email"
 import { getWorkspaceContext } from "@/lib/workspace"
+import { syncProductImagesToOrchestratorMedia } from "@/lib/orchestrator-media-sync"
 
 export async function GET(req: NextRequest) {
   try {
@@ -79,17 +80,52 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ errors }, { status: 400 })
     }
 
-    const agent = await db.agent.create({
+    const {
+      agentRuntime,
+      orchestratorModel,
+      orchestratorTemperature,
+      orchestratorMaxTokens,
+      ...agentData
+    } = parsed.data
+
+    let agent = await db.agent.create({
       data: {
         businessDescription: "",
         productsServices: "",
         faqs: "",
         operatingHours: "",
-        ...parsed.data,
-        businessName: session.user.businessName || parsed.data.businessName || "My Business",
+        ...agentData,
+        businessName: session.user.businessName || agentData.businessName || "My Business",
         userId: session.user.id,
+        agentRuntime: agentRuntime ?? "elevenlabs",
+        ...(agentRuntime === "orchestrator" && { status: "ACTIVE" }),
       },
     })
+
+    // Create OrchestratorAgent when using DZero AI
+    if (agentRuntime === "orchestrator") {
+      await db.orchestratorAgent.create({
+        data: {
+          agentId: agent.id,
+          name: agent.businessName,
+          systemPrompt: agentData.responseGuidelines || "You are a helpful WhatsApp assistant.",
+          model: orchestratorModel || "gpt-4o-mini",
+          temperature: orchestratorTemperature ?? 0.7,
+          maxOutputTokens: orchestratorMaxTokens ?? 800,
+        },
+      })
+
+      if (Array.isArray(agentData.productsData) && agentData.productsData.length > 0) {
+        const syncedProducts = await syncProductImagesToOrchestratorMedia(agent.id, agentData.productsData)
+        const hasMediaIds = syncedProducts.some((p) => Boolean(p.mediaId))
+        if (hasMediaIds) {
+          agent = await db.agent.update({
+            where: { id: agent.id },
+            data: { productsData: syncedProducts as any },
+          })
+        }
+      }
+    }
 
     sendAgentSubmittedNotification({
       userName: session.user.name ?? "",
