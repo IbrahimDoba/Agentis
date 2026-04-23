@@ -2,6 +2,7 @@ import {
   makeWASocket,
   DisconnectReason,
   makeCacheableSignalKeyStore,
+  fetchLatestBaileysVersion,
   type WASocket,
   type AuthenticationState,
 } from "@whiskeysockets/baileys"
@@ -21,14 +22,16 @@ export interface ConnectionOptions {
 export async function createConnection(opts: ConnectionOptions): Promise<WASocket> {
   const log = rootLogger.child({ agentId: opts.agentId })
 
+  const { version } = await fetchLatestBaileysVersion()
+  log.info({ version }, "Using WhatsApp version")
+
   const sock = makeWASocket({
     auth: {
       creds: opts.authState.creds,
       keys: makeCacheableSignalKeyStore(opts.authState.keys, log as never),
     },
     logger: log as never,
-    // Pin to a version WhatsApp currently accepts (fetched from Baileys GitHub)
-    version: [2, 3000, 1035194821],
+    version,
     browser: ["Mac OS", "Chrome", "131.0.0"] as [string, string, string],
     connectTimeoutMs: 30_000,
     retryRequestDelayMs: 2_000,
