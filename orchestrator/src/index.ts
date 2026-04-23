@@ -64,10 +64,13 @@ process.on("unhandledRejection", (reason) => {
   logger.error({ reason }, "Unhandled promise rejection")
 })
 
+console.log(`[STARTUP] About to listen on port ${config.PORT}`)
 try {
   await app.listen({ port: config.PORT, host: "0.0.0.0" })
+  console.log(`[STARTUP] Successfully listening on port ${config.PORT}`)
   logger.info({ port: config.PORT }, "Orchestrator started")
 } catch (err) {
+  console.error(`[STARTUP] Failed to listen on port ${config.PORT}:`, err)
   logger.error(err, "Failed to start orchestrator")
   process.exit(1)
 }
