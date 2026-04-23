@@ -12,6 +12,11 @@ function readDelay() {
 }
 
 export function createEventHandlers(sock: WASocket, agentId: string) {
+  // Any message timestamped more than 30s before we started this session is
+  // a replay from while we were offline — ignore it to avoid the agent
+  // replying to stale messages on reconnect.
+  const sessionStartedAt = Date.now()
+
   sock.ev.on("messages.upsert", async ({ messages, type }) => {
     if (type !== "notify") return
 
@@ -21,6 +26,13 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
       if (msg.key.remoteJid?.endsWith("@broadcast")) continue
       if (msg.key.remoteJid?.endsWith("@g.us")) continue // groups
       if (!msg.key.remoteJid) continue
+
+      // Replay protection — skip messages that arrived before this session started
+      const msgTimestampMs = (msg.messageTimestamp as number) * 1000
+      if (msgTimestampMs < sessionStartedAt - 30_000) {
+        logger.debug({ agentId, msgTimestampMs, sessionStartedAt }, "Skipping pre-connection message")
+        continue
+      }
 
       const senderJid = msg.key.remoteJid
       // remoteJidAlt is the PN (real phone JID) when remoteJid is a LID — available since Baileys 6.8.0

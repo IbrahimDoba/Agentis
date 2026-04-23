@@ -445,3 +445,16 @@ enum BaileysOutboundStatus {
   FAILED
   RATE_LIMITED
 }
+
+model CreditUsage {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  agentId        String
+  conversationId String?
+  messageType    String
+  source         String   @default("ai")
+  creditsUsed    Int
+  createdAt      DateTime @default(now()) @db.Timestamptz()
+
+  @@index([agentId, createdAt])
+  @@index([conversationId])
+}
