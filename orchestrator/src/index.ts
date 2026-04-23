@@ -16,15 +16,18 @@ const app = Fastify({ logger: false })
 
 await app.register(helmet)
 await app.register(cors, { origin: true })
-await app.register(rateLimit, {
-  redis: getRedis(),
-  max: 500,
-  timeWindow: "1 minute",
-  keyGenerator: (req) => {
-    const body = req.body as Record<string, unknown> | undefined
-    return (body?.agentId as string) ?? req.ip
-  },
-})
+// NOTE: Rate limiter temporarily disabled to diagnose startup hang.
+// Suspected cause: getRedis() connection timing out during plugin registration.
+// Re-enable once Redis connectivity is confirmed healthy.
+// await app.register(rateLimit, {
+//   redis: getRedis(),
+//   max: 500,
+//   timeWindow: "1 minute",
+//   keyGenerator: (req) => {
+//     const body = req.body as Record<string, unknown> | undefined
+//     return (body?.agentId as string) ?? req.ip
+//   },
+// })
 
 // Auth — validate ORCHESTRATOR_API_KEY on every non-health request
 app.addHook("onRequest", async (req, reply) => {
