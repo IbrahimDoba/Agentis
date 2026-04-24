@@ -4,10 +4,11 @@ import { useState, useRef } from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { useQueryClient } from "@tanstack/react-query"
-import { CameraIcon, ArrowPathIcon, CheckCircleIcon, GlobeAltIcon, EnvelopeIcon, PhoneIcon, MapPinIcon, TagIcon, InformationCircleIcon } from "@heroicons/react/24/outline"
+import { CameraIcon, ArrowPathIcon, GlobeAltIcon, EnvelopeIcon, PhoneIcon, MapPinIcon, TagIcon, InformationCircleIcon } from "@heroicons/react/24/outline"
 import styles from "./AgentProfileForm.module.css"
 import { Input, Textarea } from "@/components/ui/Input"
 import Button from "@/components/ui/Button"
+import { useToast } from "@/context/ToastContext"
 import type { AgentPublic } from "@/types"
 
 const CATEGORIES = [
@@ -47,9 +48,9 @@ export function AgentProfileForm({ agent }: AgentProfileFormProps) {
     websiteLinks: agent.websiteLinks ?? "",
     profileImageUrl: agent.profileImageUrl ?? "",
   })
+  const { showToast } = useToast()
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
-  const [success, setSuccess] = useState(false)
   const [uploadError, setUploadError] = useState("")
   const [isUploading, setIsUploading] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string>(agent.profileImageUrl ?? "")
@@ -79,13 +80,11 @@ export function AgentProfileForm({ agent }: AgentProfileFormProps) {
     const { name, value } = e.target
     setForm((f) => ({ ...f, [name]: value }))
     setErrors((prev) => ({ ...prev, [name]: "" }))
-    setSuccess(false)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSaving(true)
-    setSuccess(false)
     setErrors({})
     try {
       const res = await fetch(`/api/agents/${agent.id}`, {
@@ -96,14 +95,15 @@ export function AgentProfileForm({ agent }: AgentProfileFormProps) {
       const data = await res.json()
       if (!res.ok) {
         if (data.errors) setErrors(data.errors)
+        else showToast("Failed to save profile.", "error")
         return
       }
-      setSuccess(true)
+      showToast("Profile updated successfully!")
       queryClient.invalidateQueries({ queryKey: ["agent", agent.id] })
       queryClient.invalidateQueries({ queryKey: ["agents"] })
       router.refresh()
     } catch {
-      setErrors({ form: "Something went wrong. Please try again." })
+      showToast("Something went wrong. Please try again.", "error")
     } finally {
       setSaving(false)
     }
@@ -161,11 +161,6 @@ export function AgentProfileForm({ agent }: AgentProfileFormProps) {
       </div>
 
       {errors.form && <div className={styles.formError}>{errors.form}</div>}
-      {success && (
-        <div className={styles.successMsg}>
-          <CheckCircleIcon width={15} height={15} /> Profile updated successfully
-        </div>
-      )}
 
       {/* Identity */}
       <div className={styles.section}>

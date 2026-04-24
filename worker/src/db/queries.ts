@@ -195,6 +195,52 @@ export async function insertCreditUsage(entry: {
   `
 }
 
+// ── Conversation mode ─────────────────────────────────────────────────────────
+
+export async function getConversationMode(phoneNumber: string, agentId: string): Promise<"ai" | "human"> {
+  const rows = await sql<{ mode: string }[]>`
+    SELECT "mode" FROM "Conversation"
+    WHERE "phoneNumber" = ${phoneNumber} AND "agentId" = ${agentId}
+    ORDER BY "lastActivityAt" DESC NULLS LAST
+    LIMIT 1
+  `
+  return (rows[0]?.mode === "human") ? "human" : "ai"
+}
+
+export async function getAgentIsHumanMode(agentId: string): Promise<boolean> {
+  const rows = await sql<{ isActive: boolean }[]>`
+    SELECT "isActive" FROM "OrchestratorAgent" WHERE "agentId" = ${agentId} LIMIT 1
+  `
+  // isActive = false means the agent is in human handoff mode
+  if (rows.length === 0) return false
+  return rows[0].isActive === false
+}
+
+export async function saveHumanOutboundMessage(
+  agentId: string,
+  customerPhone: string,
+  text: string
+): Promise<void> {
+  // Find existing conversation — don't create one; if there's no conversation the
+  // operator is texting someone who never messaged in, which is unusual.
+  const convRows = await sql<{ id: string }[]>`
+    SELECT "id" FROM "Conversation"
+    WHERE "agentId" = ${agentId} AND "phoneNumber" = ${customerPhone}
+    LIMIT 1
+  `
+  const conversationId = convRows[0]?.id
+  if (!conversationId) return
+
+  const id = randomUUID()
+  await sql`
+    INSERT INTO "Message" ("id", "conversationId", "direction", "senderRole", "content", "createdAt")
+    VALUES (${id}, ${conversationId}, 'outbound', 'human', ${text}, NOW())
+  `
+  await sql`
+    UPDATE "Conversation" SET "lastActivityAt" = NOW() WHERE "id" = ${conversationId}
+  `
+}
+
 // ── Customer / conversation lookup ───────────────────────────────────────────
 
 export async function getOrCreateCustomer(phoneNumber: string, agentId: string) {

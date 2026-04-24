@@ -14,6 +14,7 @@ export interface Message {
   id: string
   conversationId: string
   direction: "inbound" | "outbound"
+  senderRole: "ai" | "human"
   content: string
   mediaUrl: string | null
   mediaDescription: string | null
@@ -67,6 +68,7 @@ export async function getOrCreateConversation(
 export async function insertMessage(msg: {
   conversationId: string
   direction: "inbound" | "outbound"
+  senderRole?: "ai" | "human"
   content: string
   mediaUrl?: string | null
   mediaDescription?: string | null
@@ -76,12 +78,13 @@ export async function insertMessage(msg: {
   modelUsed?: string
 }): Promise<string> {
   const id = randomUUID()
+  const senderRole = msg.senderRole ?? "ai"
   await sql`
-    INSERT INTO "Message" ("id", "conversationId", "direction", "content",
+    INSERT INTO "Message" ("id", "conversationId", "direction", "senderRole", "content",
       "mediaUrl", "mediaDescription", "toolCalls",
       "tokensInput", "tokensOutput", "modelUsed", "createdAt")
     VALUES (
-      ${id}, ${msg.conversationId}, ${msg.direction}, ${msg.content},
+      ${id}, ${msg.conversationId}, ${msg.direction}, ${senderRole}, ${msg.content},
       ${msg.mediaUrl ?? null}, ${msg.mediaDescription ?? null},
       ${msg.toolCalls ? JSON.stringify(msg.toolCalls) : null},
       ${msg.tokensInput ?? null}, ${msg.tokensOutput ?? null},

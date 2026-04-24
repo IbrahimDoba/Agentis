@@ -1,5 +1,98 @@
 [
   {
+    "date": "24 April 2026",
+    "tag": "New",
+    "tagColor": "green",
+    "title": "Image Sending & Rich Media Replies",
+    "description": "Your AI agent can now send images and media back to customers mid-conversation — product photos, menus, catalogues, or any file you've uploaded to the media library.",
+    "bullets": [
+      "Upload images to a per-agent media library with a name, description, and tags",
+      "Agent decides when to send an image based on conversation context",
+      "Product catalogue images automatically synced to the media library",
+      "Images sent directly over WhatsApp — no external links needed",
+      "Works alongside text replies in the same conversation turn"
+    ]
+  },
+  {
+    "date": "24 April 2026",
+    "tag": "New",
+    "tagColor": "green",
+    "title": "Document Knowledge Base (RAG)",
+    "description": "Upload PDFs, Word documents, and text files to your DZero AI agent. The agent reads, chunks, and indexes them automatically — then answers customer questions using your exact content.",
+    "bullets": [
+      "Upload PDF, DOCX, or TXT files directly from the Documents tab",
+      "Files are chunked and embedded with OpenAI text-embedding-3-small",
+      "Agent retrieves the most relevant passages at query time (RAG)",
+      "Supports multiple documents per agent — update or delete anytime",
+      "Processing status shown per document: pending → ready → failed",
+      "Works in real WhatsApp conversations, not just test environments"
+    ]
+  },
+  {
+    "date": "23 April 2026",
+    "tag": "New",
+    "tagColor": "green",
+    "title": "Account Warmup & Anti-Ban Protection",
+    "description": "New WhatsApp numbers go through an automatic warmup programme before sending at full volume. Messaging limits increase gradually across 4 tiers so your number stays healthy and avoids restrictions.",
+    "bullets": [
+      "4-tier warmup: 10 → 50 → 150 → unlimited messages per day",
+      "Tier advances automatically based on days connected",
+      "Outbound messages are paced with human-like random delays",
+      "Business hours enforcement — no messages sent outside your set window",
+      "Timezone-aware scheduling (defaults to Africa/Lagos, fully configurable)",
+      "Throttle detector watches for delivery errors and pauses sending automatically",
+      "Warmup progress and current tier visible on the WhatsApp Web dashboard"
+    ]
+  },
+  {
+    "date": "22 April 2026",
+    "tag": "New",
+    "tagColor": "green",
+    "title": "Broadcast Campaigns",
+    "description": "Send a single message to hundreds of contacts at once — directly over WhatsApp. Broadcasts are paced intelligently to protect your number, with live progress tracking from the dashboard.",
+    "bullets": [
+      "Create a broadcast with a message and a list of phone numbers",
+      "Sends are spread with random human-like delays between each message",
+      "Live progress bar showing sent, failed, and remaining counts",
+      "Pause or cancel any in-progress broadcast at any time",
+      "Resume a paused broadcast where it left off",
+      "Respects your warmup tier limits — no overloading on new numbers",
+      "Full broadcast history with per-recipient status logs"
+    ]
+  },
+  {
+    "date": "21 April 2026",
+    "tag": "New",
+    "tagColor": "green",
+    "title": "DZero AI Messaging Engine",
+    "description": "A new AI runtime powers text-based WhatsApp conversations end to end — no voice required. The agent reads incoming messages, builds context from memory, and replies instantly using GPT-4o-mini.",
+    "bullets": [
+      "Fully autonomous text replies over WhatsApp Web",
+      "Conversation memory: short-term window + rolling summary for long threads",
+      "RAG retrieval pulls relevant knowledge base content into every response",
+      "Tool calling support — agent can query your APIs mid-conversation",
+      "Human / AI mode toggle per conversation: take over manually, hand back to AI anytime",
+      "All messages stored locally with token usage tracking",
+      "Deduplication prevents the same message from being processed twice"
+    ]
+  },
+  {
+    "date": "20 April 2026",
+    "tag": "New",
+    "tagColor": "green",
+    "title": "WhatsApp Web Connection (QR & Pairing Code)",
+    "description": "Connect any WhatsApp number directly to your agent without a WhatsApp Business API account. Scan a QR code or use a pairing code — your number is live in seconds.",
+    "bullets": [
+      "QR code stream shown live in the dashboard — scan with your phone to connect",
+      "Pairing code option for linking without opening your camera",
+      "Session persists across restarts — encrypted credentials backed up to cloud storage",
+      "Automatic reconnect with exponential backoff if connection drops",
+      "Session status shown in real time: Connecting, QR Pending, Connected, Disconnected",
+      "Disconnect or restart the session from the dashboard at any time",
+      "Supports multiple agents each with their own independent WhatsApp session"
+    ]
+  },
+  {
     "date": "17 April 2026",
     "tag": "New",
     "tagColor": "green",

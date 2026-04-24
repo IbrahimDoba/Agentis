@@ -18,6 +18,8 @@ const schema = z.object({
   ORCHESTRATOR_URL: z.string().url().default("http://localhost:4100"),
   ORCHESTRATOR_API_KEY: z.string().min(16),
 
+  OPENAI_API_KEY: z.string().min(1).optional(),
+
   AUTH_ENCRYPTION_KEY: z.string().min(32),
   AUTH_STORAGE_BUCKET: z.string().default("baileys-auth-backups"),
 

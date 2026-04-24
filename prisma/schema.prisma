@@ -201,6 +201,7 @@ model Message {
   conversationId   String
   conversation     Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   direction        String
+  senderRole       String       @default("ai")  // "ai" | "human" (outbound only)
   content          String       @db.Text
   mediaUrl         String?
   mediaDescription String?      @db.Text

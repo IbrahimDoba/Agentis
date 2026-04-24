@@ -17,6 +17,7 @@ interface OrchestratorConversation {
   lastMessage: {
     content: string
     direction: string
+    senderRole: string
     createdAt: string
   } | null
 }
@@ -24,6 +25,7 @@ interface OrchestratorConversation {
 interface Message {
   id: string
   direction: "inbound" | "outbound"
+  senderRole: "ai" | "human"
   content: string
   mediaUrl: string | null
   createdAt: string
@@ -330,7 +332,7 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
               </div>
               <div className={styles.preview}>
                 {conv.lastMessage
-                  ? `${conv.lastMessage.direction === "outbound" ? "AI: " : ""}${conv.lastMessage.content.slice(0, 80)}${conv.lastMessage.content.length > 80 ? "…" : ""}`
+                  ? `${conv.lastMessage.direction === "outbound" ? (conv.lastMessage.senderRole === "human" ? "You: " : "AI: ") : ""}${conv.lastMessage.content.slice(0, 80)}${conv.lastMessage.content.length > 80 ? "…" : ""}`
                   : "No messages yet"}
               </div>
               <div className={styles.meta}>
@@ -412,6 +414,9 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
                   key={msg.id}
                   className={`${styles.bubble} ${msg.direction === "outbound" ? styles.bubbleOut : styles.bubbleIn}`}
                 >
+                  {msg.direction === "outbound" && msg.senderRole === "human" && (
+                    <div className={styles.bubbleSenderTag}>Human</div>
+                  )}
                   <div className={styles.bubbleContent}>{msg.content}</div>
                   <div className={styles.bubbleTime}>{formatFullTime(msg.createdAt)}</div>
                 </div>

@@ -9,6 +9,7 @@ import { useDashboardData } from "@/hooks/useDashboardData"
 import { useTheme } from "@/components/ThemeProvider"
 import { SunIcon, MoonIcon, ArrowRightStartOnRectangleIcon } from "@heroicons/react/24/outline"
 import { signOut } from "next-auth/react"
+import { useToast } from "@/context/ToastContext"
 
 const BUSINESS_CATEGORIES = [
   { value: "Non-Online Gambling & Gaming (E.g. Brick and mortar)", label: "Non-Online Gambling & Gaming (E.g. Brick and mortar)" },
@@ -51,9 +52,8 @@ export default function ProfilePage() {
     businessEmail: "",
     businessWebsite: "",
   })
+  const { showToast } = useToast()
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [error, setError] = useState("")
-  const [success, setSuccess] = useState("")
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -131,8 +131,6 @@ export default function ProfilePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    setError("")
-    setSuccess("")
     setErrors({})
 
     try {
@@ -148,15 +146,15 @@ export default function ProfilePage() {
         if (data.errors) {
           setErrors(data.errors)
         } else {
-          setError(data.error || "Failed to save profile")
+          showToast(data.error || "Failed to save profile", "error")
         }
         return
       }
 
-      setSuccess("Profile updated successfully!")
+      showToast("Profile updated successfully!")
       queryClient.invalidateQueries({ queryKey: ["me"] })
     } catch {
-      setError("Something went wrong. Please try again.")
+      showToast("Something went wrong. Please try again.", "error")
     } finally {
       setLoading(false)
     }
@@ -181,9 +179,6 @@ export default function ProfilePage() {
       </div>
 
       <form className={styles.form} onSubmit={handleSubmit}>
-        {error && <div className={styles.error}>{error}</div>}
-        {success && <div className={styles.success}>{success}</div>}
-
         {/* Personal Information */}
         <div className={styles.section}>
           <div className={styles.sectionHeader}>

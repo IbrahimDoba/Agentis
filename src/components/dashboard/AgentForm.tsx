@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/Input"
 import Button from "@/components/ui/Button"
 import { ProductsEditor } from "@/components/dashboard/ProductsEditor"
 import { ArrowPathIcon } from "@heroicons/react/24/outline"
+import { useToast } from "@/context/ToastContext"
 import type { AgentPublic, Product } from "@/types"
 
 interface AgentFormProps {
@@ -24,8 +25,8 @@ export function AgentForm({ initialData, agentId }: AgentFormProps) {
   const [products, setProducts] = useState<Product[]>(
     (initialData?.productsData as Product[] | undefined) ?? []
   )
+  const { showToast } = useToast()
   const [error, setError] = useState("")
-  const [success, setSuccess] = useState("")
   const [loading, setLoading] = useState(false)
   const [enhancing, setEnhancing] = useState(false)
   const [enhanced, setEnhanced] = useState(false)
@@ -79,7 +80,6 @@ export function AgentForm({ initialData, agentId }: AgentFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
-    setSuccess("")
 
     if (!systemPrompt.trim()) {
       setError("System prompt is required.")
@@ -104,7 +104,7 @@ export function AgentForm({ initialData, agentId }: AgentFormProps) {
         return
       }
 
-      setSuccess(agentId ? "Agent updated successfully!" : "Agent created! Our team will review and set it up.")
+      showToast(agentId ? "Agent updated successfully!" : "Agent created! Our team will review and set it up.")
       if (Array.isArray(data.productsData)) {
         setProducts(data.productsData as Product[])
       }
@@ -113,7 +113,7 @@ export function AgentForm({ initialData, agentId }: AgentFormProps) {
         router.push(`/dashboard/agent/${data.id}`)
       }
     } catch {
-      setError("Something went wrong. Please try again.")
+      showToast("Something went wrong. Please try again.", "error")
     } finally {
       setLoading(false)
     }
@@ -122,7 +122,6 @@ export function AgentForm({ initialData, agentId }: AgentFormProps) {
   return (
     <form className={styles.form} onSubmit={handleSubmit}>
       {error && <div className={styles.error}>{error}</div>}
-      {success && <div className={styles.success}>{success}</div>}
 
       {/* System Prompt */}
       <div className={styles.section}>

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Sidebar } from "./Sidebar"
 import { LogoIcon } from "@/components/landing/Logo"
+import { ToastProvider } from "@/context/ToastContext"
 import styles from "./DashboardShell.module.css"
 
 interface Props {
@@ -66,7 +67,9 @@ export function DashboardShell({ userName, businessName, currentUserId, currentW
         onToggleCollapse={toggleCollapse}
       />
 
-      <main className={styles.main}>{children}</main>
+      <main className={styles.main}>
+        <ToastProvider>{children}</ToastProvider>
+      </main>
     </div>
   )
 }

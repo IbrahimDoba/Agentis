@@ -80,21 +80,45 @@
 
 @media (max-width: 768px) {
   .tabs {
-    flex-direction: column;
-    gap: 0.5rem;
+    overflow-x: auto;
+    overflow-y: visible;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 0.25rem;
     border-bottom: none;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0.3rem;
+    margin-bottom: 1.5rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .tabs::-webkit-scrollbar {
+    display: none;
   }
 
   .tab {
-    width: 100%;
-    text-align: left;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
+    flex-shrink: 0;
+    border: none;
+    border-bottom: none;
+    border-radius: 8px;
+    padding: 0.55rem 1rem;
+    font-size: 13px;
     margin-bottom: 0;
+    white-space: nowrap;
   }
 
   .tabActive {
-    border-color: var(--accent);
-    background: rgba(34, 197, 94, 0.06);
+    background: var(--accent);
+    color: #000;
+    font-weight: 600;
+    border-bottom-color: transparent;
+  }
+
+  .tab:not(.tabActive):hover {
+    background: var(--bg-hover, rgba(255,255,255,0.05));
+    color: var(--text-primary);
   }
 }

@@ -3,6 +3,10 @@ import { webhookEmitter } from "../dashboard/webhook-emitter.js"
 import { config } from "../config.js"
 import { logger as rootLogger } from "../lib/logger.js"
 import { resolvePhone } from "./contacts-store.js"
+import { getConversationMode, getAgentIsHumanMode, saveHumanOutboundMessage } from "../db/queries.js"
+import { transcribeVoiceNote } from "../voice/transcribe.js"
+import { creditsForVoice } from "../billing/credits.js"
+import { wasSentByUs } from "./sent-message-cache.js"
 
 const logger = rootLogger.child({ module: "event-handlers" })
 
@@ -21,10 +25,9 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
     if (type !== "notify") return
 
     for (const msg of messages) {
-      // §9 — Ignore non-DMs
-      if (msg.key.fromMe) continue
+      // §9 — Ignore broadcasts and groups
       if (msg.key.remoteJid?.endsWith("@broadcast")) continue
-      if (msg.key.remoteJid?.endsWith("@g.us")) continue // groups
+      if (msg.key.remoteJid?.endsWith("@g.us")) continue
       if (!msg.key.remoteJid) continue
 
       // Replay protection — skip messages that arrived before this session started
@@ -42,10 +45,56 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
         : resolvePhone(agentId, senderJid)
       const pushName = msg.pushName ?? undefined
 
-      const text =
+      // Handle human operator's own replies sent directly from their phone
+      if (msg.key.fromMe) {
+        const msgId = msg.key.id
+        if (msgId && !wasSentByUs(msgId)) {
+          // This message came from the operator's phone (not from our outbound queue)
+          const isHuman = await getAgentIsHumanMode(agentId).catch(() => false)
+          if (isHuman) {
+            const text =
+              msg.message?.conversation ??
+              msg.message?.extendedTextMessage?.text ??
+              null
+            if (text) {
+              await saveHumanOutboundMessage(agentId, phoneNumber, text).catch((err) => {
+                logger.error({ err, agentId }, "Failed to save human operator message")
+              })
+              webhookEmitter.emit("message.sent", { agentId })
+              logger.info({ agentId, phoneNumber }, "Human operator message saved from phone")
+            }
+          }
+        }
+        continue
+      }
+
+      let text: string | null =
         msg.message?.conversation ??
         msg.message?.extendedTextMessage?.text ??
         null
+
+      let voiceCredits = 0
+
+      // Handle voice notes — transcribe if OpenAI key is configured
+      if (!text && msg.message?.audioMessage?.ptt) {
+        if (!config.OPENAI_API_KEY) {
+          logger.debug({ agentId, senderJid }, "Voice note received but OPENAI_API_KEY not set, skipping")
+          continue
+        }
+        try {
+          const result = await transcribeVoiceNote(msg, config.OPENAI_API_KEY)
+          if (!result.text) {
+            logger.debug({ agentId, senderJid }, "Voice note transcription returned empty, skipping")
+            continue
+          }
+          text = `[Voice note]: ${result.text}`
+          voiceCredits = creditsForVoice(result.durationSeconds)
+          logger.info({ agentId, senderJid, durationSeconds: result.durationSeconds, voiceCredits }, "Voice note transcribed")
+        } catch (err) {
+          logger.error({ err, agentId, senderJid }, "Voice note transcription failed, skipping")
+          continue
+        }
+      }
 
       if (!text) {
         logger.debug({ agentId, senderJid }, "Non-text message received, skipping")
@@ -54,14 +103,17 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
 
       logger.info({ agentId, senderJid, pushName: msg.pushName ?? null, preview: text.slice(0, 60) }, "Inbound message")
 
-      // §7.7 — Mark read with natural delay
-      setTimeout(async () => {
-        try {
-          await sock.readMessages([msg.key])
-        } catch {
-          // Not critical
-        }
-      }, readDelay())
+      // §7.7 — Mark read with natural delay (skip in human mode — let the human operator read it themselves)
+      const convMode = await getConversationMode(phoneNumber, agentId).catch(() => "ai" as const)
+      if (convMode !== "human") {
+        setTimeout(async () => {
+          try {
+            await sock.readMessages([msg.key])
+          } catch {
+            // Not critical
+          }
+        }, readDelay())
+      }
 
       // Emit to dashboard
       webhookEmitter.emit("message.inbound", {
@@ -83,6 +135,7 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
           text,
           timestamp: (msg.messageTimestamp as number) * 1000,
           pushName,
+          extraCredits: voiceCredits || undefined,
         })
       } catch (err) {
         logger.error({ err, agentId, senderJid }, "Failed to forward to orchestrator")
@@ -99,6 +152,7 @@ async function forwardToOrchestrator(payload: {
   text: string
   timestamp: number
   pushName?: string
+  extraCredits?: number  // e.g. voice transcription cost, billed on top of the AI reply cost
 }): Promise<void> {
   const url = `${config.ORCHESTRATOR_URL}/v1/inbound`
 

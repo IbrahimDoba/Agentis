@@ -30,7 +30,7 @@ export async function sendWithPacing(
   jid: string,
   text: string,
   warmupTier: number
-): Promise<void> {
+): Promise<string | undefined> {
   const tier = getTierConfig(warmupTier)
 
   // §7.2 — Typing indicator
@@ -42,8 +42,9 @@ export async function sendWithPacing(
 
   await sleep(typingDuration(text))
 
-  // Send the actual message
-  await sock.sendMessage(jid, { text })
+  // Send the actual message — capture key ID for dedup cache
+  const sent = await sock.sendMessage(jid, { text })
+  const msgId = sent?.key?.id
 
   // §7.2 — Paused presence
   try {
@@ -56,6 +57,8 @@ export async function sendWithPacing(
   const delay = truncatedNormal(tier.minDelayMs, tier.maxDelayMs)
   logger.debug({ jid, delay, tier: warmupTier }, "Pacing delay applied")
   await sleep(delay)
+
+  return msgId
 }
 
 /**
@@ -67,7 +70,7 @@ export async function sendImageWithPacing(
   imageUrl: string,
   caption: string,
   warmupTier: number
-): Promise<void> {
+): Promise<string | undefined> {
   const tier = getTierConfig(warmupTier)
 
   try {
@@ -79,10 +82,11 @@ export async function sendImageWithPacing(
   // Fixed delay simulating the time to "look up" and send the image
   await sleep(1500)
 
-  await sock.sendMessage(jid, {
+  const sent = await sock.sendMessage(jid, {
     image: { url: imageUrl },
     caption: caption || undefined,
   })
+  const msgId = sent?.key?.id
 
   try {
     await sock.sendPresenceUpdate("paused", jid)
@@ -93,6 +97,8 @@ export async function sendImageWithPacing(
   const delay = truncatedNormal(tier.minDelayMs, tier.maxDelayMs)
   logger.debug({ jid, delay, tier: warmupTier }, "Pacing delay applied after image send")
   await sleep(delay)
+
+  return msgId
 }
 
 /**

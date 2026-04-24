@@ -22,7 +22,6 @@ const proMonthly = {
 const starterFeatures = [
   { text: "1 AI WhatsApp Agent", included: true },
   { text: "60,000 credits/month (~923 text convos @ 13 AI msgs)", included: true },
-  { text: "Dailzero AI usage: 5 credits/text, 8 credits/image", included: true },
   { text: "Text + image responses", included: true },
   { text: "Advanced FAQ handling", included: true },
   { text: "Business hours configuration", included: true },
@@ -41,7 +40,6 @@ const starterFeatures = [
 const proFeatures = [
   { text: "2 AI WhatsApp Agents", included: true },
   { text: "100,000 credits/month (~1,538 text convos @ 13 AI msgs)", included: true },
-  { text: "Dailzero AI usage: 5 credits/text, 8 credits/image", included: true },
   { text: "Text + image + media sending", included: true },
   { text: "Automated follow-up messages", included: true },
   { text: "Advanced AI with custom personality", included: true },
@@ -64,7 +62,7 @@ const faqs = [
   },
   {
     q: "What happens if I exceed my credit limit?",
-    a: "On Starter, additional credits beyond 60,000/month are charged at ₦1,000 per 1,000 credits. On Pro, overage is ₦800 per 1,000 credits. Dailzero AI usage is billed per successful AI send (5 credits per AI text, 8 per AI image).",
+    a: "On Starter, additional credits beyond 60,000/month are charged at ₦1,000 per 1,000 credits. On Pro, overage is ₦800 per 1,000 credits.",
   },
   {
     q: "Do you offer custom plans?",
@@ -205,7 +203,6 @@ export default function PricingPage() {
               </div>
               {[
                 ["Monthly Credits", "60,000 (~923 text convos)", "100,000 (~1,538 text convos)"],
-                ["Credit Burn", "5 text / 8 image", "5 text / 8 image"],
                 ["Overage Rate", "₦1,000 / 1k credits", "₦800 / 1k credits"],
                 ["Response Type", "Text + Image", "Text + Image + Media"],
                 ["Media Sending", "✓ Images", "✓ Images, PDFs"],

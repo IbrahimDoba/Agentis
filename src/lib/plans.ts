@@ -17,6 +17,8 @@ export const PLAN_CREDIT_LIMITS: Record<string, number> = {
 export const AI_CREDIT_COSTS = {
   text: 5,
   image: 8,
+  voicePerSec: 3,
+  voiceMin: 15,
 } as const
 
 // Overage rate in Naira per 1,000 credits (null = no overage allowed)
@@ -45,19 +47,18 @@ export const PLAN_FEATURES: Record<string, string[]> = {
   ],
   starter: [
     "60,000 credits / month",
-    "~923 text conversations/mo (avg 13 AI msgs each)",
+    "700 – 900 conversations / month",
     "1 AI agent",
     "WhatsApp integration",
     "Conversation logs & analytics",
     "Lead detection",
-    `Usage: ${AI_CREDIT_COSTS.text} credits per AI text, ${AI_CREDIT_COSTS.image} per AI image`,
     "Customer memory & context",
     `Overage: ₦1,000 / 1k credits`,
     "Email support",
   ],
   pro: [
     "100,000 credits / month",
-    "~1,538 text conversations/mo (avg 13 AI msgs each)",
+    "1,400 – 1,600 conversations / month",
     "2 AI agents",
     "Everything in Starter",
     "Priority email support",

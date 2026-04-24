@@ -21,6 +21,7 @@ import {
   getMonthlyCreditsUsed,
   insertCreditUsage,
 } from "../db/queries.js"
+import { markSentByUs } from "../baileys/sent-message-cache.js"
 import { webhookEmitter } from "../dashboard/webhook-emitter.js"
 import { logger as rootLogger } from "../lib/logger.js"
 import { RateLimitError } from "../lib/errors.js"
@@ -117,11 +118,14 @@ const worker = new Worker<OutboundJob>(
     const startMs = Date.now()
 
     try {
+      let sentMsgId: string | undefined
       if (type === "image" && mediaUrl) {
-        await sendImageWithPacing(sock, toJid, mediaUrl, text, session.warmupTier)
+        sentMsgId = await sendImageWithPacing(sock, toJid, mediaUrl, text, session.warmupTier)
       } else {
-        await sendWithPacing(sock, toJid, text, session.warmupTier)
+        sentMsgId = await sendWithPacing(sock, toJid, text, session.warmupTier)
       }
+      // Register in dedup cache so event-handlers skips this reflected message
+      if (sentMsgId) markSentByUs(sentMsgId)
 
       if (source === "ai" && creditsToCharge > 0) {
         await insertCreditUsage({

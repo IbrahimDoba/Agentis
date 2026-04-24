@@ -90,7 +90,6 @@ const siteInfo = {
         features: [
           "1 AI WhatsApp Agent",
           "60,000 credits/month (~923 text conversations at 13 AI msgs each)",
-          "Dailzero AI usage: 5 credits per AI text, 8 credits per AI image",
           "Text + image responses",
           "Advanced FAQ handling",
           "Business hours configuration",
@@ -119,7 +118,6 @@ const siteInfo = {
         features: [
           "2 AI WhatsApp Agents",
           "100,000 credits/month (~1,538 text conversations at 13 AI msgs each)",
-          "Dailzero AI usage: 5 credits per AI text, 8 credits per AI image",
           "Text + image + media sending",
           "Automated follow-up messages",
           "Advanced AI with custom personality",
@@ -154,7 +152,7 @@ const siteInfo = {
     {
       question: "What happens if I exceed my conversation limit?",
       answer:
-        "On the Starter plan, additional credits beyond your 60,000 monthly allowance are charged at ₦1,000 per 1,000 credits. On the Pro plan, the overage rate is ₦800 per 1,000 credits. Dailzero AI usage is consumed per successful AI send: 5 credits per text and 8 credits per image.",
+        "On the Starter plan, additional credits beyond your 60,000 monthly allowance are charged at ₦1,000 per 1,000 credits. On the Pro plan, the overage rate is ₦800 per 1,000 credits.",
     },
     {
       question: "Do you offer custom plans?",
