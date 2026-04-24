@@ -30,6 +30,7 @@ export async function GET(
       select: {
         id: true,
         direction: true,
+        senderRole: true,
         content: true,
         mediaUrl: true,
         createdAt: true,
@@ -40,7 +41,7 @@ export async function GET(
       messages: messages.map((m) => ({
         id: m.id,
         direction: m.direction,
-        senderRole: "ai" as string,
+        senderRole: m.senderRole,
         content: m.content,
         mediaUrl: m.mediaUrl,
         createdAt: m.createdAt.toISOString(),
@@ -99,6 +100,7 @@ export async function POST(
       data: {
         conversationId,
         direction: "outbound",
+        senderRole: "human",
         content: text.trim(),
       },
     })
