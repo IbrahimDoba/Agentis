@@ -1,0 +1,461 @@
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../src/generated/prisma"
+  previewFeatures = ["postgresqlExtensions"]
+  binaryTargets   = ["native", "linux-musl"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  extensions = [vector]
+}
+
+model User {
+  id                     String             @id @default(cuid())
+  name                   String
+  email                  String             @unique
+  phone                  String?
+  businessName           String
+  passwordHash           String?
+  role                   Role               @default(USER)
+  status                 UserStatus         @default(PENDING)
+  workspaceMembers       WorkspaceMember[]  @relation("WorkspaceOwner")
+  memberOf               WorkspaceMember[]  @relation("WorkspaceMemberUser")
+  resetToken             String?            @unique
+  resetTokenExpiry       DateTime?
+  emailVerified          Boolean            @default(false)
+  verificationCode       String?
+  verificationCodeExpiry DateTime?
+  businessCategory       String?
+  businessDescription    String?
+  businessAddress        String?
+  businessEmail          String?
+  businessWebsite        String?
+  maxAgents              Int                @default(1)
+  plan                   String             @default("free")
+  subscriptionExpiresAt  DateTime?
+  onboardingCompleted    Boolean            @default(false)
+  referralsEnabled       Boolean            @default(false)
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+  agents                 Agent[]
+  leads                  Lead[]
+  conversationReads      ConversationRead[]
+  referralCode           String?            @unique
+  referralsMade          Referral[]         @relation("ReferralsMade")
+  referredBy             Referral?          @relation("ReferredBy")
+  paymentRequests        PaymentRequest[]
+}
+
+model Agent {
+  id                    String              @id @default(cuid())
+  userId                String
+  user                  User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessName          String
+  businessDescription   String              @db.Text
+  productsServices      String              @db.Text
+  faqs                  String              @db.Text
+  operatingHours        String
+  contactEmail          String?
+  contactPhone          String?
+  websiteLinks          String?
+  responseGuidelines    String?             @db.Text
+  profileImageUrl       String?
+  whatsappBusinessName  String?
+  whatsappAgentLink     String?
+  whatsappPhoneNumber   String?
+  qrCodeUrl             String?
+  elevenlabsAgentId     String?
+  whatsappPhoneNumberId String?
+  messagingEnabled      Boolean             @default(true)
+  category              String?
+  address               String?
+  productsData          Json?
+  toolsData             Json?
+  transportType         String              @default("waba")
+  agentRuntime          String              @default("elevenlabs")
+  status                AgentStatus         @default(PENDING_REVIEW)
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  leads                 Lead[]
+  conversationLogs      ConversationLog[]
+  customers             Customer[]
+  templates             MessageTemplate[]
+  baileysSession        BaileysSession?
+  orchestratorAgents    OrchestratorAgent[]
+  conversations         Conversation[]
+  broadcasts            BroadcastCampaign[]
+}
+
+model BroadcastCampaign {
+  id          String               @id @default(cuid())
+  agentId     String
+  agent       Agent                @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  message     String               @db.Text
+  status      String               @default("pending") // pending | running | paused | completed | cancelled | failed
+  totalCount  Int                  @default(0)
+  sentCount   Int                  @default(0)
+  failedCount Int                  @default(0)
+  createdAt   DateTime             @default(now())
+  startedAt   DateTime?
+  completedAt DateTime?
+  recipients  BroadcastRecipient[]
+
+  @@index([agentId])
+}
+
+model BroadcastRecipient {
+  id          String            @id @default(cuid())
+  broadcastId String
+  broadcast   BroadcastCampaign @relation(fields: [broadcastId], references: [id], onDelete: Cascade)
+  phoneNumber String
+  jid         String
+  contactName String?
+  status      String            @default("pending") // pending | sent | failed | skipped
+  error       String?
+  sentAt      DateTime?
+
+  @@index([broadcastId])
+}
+
+model OrchestratorAgent {
+  id              String         @id @default(cuid())
+  agentId         String
+  agent           Agent          @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  name            String
+  systemPrompt    String         @db.Text
+  personality     String?        @db.Text
+  model           String         @default("gpt-4o-mini")
+  temperature     Decimal        @default(0.7) @db.Decimal(3, 2)
+  maxOutputTokens Int            @default(800)
+  shortTermWindow Int            @default(20)
+  summarizeAfter  Int            @default(30)
+  isActive        Boolean        @default(true)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  conversations   Conversation[]
+}
+
+model Document {
+  id         String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  agentId    String
+  filename   String
+  mimeType   String
+  sizeBytes  BigInt
+  r2Key      String
+  status     String          @default("pending")
+  error      String?
+  chunkCount Int?            @default(0)
+  createdAt  DateTime        @default(now()) @db.Timestamptz()
+  chunks     DocumentChunk[]
+}
+
+model DocumentChunk {
+  id         String                       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  documentId String                       @db.Uuid
+  document   Document                     @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  agentId    String
+  chunkIndex Int
+  content    String
+  // Using Unsupported for pgvector as Prisma requires native support for vector
+  embedding  Unsupported("vector(1536)")?
+  metadata   Json?                        @default("{}")
+  createdAt  DateTime                     @default(now()) @db.Timestamptz()
+
+  @@index([agentId])
+}
+
+model MediaItem {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  agentId     String
+  filename    String
+  mimeType    String
+  r2Key       String
+  description String
+  tags        String[] @default([])
+  createdAt   DateTime @default(now()) @db.Timestamptz()
+
+  @@index([agentId])
+}
+
+model Conversation {
+  id                  String               @id @default(cuid())
+  agentId             String
+  agent               Agent                @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  orchestratorAgentId String?
+  orchestratorAgent   OrchestratorAgent?   @relation(fields: [orchestratorAgentId], references: [id], onDelete: SetNull)
+  phoneNumber         String
+  contactName         String?
+  mode                String               @default("ai")
+  lastActivityAt      DateTime?            @default(now())
+  factsExtractedAt    DateTime?
+  createdAt           DateTime             @default(now())
+  messages            Message[]
+  summary             ConversationSummary?
+
+  @@unique([agentId, phoneNumber])
+}
+
+model Message {
+  id               String       @id @default(cuid())
+  conversationId   String
+  conversation     Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  direction        String
+  senderRole       String       @default("ai") // "ai" | "human" (outbound only)
+  content          String       @db.Text
+  mediaUrl         String?
+  mediaDescription String?      @db.Text
+  toolCalls        Json?
+  tokensInput      Int?
+  tokensOutput     Int?
+  modelUsed        String?
+  createdAt        DateTime     @default(now())
+}
+
+model ConversationSummary {
+  conversationId             String       @id
+  conversation               Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  summary                    String       @db.Text
+  messagesCovered            Int
+  summarizedThroughMessageId String?
+  updatedAt                  DateTime     @default(now()) @updatedAt
+}
+
+model MessageTemplate {
+  id        String   @id @default(cuid())
+  agentId   String
+  agent     Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  name      String
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Lead {
+  id             String     @id @default(cuid())
+  conversationId String
+  agentId        String
+  userId         String
+  callerNumber   String?
+  summary        String?    @db.Text
+  status         LeadStatus @default(NEW)
+  notes          String?    @db.Text
+  aiDetected     Boolean    @default(false)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  agent          Agent      @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  user           User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+}
+
+model ConversationRead {
+  id             String   @id @default(cuid())
+  conversationId String
+  userId         String
+  readAt         DateTime @default(now())
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum UserStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+enum AgentStatus {
+  PENDING_REVIEW
+  SETTING_UP
+  ACTIVE
+  INACTIVE
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  CLOSED
+}
+
+model Customer {
+  id                  String   @id @default(cuid())
+  phoneNumber         String   @unique
+  agentId             String?
+  name                String?
+  email               String?
+  conversationSummary String?  @db.Text
+  lastSeen            DateTime @default(now())
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  agent            Agent?            @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  conversationLogs ConversationLog[]
+}
+
+model Referral {
+  id               String         @id @default(cuid())
+  referrerId       String
+  referredId       String         @unique
+  code             String?
+  status           ReferralStatus @default(PENDING)
+  commissionRate   Float          @default(0.15)
+  commissionEarned Float?
+  rewardGranted    Boolean        @default(false)
+  assignedByAdmin  Boolean        @default(false)
+  createdAt        DateTime       @default(now())
+
+  referrer User @relation("ReferralsMade", fields: [referrerId], references: [id], onDelete: Cascade)
+  referred User @relation("ReferredBy", fields: [referredId], references: [id], onDelete: Cascade)
+}
+
+enum ReferralStatus {
+  PENDING
+  COMPLETED
+  REWARDED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  CANCELLED
+}
+
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  source    String?
+  createdAt DateTime @default(now())
+}
+
+model ConversationLog {
+  id                String    @id @default(cuid())
+  conversationId    String    @unique
+  elevenlabsAgentId String
+  agentId           String?
+  customerId        String?
+  phoneNumber       String?
+  transcript        Json
+  summary           String?   @db.Text
+  durationSecs      Int?
+  startTime         DateTime?
+  status            String?
+  creditsUsed       Int       @default(0)
+  rawPayload        Json
+  createdAt         DateTime  @default(now())
+
+  agent    Agent?    @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  customer Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+}
+
+model WorkspaceMember {
+  id          String                @id @default(cuid())
+  workspaceId String
+  userId      String?
+  email       String
+  role        WorkspaceRole         @default(MEMBER)
+  status      WorkspaceInviteStatus @default(PENDING)
+  inviteToken String?               @unique
+  invitedAt   DateTime              @default(now())
+  joinedAt    DateTime?
+
+  workspace User  @relation("WorkspaceOwner", fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User? @relation("WorkspaceMemberUser", fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([workspaceId, email])
+}
+
+enum WorkspaceRole {
+  ADMIN
+  MEMBER
+}
+
+enum WorkspaceInviteStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+}
+
+model PaymentRequest {
+  id          String        @id @default(cuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan        String
+  amountNaira Int
+  status      PaymentStatus @default(PENDING)
+  reference   String        @unique @default(cuid())
+  notes       String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model BaileysSession {
+  id                   String               @id @default(cuid())
+  agentId              String               @unique
+  agent                Agent                @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  phoneNumber          String?
+  status               BaileysStatus        @default(DISCONNECTED)
+  lastConnectedAt      DateTime?
+  lastDisconnectReason String?
+  linkedDeviceName     String               @default("Dailzero AI")
+  authBackupPath       String?
+  warmupStartedAt      DateTime?
+  warmupTier           Int                  @default(1)
+  dailyMessageCount    Int                  @default(0)
+  dailyCountResetAt    DateTime             @default(now())
+  businessHoursStart   String               @default("08:00")
+  businessHoursEnd     String               @default("21:00")
+  timezone             String               @default("Africa/Lagos")
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  outboundLogs         BaileysOutboundLog[]
+}
+
+model BaileysOutboundLog {
+  id             String                @id @default(cuid())
+  sessionId      String
+  session        BaileysSession        @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  conversationId String?
+  toJid          String
+  messagePreview String?
+  queuedAt       DateTime              @default(now())
+  sentAt         DateTime?
+  delayAppliedMs Int?
+  status         BaileysOutboundStatus @default(QUEUED)
+}
+
+enum BaileysStatus {
+  DISCONNECTED
+  QR_PENDING
+  CONNECTING
+  CONNECTED
+  LOGGED_OUT
+  BANNED
+}
+
+enum BaileysOutboundStatus {
+  QUEUED
+  SENT
+  FAILED
+  RATE_LIMITED
+}
+
+model CreditUsage {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  agentId        String
+  conversationId String?
+  messageType    String
+  source         String   @default("ai")
+  creditsUsed    Int
+  createdAt      DateTime @default(now()) @db.Timestamptz()
+
+  @@index([agentId, createdAt])
+  @@index([conversationId])
+}
