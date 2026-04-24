@@ -44,7 +44,6 @@ prompt.md
 
 # local debug/utility scripts
 check-db.js
-scripts/
 
 # typescript
 *.tsbuildinfo

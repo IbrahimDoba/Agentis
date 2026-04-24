@@ -339,6 +339,7 @@ export type MessageScalarWhereWithAggregatesInput = {
 export type MessageCreateInput = {
   id?: string
   direction: string
+  senderRole?: string
   content: string
   mediaUrl?: string | null
   mediaDescription?: string | null
@@ -354,6 +355,7 @@ export type MessageUncheckedCreateInput = {
   id?: string
   conversationId: string
   direction: string
+  senderRole?: string
   content: string
   mediaUrl?: string | null
   mediaDescription?: string | null
@@ -662,6 +664,7 @@ export type MessageSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   id?: boolean
   conversationId?: boolean
   direction?: boolean
+  senderRole?: boolean
   content?: boolean
   mediaUrl?: boolean
   mediaDescription?: boolean
@@ -677,6 +680,7 @@ export type MessageSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   id?: boolean
   conversationId?: boolean
   direction?: boolean
+  senderRole?: boolean
   content?: boolean
   mediaUrl?: boolean
   mediaDescription?: boolean
@@ -704,6 +708,7 @@ export type MessageSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
 }, ExtArgs["result"]["message"]>
 
 export type MessageSelectScalar = {
+  senderRole?: boolean
   id?: boolean
   conversationId?: boolean
   direction?: boolean
@@ -717,7 +722,7 @@ export type MessageSelectScalar = {
   createdAt?: boolean
 }
 
-export type MessageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "conversationId" | "direction" | "content" | "mediaUrl" | "mediaDescription" | "toolCalls" | "tokensInput" | "tokensOutput" | "modelUsed" | "createdAt", ExtArgs["result"]["message"]>
+export type MessageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "conversationId" | "direction" | "senderRole" | "content" | "mediaUrl" | "mediaDescription" | "toolCalls" | "tokensInput" | "tokensOutput" | "modelUsed" | "createdAt", ExtArgs["result"]["message"]>
 export type MessageInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   conversation?: boolean | Prisma.ConversationDefaultArgs<ExtArgs>
 }

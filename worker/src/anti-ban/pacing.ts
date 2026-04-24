@@ -44,7 +44,7 @@ export async function sendWithPacing(
 
   // Send the actual message — capture key ID for dedup cache
   const sent = await sock.sendMessage(jid, { text })
-  const msgId = sent?.key?.id
+  const msgId = sent?.key?.id ?? undefined
 
   // §7.2 — Paused presence
   try {
@@ -86,7 +86,7 @@ export async function sendImageWithPacing(
     image: { url: imageUrl },
     caption: caption || undefined,
   })
-  const msgId = sent?.key?.id
+  const msgId = sent?.key?.id ?? undefined
 
   try {
     await sock.sendPresenceUpdate("paused", jid)

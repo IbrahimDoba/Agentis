@@ -28,7 +28,7 @@ export async function transcribeVoiceNote(
 
   // WhatsApp voice notes are ogg/opus — Whisper supports this natively
   const formData = new FormData()
-  const blob = new Blob([buffer], { type: "audio/ogg" })
+  const blob = new Blob([new Uint8Array(buffer)], { type: "audio/ogg" })
   formData.append("file", blob, "voice.ogg")
   formData.append("model", "whisper-1")
   formData.append("response_format", "json")
