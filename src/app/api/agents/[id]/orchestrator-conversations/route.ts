@@ -46,7 +46,7 @@ export async function GET(
         messages: {
           orderBy: { createdAt: "desc" },
           take: 1,
-          select: { content: true, direction: true, createdAt: true },
+          select: { content: true, direction: true, senderRole: true, createdAt: true },
         },
       },
     })
@@ -118,7 +118,7 @@ export async function GET(
           ? {
               content: c.messages[0].content,
               direction: c.messages[0].direction,
-              senderRole: "ai" as string,
+              senderRole: c.messages[0].senderRole,
               createdAt: c.messages[0].createdAt.toISOString(),
             }
           : null,

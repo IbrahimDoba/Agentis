@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "node scripts/patch-prisma.js && next build",
+    "postinstall": "prisma generate && node scripts/patch-prisma.js",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint"
   },
