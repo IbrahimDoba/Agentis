@@ -9,6 +9,12 @@ const fs = require("fs")
 const path = require("path")
 
 const file = path.join(__dirname, "../src/generated/prisma/models/Message.ts")
+
+if (!fs.existsSync(file)) {
+  console.log("patch-prisma: Message.ts not found (non-Next.js build), skipping.")
+  process.exit(0)
+}
+
 let content = fs.readFileSync(file, "utf8")
 
 if (content.includes("senderRole")) {
