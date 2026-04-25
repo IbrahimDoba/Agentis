@@ -175,6 +175,20 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
     },
   })
 
+  const setAllMode = useMutation({
+    mutationFn: async (mode: "ai" | "human") => {
+      const res = await fetch(`/api/agents/${agentId}/conversations/mode`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode }),
+      })
+      if (!res.ok) throw new Error("Failed to update all conversations")
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["orchestrator-chats", agentId] })
+    },
+  })
+
   const sendMessage = useMutation({
     mutationFn: async ({ id, text }: { id: string; text: string }) => {
       const res = await fetch(`/api/conversations/${id}/messages`, {
@@ -276,6 +290,23 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
           onClick={() => setLeadFilter("leads")}
         >
           Leads ({leadIds.size})
+        </button>
+        <div className={styles.metaFiltersSpacer} />
+        <button
+          className={`${styles.metaFilterBtn} ${setAllMode.isPending ? styles.metaFilterBtnPending : ""}`}
+          disabled={setAllMode.isPending}
+          onClick={() => setAllMode.mutate("ai")}
+          title="Set all conversations to AI mode"
+        >
+          All → AI
+        </button>
+        <button
+          className={`${styles.metaFilterBtn} ${styles.metaFilterBtnHuman} ${setAllMode.isPending ? styles.metaFilterBtnPending : ""}`}
+          disabled={setAllMode.isPending}
+          onClick={() => setAllMode.mutate("human")}
+          title="Set all conversations to human mode"
+        >
+          All → Human
         </button>
       </div>
 

@@ -44,14 +44,12 @@ export async function getOrCreateConversation(
       UPDATE "Conversation"
       SET "lastActivityAt" = NOW(),
           "orchestratorAgentId" = COALESCE(${orchestratorAgentId}, "orchestratorAgentId"),
-          "contactName" = COALESCE(${contactName ?? null}, "contactName"),
-          "mode" = ${defaultMode}
+          "contactName" = COALESCE(${contactName ?? null}, "contactName")
       WHERE "id" = ${existing[0].id}
     `
     return {
       ...existing[0],
       orchestratorAgentId: orchestratorAgentId ?? existing[0].orchestratorAgentId,
-      mode: defaultMode,
     }
   }
 

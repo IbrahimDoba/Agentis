@@ -43,8 +43,7 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
     agentId,
     fromPhone,
     agent.id,
-    pushName,
-    agent.isActive ? "ai" : "human"
+    pushName
   )
 
   // 3. Always save the inbound message regardless of mode
@@ -54,9 +53,9 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
     content: text,
   })
 
-  // 4. Check mode — skip AI reply if human is handling
-  if (!agent.isActive) {
-    logger.info({ agentId, conversationId: conversation.id }, "Agent in human handoff mode — skipping AI reply")
+  // 4. Check mode — skip AI reply if human is handling this conversation
+  if (conversation.mode === "human") {
+    logger.info({ agentId, conversationId: conversation.id }, "Conversation in human handoff mode — skipping AI reply")
     return
   }
 
