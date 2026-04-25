@@ -5,6 +5,7 @@ import { agentSchema } from "@/lib/validations"
 import { sendAgentSubmittedNotification } from "@/lib/email"
 import { getWorkspaceContext } from "@/lib/workspace"
 import { syncProductImagesToOrchestratorMedia } from "@/lib/orchestrator-media-sync"
+import { buildOrchestratorSystemPrompt } from "@/lib/orchestratorSync"
 
 export async function GET(req: NextRequest) {
   try {
@@ -108,7 +109,7 @@ export async function POST(req: NextRequest) {
         data: {
           agentId: agent.id,
           name: agent.businessName,
-          systemPrompt: agentData.responseGuidelines || "You are a helpful WhatsApp assistant.",
+          systemPrompt: buildOrchestratorSystemPrompt(agentData.responseGuidelines),
           model: orchestratorModel || "gpt-4o-mini",
           temperature: orchestratorTemperature ?? 0.7,
           maxOutputTokens: orchestratorMaxTokens ?? 800,

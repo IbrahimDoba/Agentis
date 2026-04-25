@@ -291,24 +291,21 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
         >
           Leads ({leadIds.size})
         </button>
-        <div className={styles.metaFiltersSpacer} />
+      </div>
+
+      {/* Resume all banner — only shown when at least one conversation is in human mode */}
+      {conversations.some((c) => c.mode === "human") && (
         <button
-          className={`${styles.metaFilterBtn} ${setAllMode.isPending ? styles.metaFilterBtnPending : ""}`}
+          className={styles.resumeAllBanner}
           disabled={setAllMode.isPending}
           onClick={() => setAllMode.mutate("ai")}
-          title="Set all conversations to AI mode"
         >
-          All → AI
+          <span>⚠ {conversations.filter((c) => c.mode === "human").length} conversation{conversations.filter((c) => c.mode === "human").length !== 1 ? "s" : ""} paused</span>
+          <span className={styles.resumeAllAction}>
+            {setAllMode.isPending ? "Resuming…" : "Resume all AI →"}
+          </span>
         </button>
-        <button
-          className={`${styles.metaFilterBtn} ${styles.metaFilterBtnHuman} ${setAllMode.isPending ? styles.metaFilterBtnPending : ""}`}
-          disabled={setAllMode.isPending}
-          onClick={() => setAllMode.mutate("human")}
-          title="Set all conversations to human mode"
-        >
-          All → Human
-        </button>
-      </div>
+      )}
 
       {/* Conversation list */}
       {isLoading && (

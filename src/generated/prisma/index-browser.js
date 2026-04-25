@@ -173,6 +173,7 @@ exports.Prisma.AgentScalarFieldEnum = {
   address: 'address',
   productsData: 'productsData',
   toolsData: 'toolsData',
+  openaiApiKey: 'openaiApiKey',
   transportType: 'transportType',
   agentRuntime: 'agentRuntime',
   status: 'status',

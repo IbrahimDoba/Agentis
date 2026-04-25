@@ -7,6 +7,7 @@ import { buildAndSyncElevenLabsPrompt } from "@/lib/agentSync"
 import { setAgentWebhook, addCustomerHistoryTool, setWhatsAppAccountAgent } from "@/lib/elevenlabs"
 import type { Product } from "@/types"
 import { syncProductImagesToOrchestratorMedia } from "@/lib/orchestrator-media-sync"
+import { buildOrchestratorSystemPrompt } from "@/lib/orchestratorSync"
 
 interface Params {
   params: Promise<{ id: string }>
@@ -92,9 +93,18 @@ export async function PATCH(req: NextRequest, { params }: Params) {
         return NextResponse.json({ error: "Invalid data" }, { status: 400 })
       }
 
+      // Strip orchestrator-only fields before passing to Agent table
+      const {
+        orchestratorModel: adminOrchModel,
+        orchestratorTemperature: adminOrchTemp,
+        orchestratorMaxTokens: adminOrchTokens,
+        agentRuntime: _adminRt,
+        ...adminAgentFields
+      } = parsed.data as any
+
       let updated = await db.agent.update({
         where: { id },
-        data: parsed.data,
+        data: adminAgentFields,
         include: { user: { select: { name: true, email: true } } },
       })
 
@@ -136,6 +146,19 @@ export async function PATCH(req: NextRequest, { params }: Params) {
           .catch((err) => console.error("[agentSync] Customer history tool setup failed:", err))
       }
 
+      // Sync OrchestratorAgent systemPrompt + model settings when config changes (admin)
+      if (updated.agentRuntime === "orchestrator") {
+        const newSystemPrompt = buildOrchestratorSystemPrompt(updated.responseGuidelines)
+        const orchestratorUpdate: Record<string, unknown> = { systemPrompt: newSystemPrompt }
+        if (adminOrchModel) orchestratorUpdate.model = adminOrchModel
+        if (adminOrchTemp != null) orchestratorUpdate.temperature = adminOrchTemp
+        if (adminOrchTokens != null) orchestratorUpdate.maxOutputTokens = adminOrchTokens
+        await db.orchestratorAgent.updateMany({
+          where: { agentId: id },
+          data: orchestratorUpdate,
+        })
+      }
+
       if (parsed.data.status === "ACTIVE") {
         sendAgentApprovedEmail({
           userName: updated.user.name,
@@ -164,9 +187,12 @@ export async function PATCH(req: NextRequest, { params }: Params) {
         return NextResponse.json({ errors }, { status: 400 })
       }
 
+      // Strip orchestrator-only fields before passing to Agent table
+      const { orchestratorModel, orchestratorTemperature, orchestratorMaxTokens, agentRuntime: _rt, ...agentFields } = parsed.data
+
       let updated = await db.agent.update({
         where: { id },
-        data: parsed.data,
+        data: agentFields,
       })
 
       if (updated.agentRuntime === "orchestrator" && Array.isArray(parsed.data.productsData)) {
@@ -186,6 +212,19 @@ export async function PATCH(req: NextRequest, { params }: Params) {
           responseGuidelines: updated.responseGuidelines,
           productsData: updated.productsData as Product[] | null,
         }).catch((err) => console.error("[agentSync] ElevenLabs sync failed:", err))
+      }
+
+      // Sync OrchestratorAgent systemPrompt + model settings when config changes
+      if (updated.agentRuntime === "orchestrator") {
+        const newSystemPrompt = buildOrchestratorSystemPrompt(updated.responseGuidelines)
+        const orchestratorUpdate: Record<string, unknown> = { systemPrompt: newSystemPrompt }
+        if (orchestratorModel) orchestratorUpdate.model = orchestratorModel
+        if (orchestratorTemperature != null) orchestratorUpdate.temperature = orchestratorTemperature
+        if (orchestratorMaxTokens != null) orchestratorUpdate.maxOutputTokens = orchestratorMaxTokens
+        await db.orchestratorAgent.updateMany({
+          where: { agentId: id },
+          data: orchestratorUpdate,
+        })
       }
 
       return NextResponse.json({

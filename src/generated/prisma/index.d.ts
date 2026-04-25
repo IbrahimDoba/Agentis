@@ -4967,6 +4967,7 @@ export namespace Prisma {
     messagingEnabled: boolean | null
     category: string | null
     address: string | null
+    openaiApiKey: string | null
     transportType: string | null
     agentRuntime: string | null
     status: $Enums.AgentStatus | null
@@ -4996,6 +4997,7 @@ export namespace Prisma {
     messagingEnabled: boolean | null
     category: string | null
     address: string | null
+    openaiApiKey: string | null
     transportType: string | null
     agentRuntime: string | null
     status: $Enums.AgentStatus | null
@@ -5027,6 +5029,7 @@ export namespace Prisma {
     address: number
     productsData: number
     toolsData: number
+    openaiApiKey: number
     transportType: number
     agentRuntime: number
     status: number
@@ -5058,6 +5061,7 @@ export namespace Prisma {
     messagingEnabled?: true
     category?: true
     address?: true
+    openaiApiKey?: true
     transportType?: true
     agentRuntime?: true
     status?: true
@@ -5087,6 +5091,7 @@ export namespace Prisma {
     messagingEnabled?: true
     category?: true
     address?: true
+    openaiApiKey?: true
     transportType?: true
     agentRuntime?: true
     status?: true
@@ -5118,6 +5123,7 @@ export namespace Prisma {
     address?: true
     productsData?: true
     toolsData?: true
+    openaiApiKey?: true
     transportType?: true
     agentRuntime?: true
     status?: true
@@ -5222,6 +5228,7 @@ export namespace Prisma {
     address: string | null
     productsData: JsonValue | null
     toolsData: JsonValue | null
+    openaiApiKey: string | null
     transportType: string
     agentRuntime: string
     status: $Enums.AgentStatus
@@ -5270,6 +5277,7 @@ export namespace Prisma {
     address?: boolean
     productsData?: boolean
     toolsData?: boolean
+    openaiApiKey?: boolean
     transportType?: boolean
     agentRuntime?: boolean
     status?: boolean
@@ -5311,6 +5319,7 @@ export namespace Prisma {
     address?: boolean
     productsData?: boolean
     toolsData?: boolean
+    openaiApiKey?: boolean
     transportType?: boolean
     agentRuntime?: boolean
     status?: boolean
@@ -5343,6 +5352,7 @@ export namespace Prisma {
     address?: boolean
     productsData?: boolean
     toolsData?: boolean
+    openaiApiKey?: boolean
     transportType?: boolean
     agentRuntime?: boolean
     status?: boolean
@@ -5375,6 +5385,7 @@ export namespace Prisma {
     address?: boolean
     productsData?: boolean
     toolsData?: boolean
+    openaiApiKey?: boolean
     transportType?: boolean
     agentRuntime?: boolean
     status?: boolean
@@ -5382,7 +5393,7 @@ export namespace Prisma {
     updatedAt?: boolean
   }
 
-  export type AgentOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "businessName" | "businessDescription" | "productsServices" | "faqs" | "operatingHours" | "contactEmail" | "contactPhone" | "websiteLinks" | "responseGuidelines" | "profileImageUrl" | "whatsappBusinessName" | "whatsappAgentLink" | "whatsappPhoneNumber" | "qrCodeUrl" | "elevenlabsAgentId" | "whatsappPhoneNumberId" | "messagingEnabled" | "category" | "address" | "productsData" | "toolsData" | "transportType" | "agentRuntime" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["agent"]>
+  export type AgentOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "businessName" | "businessDescription" | "productsServices" | "faqs" | "operatingHours" | "contactEmail" | "contactPhone" | "websiteLinks" | "responseGuidelines" | "profileImageUrl" | "whatsappBusinessName" | "whatsappAgentLink" | "whatsappPhoneNumber" | "qrCodeUrl" | "elevenlabsAgentId" | "whatsappPhoneNumberId" | "messagingEnabled" | "category" | "address" | "productsData" | "toolsData" | "openaiApiKey" | "transportType" | "agentRuntime" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["agent"]>
   export type AgentInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
     leads?: boolean | Agent$leadsArgs<ExtArgs>
@@ -5439,6 +5450,7 @@ export namespace Prisma {
       address: string | null
       productsData: Prisma.JsonValue | null
       toolsData: Prisma.JsonValue | null
+      openaiApiKey: string | null
       transportType: string
       agentRuntime: string
       status: $Enums.AgentStatus
@@ -5899,6 +5911,7 @@ export namespace Prisma {
     readonly address: FieldRef<"Agent", 'String'>
     readonly productsData: FieldRef<"Agent", 'Json'>
     readonly toolsData: FieldRef<"Agent", 'Json'>
+    readonly openaiApiKey: FieldRef<"Agent", 'String'>
     readonly transportType: FieldRef<"Agent", 'String'>
     readonly agentRuntime: FieldRef<"Agent", 'String'>
     readonly status: FieldRef<"Agent", 'AgentStatus'>
@@ -30593,6 +30606,7 @@ export namespace Prisma {
     address: 'address',
     productsData: 'productsData',
     toolsData: 'toolsData',
+    openaiApiKey: 'openaiApiKey',
     transportType: 'transportType',
     agentRuntime: 'agentRuntime',
     status: 'status',
@@ -31432,6 +31446,7 @@ export namespace Prisma {
     address?: StringNullableFilter<"Agent"> | string | null
     productsData?: JsonNullableFilter<"Agent">
     toolsData?: JsonNullableFilter<"Agent">
+    openaiApiKey?: StringNullableFilter<"Agent"> | string | null
     transportType?: StringFilter<"Agent"> | string
     agentRuntime?: StringFilter<"Agent"> | string
     status?: EnumAgentStatusFilter<"Agent"> | $Enums.AgentStatus
@@ -31472,6 +31487,7 @@ export namespace Prisma {
     address?: SortOrderInput | SortOrder
     productsData?: SortOrderInput | SortOrder
     toolsData?: SortOrderInput | SortOrder
+    openaiApiKey?: SortOrderInput | SortOrder
     transportType?: SortOrder
     agentRuntime?: SortOrder
     status?: SortOrder
@@ -31515,6 +31531,7 @@ export namespace Prisma {
     address?: StringNullableFilter<"Agent"> | string | null
     productsData?: JsonNullableFilter<"Agent">
     toolsData?: JsonNullableFilter<"Agent">
+    openaiApiKey?: StringNullableFilter<"Agent"> | string | null
     transportType?: StringFilter<"Agent"> | string
     agentRuntime?: StringFilter<"Agent"> | string
     status?: EnumAgentStatusFilter<"Agent"> | $Enums.AgentStatus
@@ -31555,6 +31572,7 @@ export namespace Prisma {
     address?: SortOrderInput | SortOrder
     productsData?: SortOrderInput | SortOrder
     toolsData?: SortOrderInput | SortOrder
+    openaiApiKey?: SortOrderInput | SortOrder
     transportType?: SortOrder
     agentRuntime?: SortOrder
     status?: SortOrder
@@ -31592,6 +31610,7 @@ export namespace Prisma {
     address?: StringNullableWithAggregatesFilter<"Agent"> | string | null
     productsData?: JsonNullableWithAggregatesFilter<"Agent">
     toolsData?: JsonNullableWithAggregatesFilter<"Agent">
+    openaiApiKey?: StringNullableWithAggregatesFilter<"Agent"> | string | null
     transportType?: StringWithAggregatesFilter<"Agent"> | string
     agentRuntime?: StringWithAggregatesFilter<"Agent"> | string
     status?: EnumAgentStatusWithAggregatesFilter<"Agent"> | $Enums.AgentStatus
@@ -33499,6 +33518,7 @@ export namespace Prisma {
     address?: string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: string | null
     transportType?: string
     agentRuntime?: string
     status?: $Enums.AgentStatus
@@ -33539,6 +33559,7 @@ export namespace Prisma {
     address?: string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: string | null
     transportType?: string
     agentRuntime?: string
     status?: $Enums.AgentStatus
@@ -33577,6 +33598,7 @@ export namespace Prisma {
     address?: NullableStringFieldUpdateOperationsInput | string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: NullableStringFieldUpdateOperationsInput | string | null
     transportType?: StringFieldUpdateOperationsInput | string
     agentRuntime?: StringFieldUpdateOperationsInput | string
     status?: EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -33617,6 +33639,7 @@ export namespace Prisma {
     address?: NullableStringFieldUpdateOperationsInput | string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: NullableStringFieldUpdateOperationsInput | string | null
     transportType?: StringFieldUpdateOperationsInput | string
     agentRuntime?: StringFieldUpdateOperationsInput | string
     status?: EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -33656,6 +33679,7 @@ export namespace Prisma {
     address?: string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: string | null
     transportType?: string
     agentRuntime?: string
     status?: $Enums.AgentStatus
@@ -33686,6 +33710,7 @@ export namespace Prisma {
     address?: NullableStringFieldUpdateOperationsInput | string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: NullableStringFieldUpdateOperationsInput | string | null
     transportType?: StringFieldUpdateOperationsInput | string
     agentRuntime?: StringFieldUpdateOperationsInput | string
     status?: EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -33717,6 +33742,7 @@ export namespace Prisma {
     address?: NullableStringFieldUpdateOperationsInput | string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: NullableStringFieldUpdateOperationsInput | string | null
     transportType?: StringFieldUpdateOperationsInput | string
     agentRuntime?: StringFieldUpdateOperationsInput | string
     status?: EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -35994,6 +36020,7 @@ export namespace Prisma {
     address?: SortOrder
     productsData?: SortOrder
     toolsData?: SortOrder
+    openaiApiKey?: SortOrder
     transportType?: SortOrder
     agentRuntime?: SortOrder
     status?: SortOrder
@@ -36023,6 +36050,7 @@ export namespace Prisma {
     messagingEnabled?: SortOrder
     category?: SortOrder
     address?: SortOrder
+    openaiApiKey?: SortOrder
     transportType?: SortOrder
     agentRuntime?: SortOrder
     status?: SortOrder
@@ -36052,6 +36080,7 @@ export namespace Prisma {
     messagingEnabled?: SortOrder
     category?: SortOrder
     address?: SortOrder
+    openaiApiKey?: SortOrder
     transportType?: SortOrder
     agentRuntime?: SortOrder
     status?: SortOrder
@@ -39414,6 +39443,7 @@ export namespace Prisma {
     address?: string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: string | null
     transportType?: string
     agentRuntime?: string
     status?: $Enums.AgentStatus
@@ -39452,6 +39482,7 @@ export namespace Prisma {
     address?: string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: string | null
     transportType?: string
     agentRuntime?: string
     status?: $Enums.AgentStatus
@@ -39720,6 +39751,7 @@ export namespace Prisma {
     address?: StringNullableFilter<"Agent"> | string | null
     productsData?: JsonNullableFilter<"Agent">
     toolsData?: JsonNullableFilter<"Agent">
+    openaiApiKey?: StringNullableFilter<"Agent"> | string | null
     transportType?: StringFilter<"Agent"> | string
     agentRuntime?: StringFilter<"Agent"> | string
     status?: EnumAgentStatusFilter<"Agent"> | $Enums.AgentStatus
@@ -40624,6 +40656,7 @@ export namespace Prisma {
     address?: string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: string | null
     transportType?: string
     agentRuntime?: string
     status?: $Enums.AgentStatus
@@ -40663,6 +40696,7 @@ export namespace Prisma {
     address?: string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: string | null
     transportType?: string
     agentRuntime?: string
     status?: $Enums.AgentStatus
@@ -40746,6 +40780,7 @@ export namespace Prisma {
     address?: NullableStringFieldUpdateOperationsInput | string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: NullableStringFieldUpdateOperationsInput | string | null
     transportType?: StringFieldUpdateOperationsInput | string
     agentRuntime?: StringFieldUpdateOperationsInput | string
     status?: EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -40785,6 +40820,7 @@ export namespace Prisma {
     address?: NullableStringFieldUpdateOperationsInput | string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: NullableStringFieldUpdateOperationsInput | string | null
     transportType?: StringFieldUpdateOperationsInput | string
     agentRuntime?: StringFieldUpdateOperationsInput | string
     status?: EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -40920,6 +40956,7 @@ export namespace Prisma {
     address?: string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: string | null
     transportType?: string
     agentRuntime?: string
     status?: $Enums.AgentStatus
@@ -40959,6 +40996,7 @@ export namespace Prisma {
     address?: string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: string | null
     transportType?: string
     agentRuntime?: string
     status?: $Enums.AgentStatus
@@ -41048,6 +41086,7 @@ export namespace Prisma {
     address?: NullableStringFieldUpdateOperationsInput | string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: NullableStringFieldUpdateOperationsInput | string | null
     transportType?: StringFieldUpdateOperationsInput | string
     agentRuntime?: StringFieldUpdateOperationsInput | string
     status?: EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -41087,6 +41126,7 @@ export namespace Prisma {
     address?: NullableStringFieldUpdateOperationsInput | string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: NullableStringFieldUpdateOperationsInput | string | null
     transportType?: StringFieldUpdateOperationsInput | string
     agentRuntime?: StringFieldUpdateOperationsInput | string
     status?: EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -41265,6 +41305,7 @@ export namespace Prisma {
     address?: string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: string | null
     transportType?: string
     agentRuntime?: string
     status?: $Enums.AgentStatus
@@ -41304,6 +41345,7 @@ export namespace Prisma {
     address?: string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: string | null
     transportType?: string
     agentRuntime?: string
     status?: $Enums.AgentStatus
@@ -41451,6 +41493,7 @@ export namespace Prisma {
     address?: NullableStringFieldUpdateOperationsInput | string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: NullableStringFieldUpdateOperationsInput | string | null
     transportType?: StringFieldUpdateOperationsInput | string
     agentRuntime?: StringFieldUpdateOperationsInput | string
     status?: EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -41490,6 +41533,7 @@ export namespace Prisma {
     address?: NullableStringFieldUpdateOperationsInput | string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: NullableStringFieldUpdateOperationsInput | string | null
     transportType?: StringFieldUpdateOperationsInput | string
     agentRuntime?: StringFieldUpdateOperationsInput | string
     status?: EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -41765,6 +41809,7 @@ export namespace Prisma {
     address?: string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: string | null
     transportType?: string
     agentRuntime?: string
     status?: $Enums.AgentStatus
@@ -41804,6 +41849,7 @@ export namespace Prisma {
     address?: string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: string | null
     transportType?: string
     agentRuntime?: string
     status?: $Enums.AgentStatus
@@ -41857,6 +41903,7 @@ export namespace Prisma {
     address?: NullableStringFieldUpdateOperationsInput | string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: NullableStringFieldUpdateOperationsInput | string | null
     transportType?: StringFieldUpdateOperationsInput | string
     agentRuntime?: StringFieldUpdateOperationsInput | string
     status?: EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -41896,6 +41943,7 @@ export namespace Prisma {
     address?: NullableStringFieldUpdateOperationsInput | string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: NullableStringFieldUpdateOperationsInput | string | null
     transportType?: StringFieldUpdateOperationsInput | string
     agentRuntime?: StringFieldUpdateOperationsInput | string
     status?: EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -41933,6 +41981,7 @@ export namespace Prisma {
     address?: string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: string | null
     transportType?: string
     agentRuntime?: string
     status?: $Enums.AgentStatus
@@ -41972,6 +42021,7 @@ export namespace Prisma {
     address?: string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: string | null
     transportType?: string
     agentRuntime?: string
     status?: $Enums.AgentStatus
@@ -42102,6 +42152,7 @@ export namespace Prisma {
     address?: NullableStringFieldUpdateOperationsInput | string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: NullableStringFieldUpdateOperationsInput | string | null
     transportType?: StringFieldUpdateOperationsInput | string
     agentRuntime?: StringFieldUpdateOperationsInput | string
     status?: EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -42141,6 +42192,7 @@ export namespace Prisma {
     address?: NullableStringFieldUpdateOperationsInput | string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: NullableStringFieldUpdateOperationsInput | string | null
     transportType?: StringFieldUpdateOperationsInput | string
     agentRuntime?: StringFieldUpdateOperationsInput | string
     status?: EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -42421,6 +42473,7 @@ export namespace Prisma {
     address?: string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: string | null
     transportType?: string
     agentRuntime?: string
     status?: $Enums.AgentStatus
@@ -42460,6 +42513,7 @@ export namespace Prisma {
     address?: string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: string | null
     transportType?: string
     agentRuntime?: string
     status?: $Enums.AgentStatus
@@ -42555,6 +42609,7 @@ export namespace Prisma {
     address?: NullableStringFieldUpdateOperationsInput | string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: NullableStringFieldUpdateOperationsInput | string | null
     transportType?: StringFieldUpdateOperationsInput | string
     agentRuntime?: StringFieldUpdateOperationsInput | string
     status?: EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -42594,6 +42649,7 @@ export namespace Prisma {
     address?: NullableStringFieldUpdateOperationsInput | string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: NullableStringFieldUpdateOperationsInput | string | null
     transportType?: StringFieldUpdateOperationsInput | string
     agentRuntime?: StringFieldUpdateOperationsInput | string
     status?: EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -42967,6 +43023,7 @@ export namespace Prisma {
     address?: string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: string | null
     transportType?: string
     agentRuntime?: string
     status?: $Enums.AgentStatus
@@ -43006,6 +43063,7 @@ export namespace Prisma {
     address?: string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: string | null
     transportType?: string
     agentRuntime?: string
     status?: $Enums.AgentStatus
@@ -43088,6 +43146,7 @@ export namespace Prisma {
     address?: NullableStringFieldUpdateOperationsInput | string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: NullableStringFieldUpdateOperationsInput | string | null
     transportType?: StringFieldUpdateOperationsInput | string
     agentRuntime?: StringFieldUpdateOperationsInput | string
     status?: EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -43127,6 +43186,7 @@ export namespace Prisma {
     address?: NullableStringFieldUpdateOperationsInput | string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: NullableStringFieldUpdateOperationsInput | string | null
     transportType?: StringFieldUpdateOperationsInput | string
     agentRuntime?: StringFieldUpdateOperationsInput | string
     status?: EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -43679,6 +43739,7 @@ export namespace Prisma {
     address?: string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: string | null
     transportType?: string
     agentRuntime?: string
     status?: $Enums.AgentStatus
@@ -43718,6 +43779,7 @@ export namespace Prisma {
     address?: string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: string | null
     transportType?: string
     agentRuntime?: string
     status?: $Enums.AgentStatus
@@ -43803,6 +43865,7 @@ export namespace Prisma {
     address?: NullableStringFieldUpdateOperationsInput | string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: NullableStringFieldUpdateOperationsInput | string | null
     transportType?: StringFieldUpdateOperationsInput | string
     agentRuntime?: StringFieldUpdateOperationsInput | string
     status?: EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -43842,6 +43905,7 @@ export namespace Prisma {
     address?: NullableStringFieldUpdateOperationsInput | string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: NullableStringFieldUpdateOperationsInput | string | null
     transportType?: StringFieldUpdateOperationsInput | string
     agentRuntime?: StringFieldUpdateOperationsInput | string
     status?: EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -44028,6 +44092,7 @@ export namespace Prisma {
     address?: string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: string | null
     transportType?: string
     agentRuntime?: string
     status?: $Enums.AgentStatus
@@ -44166,6 +44231,7 @@ export namespace Prisma {
     address?: NullableStringFieldUpdateOperationsInput | string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: NullableStringFieldUpdateOperationsInput | string | null
     transportType?: StringFieldUpdateOperationsInput | string
     agentRuntime?: StringFieldUpdateOperationsInput | string
     status?: EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -44204,6 +44270,7 @@ export namespace Prisma {
     address?: NullableStringFieldUpdateOperationsInput | string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: NullableStringFieldUpdateOperationsInput | string | null
     transportType?: StringFieldUpdateOperationsInput | string
     agentRuntime?: StringFieldUpdateOperationsInput | string
     status?: EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -44242,6 +44309,7 @@ export namespace Prisma {
     address?: NullableStringFieldUpdateOperationsInput | string | null
     productsData?: NullableJsonNullValueInput | InputJsonValue
     toolsData?: NullableJsonNullValueInput | InputJsonValue
+    openaiApiKey?: NullableStringFieldUpdateOperationsInput | string | null
     transportType?: StringFieldUpdateOperationsInput | string
     agentRuntime?: StringFieldUpdateOperationsInput | string
     status?: EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
