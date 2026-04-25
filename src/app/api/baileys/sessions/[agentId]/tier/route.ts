@@ -19,6 +19,7 @@ export async function PATCH(
     await baileysClient.updateTier(agentId, tier)
     return NextResponse.json({ ok: true })
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 502 })
+    console.error("[PATCH tier] error", { agentId, tier, err: String(err) })
+    return NextResponse.json({ error: String(err) }, { status: 500 })
   }
 }

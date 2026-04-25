@@ -65,7 +65,10 @@ export const baileysClient = {
       headers: jsonHeaders(),
       body: JSON.stringify({ tier }),
     })
-    if (!res.ok) throw new Error(`Worker error: ${res.status}`)
+    if (!res.ok) {
+      const body = await res.text().catch(() => "")
+      throw new Error(`Worker error: ${res.status} ${body}`)
+    }
   },
 
   async getSession(agentId: string): Promise<WorkerSessionStatus | null> {
