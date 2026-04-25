@@ -458,6 +458,91 @@
   letter-spacing: 0.06em;
 }
 
+/* ── Credit breakdown ─────────────────────────────────────── */
+.breakdownGrid {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.breakdownItem {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.5rem 0.25rem;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.breakdownLabel {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.breakdownVal {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.agentBreakdownList {
+  margin-top: 0.875rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.agentBreakdownHeader {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto auto;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  background: var(--bg-primary);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+}
+
+.agentBreakdownRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto auto;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 12px;
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+}
+
+.agentBreakdownRow:last-child { border-bottom: none; }
+
+.agentBreakdownName {
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.agentBreakdownMeta {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.agentBreakdownNum {
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  min-width: 60px;
+}
+
 /* ── Agent cards ──────────────────────────────────────────── */
 .agentCardList {
   display: flex;

@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { PLAN_CREDIT_LIMITS, PLAN_OVERAGE_RATE_PER_1K } from "@/lib/plans"
-import { sumCreditsForAgents } from "@/lib/creditUsage"
 
 interface Params {
   params: Promise<{ id: string }>
@@ -23,52 +22,119 @@ export async function GET(req: NextRequest, { params }: Params) {
 
   if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 })
 
-  // All agents for this user
   const agents = await db.agent.findMany({
     where: { userId: id },
-    select: { id: true, elevenlabsAgentId: true, messagingEnabled: true, status: true, businessName: true, whatsappPhoneNumber: true, whatsappPhoneNumberId: true, whatsappAgentLink: true },
+    select: {
+      id: true,
+      businessName: true,
+      status: true,
+      messagingEnabled: true,
+      agentRuntime: true,
+      transportType: true,
+      whatsappPhoneNumber: true,
+      whatsappPhoneNumberId: true,
+      whatsappAgentLink: true,
+    },
   })
 
   const agentIds = agents.map((a) => a.id)
 
-  // Current calendar month
   const now = new Date()
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
   const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1)
 
-  const [monthlyAgg, totalAgg, orchestratorMonthly, orchestratorTotal] = await Promise.all([
-    agentIds.length
-      ? db.conversationLog.aggregate({
-          where: {
-            agentId: { in: agentIds },
-            OR: [
-              { startTime: { gte: monthStart, lt: monthEnd } },
-              { startTime: null, createdAt: { gte: monthStart, lt: monthEnd } },
-            ],
-          },
-          _sum: { creditsUsed: true },
-        })
-      : null,
-    agentIds.length
-      ? db.conversationLog.aggregate({
-          where: { agentId: { in: agentIds } },
-          _sum: { creditsUsed: true },
-        })
-      : null,
-    sumCreditsForAgents(agentIds, monthStart, monthEnd),
-    sumCreditsForAgents(agentIds),
-  ])
+  // Credit usage breakdown by messageType for this month
+  const monthlyByType = agentIds.length
+    ? await db.$queryRawUnsafe<Array<{ messageType: string; total: number }>>(
+        `SELECT "messageType", COALESCE(SUM("creditsUsed"), 0)::int as total
+         FROM "CreditUsage"
+         WHERE "agentId" = ANY($1::text[])
+           AND "createdAt" >= $2::timestamptz
+           AND "createdAt" < $3::timestamptz
+         GROUP BY "messageType"`,
+        agentIds,
+        monthStart.toISOString(),
+        monthEnd.toISOString()
+      )
+    : []
+
+  // Per-agent credit usage this month
+  const monthlyPerAgent = agentIds.length
+    ? await db.$queryRawUnsafe<Array<{ agentId: string; total: number }>>(
+        `SELECT "agentId", COALESCE(SUM("creditsUsed"), 0)::int as total
+         FROM "CreditUsage"
+         WHERE "agentId" = ANY($1::text[])
+           AND "createdAt" >= $2::timestamptz
+           AND "createdAt" < $3::timestamptz
+         GROUP BY "agentId"`,
+        agentIds,
+        monthStart.toISOString(),
+        monthEnd.toISOString()
+      )
+    : []
+
+  // All-time total credits
+  const totalAgg = agentIds.length
+    ? await db.$queryRawUnsafe<Array<{ total: number }>>(
+        `SELECT COALESCE(SUM("creditsUsed"), 0)::int as total
+         FROM "CreditUsage"
+         WHERE "agentId" = ANY($1::text[])`,
+        agentIds
+      )
+    : [{ total: 0 }]
+
+  // Voice credits from ConversationLog (legacy ElevenLabs)
+  const voiceMonthly = agentIds.length
+    ? await db.conversationLog.aggregate({
+        where: {
+          agentId: { in: agentIds },
+          OR: [
+            { startTime: { gte: monthStart, lt: monthEnd } },
+            { startTime: null, createdAt: { gte: monthStart, lt: monthEnd } },
+          ],
+        },
+        _sum: { creditsUsed: true },
+      })
+    : null
+
+  // Conversation count per agent
+  const convCounts = agentIds.length
+    ? await db.conversation.groupBy({
+        by: ["agentId"],
+        where: { agentId: { in: agentIds } },
+        _count: { _all: true },
+      })
+    : []
+
+  // Build breakdown map
+  const typeMap: Record<string, number> = {}
+  for (const row of monthlyByType) {
+    typeMap[row.messageType] = Number(row.total)
+  }
+
+  const agentMap: Record<string, number> = {}
+  for (const row of monthlyPerAgent) {
+    agentMap[row.agentId] = Number(row.total)
+  }
+
+  const convMap: Record<string, number> = {}
+  for (const row of convCounts) {
+    convMap[row.agentId] = row._count._all
+  }
+
+  const voiceCredits = voiceMonthly?._sum?.creditsUsed ?? 0
+  const orchestratorMonthly = Object.values(agentMap).reduce((a, b) => a + b, 0)
+  const monthlyCreditsUsed = orchestratorMonthly + voiceCredits
+  const totalCreditsUsed = Number(totalAgg[0]?.total ?? 0)
 
   const plan = user.plan ?? "free"
-  const monthlyCreditsUsed = (monthlyAgg?._sum?.creditsUsed ?? 0) + orchestratorMonthly
-  const totalCreditsUsed = (totalAgg?._sum?.creditsUsed ?? 0) + orchestratorTotal
   const creditLimit = PLAN_CREDIT_LIMITS[plan] ?? PLAN_CREDIT_LIMITS.free
   const overageCredits = creditLimit === -1 ? 0 : Math.max(0, monthlyCreditsUsed - creditLimit)
   const overageRate = PLAN_OVERAGE_RATE_PER_1K[plan] ?? null
-  const overageChargeNaira = overageRate !== null && overageCredits > 0
-    ? Math.ceil(overageCredits / 1000) * overageRate
-    : null
-
+  const overageChargeNaira =
+    overageRate !== null && overageCredits > 0
+      ? Math.ceil(overageCredits / 1000) * overageRate
+      : null
   const subscriptionExpired = user.subscriptionExpiresAt
     ? new Date() > user.subscriptionExpiresAt
     : false
@@ -81,6 +147,19 @@ export async function GET(req: NextRequest, { params }: Params) {
     overageCredits,
     overageChargeNaira,
     subscriptionExpired,
+    monthlyBreakdown: {
+      text: Number(typeMap["text"] ?? 0),
+      image: Number(typeMap["image"] ?? 0),
+      voice: voiceCredits,
+    },
+    agentBreakdown: agents.map((a) => ({
+      id: a.id,
+      businessName: a.businessName,
+      runtime: a.agentRuntime,
+      transportType: a.transportType,
+      monthlyCredits: agentMap[a.id] ?? 0,
+      conversationCount: convMap[a.id] ?? 0,
+    })),
     agents: agents.map((a) => ({
       id: a.id,
       status: a.status,

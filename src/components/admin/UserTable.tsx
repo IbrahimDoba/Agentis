@@ -26,6 +26,8 @@ interface BillingData {
   overageCredits: number
   overageChargeNaira: number | null
   subscriptionExpired: boolean
+  monthlyBreakdown: { text: number; image: number; voice: number }
+  agentBreakdown: Array<{ id: string; businessName: string; runtime: string; transportType: string; monthlyCredits: number; conversationCount: number }>
   agents: { id: string; status: string; messagingEnabled: boolean; businessName: string; whatsappPhoneNumber: string | null; whatsappPhoneNumberId: string | null; whatsappAgentLink: string | null }[]
 }
 
@@ -347,6 +349,7 @@ function UserDetailModal({ user, onClose, onStatusChange, loading }: {
                 <div className={styles.billingLoading}>Loading…</div>
               ) : billing ? (
                 <div className={styles.modalGrid}>
+                  {/* Summary row */}
                   <div className={styles.creditSummaryRow}>
                     <div className={styles.creditStat}>
                       <span className={styles.creditStatNum}>{billing.monthlyCreditsUsed.toLocaleString()}</span>
@@ -362,13 +365,15 @@ function UserDetailModal({ user, onClose, onStatusChange, loading }: {
                       <span className={`${styles.creditStatNum} ${creditPct >= 90 ? styles.textDanger : creditPct >= 75 ? styles.textWarning : ""}`}>
                         {billing.creditLimit === -1 ? "—" : `${creditPct}%`}
                       </span>
-                      <span className={styles.creditStatLabel}>used</span>
+                      <span className={styles.creditStatLabel}>used %</span>
                     </div>
                     <div className={styles.creditStat}>
                       <span className={styles.creditStatNum}>{billing.totalCreditsUsed.toLocaleString()}</span>
                       <span className={styles.creditStatLabel}>all-time</span>
                     </div>
                   </div>
+
+                  {/* Progress bar */}
                   {billing.creditLimit !== -1 && (
                     <div className={styles.creditBarTrack} style={{ marginTop: "0.25rem" }}>
                       <div
@@ -377,6 +382,46 @@ function UserDetailModal({ user, onClose, onStatusChange, loading }: {
                       />
                     </div>
                   )}
+
+                  {/* Breakdown by type */}
+                  <div className={styles.breakdownGrid}>
+                    <div className={styles.breakdownItem}>
+                      <span className={styles.breakdownLabel}>💬 Text AI</span>
+                      <span className={styles.breakdownVal}>{billing.monthlyBreakdown.text.toLocaleString()}</span>
+                    </div>
+                    <div className={styles.breakdownItem}>
+                      <span className={styles.breakdownLabel}>🖼 Image AI</span>
+                      <span className={styles.breakdownVal}>{billing.monthlyBreakdown.image.toLocaleString()}</span>
+                    </div>
+                    <div className={styles.breakdownItem}>
+                      <span className={styles.breakdownLabel}>🎙 Voice</span>
+                      <span className={styles.breakdownVal}>{billing.monthlyBreakdown.voice.toLocaleString()}</span>
+                    </div>
+                  </div>
+
+                  {/* Per-agent breakdown */}
+                  {billing.agentBreakdown.length > 0 && (
+                    <div className={styles.agentBreakdownList}>
+                      <div className={styles.agentBreakdownHeader}>
+                        <span>Agent</span>
+                        <span>Runtime</span>
+                        <span>Conversations</span>
+                        <span>Credits</span>
+                      </div>
+                      {billing.agentBreakdown.map((a) => (
+                        <div key={a.id} className={styles.agentBreakdownRow}>
+                          <span className={styles.agentBreakdownName}>{a.businessName}</span>
+                          <span className={styles.agentBreakdownMeta}>
+                            {a.runtime === "orchestrator" ? "AI" : "Voice"} · {a.transportType === "baileys" ? "WhatsApp Web" : "WABA"}
+                          </span>
+                          <span className={styles.agentBreakdownNum}>{a.conversationCount.toLocaleString()}</span>
+                          <span className={styles.agentBreakdownNum}>{a.monthlyCredits.toLocaleString()}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Overage alert */}
                   {billing.overageCredits > 0 && (
                     <div className={styles.overageAlert}>
                       <span className={styles.overageAlertTitle}>Over limit</span>
