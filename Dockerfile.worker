@@ -3,7 +3,7 @@ FROM node:20.19.0-slim
 WORKDIR /app
 
 # Install pnpm and pm2
-RUN npm install -g pnpm pm2
+RUN npm install -g pnpm@10.31.0 pm2
 
 # Copy workspace root files first (for better caching)
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./

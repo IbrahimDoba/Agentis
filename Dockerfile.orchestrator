@@ -3,7 +3,7 @@ FROM node:20.19.0-alpine
 WORKDIR /app
 
 # Install pnpm
-RUN npm install -g pnpm
+RUN npm install -g pnpm@10.31.0
 
 # Copy workspace root files first (for better caching)
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
