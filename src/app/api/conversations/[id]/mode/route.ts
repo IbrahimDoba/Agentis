@@ -25,16 +25,10 @@ export async function PATCH(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
-  await db.$transaction([
-    db.orchestratorAgent.updateMany({
-      where: { agentId: conversation.agentId },
-      data: { isActive: mode === "ai" },
-    }),
-    db.conversation.updateMany({
-      where: { agentId: conversation.agentId },
-      data: { mode },
-    }),
-  ])
+  await db.conversation.update({
+    where: { id: conversationId },
+    data: { mode },
+  })
 
   return NextResponse.json({ ok: true, mode })
 }

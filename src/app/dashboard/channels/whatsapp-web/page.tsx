@@ -63,6 +63,7 @@ export default function WhatsAppWebPage() {
   const [pairingPhone, setPairingPhone] = useState("")
   const [pairingCode, setPairingCode] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
+  const [selectedTier, setSelectedTier] = useState<number>(1)
 
   const { data: agents = [] } = useQuery({ queryKey: ["agents"], queryFn: fetchAgents })
   const { data: session, refetch: refetchSession } = useQuery({
@@ -73,11 +74,11 @@ export default function WhatsAppWebPage() {
   })
 
   const connect = useMutation({
-    mutationFn: async (agentId: string) => {
+    mutationFn: async ({ agentId, initialTier }: { agentId: string; initialTier: number }) => {
       const res = await fetch("/api/baileys/sessions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ agentId }),
+        body: JSON.stringify({ agentId, initialTier }),
       })
       if (!res.ok) throw new Error("Failed to start session")
       return res.json()
@@ -86,6 +87,22 @@ export default function WhatsAppWebPage() {
       setActionError(null)
       refetchSession()
       if (connectMethod === "qr") startQrStream(selectedAgentId!)
+    },
+    onError: (err: Error) => setActionError(err.message),
+  })
+
+  const changeTier = useMutation({
+    mutationFn: async ({ agentId, tier }: { agentId: string; tier: number }) => {
+      const res = await fetch(`/api/baileys/sessions/${agentId}/tier`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tier }),
+      })
+      if (!res.ok) throw new Error("Failed to update tier")
+    },
+    onSuccess: () => {
+      setActionError(null)
+      qc.invalidateQueries({ queryKey: ["baileys-session", selectedAgentId] })
     },
     onError: (err: Error) => setActionError(err.message),
   })
@@ -286,6 +303,32 @@ export default function WhatsAppWebPage() {
               )}
 
               {(!wasConnected && (!session || session.status === "DISCONNECTED" || session.status === "LOGGED_OUT")) && (
+                <div className={styles.ageSection}>
+                  <div className={styles.ageLabel}>How old is this number?</div>
+                  <div className={styles.ageOptions}>
+                    {[
+                      { tier: 1, title: "New number", desc: "Less than 1 month old" },
+                      { tier: 2, title: "Personal number", desc: "1–6 months, some contacts saved" },
+                      { tier: 3, title: "Business number", desc: "6+ months, regular usage" },
+                      { tier: 4, title: "Established number", desc: "1+ year, heavy usage history" },
+                    ].map((opt) => (
+                      <button
+                        key={opt.tier}
+                        className={`${styles.ageOption} ${selectedTier === opt.tier ? styles.ageOptionActive : ""}`}
+                        onClick={() => setSelectedTier(opt.tier)}
+                      >
+                        <span className={styles.ageOptionTier}>T{opt.tier}</span>
+                        <span className={styles.ageOptionText}>
+                          <span className={styles.ageOptionTitle}>{opt.title}</span>
+                          <span className={styles.ageOptionDesc}>{opt.desc}</span>
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {(!wasConnected && (!session || session.status === "DISCONNECTED" || session.status === "LOGGED_OUT")) && (
                 <div className={styles.methodToggle}>
                   <button
                     className={`${styles.methodBtn} ${connectMethod === "qr" ? styles.methodBtnActive : ""}`}
@@ -360,7 +403,7 @@ export default function WhatsAppWebPage() {
                       onClick={async () => {
                         try {
                           const needsCreate = !session || session.status === "DISCONNECTED" || session.status === "LOGGED_OUT"
-                          if (needsCreate) await connect.mutateAsync(selectedAgentId!)
+                          if (needsCreate) await connect.mutateAsync({ agentId: selectedAgentId!, initialTier: selectedTier })
                           requestPairingCode.mutate({ agentId: selectedAgentId!, phoneNumber: pairingPhone })
                         } catch {
                           // connect.onError already sets actionError
@@ -373,7 +416,7 @@ export default function WhatsAppWebPage() {
                   ) : connectMethod === "qr" ? (
                     <button
                       className={styles.btnPrimary}
-                      onClick={() => connect.mutate(selectedAgentId)}
+                      onClick={() => connect.mutate({ agentId: selectedAgentId!, initialTier: selectedTier })}
                       disabled={connect.isPending}
                     >
                       {connect.isPending ? "Starting…" : "Connect WhatsApp"}
@@ -410,7 +453,17 @@ export default function WhatsAppWebPage() {
                   <div className={styles.healthTitle}>Session Health</div>
                   <div className={styles.healthGrid}>
                     <div className={styles.healthItem}>
-                      <div className={styles.healthVal}>{tierLabel(session.warmupTier)}</div>
+                      <select
+                        className={styles.tierSelect}
+                        value={session.warmupTier}
+                        onChange={(e) => changeTier.mutate({ agentId: selectedAgentId!, tier: Number(e.target.value) })}
+                        disabled={changeTier.isPending}
+                      >
+                        <option value={1}>Warmup (T1)</option>
+                        <option value={2}>Starter (T2)</option>
+                        <option value={3}>Growth (T3)</option>
+                        <option value={4}>Full (T4)</option>
+                      </select>
                       <div className={styles.healthLbl}>Warmup tier</div>
                     </div>
                     <div className={styles.healthItem}>

@@ -163,6 +163,16 @@
   border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
+.humanBadge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 0.1rem 0.45rem;
+  border-radius: 99px;
+  background: rgba(251, 146, 60, 0.14);
+  color: #fb923c;
+  border: 1px solid rgba(251, 146, 60, 0.3);
+}
+
 /* Drawer overlay */
 .overlay {
   position: fixed;

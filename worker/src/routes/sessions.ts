@@ -1,16 +1,25 @@
 import type { FastifyPluginAsync } from "fastify"
 import { z } from "zod"
 import { sessionManager } from "../baileys/session-manager.js"
-import { getSessionByAgentId, deleteSession } from "../db/queries.js"
+import { getSessionByAgentId, deleteSession, updateWarmupTier } from "../db/queries.js"
 import { NotFoundError } from "../lib/errors.js"
 import { resolvePhone } from "../baileys/contacts-store.js"
 
 export const sessionRoutes: FastifyPluginAsync = async (app) => {
   // POST /v1/sessions — create a new session
   app.post("/sessions", async (req, reply) => {
-    const body = z.object({ agentId: z.string() }).parse(req.body)
-    const session = await sessionManager.create(body.agentId)
+    const body = z.object({ agentId: z.string(), initialTier: z.number().int().min(1).max(4).optional() }).parse(req.body)
+    const session = await sessionManager.create(body.agentId, body.initialTier)
     reply.code(201).send(session)
+  })
+
+  // PATCH /v1/sessions/:agentId/tier — update warmup tier on an existing session
+  app.patch<{ Params: { agentId: string } }>("/sessions/:agentId/tier", async (req, reply) => {
+    const { tier } = z.object({ tier: z.number().int().min(1).max(4) }).parse(req.body)
+    const session = await getSessionByAgentId(req.params.agentId)
+    if (!session) throw new NotFoundError("Session")
+    await updateWarmupTier(req.params.agentId, tier)
+    reply.send({ ok: true })
   })
 
   // GET /v1/sessions/:agentId — get session status

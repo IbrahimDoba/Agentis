@@ -27,11 +27,14 @@ const RECONNECT_BASE_DELAY_MS = 5_000
 const MAX_RECONNECT_DELAY_MS = 120_000
 
 export const sessionManager = {
-  async create(agentId: string): Promise<{ agentId: string; status: string }> {
+  async create(agentId: string, initialTier?: number): Promise<{ agentId: string; status: string }> {
     if (sessions.has(agentId)) {
       return { agentId, status: "already_active" }
     }
-    await upsertSession(agentId, { status: "QR_PENDING" })
+    const tierFields = initialTier && initialTier >= 1 && initialTier <= 4
+      ? { warmupTier: initialTier, warmupStartedAt: new Date().toISOString() }
+      : {}
+    await upsertSession(agentId, { status: "QR_PENDING", ...tierFields })
     await startSession(agentId)
     return { agentId, status: "qr_pending" }
   },

@@ -49,14 +49,23 @@ export interface WorkerBroadcastCampaign {
 }
 
 export const baileysClient = {
-  async createSession(agentId: string): Promise<{ agentId: string; status: string }> {
+  async createSession(agentId: string, initialTier?: number): Promise<{ agentId: string; status: string }> {
     const res = await fetch(`${WORKER_URL}/v1/sessions`, {
       method: "POST",
       headers: jsonHeaders(),
-      body: JSON.stringify({ agentId }),
+      body: JSON.stringify({ agentId, initialTier }),
     })
     if (!res.ok) throw new Error(`Worker error: ${res.status}`)
     return res.json()
+  },
+
+  async updateTier(agentId: string, tier: number): Promise<void> {
+    const res = await fetch(`${WORKER_URL}/v1/sessions/${agentId}/tier`, {
+      method: "PATCH",
+      headers: jsonHeaders(),
+      body: JSON.stringify({ tier }),
+    })
+    if (!res.ok) throw new Error(`Worker error: ${res.status}`)
   },
 
   async getSession(agentId: string): Promise<WorkerSessionStatus | null> {

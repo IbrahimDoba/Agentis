@@ -32,7 +32,7 @@ export async function buildSystemPrompt(
       const mediaList = media
         .map((m) => `- ID: ${m.id} | Description: "${m.description}"`)
         .join("\n")
-      sections.push(`## Available media\nYou have access to the following images. You can send them using the 'send_image' tool when requested by the customer or when it would be helpful to show a product.\n\n${mediaList}`)
+      sections.push(`## Available media\nYou have access to the following product images. Whenever a customer asks about or shows interest in a product, proactively send its image using the 'send_image' tool — do not wait for them to ask for a picture. Match by product name or description.\n\n${mediaList}`)
     }
   } catch (err: any) {
     logger.warn({ agentId: agent.agentId, err: err.message }, "Failed to fetch media library")

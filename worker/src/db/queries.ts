@@ -108,6 +108,17 @@ export async function updateSessionStatus(
   `
 }
 
+export async function updateWarmupTier(agentId: string, tier: number): Promise<void> {
+  const now = new Date().toISOString()
+  await sql`
+    UPDATE "BaileysSession" SET
+      "warmupTier" = ${tier},
+      "warmupStartedAt" = ${now}::timestamptz,
+      "updatedAt" = ${now}
+    WHERE "agentId" = ${agentId}
+  `
+}
+
 export async function deleteSession(agentId: string): Promise<void> {
   await sql`DELETE FROM "BaileysSession" WHERE "agentId" = ${agentId}`
 }

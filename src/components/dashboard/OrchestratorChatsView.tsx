@@ -122,17 +122,6 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
     refetchInterval: 30 * 1000,
   })
 
-  const { data: modeData } = useQuery<{ mode: "ai" | "human" }>({
-    queryKey: ["orchestrator-mode", agentId],
-    queryFn: async () => {
-      const res = await fetch(`/api/agents/${agentId}/orchestrator-mode`)
-      if (!res.ok) throw new Error("Failed to load mode")
-      return res.json()
-    },
-    enabled: !!agentId,
-    staleTime: 10 * 1000,
-    refetchInterval: 10 * 1000,
-  })
 
   const { data: messagesData, isLoading: messagesLoading } = useQuery<{ messages: Message[] }>({
     queryKey: ["orchestrator-messages", selectedId],
@@ -173,8 +162,8 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
   }, [selectedId, agentId, qc])
 
   const setMode = useMutation({
-    mutationFn: async (mode: "ai" | "human") => {
-      const res = await fetch(`/api/agents/${agentId}/orchestrator-mode`, {
+    mutationFn: async ({ conversationId, mode }: { conversationId: string; mode: "ai" | "human" }) => {
+      const res = await fetch(`/api/conversations/${conversationId}/mode`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mode }),
@@ -182,7 +171,6 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
       if (!res.ok) throw new Error("Failed to update mode")
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["orchestrator-mode", agentId] })
       qc.invalidateQueries({ queryKey: ["orchestrator-chats", agentId] })
     },
   })
@@ -230,7 +218,6 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
       .filter((l) => l.agentId === agentId)
       .map((l) => l.conversationId)
   )
-  const globalMode = modeData?.mode ?? "ai"
   const searchFiltered = conversations.filter((c) => {
     if (!search) return true
     const q = search.toLowerCase()
@@ -240,6 +227,7 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
     ? searchFiltered.filter((c) => leadIds.has(c.id))
     : searchFiltered
   const selectedConv = conversations.find((c) => c.id === selectedId)
+  const convMode = selectedConv?.mode ?? "ai"
 
   useEffect(() => {
     if (!agentId || conversations.length === 0) return
@@ -338,6 +326,7 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
               <div className={styles.meta}>
                 <span className={styles.msgCount}>{conv.messageCount} messages</span>
                 {leadIds.has(conv.id) && <span className={styles.leadBadge}>Lead</span>}
+                {conv.mode === "human" && <span className={styles.humanBadge}>Human</span>}
                 <span className={styles.badge}>DZero AI</span>
               </div>
             </div>
@@ -377,18 +366,18 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
               {selectedConv && (
                 <div className={`${styles.modeToggle} ${setMode.isPending ? styles.modeTogglePending : ""}`}>
                   <button
-                    className={`${styles.modeBtn} ${globalMode === "ai" ? styles.modeBtnAi : ""}`}
-                    onClick={() => setMode.mutate("ai")}
+                    className={`${styles.modeBtn} ${convMode === "ai" ? styles.modeBtnAi : ""}`}
+                    onClick={() => setMode.mutate({ conversationId: selectedId!, mode: "ai" })}
                     disabled={setMode.isPending}
-                    title="AI handles replies for this whole account"
+                    title="AI handles replies for this conversation"
                   >
                     AI
                   </button>
                   <button
-                    className={`${styles.modeBtn} ${globalMode === "human" ? styles.modeBtnHuman : ""}`}
-                    onClick={() => setMode.mutate("human")}
+                    className={`${styles.modeBtn} ${convMode === "human" ? styles.modeBtnHuman : ""}`}
+                    onClick={() => setMode.mutate({ conversationId: selectedId!, mode: "human" })}
                     disabled={setMode.isPending}
-                    title="You handle replies for this whole account"
+                    title="You handle replies for this conversation"
                   >
                     Human
                   </button>
@@ -398,9 +387,9 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
             </div>
 
             {/* Human mode banner */}
-            {globalMode === "human" && (
+            {convMode === "human" && (
               <div className={styles.humanBanner}>
-                AI paused for this account — you are handling replies manually
+                AI paused for this conversation — you are handling replies manually
               </div>
             )}
 
@@ -425,7 +414,7 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
             </div>
 
             {/* Message input — only in human mode */}
-            {globalMode === "human" && (
+            {convMode === "human" && (
               <div className={styles.inputWrap}>
                 <textarea
                   ref={inputRef}

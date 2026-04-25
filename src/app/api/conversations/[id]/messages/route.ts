@@ -69,6 +69,7 @@ export async function POST(
       select: {
         agentId: true,
         phoneNumber: true,
+        mode: true,
         agent: {
           select: {
             userId: true,
@@ -81,17 +82,9 @@ export async function POST(
     if (conversation.agent.userId !== session.user.id && session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
-    const orchestratorAgent = await db.orchestratorAgent.findFirst({
-      where: { agentId: conversation.agentId },
-      select: { isActive: true },
-    })
 
-    const globalMode = conversation.agent.agentRuntime === "orchestrator" && orchestratorAgent?.isActive === false
-      ? "human"
-      : "ai"
-
-    if (globalMode !== "human") {
-      return NextResponse.json({ error: "Switch the account to human handoff before sending" }, { status: 409 })
+    if (conversation.mode !== "human") {
+      return NextResponse.json({ error: "Switch this conversation to human handoff before sending" }, { status: 409 })
     }
 
     // Save to DB
