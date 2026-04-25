@@ -12,6 +12,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY orchestrator ./orchestrator
 COPY worker ./worker
 COPY prisma ./prisma
+COPY scripts ./scripts
 
 # Install all workspace dependencies
 RUN pnpm install --frozen-lockfile
