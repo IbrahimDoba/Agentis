@@ -159,6 +159,7 @@ export default async function AdminAnalyticsPage() {
         select: {
           id: true,
           status: true,
+          agentRuntime: true,
           _count: { select: { conversationLogs: true, customers: true } },
           conversationLogs: { select: { durationSecs: true } },
         },
@@ -173,6 +174,9 @@ export default async function AdminAnalyticsPage() {
       (s, a) => s + a.conversationLogs.reduce((ss, c) => ss + (c.durationSecs ?? 0), 0),
       0
     )
+    const dzeroAgents = u.agents.filter((a) => a.agentRuntime === "orchestrator")
+    const dzeroConversations = dzeroAgents.reduce((s, a) => s + a._count.conversationLogs, 0)
+    const dzeroContacts = dzeroAgents.reduce((s, a) => s + a._count.customers, 0)
     return {
       id: u.id,
       name: u.name,
@@ -185,6 +189,9 @@ export default async function AdminAnalyticsPage() {
       conversations,
       contacts,
       talkMins: Math.round(talkSecs / 60),
+      dzeroAgentCount: dzeroAgents.length,
+      dzeroConversations,
+      dzeroContacts,
     }
   })
 

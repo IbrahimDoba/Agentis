@@ -31,8 +31,7 @@ export function CreateAgentFlow() {
   const queryClient = useQueryClient()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // Runtime toggle
-  const [agentRuntime, setAgentRuntime] = useState<"orchestrator" | "elevenlabs">("orchestrator")
+  const agentRuntime = "orchestrator"
 
   // Step 1: null = picker shown. After picking, holds the system prompt.
   const [selectedPrompt, setSelectedPrompt] = useState<string | null>(null)
@@ -72,26 +71,6 @@ export function CreateAgentFlow() {
   if (selectedPrompt === null) {
     return (
       <div className={styles.pickerRoot}>
-        {/* Runtime toggle */}
-        <div className={styles.runtimeToggle}>
-          <button
-            className={cn(styles.runtimeOption, agentRuntime === "orchestrator" && styles.runtimeActive)}
-            onClick={() => setAgentRuntime("orchestrator")}
-          >
-            <span className={styles.runtimeIcon}>⚡</span>
-            <span className={styles.runtimeLabel}>DZero AI</span>
-            <span className={styles.runtimeDesc}>Our built-in AI engine</span>
-          </button>
-          <button
-            className={cn(styles.runtimeOption, agentRuntime === "elevenlabs" && styles.runtimeActive)}
-            onClick={() => setAgentRuntime("elevenlabs")}
-          >
-            <span className={styles.runtimeIcon}>🔗</span>
-            <span className={styles.runtimeLabel}>ElevenLabs</span>
-            <span className={styles.runtimeDesc}>External voice AI agent</span>
-          </button>
-        </div>
-
         <p className={styles.pickerHint}>Choose a starting point for your AI agent</p>
         <div className={styles.pickerGrid}>
           {AGENT_TEMPLATES.map((tpl) => (

@@ -21,9 +21,9 @@ export default async function AdminAgentsPage() {
     },
   })
 
-  // Fetch session statuses in parallel for all baileys agents
+  // Fetch session statuses in parallel for all orchestrator (DZero AI) agents
   const baileysAgentIds = agents
-    .filter((a) => a.transportType === "baileys")
+    .filter((a) => a.agentRuntime === "orchestrator")
     .map((a) => a.id)
 
   const sessionMap: Record<string, WorkerSessionStatus | null> = {}
@@ -90,7 +90,7 @@ export default async function AdminAgentsPage() {
                     )}
                   </td>
                   <td className={styles.td}>
-                    {agent.transportType === "baileys" ? (
+                    {agent.agentRuntime === "orchestrator" ? (
                       <span className={styles.badgeBaileys}>WhatsApp Web</span>
                     ) : agent.transportType === "waba" ? (
                       <span className={styles.badgeWaba}>WABA</span>
@@ -99,7 +99,7 @@ export default async function AdminAgentsPage() {
                     )}
                   </td>
                   <td className={styles.td}>
-                    {agent.transportType === "baileys" ? (
+                    {agent.agentRuntime === "orchestrator" ? (
                       workerSession ? (
                         <span className={styles[`session${workerSession.status}`] ?? styles.sessionDISCONNECTED}>
                           {workerSession.status === "CONNECTED" ? "Connected" :

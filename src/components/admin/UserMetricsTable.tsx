@@ -23,6 +23,9 @@ interface UserMetric {
   conversations: number
   contacts: number
   talkMins: number
+  dzeroAgentCount: number
+  dzeroConversations: number
+  dzeroContacts: number
 }
 
 interface Props {
@@ -36,6 +39,7 @@ export function UserMetricsTable({ users }: Props) {
   const [search, setSearch] = useState("")
   const [sortKey, setSortKey] = useState<SortKey>("conversations")
   const [sortDir, setSortDir] = useState<SortDir>("desc")
+  const [dzeroOnly, setDzeroOnly] = useState(false)
 
   function toggleSort(key: SortKey) {
     if (sortKey === key) setSortDir((d) => (d === "asc" ? "desc" : "asc"))
@@ -70,6 +74,12 @@ export function UserMetricsTable({ users }: Props) {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
+        <button
+          className={dzeroOnly ? styles.filterBtnActive : styles.filterBtn}
+          onClick={() => setDzeroOnly((v) => !v)}
+        >
+          DZero AI
+        </button>
         <span className={styles.count}>{filtered.length} users</span>
       </div>
 
@@ -81,14 +91,14 @@ export function UserMetricsTable({ users }: Props) {
               <th className={styles.th} onClick={() => toggleSort("plan")} style={{ cursor: "pointer" }}>
                 Plan <SortIcon col="plan" />
               </th>
-              <th className={styles.th} onClick={() => toggleSort("agents")} style={{ cursor: "pointer" }}>
-                Agents <SortIcon col="agents" />
+              <th className={styles.th} onClick={() => toggleSort(dzeroOnly ? "dzeroAgentCount" : "agents")} style={{ cursor: "pointer" }}>
+                {dzeroOnly ? "DZero Agents" : "Agents"} <SortIcon col={dzeroOnly ? "dzeroAgentCount" : "agents"} />
               </th>
-              <th className={styles.th} onClick={() => toggleSort("conversations")} style={{ cursor: "pointer" }}>
-                Conversations <SortIcon col="conversations" />
+              <th className={styles.th} onClick={() => toggleSort(dzeroOnly ? "dzeroConversations" : "conversations")} style={{ cursor: "pointer" }}>
+                {dzeroOnly ? "DZero Convos" : "Conversations"} <SortIcon col={dzeroOnly ? "dzeroConversations" : "conversations"} />
               </th>
-              <th className={styles.th} onClick={() => toggleSort("contacts")} style={{ cursor: "pointer" }}>
-                Contacts <SortIcon col="contacts" />
+              <th className={styles.th} onClick={() => toggleSort(dzeroOnly ? "dzeroContacts" : "contacts")} style={{ cursor: "pointer" }}>
+                {dzeroOnly ? "DZero Contacts" : "Contacts"} <SortIcon col={dzeroOnly ? "dzeroContacts" : "contacts"} />
               </th>
               <th className={styles.th} onClick={() => toggleSort("leads")} style={{ cursor: "pointer" }}>
                 Leads <SortIcon col="leads" />
@@ -113,9 +123,9 @@ export function UserMetricsTable({ users }: Props) {
                     {u.plan.charAt(0).toUpperCase() + u.plan.slice(1)}
                   </span>
                 </td>
-                <td className={styles.td}><span className={styles.num}>{u.agents}</span></td>
-                <td className={styles.td}><span className={styles.num}>{u.conversations.toLocaleString()}</span></td>
-                <td className={styles.td}><span className={styles.num}>{u.contacts.toLocaleString()}</span></td>
+                <td className={styles.td}><span className={styles.num}>{dzeroOnly ? u.dzeroAgentCount : u.agents}</span></td>
+                <td className={styles.td}><span className={styles.num}>{(dzeroOnly ? u.dzeroConversations : u.conversations).toLocaleString()}</span></td>
+                <td className={styles.td}><span className={styles.num}>{(dzeroOnly ? u.dzeroContacts : u.contacts).toLocaleString()}</span></td>
                 <td className={styles.td}><span className={styles.num}>{u.leads}</span></td>
                 <td className={styles.td}>
                   <span className={styles.num}>{u.talkMins > 0 ? `${u.talkMins} min` : "—"}</span>

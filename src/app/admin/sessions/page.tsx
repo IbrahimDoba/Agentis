@@ -11,7 +11,7 @@ export default async function AdminSessionsPage() {
   if (!session || session.user.role !== "ADMIN") redirect("/dashboard")
 
   const agents = await db.agent.findMany({
-    where: { transportType: "baileys" },
+    where: { agentRuntime: "orchestrator" },
     orderBy: { createdAt: "desc" },
     select: {
       id: true,
