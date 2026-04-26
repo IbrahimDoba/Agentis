@@ -41,6 +41,8 @@ async function fetchSession(agentId: string): Promise<SessionStatus | null> {
   return res.json()
 }
 
+const TIER_MAX_PER_DAY: Record<number, number> = { 1: 40, 2: 150, 3: 400, 4: 1500 }
+
 function tierLabel(tier: number) {
   const labels: Record<number, string> = { 1: "Warmup", 2: "Starter", 3: "Growth", 4: "Full" }
   return labels[tier] ?? `Tier ${tier}`
@@ -243,7 +245,9 @@ export default function WhatsAppWebPage() {
       <div className={styles.layout}>
         {/* Agent selector */}
         <div className={styles.card}>
-          <div className={styles.cardTitle}>Select Agent</div>
+          <div className={styles.cardHeader}>
+            <div className={styles.cardTitle}>Your Agents</div>
+          </div>
           <div className={styles.agentList}>
             {agents.length === 0 && (
               <p className={styles.empty}>No agents found. <a href="/dashboard/agent/create">Create one first.</a></p>
@@ -257,11 +261,9 @@ export default function WhatsAppWebPage() {
                 <div className={styles.agentAvatar}>
                   {agent.businessName.slice(0, 2).toUpperCase()}
                 </div>
-                <div className={styles.agentInfo}>
+                <div>
                   <div className={styles.agentName}>{agent.businessName}</div>
-                  <div className={styles.agentTransport}>
-                    {agent.transportType === "baileys" ? "WhatsApp Web" : "Business API"}
-                  </div>
+                  <div className={styles.agentTransport}>WhatsApp Web</div>
                 </div>
               </button>
             ))}
@@ -273,22 +275,42 @@ export default function WhatsAppWebPage() {
           {!selectedAgentId ? (
             <div className={styles.emptyState}>
               <div className={styles.emptyIcon}>📱</div>
-              <div>Select an agent to connect</div>
+              <div>Select an agent from the left to get started</div>
             </div>
           ) : (
             <>
-              <div className={styles.cardTitle}>{selectedAgent?.businessName}</div>
-              {/* Status */}
-              <div className={styles.statusRow}>
-                <span className={`${styles.statusDot} ${styles[`dot_${session?.status?.toLowerCase() ?? "disconnected"}`]}`} />
-                <span className={styles.statusLabel}>
-                  {isBanned ? "Banned — contact support"
-                    : isConnected ? `Connected · ${session?.phoneNumber ?? ""}`
-                    : isConnecting && connectMethod === "code" ? "Waiting for pairing code entry…"
-                    : isConnecting ? "Connecting — scan QR below"
-                    : session?.lastDisconnectReason ? `Disconnected (${session.lastDisconnectReason})`
+              <div className={styles.cardHeader}>
+                <div className={styles.cardTitle}>{selectedAgent?.businessName}</div>
+              </div>
+              <div className={styles.cardBody}>
+              {/* Status pill */}
+              <div style={{ marginBottom: "1.25rem" }}>
+                <span className={`${styles.statusPill} ${
+                  isBanned ? styles.statusPillBanned
+                  : isConnected ? styles.statusPillConnected
+                  : isConnecting ? styles.statusPillPending
+                  : styles.statusPillOff
+                }`}>
+                  <span className={`${styles.statusDot} ${
+                    isBanned ? styles.statusDotBanned
+                    : isConnected ? styles.statusDotConnected
+                    : isConnecting ? styles.statusDotPending
+                    : styles.statusDotOff
+                  }`} />
+                  {isBanned ? "Banned"
+                    : isConnected ? "Connected"
+                    : isConnecting ? "Connecting"
                     : "Not connected"}
                 </span>
+                {isConnected && session?.phoneNumber && (
+                  <div className={styles.statusSubtext}>+{session.phoneNumber}</div>
+                )}
+                {!isConnected && !isConnecting && session?.lastDisconnectReason && (
+                  <div className={styles.statusSubtext}>{session.lastDisconnectReason}</div>
+                )}
+                {isConnecting && connectMethod === "code" && (
+                  <div className={styles.statusSubtext}>Waiting for pairing code entry…</div>
+                )}
               </div>
 
               {connectMethod === "qr" && qrDataUrl && (
@@ -448,47 +470,67 @@ export default function WhatsAppWebPage() {
                 )}
               </div>
 
-              {session && isConnected && (
-                <div className={styles.health}>
-                  <div className={styles.healthTitle}>Session Health</div>
-                  <div className={styles.healthGrid}>
-                    <div className={styles.healthItem}>
-                      <select
-                        className={styles.tierSelect}
-                        value={session.warmupTier}
-                        onChange={(e) => changeTier.mutate({ agentId: selectedAgentId!, tier: Number(e.target.value) })}
-                        disabled={changeTier.isPending}
-                      >
-                        <option value={1}>Warmup (T1)</option>
-                        <option value={2}>Starter (T2)</option>
-                        <option value={3}>Growth (T3)</option>
-                        <option value={4}>Full (T4)</option>
-                      </select>
-                      <div className={styles.healthLbl}>Warmup tier</div>
-                    </div>
-                    <div className={styles.healthItem}>
-                      <div className={styles.healthVal}>
-                        {tierDaysRemaining(session.warmupTier, session.warmupStartedAt) !== null
-                          ? `${tierDaysRemaining(session.warmupTier, session.warmupStartedAt)}d`
-                          : "—"}
+              {session && isConnected && (() => {
+                const maxPerDay = TIER_MAX_PER_DAY[session.warmupTier] ?? 40
+                const used = session.dailyMessageCount
+                const pct = Math.min(100, Math.round((used / maxPerDay) * 100))
+                const isWarning = pct >= 75 && pct < 100
+                const isDanger = pct >= 100
+                const daysLeft = tierDaysRemaining(session.warmupTier, session.warmupStartedAt)
+                return (
+                  <div className={styles.health}>
+                    <div className={styles.healthTitle}>Session Health</div>
+                    <div className={styles.healthGrid}>
+                      <div className={styles.healthItem}>
+                        <select
+                          className={styles.tierSelect}
+                          value={session.warmupTier}
+                          onChange={(e) => changeTier.mutate({ agentId: selectedAgentId!, tier: Number(e.target.value) })}
+                          disabled={changeTier.isPending}
+                        >
+                          <option value={1}>Warmup (T1)</option>
+                          <option value={2}>Starter (T2)</option>
+                          <option value={3}>Growth (T3)</option>
+                          <option value={4}>Full (T4)</option>
+                        </select>
+                        <div className={styles.healthLbl}>Warmup tier</div>
                       </div>
-                      <div className={styles.healthLbl}>Days to next tier</div>
-                    </div>
-                    <div className={styles.healthItem}>
-                      <div className={styles.healthVal}>{session.dailyMessageCount}</div>
-                      <div className={styles.healthLbl}>Messages today</div>
-                    </div>
-                    <div className={styles.healthItem}>
-                      <div className={styles.healthVal}>
-                        {session.lastConnectedAt
-                          ? new Date(session.lastConnectedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })
-                          : "—"}
+                      <div className={styles.healthItem}>
+                        <div className={styles.healthVal}>{daysLeft !== null ? `${daysLeft}d` : "—"}</div>
+                        <div className={styles.healthLbl}>To next tier</div>
                       </div>
-                      <div className={styles.healthLbl}>Connected since</div>
+                      <div className={styles.healthItem}>
+                        <div className={styles.healthVal}>
+                          {session.lastConnectedAt
+                            ? new Date(session.lastConnectedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })
+                            : "—"}
+                        </div>
+                        <div className={styles.healthLbl}>Since</div>
+                      </div>
+                    </div>
+
+                    <div className={styles.capSection}>
+                      <div className={styles.capHeader}>
+                        <span className={styles.capLabel}>Messages today</span>
+                        <span className={styles.capCount}>{used} / {maxPerDay}</span>
+                      </div>
+                      <div className={styles.capTrack}>
+                        <div
+                          className={`${styles.capFill} ${isDanger ? styles.capFillDanger : isWarning ? styles.capFillWarning : styles.capFillNormal}`}
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                      {isDanger && (
+                        <div className={styles.capDanger}>Daily cap reached — messages will resume tomorrow</div>
+                      )}
+                      {isWarning && (
+                        <div className={styles.capWarning}>Approaching daily limit ({maxPerDay - used} remaining)</div>
+                      )}
                     </div>
                   </div>
-                </div>
-              )}
+                )
+              })()}
+              </div>
             </>
           )}
         </div>

@@ -444,6 +444,14 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
             {/* Message input — only in human mode */}
             {convMode === "human" && (
               <div className={styles.inputWrap}>
+              {sendMessage.isError && (
+                <div className={styles.sendError}>
+                  {sendMessage.error instanceof Error && sendMessage.error.message.toLowerCase().includes("cap")
+                    ? "Daily message cap reached. Messages will resume tomorrow."
+                    : (sendMessage.error instanceof Error ? sendMessage.error.message : "Failed to send message")}
+                </div>
+              )}
+              <div className={styles.inputRow}>
                 <textarea
                   ref={inputRef}
                   className={styles.messageInput}
@@ -471,6 +479,7 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
                 >
                   {sendMessage.isPending ? "…" : "Send"}
                 </button>
+              </div>
               </div>
             )}
           </div>
