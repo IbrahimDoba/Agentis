@@ -20,7 +20,6 @@ export default async function AdminAnalyticsPage() {
     totalContacts,
     totalLeads,
     subscriberCount,
-    talkTimeAgg,
     usersWithAgents,
   ] = await Promise.all([
     db.user.count(),
@@ -32,11 +31,8 @@ export default async function AdminAnalyticsPage() {
     db.customer.count(),
     db.lead.count(),
     db.newsletterSubscriber.count(),
-    db.conversationLog.aggregate({ _sum: { durationSecs: true } }),
     db.user.count({ where: { agents: { some: {} } } }),
   ])
-
-  const totalTalkMins = Math.round((talkTimeAgg._sum.durationSecs ?? 0) / 60)
 
   // ── Plan distribution ────────────────────────────────────────────────────
   const planGroups = await db.user.groupBy({
@@ -105,6 +101,7 @@ export default async function AdminAnalyticsPage() {
     creditsAllTimeRaw,
     creditsMonthlyRaw,
     dailyCreditsRaw,
+    userCreditsRaw,
   ] = await Promise.all([
     db.agent.count({ where: { agentRuntime: "orchestrator" } }),
     db.conversation.count({ where: { agent: { agentRuntime: "orchestrator" } } }),
@@ -122,6 +119,12 @@ export default async function AdminAnalyticsPage() {
        GROUP BY DATE("createdAt")
        ORDER BY day ASC`,
       thirtyDaysAgo.toISOString()
+    ),
+    db.$queryRawUnsafe<Array<{ userId: string; total: number }>>(
+      `SELECT a."userId", COALESCE(SUM(cu."creditsUsed"), 0)::int as total
+       FROM "CreditUsage" cu
+       JOIN "Agent" a ON cu."agentId" = a."id"
+       GROUP BY a."userId"`
     ),
   ])
 
@@ -144,6 +147,11 @@ export default async function AdminAnalyticsPage() {
     total,
   }))
 
+  const userCreditsMap: Record<string, number> = {}
+  for (const row of userCreditsRaw as Array<{ userId: string; total: number }>) {
+    userCreditsMap[row.userId] = Number(row.total)
+  }
+
   // ── Per-user metrics ─────────────────────────────────────────────────────
   const users = await db.user.findMany({
     orderBy: { createdAt: "desc" },
@@ -161,7 +169,6 @@ export default async function AdminAnalyticsPage() {
           status: true,
           agentRuntime: true,
           _count: { select: { conversationLogs: true, customers: true } },
-          conversationLogs: { select: { durationSecs: true } },
         },
       },
     },
@@ -170,10 +177,6 @@ export default async function AdminAnalyticsPage() {
   const userMetrics = users.map((u) => {
     const conversations = u.agents.reduce((s, a) => s + a._count.conversationLogs, 0)
     const contacts = u.agents.reduce((s, a) => s + a._count.customers, 0)
-    const talkSecs = u.agents.reduce(
-      (s, a) => s + a.conversationLogs.reduce((ss, c) => ss + (c.durationSecs ?? 0), 0),
-      0
-    )
     const dzeroAgents = u.agents.filter((a) => a.agentRuntime === "orchestrator")
     const dzeroConversations = dzeroAgents.reduce((s, a) => s + a._count.conversationLogs, 0)
     const dzeroContacts = dzeroAgents.reduce((s, a) => s + a._count.customers, 0)
@@ -188,7 +191,7 @@ export default async function AdminAnalyticsPage() {
       leads: u._count.leads,
       conversations,
       contacts,
-      talkMins: Math.round(talkSecs / 60),
+      credits: userCreditsMap[u.id] ?? 0,
       dzeroAgentCount: dzeroAgents.length,
       dzeroConversations,
       dzeroContacts,
@@ -217,7 +220,7 @@ export default async function AdminAnalyticsPage() {
         <div className={styles.statCard}>
           <span className={styles.statLabel}>Total Conversations</span>
           <span className={styles.statNum}>{totalConversations.toLocaleString()}</span>
-          <span className={styles.statSub}>{totalTalkMins.toLocaleString()} mins talk time</span>
+          <span className={styles.statSub}>{creditsAllTime.toLocaleString()} credits used</span>
         </div>
         <div className={styles.statCard}>
           <span className={styles.statLabel}>Total Contacts</span>

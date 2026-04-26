@@ -82,9 +82,11 @@ const worker = new Worker<OutboundJob>(
       await checkDuplicateText(text, toJid)
     }
 
-    // Rate limiting
-    await checkAndIncrement(agentId, session.warmupTier)
-    await trackNewContact(agentId, toJid)
+    // Rate limiting (human messages bypass — operator-initiated sends should never be blocked)
+    if (source !== "human") {
+      await checkAndIncrement(agentId, session.warmupTier)
+      await trackNewContact(agentId, toJid)
+    }
 
     // Billing guardrails (AI orchestrator sends only)
     const messageType: "text" | "image" = type === "image" ? "image" : "text"

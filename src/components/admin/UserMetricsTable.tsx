@@ -22,7 +22,7 @@ interface UserMetric {
   leads: number
   conversations: number
   contacts: number
-  talkMins: number
+  credits: number
   dzeroAgentCount: number
   dzeroConversations: number
   dzeroContacts: number
@@ -103,8 +103,8 @@ export function UserMetricsTable({ users }: Props) {
               <th className={styles.th} onClick={() => toggleSort("leads")} style={{ cursor: "pointer" }}>
                 Leads <SortIcon col="leads" />
               </th>
-              <th className={styles.th} onClick={() => toggleSort("talkMins")} style={{ cursor: "pointer" }}>
-                Talk Time <SortIcon col="talkMins" />
+              <th className={styles.th} onClick={() => toggleSort("credits")} style={{ cursor: "pointer" }}>
+                Credits <SortIcon col="credits" />
               </th>
               <th className={styles.th} onClick={() => toggleSort("createdAt")} style={{ cursor: "pointer" }}>
                 Joined <SortIcon col="createdAt" />
@@ -128,7 +128,7 @@ export function UserMetricsTable({ users }: Props) {
                 <td className={styles.td}><span className={styles.num}>{(dzeroOnly ? u.dzeroContacts : u.contacts).toLocaleString()}</span></td>
                 <td className={styles.td}><span className={styles.num}>{u.leads}</span></td>
                 <td className={styles.td}>
-                  <span className={styles.num}>{u.talkMins > 0 ? `${u.talkMins} min` : "—"}</span>
+                  <span className={styles.num}>{u.credits > 0 ? u.credits.toLocaleString() : "—"}</span>
                 </td>
                 <td className={styles.td}>
                   <span className={styles.date}>{formatDate(u.createdAt)}</span>
