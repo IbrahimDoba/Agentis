@@ -160,7 +160,7 @@ export default function DashboardPage() {
         )}
       </div>
 
-      <div className={styles.agentSection}>
+      {/* <div className={styles.agentSection}>
         <div className={styles.sectionTitle}>Your AI Agent</div>
 
         {isLoading ? (
@@ -186,7 +186,7 @@ export default function DashboardPage() {
             </Link>
           </div>
         )}
-      </div>
+      </div> */}
 
     </div>
   )
