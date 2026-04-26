@@ -169,10 +169,7 @@ export default function DashboardPage() {
             animation: "pulse 1.5s ease-in-out infinite",
           }} />
         ) : selectedRuntimeAgent ? (
-          <>
-            <AgentCard agent={selectedRuntimeAgent} />
-            <ActivityChart agentId={selectedRuntimeAgent.id} />
-          </>
+          <AgentCard agent={selectedRuntimeAgent} />
         ) : (
           <div className={styles.emptyCard}>
             <div className={styles.emptyIcon}>🤖</div>
@@ -187,6 +184,10 @@ export default function DashboardPage() {
           </div>
         )}
       </div> */}
+
+      {selectedRuntimeAgent && (
+        <ActivityChart agentId={selectedRuntimeAgent.id} />
+      )}
 
     </div>
   )
