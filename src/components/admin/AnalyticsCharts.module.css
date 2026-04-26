@@ -60,6 +60,10 @@
   color: var(--text-primary);
 }
 
+.chartCardWide {
+  grid-column: 1 / -1;
+}
+
 @media (max-width: 900px) {
   .chartsGrid {
     grid-template-columns: 1fr;

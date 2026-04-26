@@ -39,6 +39,7 @@ interface Props {
   convGrowthData: { month: string; count: number }[]
   planData: { plan: string; count: number }[]
   agentStatusData: { status: string; count: number }[]
+  dailyCreditsData?: { day: string; total: number }[]
 }
 
 const tooltipStyle = {
@@ -49,7 +50,7 @@ const tooltipStyle = {
   fontSize: "13px",
 }
 
-export function AnalyticsCharts({ userGrowthData, convGrowthData, planData, agentStatusData }: Props) {
+export function AnalyticsCharts({ userGrowthData, convGrowthData, planData, agentStatusData, dailyCreditsData }: Props) {
   const planPieData = planData.map((d) => ({
     name: PLAN_LABELS[d.plan] ?? d.plan,
     value: d.count,
@@ -143,6 +144,28 @@ export function AnalyticsCharts({ userGrowthData, convGrowthData, planData, agen
           </div>
         </div>
       </div>
+
+      {/* Daily credits — full width */}
+      {dailyCreditsData && dailyCreditsData.length > 0 && (
+        <div className={`${styles.chartCard} ${styles.chartCardWide}`}>
+          <div className={styles.chartTitle}>Daily Credits Used (last 30 days)</div>
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={dailyCreditsData} margin={{ top: 8, right: 8, left: -10, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1e3a26" />
+              <XAxis
+                dataKey="day"
+                tick={{ fill: "#4a6b56", fontSize: 11 }}
+                axisLine={false}
+                tickLine={false}
+                interval={4}
+              />
+              <YAxis tick={{ fill: "#4a6b56", fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
+              <Tooltip contentStyle={tooltipStyle} formatter={(v) => [Number(v).toLocaleString(), "Credits"]} />
+              <Bar dataKey="total" fill="#00dc82" radius={[3, 3, 0, 0]} name="Credits" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
     </div>
   )
 }

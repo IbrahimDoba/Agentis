@@ -1,8 +1,9 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import Link from "next/link"
-import { Squares2X2Icon, UsersIcon, CpuChipIcon, ArrowUturnLeftIcon, EnvelopeIcon, ChartBarIcon, GiftIcon, CreditCardIcon } from "@heroicons/react/24/outline"
+import { Squares2X2Icon, UsersIcon, CpuChipIcon, ArrowUturnLeftIcon, EnvelopeIcon, ChartBarIcon, GiftIcon, CreditCardIcon, SignalIcon } from "@heroicons/react/24/outline"
 import { LogoIcon } from "@/components/landing/Logo"
+import { ToastProvider } from "@/context/ToastContext"
 import styles from "./layout.module.css"
 
 const navItems = [
@@ -10,6 +11,7 @@ const navItems = [
   { href: "/admin/users", label: "Users", icon: <UsersIcon width={16} height={16} /> },
   { href: "/admin/agents", label: "Agents", icon: <CpuChipIcon width={16} height={16} /> },
   { href: "/admin/analytics", label: "Analytics", icon: <ChartBarIcon width={16} height={16} /> },
+  { href: "/admin/sessions", label: "Sessions", icon: <SignalIcon width={16} height={16} /> },
   { href: "/admin/referrals", label: "Referrals", icon: <GiftIcon width={16} height={16} /> },
   { href: "/admin/payments", label: "Payments", icon: <CreditCardIcon width={16} height={16} /> },
   { href: "/admin/newsletter", label: "Newsletter", icon: <EnvelopeIcon width={16} height={16} /> },
@@ -23,6 +25,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   return (
+    <ToastProvider>
     <div className={styles.layout}>
       <aside className={styles.sidebar}>
         <Link href="/admin" className={styles.logo}>
@@ -52,5 +55,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         {children}
       </main>
     </div>
+    </ToastProvider>
   )
 }

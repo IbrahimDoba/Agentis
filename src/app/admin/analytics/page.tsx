@@ -92,6 +92,58 @@ export default async function AdminAnalyticsPage() {
   }
   const convGrowthData = Object.entries(convMonthMap).map(([month, count]) => ({ month, count }))
 
+  // ── Orchestrator / credits stats ─────────────────────────────────────────
+  const now = new Date()
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+  const thirtyDaysAgo = new Date(now)
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29)
+  thirtyDaysAgo.setHours(0, 0, 0, 0)
+
+  const [
+    orchestratorAgentCount,
+    orchestratorConvCount,
+    creditsAllTimeRaw,
+    creditsMonthlyRaw,
+    dailyCreditsRaw,
+  ] = await Promise.all([
+    db.agent.count({ where: { agentRuntime: "orchestrator" } }),
+    db.conversation.count({ where: { agent: { agentRuntime: "orchestrator" } } }),
+    db.$queryRawUnsafe<Array<{ total: number }>>(
+      `SELECT COALESCE(SUM("creditsUsed"), 0)::int as total FROM "CreditUsage"`
+    ),
+    db.$queryRawUnsafe<Array<{ total: number }>>(
+      `SELECT COALESCE(SUM("creditsUsed"), 0)::int as total FROM "CreditUsage" WHERE "createdAt" >= $1::timestamptz`,
+      monthStart.toISOString()
+    ),
+    db.$queryRawUnsafe<Array<{ day: string; total: number }>>(
+      `SELECT DATE("createdAt") as day, COALESCE(SUM("creditsUsed"), 0)::int as total
+       FROM "CreditUsage"
+       WHERE "createdAt" >= $1::timestamptz
+       GROUP BY DATE("createdAt")
+       ORDER BY day ASC`,
+      thirtyDaysAgo.toISOString()
+    ),
+  ])
+
+  const creditsAllTime = Number(creditsAllTimeRaw[0]?.total ?? 0)
+  const creditsMonthly = Number(creditsMonthlyRaw[0]?.total ?? 0)
+
+  // Fill in missing days with 0
+  const dailyMap: Record<string, number> = {}
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(now)
+    d.setDate(d.getDate() - i)
+    dailyMap[d.toISOString().split("T")[0]] = 0
+  }
+  for (const row of dailyCreditsRaw as Array<{ day: string; total: number }>) {
+    const key = typeof row.day === "string" ? row.day.split("T")[0] : new Date(row.day).toISOString().split("T")[0]
+    if (key in dailyMap) dailyMap[key] = Number(row.total)
+  }
+  const dailyCreditsData = Object.entries(dailyMap).map(([day, total]) => ({
+    day: new Date(day).toLocaleDateString("en-GB", { day: "numeric", month: "short" }),
+    total,
+  }))
+
   // ── Per-user metrics ─────────────────────────────────────────────────────
   const users = await db.user.findMany({
     orderBy: { createdAt: "desc" },
@@ -172,12 +224,38 @@ export default async function AdminAnalyticsPage() {
         </div>
       </div>
 
+      {/* Orchestrator / Credits stat cards */}
+      <h2 className={styles.sectionTitle} style={{ marginBottom: "1rem" }}>AI Chat (Orchestrator)</h2>
+      <div className={styles.statsGrid} style={{ gridTemplateColumns: "repeat(4, 1fr)", marginBottom: "2rem" }}>
+        <div className={styles.statCard}>
+          <span className={styles.statLabel}>AI Chat Agents</span>
+          <span className={styles.statNum}>{orchestratorAgentCount}</span>
+          <span className={styles.statSub}>Orchestrator runtime</span>
+        </div>
+        <div className={styles.statCard}>
+          <span className={styles.statLabel}>AI Conversations</span>
+          <span className={styles.statNum}>{orchestratorConvCount.toLocaleString()}</span>
+          <span className={styles.statSub}>All time</span>
+        </div>
+        <div className={styles.statCard}>
+          <span className={styles.statLabel}>Credits This Month</span>
+          <span className={styles.statNum}>{creditsMonthly.toLocaleString()}</span>
+          <span className={styles.statSub}>Text + image AI</span>
+        </div>
+        <div className={styles.statCard}>
+          <span className={styles.statLabel}>Credits All Time</span>
+          <span className={styles.statNum}>{creditsAllTime.toLocaleString()}</span>
+          <span className={styles.statSub}>Platform total</span>
+        </div>
+      </div>
+
       {/* Charts */}
       <AnalyticsCharts
         userGrowthData={userGrowthData}
         convGrowthData={convGrowthData}
         planData={planData}
         agentStatusData={agentStatusData}
+        dailyCreditsData={dailyCreditsData}
       />
 
       {/* Per-user metrics table */}

@@ -8,13 +8,23 @@ export default async function AdminPage() {
   const session = await auth()
   if (!session || session.user.role !== "ADMIN") redirect("/dashboard")
 
-  const [userCount, agentCount, pendingUsers, pendingAgents, activeAgents] = await Promise.all([
+  const now = new Date()
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+
+  const [userCount, agentCount, pendingUsers, pendingAgents, activeAgents, orchestratorAgents, monthlyCreditsRaw] = await Promise.all([
     db.user.count(),
     db.agent.count(),
     db.user.count({ where: { status: "PENDING" } }),
     db.agent.count({ where: { status: "PENDING_REVIEW" } }),
     db.agent.count({ where: { status: "ACTIVE" } }),
+    db.agent.count({ where: { agentRuntime: "orchestrator" } }),
+    db.$queryRawUnsafe<Array<{ total: number }>>(
+      `SELECT COALESCE(SUM("creditsUsed"), 0)::int as total FROM "CreditUsage" WHERE "createdAt" >= $1::timestamptz`,
+      monthStart.toISOString()
+    ),
   ])
+
+  const monthlyCreditsUsed = Number(monthlyCreditsRaw[0]?.total ?? 0)
 
   const recentUsers = await db.user.findMany({
     orderBy: { createdAt: "desc" },
@@ -56,11 +66,15 @@ export default async function AdminPage() {
           <div className={styles.statIcon}>✅</div>
           <div className={styles.statValue}>{activeAgents}</div>
           <div className={styles.statLabel}>Active Agents</div>
+          <div className={styles.statSub}>{orchestratorAgents} AI Chat</div>
         </div>
         <div className={styles.statCard}>
-          <div className={styles.statIcon}>⏳</div>
-          <div className={styles.statValue}>{pendingUsers}</div>
-          <div className={styles.statLabel}>Pending Users</div>
+          <div className={styles.statIcon}>⚡</div>
+          <div className={styles.statValue}>{monthlyCreditsUsed.toLocaleString()}</div>
+          <div className={styles.statLabel}>Credits This Month</div>
+          {pendingUsers > 0 && (
+            <div className={styles.statAlert}>{pendingUsers} users pending</div>
+          )}
         </div>
       </div>
 

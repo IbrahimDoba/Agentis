@@ -18,9 +18,16 @@ import { cn, formatDate } from "@/lib/utils"
 import styles from "@/app/dashboard/agent/[id]/page.module.css"
 import adminStyles from "@/app/admin/agents/[id]/page.module.css"
 
-const TABS = [
+const TABS_ELEVENLABS = [
     { id: "setup", label: "Admin Setup" },
     { id: "profile", label: "Profile" },
+    { id: "configuration", label: "Configuration" },
+    { id: "knowledge-base", label: "Knowledge Base" },
+    { id: "tools", label: "Tools" },
+]
+
+const TABS_ORCHESTRATOR = [
+    { id: "setup", label: "Admin Setup" },
     { id: "configuration", label: "Configuration" },
     { id: "knowledge-base", label: "Knowledge Base" },
     { id: "tools", label: "Tools" },
@@ -42,6 +49,8 @@ function AgentAvatar({ src, name, size = 48 }: { src?: string | null; name: stri
 }
 
 export function AdminAgentClient({ agent }: { agent: any }) {
+    const isOrchestrator = agent.agentRuntime === "orchestrator"
+    const TABS = isOrchestrator ? TABS_ORCHESTRATOR : TABS_ELEVENLABS
     const [activeTab, setActiveTab] = useState("setup")
 
     const copyText = [
@@ -73,7 +82,27 @@ export function AdminAgentClient({ agent }: { agent: any }) {
                         </p>
                     </div>
                 </div>
-                <StatusBadge status={agent.status} />
+                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexShrink: 0 }}>
+                    <span style={{
+                        fontSize: "11px", fontWeight: 700, padding: "3px 9px", borderRadius: "100px",
+                        background: isOrchestrator ? "rgba(34,197,94,0.1)" : "rgba(139,92,246,0.1)",
+                        color: isOrchestrator ? "var(--accent)" : "#8b5cf6",
+                        border: `1px solid ${isOrchestrator ? "rgba(34,197,94,0.25)" : "rgba(139,92,246,0.25)"}`,
+                    }}>
+                        {isOrchestrator ? "AI Chat" : "Voice"}
+                    </span>
+                    {agent.transportType && (
+                        <span style={{
+                            fontSize: "11px", fontWeight: 700, padding: "3px 9px", borderRadius: "100px",
+                            background: agent.transportType === "baileys" ? "rgba(59,130,246,0.1)" : "rgba(245,158,11,0.1)",
+                            color: agent.transportType === "baileys" ? "#3b82f6" : "#f59e0b",
+                            border: `1px solid ${agent.transportType === "baileys" ? "rgba(59,130,246,0.2)" : "rgba(245,158,11,0.25)"}`,
+                        }}>
+                            {agent.transportType === "baileys" ? "WhatsApp Web" : "WABA"}
+                        </span>
+                    )}
+                    <StatusBadge status={agent.status} />
+                </div>
             </div>
 
             <div className={styles.tabs}>
