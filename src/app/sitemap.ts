@@ -105,6 +105,25 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "yearly",
       priority: 0.2,
     },
+    // Solution pages
+    ...[
+      "ecommerce",
+      "restaurants",
+      "real-estate",
+      "healthcare",
+      "logistics",
+      "finance",
+      "customer-support",
+      "lead-generation",
+      "appointment-booking",
+      "broadcasts",
+    ].map((slug) => ({
+      url: `${BASE_URL}/solutions/${slug}`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.85,
+    })),
+
     ...blogPosts.map((post) => ({
       url: `${BASE_URL}/blog/${post.slug}`,
       lastModified: new Date(post.publishedAt),

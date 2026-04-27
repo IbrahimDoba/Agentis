@@ -15,9 +15,25 @@ const logger = rootLogger.child({ module: "contacts-store" })
 // In-memory cache: agentId → Map<lid, phoneNumber>
 const cache = new Map<string, Map<string, string>>()
 
+// In-memory name cache: agentId → Map<phoneNumber, contactName>
+const nameCache = new Map<string, Map<string, string>>()
+
 function agentCache(agentId: string): Map<string, string> {
   if (!cache.has(agentId)) cache.set(agentId, new Map())
   return cache.get(agentId)!
+}
+
+function agentNameCache(agentId: string): Map<string, string> {
+  if (!nameCache.has(agentId)) nameCache.set(agentId, new Map())
+  return nameCache.get(agentId)!
+}
+
+/**
+ * Resolve a cached contact name for a given phone number.
+ * Returns the saved phone-book name (notify/name) or null if unknown.
+ */
+export function resolveContactName(agentId: string, phone: string): string | null {
+  return agentNameCache(agentId).get(phone) ?? null
 }
 
 function lidMappingPath(agentId: string, lid: string): string {
@@ -100,6 +116,13 @@ export function updateContacts(agentId: string, contacts: unknown[]): void {
       if (phone && lid) {
         saveLidMapping(agentId, lid, phone)
         logger.debug({ agentId, lid, phone }, "Saved LID→phone mapping")
+
+        // Cache the contact name against the resolved phone number
+        const name = contact.notify ?? contact.name
+        if (phone && name) {
+          agentNameCache(agentId).set(phone, name)
+          logger.debug({ agentId, phone, name }, "Cached contact name (LID contact)")
+        }
       }
     } else if (contact.lid) {
       // Older format: id is PN JID, lid field holds the LID JID
@@ -108,6 +131,21 @@ export function updateContacts(agentId: string, contacts: unknown[]): void {
       if (phone && lid) {
         saveLidMapping(agentId, lid, phone)
         logger.debug({ agentId, lid, phone }, "Saved LID→phone mapping (legacy)")
+      }
+
+      // Cache contact name
+      const name = contact.notify ?? contact.name
+      if (phone && name) {
+        agentNameCache(agentId).set(phone, name)
+        logger.debug({ agentId, phone, name }, "Cached contact name (legacy contact)")
+      }
+    } else {
+      // Regular @s.whatsapp.net contact — just cache the name
+      const phone = id.split("@")[0].split(":")[0]
+      const name = contact.notify ?? contact.name
+      if (phone && name) {
+        agentNameCache(agentId).set(phone, name)
+        logger.debug({ agentId, phone, name }, "Cached contact name")
       }
     }
   }

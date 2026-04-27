@@ -2,7 +2,7 @@ import type { WASocket } from "@whiskeysockets/baileys"
 import { webhookEmitter } from "../dashboard/webhook-emitter.js"
 import { config } from "../config.js"
 import { logger as rootLogger } from "../lib/logger.js"
-import { resolvePhone } from "./contacts-store.js"
+import { resolvePhone, resolveContactName } from "./contacts-store.js"
 import { getConversationMode, getAgentIsHumanMode, saveHumanOutboundMessage } from "../db/queries.js"
 import { transcribeVoiceNote } from "../voice/transcribe.js"
 import { creditsForVoice } from "../billing/credits.js"
@@ -43,7 +43,7 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
       const phoneNumber = altJid
         ? altJid.split("@")[0].split(":")[0]
         : resolvePhone(agentId, senderJid)
-      const pushName = msg.pushName ?? undefined
+      const pushName = msg.pushName ?? resolveContactName(agentId, phoneNumber) ?? undefined
 
       // Handle human operator's own replies sent directly from their phone
       if (msg.key.fromMe) {

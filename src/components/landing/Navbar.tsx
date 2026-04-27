@@ -1,25 +1,39 @@
 "use client"
 import { useEffect, useState, useRef } from "react"
 import Link from "next/link"
-import { SunIcon, MoonIcon, ChevronDownIcon } from "@heroicons/react/24/outline"
+import {
+  SunIcon,
+  MoonIcon,
+  ChevronDownIcon,
+  ShoppingBagIcon,
+  BuildingStorefrontIcon,
+  HomeIcon,
+  HeartIcon,
+  TruckIcon,
+  BanknotesIcon,
+  ChatBubbleLeftRightIcon,
+  BoltIcon,
+  CalendarDaysIcon,
+  MegaphoneIcon,
+} from "@heroicons/react/24/outline"
 import { useTheme } from "@/components/ThemeProvider"
 import { LogoIcon } from "@/components/landing/Logo"
 import styles from "./Navbar.module.css"
 
 const industries = [
-  { label: "E-commerce & Retail", desc: "Automate product Q&A and orders", emoji: "🛍️", href: "/solutions/ecommerce" },
-  { label: "Restaurants & Food", desc: "Reservations, menus and orders", emoji: "🍽️", href: "/solutions/restaurants" },
-  { label: "Real Estate", desc: "Qualify leads and book viewings", emoji: "🏠", href: "/solutions/real-estate" },
-  { label: "Healthcare & Clinics", desc: "Appointment booking and FAQs", emoji: "🏥", href: "/solutions/healthcare" },
-  { label: "Logistics & Delivery", desc: "Real-time tracking updates", emoji: "🚚", href: "/solutions/logistics" },
-  { label: "Financial Services", desc: "Lead qualification and product Q&A", emoji: "💰", href: "/solutions/finance" },
+  { label: "E-commerce & Retail", desc: "Automate product Q&A and orders", Icon: ShoppingBagIcon, href: "/solutions/ecommerce" },
+  { label: "Restaurants & Food", desc: "Reservations, menus and orders", Icon: BuildingStorefrontIcon, href: "/solutions/restaurants" },
+  { label: "Real Estate", desc: "Qualify leads and book viewings", Icon: HomeIcon, href: "/solutions/real-estate" },
+  { label: "Healthcare & Clinics", desc: "Appointment booking and FAQs", Icon: HeartIcon, href: "/solutions/healthcare" },
+  { label: "Logistics & Delivery", desc: "Real-time tracking updates", Icon: TruckIcon, href: "/solutions/logistics" },
+  { label: "Financial Services", desc: "Lead qualification and product Q&A", Icon: BanknotesIcon, href: "/solutions/finance" },
 ]
 
 const useCases = [
-  { label: "Customer Support", desc: "24/7 automated responses", emoji: "💬", href: "/solutions/customer-support" },
-  { label: "Lead Generation", desc: "Capture and qualify every lead", emoji: "🔥", href: "/solutions/lead-generation" },
-  { label: "Appointment Booking", desc: "Book directly on WhatsApp", emoji: "📅", href: "/solutions/appointment-booking" },
-  { label: "Broadcasts & Campaigns", desc: "Reach your entire contact base", emoji: "📢", href: "/solutions/broadcasts" },
+  { label: "Customer Support", desc: "24/7 automated responses", Icon: ChatBubbleLeftRightIcon, href: "/solutions/customer-support" },
+  { label: "Lead Generation", desc: "Capture and qualify every lead", Icon: BoltIcon, href: "/solutions/lead-generation" },
+  { label: "Appointment Booking", desc: "Book directly on WhatsApp", Icon: CalendarDaysIcon, href: "/solutions/appointment-booking" },
+  { label: "Broadcasts & Campaigns", desc: "Reach your entire contact base", Icon: MegaphoneIcon, href: "/solutions/broadcasts" },
 ]
 
 export function Navbar() {
@@ -32,7 +46,7 @@ export function Navbar() {
 
   useEffect(() => {
     function onScroll() {
-      setScrolled(window.scrollY > 20)
+      setScrolled(window.scrollY > 10)
     }
     window.addEventListener("scroll", onScroll, { passive: true })
     return () => window.removeEventListener("scroll", onScroll)
@@ -110,7 +124,9 @@ export function Navbar() {
                         className={styles.dropdownItem}
                         onClick={() => setSolutionsOpen(false)}
                       >
-                        <div className={styles.dropdownItemIcon}>{item.emoji}</div>
+                        <div className={styles.dropdownItemIcon}>
+                          <item.Icon width={16} height={16} />
+                        </div>
                         <div className={styles.dropdownItemContent}>
                           <div className={styles.dropdownItemTitle}>{item.label}</div>
                           <div className={styles.dropdownItemDesc}>{item.desc}</div>
@@ -130,7 +146,9 @@ export function Navbar() {
                         className={styles.dropdownItem}
                         onClick={() => setSolutionsOpen(false)}
                       >
-                        <div className={styles.dropdownItemIcon}>{item.emoji}</div>
+                        <div className={styles.dropdownItemIcon}>
+                          <item.Icon width={16} height={16} />
+                        </div>
                         <div className={styles.dropdownItemContent}>
                           <div className={styles.dropdownItemTitle}>{item.label}</div>
                           <div className={styles.dropdownItemDesc}>{item.desc}</div>
@@ -200,7 +218,7 @@ export function Navbar() {
                       className={styles.mobileSolutionLink}
                       onClick={closeMenu}
                     >
-                      <span>{item.emoji}</span>
+                      <item.Icon width={15} height={15} />
                       {item.label}
                     </Link>
                   ))}
@@ -214,7 +232,7 @@ export function Navbar() {
                       className={styles.mobileSolutionLink}
                       onClick={closeMenu}
                     >
-                      <span>{item.emoji}</span>
+                      <item.Icon width={15} height={15} />
                       {item.label}
                     </Link>
                   ))}
