@@ -231,14 +231,10 @@ export default function WhatsAppWebPage() {
 
       {/* Disclaimer */}
       <div className={styles.disclaimer}>
-        <span className={styles.disclaimerIcon}>⚠️</span>
+        <span className={styles.disclaimerIcon}>ℹ️</span>
         <div>
-          <strong>WhatsApp Web integration uses WhatsApp&apos;s Linked Devices feature.</strong>{" "}
-          This is not the official WhatsApp Business API. WhatsApp may disconnect or ban numbers
-          that use automation. D-Zero AI applies conservative pacing to minimise risk, but we cannot
-          guarantee against suspension. If your use case requires production-grade reliability,{" "}
-          <a href="/contact" className={styles.disclaimerLink}>contact our team</a> to be onboarded
-          onto the WhatsApp Business API tier.
+          Uses WhatsApp&apos;s Linked Devices feature. For enterprise-grade reliability,{" "}
+          <a href="/contact" className={styles.disclaimerLink}>contact us</a> about our WhatsApp Business API tier.
         </div>
       </div>
 
@@ -471,7 +467,7 @@ export default function WhatsAppWebPage() {
               </div>
 
               {session && isConnected && (() => {
-                const maxPerDay = TIER_MAX_PER_DAY[session.warmupTier] ?? 40
+                const maxPerDay = TIER_MAX_PER_DAY[Number(session.warmupTier)] ?? 40
                 const used = session.dailyMessageCount
                 const pct = Math.min(100, Math.round((used / maxPerDay) * 100))
                 const isWarning = pct >= 75 && pct < 100
