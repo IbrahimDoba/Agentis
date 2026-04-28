@@ -7,10 +7,6 @@ function dailyKey(agentId: string) {
   return `rl:daily:${agentId}:${d}`
 }
 
-function hourlyKey(agentId: string) {
-  const h = new Date().toISOString().slice(0, 13)
-  return `rl:hourly:${agentId}:${h}`
-}
 
 function newContactKey(agentId: string) {
   const d = new Date().toISOString().slice(0, 10)
@@ -25,20 +21,11 @@ export async function checkAndIncrement(agentId: string, warmupTier: number): Pr
   const redis = getRedis()
   const tier = getTierConfig(warmupTier)
 
-  const [daily, hourly] = await Promise.all([
-    redis.incr(dailyKey(agentId)),
-    redis.incr(hourlyKey(agentId)),
-  ])
-
-  // Set TTL on first increment
+  const daily = await redis.incr(dailyKey(agentId))
   if (daily === 1) await redis.expire(dailyKey(agentId), 86400)
-  if (hourly === 1) await redis.expire(hourlyKey(agentId), 3600)
 
   if (daily > HARD_CAPS.maxPerDay || daily > tier.maxPerDay) {
     throw new RateLimitError(`Daily cap reached (${daily}/${Math.min(HARD_CAPS.maxPerDay, tier.maxPerDay)})`)
-  }
-  if (hourly > HARD_CAPS.maxPerHour || hourly > tier.maxPerHour) {
-    throw new RateLimitError(`Hourly cap reached (${hourly}/${Math.min(HARD_CAPS.maxPerHour, tier.maxPerHour)})`)
   }
 }
 

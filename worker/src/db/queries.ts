@@ -81,7 +81,8 @@ export async function upsertSession(
     ON CONFLICT ("agentId") DO UPDATE SET
       "status" = EXCLUDED."status",
       "phoneNumber" = COALESCE(EXCLUDED."phoneNumber", "BaileysSession"."phoneNumber"),
-      "warmupTier" = EXCLUDED."warmupTier",
+      "warmupTier" = COALESCE("BaileysSession"."warmupTier", EXCLUDED."warmupTier"),
+      "warmupStartedAt" = COALESCE("BaileysSession"."warmupStartedAt", EXCLUDED."warmupStartedAt"),
       "dailyMessageCount" = EXCLUDED."dailyMessageCount",
       "updatedAt" = ${now}
     RETURNING *
