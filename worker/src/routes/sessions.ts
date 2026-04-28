@@ -4,6 +4,12 @@ import { sessionManager } from "../baileys/session-manager.js"
 import { getSessionByAgentId, deleteSession, updateWarmupTier } from "../db/queries.js"
 import { NotFoundError } from "../lib/errors.js"
 import { resolvePhone } from "../baileys/contacts-store.js"
+import { getRedis } from "../queue/redis.js"
+
+function dailyRedisKey(agentId: string) {
+  const d = new Date().toISOString().slice(0, 10)
+  return `rl:daily:${agentId}:${d}`
+}
 
 export const sessionRoutes: FastifyPluginAsync = async (app) => {
   // POST /v1/sessions — create a new session
@@ -26,7 +32,10 @@ export const sessionRoutes: FastifyPluginAsync = async (app) => {
   app.get<{ Params: { agentId: string } }>("/sessions/:agentId", async (req, reply) => {
     const session = await getSessionByAgentId(req.params.agentId)
     if (!session) throw new NotFoundError("Session")
-    reply.send(session)
+    // Read live daily count from Redis (the DB field is never incremented — Redis is source of truth)
+    const redis = getRedis()
+    const redisCount = await redis.get(dailyRedisKey(req.params.agentId))
+    reply.send({ ...session, dailyMessageCount: Number(redisCount ?? 0) })
   })
 
   // POST /v1/sessions/:agentId/disconnect — stop socket, preserve auth + DB record

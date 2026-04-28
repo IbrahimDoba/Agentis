@@ -28,6 +28,7 @@ model User {
   verificationCodeExpiry DateTime?
   businessCategory    String?
   businessDescription String?
+  businessGoals       String?
   businessAddress     String?
   businessEmail       String?
   businessWebsite     String?

@@ -97,7 +97,7 @@ export function OnboardingFlow({ userName, businessName }: Props) {
       {/* Brand bar */}
       <div className={styles.brand}>
         <span className={styles.brandDot} />
-        Agentis
+        D-Zero AI
       </div>
 
       {/* Progress */}
@@ -235,9 +235,7 @@ export function OnboardingFlow({ userName, businessName }: Props) {
             <p className={styles.stepLabel}>Step 5 of {TOTAL_STEPS}</p>
             <h1 className={styles.stepTitle}>You&apos;re all set!</h1>
             <p className={styles.stepSub}>
-              Your account is ready. Next, create your first AI agent — choose a template, set up its personality, and connect it to WhatsApp.
-              <br /><br />
-              Once submitted, our team reviews it and activates it within 24 hours.
+              Your account is ready. Next, create your first AI agent — set up its personality, knowledge base, and connect it to WhatsApp.
             </p>
             <div className={styles.actions}>
               <button className={styles.btnSecondary} onClick={() => setStep(4)}>← Back</button>

@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useParams } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
-import { ArrowLeftIcon } from "@heroicons/react/24/outline"
+import { ArrowLeftIcon, ChevronDownIcon } from "@heroicons/react/24/outline"
 import styles from "./page.module.css"
 import { AgentForm } from "@/components/dashboard/AgentForm"
 import { AgentProfileForm } from "@/components/dashboard/AgentProfileForm"
@@ -25,6 +25,7 @@ const TABS = (agentRuntime: string) => [
     : [{ id: "knowledge-base", label: "Knowledge Base" }]),
   { id: "tools", label: "Tools" },
   { id: "templates", label: "Templates" },
+  { id: "guide", label: "Guide" },
 ]
 
 function Skeleton({ height, width }: { height: number; width?: string }) {
@@ -51,6 +52,111 @@ function AgentAvatar({ src, name, size = 48 }: { src?: string | null; name: stri
       display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
     }}>
       {initials}
+    </div>
+  )
+}
+
+const GUIDE_SECTIONS = [
+  {
+    title: "Profile",
+    icon: "🖼️",
+    content: [
+      "Upload a profile photo that represents your business — customers may see this in certain WhatsApp flows.",
+      "Set your agent's display name, business category, address, and contact details.",
+      "The profile is purely informational and does not affect how the AI responds.",
+    ],
+  },
+  {
+    title: "Configuration",
+    icon: "⚙️",
+    content: [
+      "This is the most important tab. Write a clear, detailed system prompt that tells the AI who it is and how it should behave.",
+      "Include: your business name, what you sell or offer, your tone (friendly, professional, formal), and what the agent should or should not do.",
+      "Add your products or services in structured detail — the more specific, the better the agent's answers.",
+      "List your FAQs so the agent can handle them instantly without hallucinating.",
+      "Set operating hours so the agent knows when to respond and when to tell customers to wait.",
+      "Tip: treat the system prompt like a new employee handbook. The agent only knows what you tell it.",
+    ],
+  },
+  {
+    title: "Knowledge Base / Documents",
+    icon: "📚",
+    content: [
+      "Upload PDFs, Word docs, or text files with product catalogues, pricing sheets, policies, menus, or any reference material.",
+      "The agent uses semantic search to pull relevant context from these documents when answering questions.",
+      "For best results, keep documents clean and well-structured. Avoid scanned images or heavily formatted PDFs.",
+      "Documents work alongside your configuration — they are searched at query time to supplement the system prompt.",
+    ],
+  },
+  {
+    title: "Tools",
+    icon: "🔧",
+    content: [
+      "Tools let your agent take actions beyond just chatting — like checking order status, booking appointments, or fetching data from your systems.",
+      "Each tool is a webhook your server exposes. The agent calls it automatically when it decides the tool is relevant.",
+      "Define a clear name, description, and parameters for each tool. The agent uses the description to decide when to call it.",
+      "Start without tools and add them once your agent is live and you understand what customers ask most.",
+    ],
+  },
+  {
+    title: "Templates",
+    icon: "✉️",
+    content: [
+      "Templates are pre-written message shortcuts for your team when taking over a conversation manually.",
+      "Create templates for common replies like order confirmations, follow-ups, or appointment reminders.",
+      "Templates are only used in human mode — the AI does not use them automatically.",
+    ],
+  },
+  {
+    title: "Building a great agent",
+    icon: "🚀",
+    content: [
+      "Step 1 — Write a strong system prompt. Describe your business in 2–3 sentences, then list rules (\"always be polite\", \"never promise discounts without approval\").",
+      "Step 2 — Add your products or services with prices, descriptions, and variants. Be exhaustive.",
+      "Step 3 — Fill in FAQs with the most common questions your customers ask and the exact answers you want given.",
+      "Step 4 — Upload a knowledge base document if you have a detailed catalogue, menu, or policy guide.",
+      "Step 5 — Connect to WhatsApp via the Channels page, then test by messaging your WhatsApp number.",
+      "Step 6 — Monitor early conversations in the Chats page, refine the system prompt based on where the agent struggles.",
+    ],
+  },
+]
+
+function AgentGuide() {
+  const [open, setOpen] = useState<string | null>(null)
+  return (
+    <div className={styles.guide}>
+      <div className={styles.guideHeader}>
+        <h2 className={styles.guideTitle}>How to use your agent</h2>
+        <p className={styles.guideSub}>Everything you need to know to set up and improve your AI agent.</p>
+      </div>
+      <div className={styles.guideAccordion}>
+        {GUIDE_SECTIONS.map((s) => (
+          <div key={s.title} className={styles.guideItem}>
+            <button
+              className={styles.guideItemBtn}
+              onClick={() => setOpen(open === s.title ? null : s.title)}
+            >
+              <span className={styles.guideItemLeft}>
+                <span className={styles.guideItemIcon}>{s.icon}</span>
+                <span className={styles.guideItemTitle}>{s.title}</span>
+              </span>
+              <ChevronDownIcon
+                width={16}
+                height={16}
+                className={styles.guideChevron}
+                style={{ transform: open === s.title ? "rotate(180deg)" : "rotate(0deg)" }}
+              />
+            </button>
+            {open === s.title && (
+              <ul className={styles.guideItemBody}>
+                {s.content.map((line, i) => (
+                  <li key={i} className={styles.guideItemLine}>{line}</li>
+                ))}
+              </ul>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
@@ -154,6 +260,7 @@ export default function AgentDetailPage() {
           />
         )}
         {activeTab === "templates" && <TemplatesTab agentId={agent.id} />}
+        {activeTab === "guide" && <AgentGuide />}
       </div>
     </div>
   )

@@ -15,6 +15,7 @@ export async function POST(req: NextRequest) {
       onboardingCompleted: true,
       ...(businessCategory ? { businessCategory } : {}),
       ...(businessDescription ? { businessDescription } : {}),
+      ...(goals?.length ? { businessGoals: goals.join(",") } : {}),
     },
   })
 

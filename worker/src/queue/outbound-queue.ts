@@ -82,10 +82,10 @@ const worker = new Worker<OutboundJob>(
       await trackNewContact(agentId, toJid)
     }
 
-    // Billing guardrails (AI orchestrator sends only)
+    // Billing guardrails (AI sends only — human operator messages always go through)
     const messageType: "text" | "image" = type === "image" ? "image" : "text"
-    const creditsToCharge = source === "ai" ? creditsForMessageType(messageType) : 0
-    if (source === "ai" && creditsToCharge > 0) {
+    const creditsToCharge = creditsForMessageType(messageType)
+    if (source === "ai") {
       const billing = await getAgentBillingInfo(agentId)
       if (!billing) throw new RateLimitError("Billing profile not found")
 
@@ -123,15 +123,13 @@ const worker = new Worker<OutboundJob>(
       // Register in dedup cache so event-handlers skips this reflected message
       if (sentMsgId) markSentByUs(sentMsgId)
 
-      if (source === "ai" && creditsToCharge > 0) {
-        await insertCreditUsage({
-          agentId,
-          conversationId,
-          messageType,
-          source,
-          creditsUsed: creditsToCharge,
-        })
-      }
+      await insertCreditUsage({
+        agentId,
+        conversationId,
+        messageType,
+        source,
+        creditsUsed: creditsToCharge,
+      })
 
       const delayAppliedMs = Date.now() - startMs
       if (logEntry) await markOutboundSent(logEntry, delayAppliedMs)

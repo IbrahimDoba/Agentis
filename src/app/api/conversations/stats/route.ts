@@ -3,7 +3,7 @@ import { db } from "@/lib/db"
 import { NextRequest, NextResponse } from "next/server"
 import { PLAN_CREDIT_LIMITS } from "@/lib/plans"
 import { getWorkspaceContext } from "@/lib/workspace"
-import { sumCreditsForAgents } from "@/lib/creditUsage"
+import { sumCreditsForAgents, sumCreditsBySourceForAgents } from "@/lib/creditUsage"
 
 type RuntimeView = "orchestrator" | "elevenlabs"
 
@@ -44,10 +44,12 @@ export async function GET(req: NextRequest) {
   let totalContacts = 0
   let totalCreditsUsed = 0
   let monthlyCreditsUsed = 0
+  let monthlyAiCredits = 0
+  let monthlyHumanCredits = 0
 
   if (runtime === "orchestrator") {
     if (runtimeAgentIds.length > 0) {
-      const [convCount, leadCount, contacts, creditsTotal, creditsMonthly] = await Promise.all([
+      const [convCount, leadCount, contacts, creditsTotal, creditsMonthly, creditsBreakdown] = await Promise.all([
         db.conversation.count({ where: { agentId: { in: runtimeAgentIds } } }),
         db.lead.count({ where: { userId: ownerId, agentId: { in: runtimeAgentIds } } }),
         db.conversation.groupBy({
@@ -56,12 +58,15 @@ export async function GET(req: NextRequest) {
         }),
         sumCreditsForAgents(runtimeAgentIds),
         sumCreditsForAgents(runtimeAgentIds, monthStart, monthEnd),
+        sumCreditsBySourceForAgents(runtimeAgentIds, monthStart, monthEnd),
       ])
       totalConversations = convCount
       totalLeads = leadCount
       totalContacts = contacts.length
       totalCreditsUsed = creditsTotal
       monthlyCreditsUsed = creditsMonthly
+      monthlyAiCredits = creditsBreakdown.ai
+      monthlyHumanCredits = creditsBreakdown.human
     }
   } else {
     if (runtimeAgentIds.length > 0 || elevenLabsIds.length > 0) {
@@ -104,6 +109,8 @@ export async function GET(req: NextRequest) {
     totalContacts,
     totalCreditsUsed,
     monthlyCreditsUsed,
+    monthlyAiCredits,
+    monthlyHumanCredits,
     creditLimit,
     plan,
     subscriptionExpiresAt: user?.subscriptionExpiresAt?.toISOString() ?? null,

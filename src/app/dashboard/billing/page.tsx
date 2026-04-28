@@ -40,6 +40,8 @@ export default function BillingPage() {
   const overageRate = PLAN_OVERAGE_RATE_PER_1K[plan] ?? null
 
   const monthlyUsed = stats?.monthlyCreditsUsed ?? 0
+  const monthlyAiCredits = stats?.monthlyAiCredits ?? 0
+  const monthlyHumanCredits = stats?.monthlyHumanCredits ?? 0
   const totalUsed = stats?.totalCreditsUsed ?? 0
   const pct = unlimited ? 0 : creditLimit > 0 ? Math.min(100, Math.round((monthlyUsed / creditLimit) * 100)) : 0
   const remaining = unlimited ? null : Math.max(0, creditLimit - monthlyUsed)
@@ -135,6 +137,19 @@ export default function BillingPage() {
 
           {unlimited && (
             <p className={styles.unlimitedNote}>Unlimited plan — no credit cap.</p>
+          )}
+
+          {(monthlyAiCredits > 0 || monthlyHumanCredits > 0) && (
+            <div className={styles.breakdown}>
+              <div className={styles.breakdownRow}>
+                <span className={styles.breakdownLabel}>🤖 AI messages</span>
+                <span className={styles.breakdownValue}>{monthlyAiCredits.toLocaleString()} cr</span>
+              </div>
+              <div className={styles.breakdownRow}>
+                <span className={styles.breakdownLabel}>👤 Team messages</span>
+                <span className={styles.breakdownValue}>{monthlyHumanCredits.toLocaleString()} cr</span>
+              </div>
+            </div>
           )}
         </div>
 

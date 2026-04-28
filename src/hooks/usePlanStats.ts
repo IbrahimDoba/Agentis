@@ -6,6 +6,8 @@ export interface PlanStats {
   totalContacts: number
   totalCreditsUsed: number
   monthlyCreditsUsed: number
+  monthlyAiCredits: number
+  monthlyHumanCredits: number
   creditLimit: number
   plan: string
   subscriptionExpiresAt: string | null
