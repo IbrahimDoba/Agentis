@@ -5,7 +5,6 @@ import { sessionManager } from "../baileys/session-manager.js"
 import { sendWithPacing, sendImageWithPacing, businessHoursCheck } from "../anti-ban/pacing.js"
 import {
   checkAndIncrement,
-  checkDuplicateText,
   trackNewContact,
 } from "../anti-ban/rate-limiter.js"
 import {
@@ -75,11 +74,6 @@ const worker = new Worker<OutboundJob>(
     if (extraDelayMs > 0) {
       logger.debug({ agentId, extraDelayMs }, "Outside business hours — adding extra delay")
       await new Promise((r) => setTimeout(r, extraDelayMs))
-    }
-
-    // §7.4 — Duplicate text check (AI text messages only — images and human messages bypass)
-    if (source === "ai" && type !== "image" && text) {
-      await checkDuplicateText(text, toJid)
     }
 
     // Rate limiting (human messages bypass — operator-initiated sends should never be blocked)

@@ -51,19 +51,22 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
       if (msg.key.fromMe) {
         const msgId = msg.key.id
         if (msgId && !wasSentByUs(msgId)) {
-          // This message came from the operator's phone (not from our outbound queue)
-          // Always save it so the AI has context when the customer replies back
-          const _mOut = msg.message as any
-          const text: string | null =
-            _mOut?.conversation ||
-            _mOut?.extendedTextMessage?.text ||
-            null
-          if (text) {
-            await saveHumanOutboundMessage(agentId, phoneNumber, text).catch((err) => {
-              logger.error({ err, agentId }, "Failed to save human operator message")
-            })
-            webhookEmitter.emit("message.sent", { agentId })
-            logger.info({ agentId, phoneNumber }, "Human operator message saved from phone")
+          // Only save if the agent is in human handoff mode — otherwise this is just
+          // the AI's own message reflecting back, and saving it causes duplicates
+          const isHuman = await getAgentIsHumanMode(agentId).catch(() => false)
+          if (isHuman) {
+            const _mOut = msg.message as any
+            const text: string | null =
+              _mOut?.conversation ||
+              _mOut?.extendedTextMessage?.text ||
+              null
+            if (text) {
+              await saveHumanOutboundMessage(agentId, phoneNumber, text).catch((err) => {
+                logger.error({ err, agentId }, "Failed to save human operator message")
+              })
+              webhookEmitter.emit("message.sent", { agentId })
+              logger.info({ agentId, phoneNumber }, "Human operator message saved from phone")
+            }
           }
         }
         continue
