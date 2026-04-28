@@ -21,6 +21,9 @@ export interface ConnectionOptions {
 
 export async function createConnection(opts: ConnectionOptions): Promise<WASocket> {
   const log = rootLogger.child({ agentId: opts.agentId })
+  // Baileys is very chatty at INFO level (retry receipts, signal noise, etc.)
+  // Use a WARN-only child so its internal logs don't flood the output
+  const baileysLog = rootLogger.child({ agentId: opts.agentId, level: "warn" })
 
   const { version } = await fetchLatestBaileysVersion()
   log.info({ version }, "Using WhatsApp version")
@@ -28,9 +31,9 @@ export async function createConnection(opts: ConnectionOptions): Promise<WASocke
   const sock = makeWASocket({
     auth: {
       creds: opts.authState.creds,
-      keys: makeCacheableSignalKeyStore(opts.authState.keys, log as never),
+      keys: makeCacheableSignalKeyStore(opts.authState.keys, baileysLog as never),
     },
-    logger: log as never,
+    logger: baileysLog as never,
     version,
     browser: ["Mac OS", "Chrome", "131.0.0"] as [string, string, string],
     connectTimeoutMs: 30_000,

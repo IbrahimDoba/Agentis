@@ -22,7 +22,8 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
   const sessionStartedAt = Date.now()
 
   sock.ev.on("messages.upsert", async ({ messages, type }) => {
-    if (type !== "notify") return
+    // Allow both "notify" (live) and "append" (history sync / delayed delivery)
+    if (type !== "notify" && type !== "append") return
 
     for (const msg of messages) {
       // §9 — Ignore broadcasts and groups
@@ -31,9 +32,10 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
       if (!msg.key.remoteJid) continue
 
       // Replay protection — skip messages that arrived before this session started
+      // Use a 5-minute window to catch delayed/queued messages without replaying old history
       const msgTimestampMs = (msg.messageTimestamp as number) * 1000
-      if (msgTimestampMs < sessionStartedAt - 30_000) {
-        logger.debug({ agentId, msgTimestampMs, sessionStartedAt }, "Skipping pre-connection message")
+      if (msgTimestampMs < sessionStartedAt - 300_000) {
+        logger.debug({ agentId, msgTimestampMs, sessionStartedAt, type }, "Skipping pre-connection message")
         continue
       }
 
@@ -50,28 +52,51 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
         const msgId = msg.key.id
         if (msgId && !wasSentByUs(msgId)) {
           // This message came from the operator's phone (not from our outbound queue)
-          const isHuman = await getAgentIsHumanMode(agentId).catch(() => false)
-          if (isHuman) {
-            const text =
-              msg.message?.conversation ??
-              msg.message?.extendedTextMessage?.text ??
-              null
-            if (text) {
-              await saveHumanOutboundMessage(agentId, phoneNumber, text).catch((err) => {
-                logger.error({ err, agentId }, "Failed to save human operator message")
-              })
-              webhookEmitter.emit("message.sent", { agentId })
-              logger.info({ agentId, phoneNumber }, "Human operator message saved from phone")
-            }
+          // Always save it so the AI has context when the customer replies back
+          const _mOut = msg.message as any
+          const text: string | null =
+            _mOut?.conversation ||
+            _mOut?.extendedTextMessage?.text ||
+            null
+          if (text) {
+            await saveHumanOutboundMessage(agentId, phoneNumber, text).catch((err) => {
+              logger.error({ err, agentId }, "Failed to save human operator message")
+            })
+            webhookEmitter.emit("message.sent", { agentId })
+            logger.info({ agentId, phoneNumber }, "Human operator message saved from phone")
           }
         }
         continue
       }
 
+      const _m = msg.message as any
       let text: string | null =
-        msg.message?.conversation ??
-        msg.message?.extendedTextMessage?.text ??
+        _m?.conversation ||
+        _m?.extendedTextMessage?.text ||
+        _m?.interactiveResponseMessage?.body?.text ||
+        _m?.imageMessage?.caption ||
+        _m?.videoMessage?.caption ||
+        _m?.documentMessage?.caption ||
+        _m?.buttonsResponseMessage?.selectedDisplayText ||
+        _m?.listResponseMessage?.title ||
+        _m?.templateButtonReplyMessage?.selectedDisplayText ||
+        _m?.ephemeralMessage?.message?.conversation ||
+        _m?.ephemeralMessage?.message?.extendedTextMessage?.text ||
         null
+
+      // If this is a quoted reply, prepend the referenced message so the AI has context
+      if (text) {
+        const quoted = _m?.extendedTextMessage?.contextInfo?.quotedMessage
+        const quotedText: string | null =
+          quoted?.conversation ||
+          quoted?.extendedTextMessage?.text ||
+          quoted?.imageMessage?.caption ||
+          quoted?.videoMessage?.caption ||
+          null
+        if (quotedText) {
+          text = `[Replying to: "${quotedText}"]\n${text}`
+        }
+      }
 
       let voiceCredits = 0
 
@@ -97,7 +122,9 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
       }
 
       if (!text) {
-        logger.debug({ agentId, senderJid }, "Non-text message received, skipping")
+        const msgTypes = Object.keys(msg.message ?? {})
+        const extText = (msg.message as any)?.extendedTextMessage
+        logger.info({ agentId, senderJid, msgTypes, extText: extText ? JSON.stringify(extText).slice(0, 200) : null }, "Non-text message received, skipping")
         continue
       }
 
@@ -142,6 +169,50 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
       }
     }
   })
+}
+
+/**
+ * Extract plain text from any WhatsApp message type.
+ * Handles wrappers (ephemeral, viewOnce, documentWithCaption) and
+ * all common content types including click-to-WhatsApp ad replies.
+ */
+function extractText(message: Record<string, any> | null | undefined): string | null {
+  if (!message) return null
+
+  // Try the message directly first (covers the vast majority of cases)
+  const direct = extractFromMessage(message)
+  if (direct) return direct
+
+  // Only then try wrapper containers (ephemeral, viewOnce, etc.)
+  const wrappers = [
+    message.ephemeralMessage?.message,
+    message.viewOnceMessage?.message,
+    message.viewOnceMessageV2?.message?.viewOnceMessage?.message,
+    message.documentWithCaptionMessage?.message,
+  ]
+  for (const wrapped of wrappers) {
+    if (!wrapped) continue
+    const text = extractFromMessage(wrapped)
+    if (text) return text
+  }
+
+  return null
+}
+
+function extractFromMessage(m: Record<string, any>): string | null {
+  const raw =
+    m.conversation ??
+    m.extendedTextMessage?.text ??
+    m.interactiveResponseMessage?.body?.text ??
+    m.imageMessage?.caption ??
+    m.videoMessage?.caption ??
+    m.documentMessage?.caption ??
+    m.buttonsResponseMessage?.selectedDisplayText ??
+    m.listResponseMessage?.title ??
+    m.templateButtonReplyMessage?.selectedDisplayText ??
+    null
+
+  return raw || null
 }
 
 async function forwardToOrchestrator(payload: {
