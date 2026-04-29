@@ -295,37 +295,6 @@ export function CreateAgentFlow() {
             />
           </div>
 
-          {/* Orchestrator model settings */}
-          {agentRuntime === "orchestrator" && (
-            <div className={styles.section}>
-              <div className={styles.sectionTitle}>Model Settings</div>
-              <div className={styles.fields}>
-                <div className={styles.selectWrap}>
-                  <label className={styles.selectLabel}>Model</label>
-                  <select className={styles.select} value={orchestratorModel} onChange={(e) => setOrchestratorModel(e.target.value)}>
-                    <option value="gpt-4o-mini">GPT-4o Mini (fast, cost-effective)</option>
-                    <option value="gpt-4o">GPT-4o (most capable)</option>
-                  </select>
-                </div>
-                <div className={styles.row}>
-                  <Input
-                    label="Temperature"
-                    type="number"
-                    value={String(orchestratorTemperature)}
-                    onChange={(e) => setOrchestratorTemperature(Math.min(2, Math.max(0, parseFloat(e.target.value) || 0)))}
-                    placeholder="0.7"
-                  />
-                  <Input
-                    label="Max Output Tokens"
-                    type="number"
-                    value={String(orchestratorMaxTokens)}
-                    onChange={(e) => setOrchestratorMaxTokens(Math.min(4096, Math.max(100, parseInt(e.target.value) || 800)))}
-                    placeholder="800"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
 
           <div className={styles.section}>
             <div className={styles.sectionTitle}>Product Catalogue <span className={styles.optional}>(optional)</span></div>

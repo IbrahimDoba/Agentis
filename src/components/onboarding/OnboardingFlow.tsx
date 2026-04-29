@@ -79,15 +79,23 @@ export function OnboardingFlow({ userName, businessName }: Props) {
   async function finish() {
     setSaving(true)
     try {
-      await fetch("/api/onboarding/complete", {
+      const res = await fetch("/api/onboarding/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ businessCategory: category, businessDescription: description, goals }),
       })
-      router.push("/dashboard/agent/create")
+      // If saving optional data failed, try a minimal fallback to at least mark onboarding complete
+      if (!res.ok) {
+        await fetch("/api/onboarding/complete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({}),
+        })
+      }
     } catch {
-      setSaving(false)
+      // Network error — proceed anyway, the layout will handle it if needed
     }
+    router.push("/dashboard/agent/create")
   }
 
   const progress = (step / TOTAL_STEPS) * 100
