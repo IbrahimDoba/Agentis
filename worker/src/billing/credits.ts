@@ -7,6 +7,7 @@ export const AI_CREDIT_COSTS = {
 
 export const PLAN_CREDIT_LIMITS: Record<string, number> = {
   free: 2000,
+  basic: 25000,
   starter: 60000,
   pro: 100000,
   enterprise: -1,

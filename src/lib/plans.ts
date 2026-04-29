@@ -1,5 +1,6 @@
 export const PLAN_PRICES: Record<string, number> = {
   free: 0,
+  basic: 30000,
   starter: 50000,
   pro: 85000,
   enterprise: 0, // custom — commission set manually by admin
@@ -8,6 +9,7 @@ export const PLAN_PRICES: Record<string, number> = {
 // Monthly Dailzero AI credit allowances per plan
 export const PLAN_CREDIT_LIMITS: Record<string, number> = {
   free: 2000,
+  basic: 25000,
   starter: 60000,
   pro: 100000,
   enterprise: -1,   // -1 = unlimited
@@ -24,6 +26,7 @@ export const AI_CREDIT_COSTS = {
 // Overage rate in Naira per 1,000 credits (null = no overage allowed)
 export const PLAN_OVERAGE_RATE_PER_1K: Record<string, number | null> = {
   free: null,
+  basic: null,
   starter: 1000,
   pro: 800,
   enterprise: null, // custom
@@ -31,6 +34,7 @@ export const PLAN_OVERAGE_RATE_PER_1K: Record<string, number | null> = {
 
 export const PLAN_LABELS: Record<string, string> = {
   free: "Free",
+  basic: "Basic",
   starter: "Starter",
   pro: "Pro",
   enterprise: "Enterprise",
@@ -44,6 +48,16 @@ export const PLAN_FEATURES: Record<string, string[]> = {
     "Conversation logs",
     "Lead detection",
     "Community support",
+  ],
+  basic: [
+    "25,000 credits / month",
+    "~500 conversations / month",
+    "1 AI agent",
+    "WhatsApp integration",
+    "Conversation logs",
+    "Lead detection",
+    "Customer memory & context",
+    "Email support",
   ],
   starter: [
     "60,000 credits / month",
@@ -74,11 +88,12 @@ export const PLAN_FEATURES: Record<string, string[]> = {
   ],
 }
 
-export const PLAN_ORDER = ["free", "starter", "pro", "enterprise"]
+export const PLAN_ORDER = ["free", "basic", "starter", "pro", "enterprise"]
 
 // Max workspace members per plan (0 = team feature not available)
 export const PLAN_SEAT_LIMITS: Record<string, number> = {
   free: 0,
+  basic: 1,
   starter: 2,
   pro: 5,
   enterprise: -1, // unlimited

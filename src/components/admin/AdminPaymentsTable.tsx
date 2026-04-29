@@ -27,6 +27,7 @@ const STATUS_FILTERS = ["all", "PENDING", "PAID", "CANCELLED"] as const
 type StatusFilter = typeof STATUS_FILTERS[number]
 
 const PLAN_COLORS: Record<string, string> = {
+  basic:      "#0f766e",
   starter:    "#1d4ed8",
   pro:        "#6d28d9",
   enterprise: "#92400e",

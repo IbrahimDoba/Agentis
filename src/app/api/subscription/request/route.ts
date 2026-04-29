@@ -5,7 +5,7 @@ import { PLAN_PRICES } from "@/lib/plans"
 import { z } from "zod"
 
 const schema = z.object({
-  plan: z.enum(["starter", "pro", "enterprise"]),
+  plan: z.enum(["basic", "starter", "pro", "enterprise"]),
 })
 
 export async function POST(req: NextRequest) {

@@ -18,6 +18,7 @@ interface PaymentRequest {
 }
 
 const PLAN_POPULAR: Record<string, boolean> = {
+  basic: false,
   starter: false,
   pro: true,
 }

@@ -5,6 +5,13 @@ import { Navbar } from "@/components/landing/Navbar"
 import { Footer } from "@/components/landing/Footer"
 import styles from "./page.module.css"
 
+const basicMonthly = {
+  price: "₦30,000",
+  priceNote: "/month",
+  annualPrice: "₦24,000",
+  annualNote: "/month, billed annually",
+}
+
 const starterMonthly = {
   price: "₦50,000",
   priceNote: "/month",
@@ -18,6 +25,21 @@ const proMonthly = {
   annualPrice: "₦68,000",
   annualNote: "/month, billed annually",
 }
+
+const basicFeatures = [
+  { text: "1 AI WhatsApp Agent", included: true },
+  { text: "25,000 credits/month (~500 text conversations)", included: true },
+  { text: "Text + image responses", included: true },
+  { text: "FAQ handling", included: true },
+  { text: "Business hours configuration", included: true },
+  { text: "Conversation monitoring dashboard", included: true },
+  { text: "Lead detection", included: true },
+  { text: "Customer memory & context", included: true },
+  { text: "Email support", included: true },
+  { text: "Voice call capability", included: false },
+  { text: "Overage credits", included: false },
+  { text: "Advanced analytics", included: false },
+]
 
 const starterFeatures = [
   { text: "1 AI WhatsApp Agent", included: true },
@@ -54,15 +76,15 @@ const proFeatures = [
 const faqs = [
   {
     q: "Is there a free trial?",
-    a: "Yes! Both the Starter and Pro plans come with a 7-day free trial. You get full access to all features of your chosen plan. No credit card is required to start.",
+    a: "Yes! Both the Starter and Pro plans come with a 7-day free trial. Basic is billed monthly without a trial so you can start quickly at a lower entry point.",
   },
   {
     q: "Can I switch plans?",
-    a: "Absolutely. You can upgrade from Starter to Pro at any time and the change takes effect immediately. Downgrading happens at the start of your next billing cycle.",
+    a: "Absolutely. You can move between Basic, Starter, and Pro at any time. Upgrades take effect immediately, while downgrades apply at the start of your next billing cycle.",
   },
   {
     q: "What happens if I exceed my credit limit?",
-    a: "On Starter, additional credits beyond 60,000/month are charged at ₦1,000 per 1,000 credits. On Pro, overage is ₦800 per 1,000 credits.",
+    a: "Basic does not include overage credits. On Starter, additional credits beyond 60,000/month are charged at ₦1,000 per 1,000 credits. On Pro, overage is ₦800 per 1,000 credits.",
   },
   {
     q: "Do you offer custom plans?",
@@ -118,6 +140,34 @@ export default function PricingPage() {
         {/* Plans */}
         <section className={styles.plansSection}>
           <div className={styles.plansGrid}>
+            {/* Basic */}
+            <div className={styles.planCard}>
+              <div className={styles.planName}>Basic</div>
+              <div className={styles.planPrice}>
+                {annual ? basicMonthly.annualPrice : basicMonthly.price}
+                <span className={styles.planPriceNote}>
+                  {annual ? basicMonthly.annualNote : basicMonthly.priceNote}
+                </span>
+              </div>
+              <p className={styles.planDesc}>
+                Affordable, always-on WhatsApp AI for solo operators and new businesses.
+              </p>
+              <Link href="/signup" className={`${styles.planBtn} ${styles.planBtnOutline}`}>
+                Get Started
+              </Link>
+              <div className={styles.planDivider} />
+              <ul className={styles.planFeatures}>
+                {basicFeatures.map((f) => (
+                  <li key={f.text} className={`${styles.planFeature} ${!f.included ? styles.planFeatureDimmed : ""}`}>
+                    <span className={f.included ? styles.planCheck : styles.planCross}>
+                      {f.included ? "✓" : "✕"}
+                    </span>
+                    {f.text}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
             {/* Starter */}
             <div className={styles.planCard}>
               <div className={styles.planName}>Starter</div>
@@ -177,7 +227,7 @@ export default function PricingPage() {
           {/* Enterprise nudge */}
           <div className={styles.enterpriseCard}>
             <div className={styles.enterpriseLeft}>
-              <div className={styles.enterpriseTitle}>Need more? Let's talk.</div>
+              <div className={styles.enterpriseTitle}>Need more? Let&apos;s talk.</div>
               <div className={styles.enterpriseDesc}>
                 Custom conversation limits, multiple agents, dedicated support, and API access — built for high-volume businesses.
               </div>
@@ -198,24 +248,26 @@ export default function PricingPage() {
             <div className={styles.comparisonTable}>
               <div className={styles.comparisonHeader}>
                 <div className={styles.comparisonFeatureCol}>Feature</div>
+                <div className={styles.comparisonPlanCol}>Basic</div>
                 <div className={styles.comparisonPlanCol}>Starter</div>
                 <div className={`${styles.comparisonPlanCol} ${styles.comparisonPlanColPro}`}>Pro</div>
               </div>
               {[
-                ["Monthly Credits", "60,000 (~923 text convos)", "100,000 (~1,538 text convos)"],
-                ["Overage Rate", "₦1,000 / 1k credits", "₦800 / 1k credits"],
-                ["Response Type", "Text + Image", "Text + Image + Media"],
-                ["Media Sending", "✓ Images", "✓ Images, PDFs"],
-                ["FAQ Handling", "Advanced", "Advanced AI"],
-                ["Follow-up Messages", "—", "✓ Automated"],
-                ["AI Personality", "Standard", "Fully customisable"],
-                ["Languages", "English", "English + any language"],
-                ["Dashboard", "✓ Basic", "✓ Advanced analytics"],
-                ["Support", "Email (48hr)", "Priority (24hr)"],
-                ["Free Trial", "7 days", "7 days"],
-              ].map(([feature, starter, pro]) => (
+                ["Monthly Credits", "25,000 (~500 text convos)", "60,000 (~923 text convos)", "100,000 (~1,538 text convos)"],
+                ["Overage Rate", "None", "₦1,000 / 1k credits", "₦800 / 1k credits"],
+                ["Response Type", "Text + Image", "Text + Image", "Text + Image + Media"],
+                ["Media Sending", "✓ Images", "✓ Images", "✓ Images, PDFs"],
+                ["FAQ Handling", "Standard", "Advanced", "Advanced AI"],
+                ["Follow-up Messages", "—", "—", "✓ Automated"],
+                ["AI Personality", "Standard", "Standard", "Fully customisable"],
+                ["Languages", "English", "English", "English + any language"],
+                ["Dashboard", "✓ Monitoring", "✓ Basic", "✓ Advanced analytics"],
+                ["Support", "Email", "Email (48hr)", "Priority (24hr)"],
+                ["Free Trial", "No", "7 days", "7 days"],
+              ].map(([feature, basic, starter, pro]) => (
                 <div key={feature} className={styles.comparisonRow}>
                   <div className={styles.comparisonFeatureCol}>{feature}</div>
+                  <div className={styles.comparisonPlanCol}>{basic}</div>
                   <div className={styles.comparisonPlanCol}>{starter}</div>
                   <div className={`${styles.comparisonPlanCol} ${styles.comparisonPlanColPro}`}>{pro}</div>
                 </div>
@@ -253,7 +305,7 @@ export default function PricingPage() {
           <div className={styles.ctaInner}>
             <h2 className={styles.ctaTitle}>Not sure which plan?</h2>
             <p className={styles.ctaDesc}>
-              Book a free 30-minute demo and we'll help you choose the right plan for your business.
+              Book a free 30-minute demo and we&apos;ll help you choose the right plan for your business.
             </p>
             <Link href="/contact" className={styles.ctaBtn}>
               Book a Free Demo
