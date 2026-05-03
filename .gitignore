@@ -49,3 +49,17 @@ check-db.js
 *.tsbuildinfo
 next-env.d.ts
 
+
+# one-off planning docs
+*.md
+!README.md
+
+# manual migration backups
+prisma/migrations_manual_backup/
+
+# one-off utility / backfill scripts
+scripts/backfill-*.ts
+scripts/check-*.ts
+scripts/seed-*.ts
+scripts/setup-*.ts
+scripts/add-*.ts
