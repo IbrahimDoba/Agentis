@@ -11,6 +11,8 @@ import { sessionRoutes } from "./routes/sessions.js"
 import { messageRoutes } from "./routes/messages.js"
 import { broadcastRoutes } from "./routes/broadcasts.js"
 import { closeBroadcastQueue } from "./queue/broadcast-queue.js"
+import { followUpRoutes } from "./routes/followup.js"
+import { closeFollowUpQueue } from "./queue/followup-queue.js"
 
 const app = Fastify({ logger: false }) // we use pino directly
 
@@ -38,11 +40,13 @@ await app.register(healthRoutes, { prefix: "/v1" })
 await app.register(sessionRoutes, { prefix: "/v1" })
 await app.register(messageRoutes, { prefix: "/v1" })
 await app.register(broadcastRoutes, { prefix: "/v1" })
+await app.register(followUpRoutes, { prefix: "/v1" })
 
 // Graceful shutdown
 const shutdown = async () => {
   logger.info("Shutting down...")
   await closeBroadcastQueue()
+  await closeFollowUpQueue()
   await app.close()
   // closeConversations() — removed, orchestrator handles LLM
   await closeRedis()

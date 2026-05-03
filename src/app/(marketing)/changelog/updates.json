@@ -1,5 +1,35 @@
 [
   {
+    "date": "3 May 2026",
+    "tag": "New",
+    "tagColor": "green",
+    "title": "AI Follow-up Campaigns",
+    "description": "Let the AI scan your conversations, identify contacts that have gone cold, draft personalised follow-up messages, and send them over 24 hours — automatically or with your review.",
+    "bullets": [
+      "AI scans all conversations and flags ones that need a follow-up based on inactivity",
+      "Personalised messages drafted per contact using their name and conversation context",
+      "Review mode: approve, edit, or skip each message before anything sends",
+      "Auto mode: AI drafts and sends everything without manual review",
+      "Messages spread intelligently over 24 hours with human-like pacing and batch breaks",
+      "7-day cooldown per contact prevents over-messaging",
+      "Live progress bar tracks sent, skipped, and failed messages in real time",
+      "Cancel any in-progress campaign instantly from the dashboard",
+      "Full campaign history with per-message status logs"
+    ]
+  },
+  {
+    "date": "3 May 2026",
+    "tag": "Improvement",
+    "tagColor": "blue",
+    "title": "30-Day Billing Cycle",
+    "description": "Credits now reset on a rolling 30-day cycle from your subscription date — not on the 1st of every calendar month.",
+    "bullets": [
+      "Billing period anchored to the day your subscription was activated",
+      "No more unexpected resets mid-month",
+      "AI and team message credits tracked separately on the Billing page"
+    ]
+  },
+  {
     "date": "24 April 2026",
     "tag": "New",
     "tagColor": "green",

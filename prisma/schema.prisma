@@ -1,8 +1,7 @@
 generator client {
-  provider        = "prisma-client-js"
+  provider        = "prisma-client"
   output          = "../src/generated/prisma"
   previewFeatures = ["postgresqlExtensions"]
-  binaryTargets   = ["native", "linux-musl"]
 }
 
 datasource db {
@@ -87,6 +86,47 @@ model Agent {
   orchestratorAgents   OrchestratorAgent[]
   conversations        Conversation[]
   broadcasts           BroadcastCampaign[]
+  followUpCampaigns    FollowUpCampaign[]
+}
+
+model FollowUpCampaign {
+  id           String    @id @default(cuid())
+  agentId      String
+  agent        Agent     @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  status       String    @default("scanning") // scanning | review | scheduled | sending | completed | cancelled | failed
+  mode         String    @default("auto")     // auto | review
+  minDaysSince Int       @default(1)
+  totalScanned Int       @default(0)
+  totalFound   Int       @default(0)
+  totalSent    Int       @default(0)
+  totalSkipped Int       @default(0)
+  createdAt    DateTime  @default(now())
+  startedAt    DateTime?
+  completedAt  DateTime?
+  messages     FollowUpMessage[]
+
+  @@index([agentId])
+}
+
+model FollowUpMessage {
+  id               String           @id @default(cuid())
+  campaignId       String
+  campaign         FollowUpCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  conversationId   String
+  conversation     Conversation     @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  phoneNumber      String
+  jid              String
+  contactName      String?
+  aiReason         String?
+  generatedMessage String           @db.Text
+  status           String           @default("pending") // pending | approved | rejected | scheduled | sent | skipped | failed
+  scheduledAt      DateTime?
+  sentAt           DateTime?
+  error            String?
+  createdAt        DateTime         @default(now())
+
+  @@index([campaignId])
+  @@index([conversationId])
 }
 
 model BroadcastCampaign {
@@ -191,9 +231,11 @@ model Conversation {
   mode                 String              @default("ai")
   lastActivityAt       DateTime?           @default(now())
   factsExtractedAt     DateTime?
+  lastFollowedUpAt     DateTime?
   createdAt            DateTime            @default(now())
   messages             Message[]
   summary              ConversationSummary?
+  followUpMessages     FollowUpMessage[]
 
   @@unique([agentId, phoneNumber])
 }

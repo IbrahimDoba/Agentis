@@ -40,6 +40,7 @@ export type MessageMinAggregateOutputType = {
   id: string | null
   conversationId: string | null
   direction: string | null
+  senderRole: string | null
   content: string | null
   mediaUrl: string | null
   mediaDescription: string | null
@@ -53,6 +54,7 @@ export type MessageMaxAggregateOutputType = {
   id: string | null
   conversationId: string | null
   direction: string | null
+  senderRole: string | null
   content: string | null
   mediaUrl: string | null
   mediaDescription: string | null
@@ -66,6 +68,7 @@ export type MessageCountAggregateOutputType = {
   id: number
   conversationId: number
   direction: number
+  senderRole: number
   content: number
   mediaUrl: number
   mediaDescription: number
@@ -92,6 +95,7 @@ export type MessageMinAggregateInputType = {
   id?: true
   conversationId?: true
   direction?: true
+  senderRole?: true
   content?: true
   mediaUrl?: true
   mediaDescription?: true
@@ -105,6 +109,7 @@ export type MessageMaxAggregateInputType = {
   id?: true
   conversationId?: true
   direction?: true
+  senderRole?: true
   content?: true
   mediaUrl?: true
   mediaDescription?: true
@@ -118,6 +123,7 @@ export type MessageCountAggregateInputType = {
   id?: true
   conversationId?: true
   direction?: true
+  senderRole?: true
   content?: true
   mediaUrl?: true
   mediaDescription?: true
@@ -219,6 +225,7 @@ export type MessageGroupByOutputType = {
   id: string
   conversationId: string
   direction: string
+  senderRole: string
   content: string
   mediaUrl: string | null
   mediaDescription: string | null
@@ -256,6 +263,7 @@ export type MessageWhereInput = {
   id?: Prisma.StringFilter<"Message"> | string
   conversationId?: Prisma.StringFilter<"Message"> | string
   direction?: Prisma.StringFilter<"Message"> | string
+  senderRole?: Prisma.StringFilter<"Message"> | string
   content?: Prisma.StringFilter<"Message"> | string
   mediaUrl?: Prisma.StringNullableFilter<"Message"> | string | null
   mediaDescription?: Prisma.StringNullableFilter<"Message"> | string | null
@@ -271,6 +279,7 @@ export type MessageOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   conversationId?: Prisma.SortOrder
   direction?: Prisma.SortOrder
+  senderRole?: Prisma.SortOrder
   content?: Prisma.SortOrder
   mediaUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   mediaDescription?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -289,6 +298,7 @@ export type MessageWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.MessageWhereInput | Prisma.MessageWhereInput[]
   conversationId?: Prisma.StringFilter<"Message"> | string
   direction?: Prisma.StringFilter<"Message"> | string
+  senderRole?: Prisma.StringFilter<"Message"> | string
   content?: Prisma.StringFilter<"Message"> | string
   mediaUrl?: Prisma.StringNullableFilter<"Message"> | string | null
   mediaDescription?: Prisma.StringNullableFilter<"Message"> | string | null
@@ -304,6 +314,7 @@ export type MessageOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   conversationId?: Prisma.SortOrder
   direction?: Prisma.SortOrder
+  senderRole?: Prisma.SortOrder
   content?: Prisma.SortOrder
   mediaUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   mediaDescription?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -326,6 +337,7 @@ export type MessageScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"Message"> | string
   conversationId?: Prisma.StringWithAggregatesFilter<"Message"> | string
   direction?: Prisma.StringWithAggregatesFilter<"Message"> | string
+  senderRole?: Prisma.StringWithAggregatesFilter<"Message"> | string
   content?: Prisma.StringWithAggregatesFilter<"Message"> | string
   mediaUrl?: Prisma.StringNullableWithAggregatesFilter<"Message"> | string | null
   mediaDescription?: Prisma.StringNullableWithAggregatesFilter<"Message"> | string | null
@@ -369,6 +381,7 @@ export type MessageUncheckedCreateInput = {
 export type MessageUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   direction?: Prisma.StringFieldUpdateOperationsInput | string
+  senderRole?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
   mediaUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -384,6 +397,7 @@ export type MessageUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   conversationId?: Prisma.StringFieldUpdateOperationsInput | string
   direction?: Prisma.StringFieldUpdateOperationsInput | string
+  senderRole?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
   mediaUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -398,6 +412,7 @@ export type MessageCreateManyInput = {
   id?: string
   conversationId: string
   direction: string
+  senderRole?: string
   content: string
   mediaUrl?: string | null
   mediaDescription?: string | null
@@ -411,6 +426,7 @@ export type MessageCreateManyInput = {
 export type MessageUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   direction?: Prisma.StringFieldUpdateOperationsInput | string
+  senderRole?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
   mediaUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -425,6 +441,7 @@ export type MessageUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   conversationId?: Prisma.StringFieldUpdateOperationsInput | string
   direction?: Prisma.StringFieldUpdateOperationsInput | string
+  senderRole?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
   mediaUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -449,6 +466,7 @@ export type MessageCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   conversationId?: Prisma.SortOrder
   direction?: Prisma.SortOrder
+  senderRole?: Prisma.SortOrder
   content?: Prisma.SortOrder
   mediaUrl?: Prisma.SortOrder
   mediaDescription?: Prisma.SortOrder
@@ -468,6 +486,7 @@ export type MessageMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   conversationId?: Prisma.SortOrder
   direction?: Prisma.SortOrder
+  senderRole?: Prisma.SortOrder
   content?: Prisma.SortOrder
   mediaUrl?: Prisma.SortOrder
   mediaDescription?: Prisma.SortOrder
@@ -481,6 +500,7 @@ export type MessageMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   conversationId?: Prisma.SortOrder
   direction?: Prisma.SortOrder
+  senderRole?: Prisma.SortOrder
   content?: Prisma.SortOrder
   mediaUrl?: Prisma.SortOrder
   mediaDescription?: Prisma.SortOrder
@@ -540,6 +560,7 @@ export type MessageUncheckedUpdateManyWithoutConversationNestedInput = {
 export type MessageCreateWithoutConversationInput = {
   id?: string
   direction: string
+  senderRole?: string
   content: string
   mediaUrl?: string | null
   mediaDescription?: string | null
@@ -553,6 +574,7 @@ export type MessageCreateWithoutConversationInput = {
 export type MessageUncheckedCreateWithoutConversationInput = {
   id?: string
   direction: string
+  senderRole?: string
   content: string
   mediaUrl?: string | null
   mediaDescription?: string | null
@@ -596,6 +618,7 @@ export type MessageScalarWhereInput = {
   id?: Prisma.StringFilter<"Message"> | string
   conversationId?: Prisma.StringFilter<"Message"> | string
   direction?: Prisma.StringFilter<"Message"> | string
+  senderRole?: Prisma.StringFilter<"Message"> | string
   content?: Prisma.StringFilter<"Message"> | string
   mediaUrl?: Prisma.StringNullableFilter<"Message"> | string | null
   mediaDescription?: Prisma.StringNullableFilter<"Message"> | string | null
@@ -609,6 +632,7 @@ export type MessageScalarWhereInput = {
 export type MessageCreateManyConversationInput = {
   id?: string
   direction: string
+  senderRole?: string
   content: string
   mediaUrl?: string | null
   mediaDescription?: string | null
@@ -622,6 +646,7 @@ export type MessageCreateManyConversationInput = {
 export type MessageUpdateWithoutConversationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   direction?: Prisma.StringFieldUpdateOperationsInput | string
+  senderRole?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
   mediaUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -635,6 +660,7 @@ export type MessageUpdateWithoutConversationInput = {
 export type MessageUncheckedUpdateWithoutConversationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   direction?: Prisma.StringFieldUpdateOperationsInput | string
+  senderRole?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
   mediaUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -648,6 +674,7 @@ export type MessageUncheckedUpdateWithoutConversationInput = {
 export type MessageUncheckedUpdateManyWithoutConversationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   direction?: Prisma.StringFieldUpdateOperationsInput | string
+  senderRole?: Prisma.StringFieldUpdateOperationsInput | string
   content?: Prisma.StringFieldUpdateOperationsInput | string
   mediaUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -696,6 +723,7 @@ export type MessageSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   id?: boolean
   conversationId?: boolean
   direction?: boolean
+  senderRole?: boolean
   content?: boolean
   mediaUrl?: boolean
   mediaDescription?: boolean
@@ -708,10 +736,10 @@ export type MessageSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
 }, ExtArgs["result"]["message"]>
 
 export type MessageSelectScalar = {
-  senderRole?: boolean
   id?: boolean
   conversationId?: boolean
   direction?: boolean
+  senderRole?: boolean
   content?: boolean
   mediaUrl?: boolean
   mediaDescription?: boolean
@@ -742,6 +770,7 @@ export type $MessagePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     id: string
     conversationId: string
     direction: string
+    senderRole: string
     content: string
     mediaUrl: string | null
     mediaDescription: string | null
@@ -1177,6 +1206,7 @@ export interface MessageFieldRefs {
   readonly id: Prisma.FieldRef<"Message", 'String'>
   readonly conversationId: Prisma.FieldRef<"Message", 'String'>
   readonly direction: Prisma.FieldRef<"Message", 'String'>
+  readonly senderRole: Prisma.FieldRef<"Message", 'String'>
   readonly content: Prisma.FieldRef<"Message", 'String'>
   readonly mediaUrl: Prisma.FieldRef<"Message", 'String'>
   readonly mediaDescription: Prisma.FieldRef<"Message", 'String'>

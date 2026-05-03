@@ -28,6 +28,16 @@ export type User = Prisma.UserModel
  */
 export type Agent = Prisma.AgentModel
 /**
+ * Model FollowUpCampaign
+ * 
+ */
+export type FollowUpCampaign = Prisma.FollowUpCampaignModel
+/**
+ * Model FollowUpMessage
+ * 
+ */
+export type FollowUpMessage = Prisma.FollowUpMessageModel
+/**
  * Model BroadcastCampaign
  * 
  */
@@ -127,3 +137,8 @@ export type BaileysSession = Prisma.BaileysSessionModel
  * 
  */
 export type BaileysOutboundLog = Prisma.BaileysOutboundLogModel
+/**
+ * Model CreditUsage
+ * 
+ */
+export type CreditUsage = Prisma.CreditUsageModel

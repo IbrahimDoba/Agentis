@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useQueries, useQuery } from "@tanstack/react-query"
 import { DevicePhoneMobileIcon, MegaphoneIcon } from "@heroicons/react/24/outline"
 import { BroadcastsPanel } from "@/components/dashboard/BroadcastsPanel"
+import { FollowUpPanel } from "@/components/dashboard/FollowUpPanel"
 import styles from "./page.module.css"
 
 interface Agent {
@@ -35,7 +36,10 @@ async function fetchSession(agentId: string): Promise<SessionStatus | null> {
   return res.json()
 }
 
+type Tab = "broadcasts" | "followup"
+
 export default function BroadcastsPage() {
+  const [tab, setTab] = useState<Tab>("broadcasts")
   const [manualAgentId, setManualAgentId] = useState<string | null>(null)
 
   const { data: agents = [], isLoading: loadingAgents } = useQuery({
@@ -111,6 +115,21 @@ export default function BroadcastsPage() {
         </div>
       </div>
 
+      <div className={styles.tabs}>
+        <button
+          className={`${styles.tabBtn} ${tab === "broadcasts" ? styles.tabBtnActive : ""}`}
+          onClick={() => setTab("broadcasts")}
+        >
+          Broadcasts
+        </button>
+        <button
+          className={`${styles.tabBtn} ${tab === "followup" ? styles.tabBtnActive : ""}`}
+          onClick={() => setTab("followup")}
+        >
+          AI Follow-ups
+        </button>
+      </div>
+
       <div className={styles.layout}>
         <section className={styles.sidebarCard}>
           <div className={styles.cardTitle}>Choose Agent</div>
@@ -156,10 +175,15 @@ export default function BroadcastsPage() {
           {!selectedAgent ? (
             <div className={styles.emptyState}>
               <MegaphoneIcon width={28} height={28} />
-              <div>Select a connected agent to open broadcasts.</div>
+              <div>Select a connected agent to open {tab === "followup" ? "follow-up campaigns" : "broadcasts"}.</div>
             </div>
           ) : loadingSession ? (
             <div className={styles.emptyState}>Checking WhatsApp session...</div>
+          ) : tab === "followup" ? (
+            <FollowUpPanel
+              agentId={selectedAgent.id}
+              isConnected={session?.status === "CONNECTED"}
+            />
           ) : (
             <BroadcastsPanel
               agentId={selectedAgent.id}

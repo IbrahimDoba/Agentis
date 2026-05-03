@@ -1,0 +1,833 @@
+/* ─── Panel ──────────────────────────────────────────────────────────────── */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.panelHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.panelTitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 0.2rem;
+}
+
+.panelSub {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+  max-width: 480px;
+}
+
+.newCampaignBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.7rem 1.1rem;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, var(--accent) 0%, #0ea86b 100%);
+  color: #04110b;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: opacity 0.15s;
+}
+
+.newCampaignBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ─── Banners ─────────────────────────────────────────────────────────────── */
+
+.warningBanner {
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  background: rgba(245, 158, 11, 0.08);
+  color: #f59e0b;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.errorBanner {
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  background: rgba(239, 68, 68, 0.08);
+  color: #ef4444;
+  font-size: 13px;
+}
+
+/* ─── Badge ───────────────────────────────────────────────────────────────── */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.spinner {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  border-top-color: transparent;
+  animation: spin 0.75s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ─── Campaign list ───────────────────────────────────────────────────────── */
+
+.campaignList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.campaignRow {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.campaignRow:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.campaignRowLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.campaignStats {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.campaignRowRight {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-shrink: 0;
+}
+
+.campaignDate {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.campaignArrow {
+  font-size: 18px;
+  color: var(--text-muted);
+  line-height: 1;
+}
+
+/* ─── Loading / Empty ─────────────────────────────────────────────────────── */
+
+.loadingRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.skeleton {
+  height: 60px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.emptyPanel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 3rem 1rem;
+  border: 1px dashed var(--border);
+  border-radius: 18px;
+  text-align: center;
+}
+
+.emptyPanelIcon {
+  font-size: 32px;
+  margin-bottom: 0.25rem;
+}
+
+.emptyPanelTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.emptyPanelSub {
+  font-size: 13px;
+  color: var(--text-muted);
+  max-width: 340px;
+  line-height: 1.5;
+}
+
+/* ─── Modal overlay ───────────────────────────────────────────────────────── */
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal,
+.modalWide {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+}
+
+.modal {
+  max-width: 500px;
+  padding: 1.5rem;
+}
+
+.modalWide {
+  max-width: 680px;
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+/* ─── Modal header ────────────────────────────────────────────────────────── */
+
+.modalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.modalTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.modalTitle {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.modalSub {
+  margin: 0.3rem 0 0;
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0.25rem;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.closeBtn:hover {
+  color: var(--text-primary);
+}
+
+/* ─── Setup sections ──────────────────────────────────────────────────────── */
+
+.setupSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.setupLabel {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.setupDesc {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.daysRow {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.dayBtn {
+  padding: 0.5rem 0.95rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s, color 0.12s;
+}
+
+.dayBtn:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.dayBtnActive {
+  border-color: var(--accent);
+  background: rgba(34, 197, 94, 0.12);
+  color: var(--accent);
+}
+
+.modeCards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.modeCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.12s, background 0.12s;
+}
+
+.modeCard:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.modeCardActive {
+  border-color: var(--accent);
+  background: rgba(34, 197, 94, 0.08);
+}
+
+.modeIcon {
+  font-size: 20px;
+  flex-shrink: 0;
+  line-height: 1;
+  margin-top: 0.1rem;
+}
+
+.modeName {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.2rem;
+}
+
+.modeDesc {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* ─── Progress bar ────────────────────────────────────────────────────────── */
+
+.progressWrap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.progressTrack {
+  flex: 1;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent) 0%, #0ea86b 100%);
+  border-radius: 999px;
+  transition: width 0.5s ease;
+}
+
+.progressLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* ─── Scanning state ──────────────────────────────────────────────────────── */
+
+.scanningState {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem;
+  border-radius: 14px;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  background: rgba(245, 158, 11, 0.06);
+}
+
+.scanSpinner {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2.5px solid rgba(245, 158, 11, 0.3);
+  border-top-color: #f59e0b;
+  animation: spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+.scanTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.15rem;
+}
+
+.scanSub {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ─── Empty state (inside modal) ─────────────────────────────────────────── */
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 2.5rem 1rem;
+  text-align: center;
+}
+
+.emptyIcon {
+  font-size: 28px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--accent);
+  margin-bottom: 0.25rem;
+}
+
+.emptyTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.emptySub {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* ─── Message list ────────────────────────────────────────────────────────── */
+
+.messageList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 420px;
+  overflow-y: auto;
+  padding-right: 0.2rem;
+}
+
+.msgCard {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 0.9rem 1rem;
+  background: rgba(255, 255, 255, 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  transition: border-color 0.12s;
+}
+
+.msgCardApproved {
+  border-color: rgba(34, 197, 94, 0.3);
+  background: rgba(34, 197, 94, 0.04);
+}
+
+.msgCardSent {
+  border-color: rgba(34, 197, 94, 0.15);
+  opacity: 0.7;
+}
+
+.msgCardRejected {
+  opacity: 0.45;
+}
+
+.msgTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.msgContact {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.msgAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 800;
+  color: #04110b;
+  background: linear-gradient(135deg, var(--accent) 0%, #0ea86b 100%);
+}
+
+.msgName {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.msgPhone {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 0.1rem;
+}
+
+.msgStatusBadge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.msgStatusBadge[data-status="approved"] {
+  color: var(--accent);
+  border-color: rgba(34, 197, 94, 0.3);
+  background: rgba(34, 197, 94, 0.08);
+}
+
+.msgStatusBadge[data-status="sent"] {
+  color: var(--accent);
+  border-color: rgba(34, 197, 94, 0.2);
+  background: rgba(34, 197, 94, 0.06);
+}
+
+.msgStatusBadge[data-status="failed"] {
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.25);
+  background: rgba(239, 68, 68, 0.06);
+}
+
+.msgStatusBadge[data-status="scheduled"] {
+  color: #8b5cf6;
+  border-color: rgba(139, 92, 246, 0.25);
+  background: rgba(139, 92, 246, 0.06);
+}
+
+.msgReason {
+  font-size: 12px;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  padding: 0.45rem 0.65rem;
+  line-height: 1.5;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.msgText {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.msgEditArea {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  color: var(--text-primary);
+  font-size: 13px;
+  line-height: 1.6;
+  padding: 0.6rem 0.75rem;
+  resize: vertical;
+  font-family: inherit;
+  outline: none;
+}
+
+.msgSentAt {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.msgActions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding-top: 0.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.msgApproveBtn,
+.msgEditBtn,
+.msgRejectBtn,
+.msgEditCancelBtn {
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.12s;
+  border: 1px solid transparent;
+}
+
+.msgApproveBtn {
+  background: rgba(34, 197, 94, 0.12);
+  border-color: rgba(34, 197, 94, 0.3);
+  color: var(--accent);
+}
+
+.msgApproveBtn:hover {
+  background: rgba(34, 197, 94, 0.2);
+}
+
+.msgApproveBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.msgEditBtn {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--border);
+  color: var(--text-secondary);
+}
+
+.msgEditBtn:hover {
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.msgRejectBtn {
+  background: transparent;
+  border-color: transparent;
+  color: var(--text-muted);
+}
+
+.msgRejectBtn:hover {
+  color: #ef4444;
+}
+
+.msgEditCancelBtn {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--border);
+  color: var(--text-muted);
+}
+
+/* ─── Modal footer ────────────────────────────────────────────────────────── */
+
+.modalFooter {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.cancelBtn {
+  padding: 0.65rem 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.cancelBtn:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.startBtn {
+  padding: 0.65rem 1.2rem;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, var(--accent) 0%, #0ea86b 100%);
+  color: #04110b;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: opacity 0.12s;
+}
+
+.startBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.approveAllBtn {
+  padding: 0.65rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  background: rgba(34, 197, 94, 0.08);
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.approveAllBtn:hover {
+  background: rgba(34, 197, 94, 0.15);
+}
+
+.approveAllBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.testModeToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+  margin-right: auto;
+  user-select: none;
+}
+
+.testModeToggle input {
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.confirmText {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.cancelCampaignBtn {
+  padding: 0.65rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  background: rgba(239, 68, 68, 0.06);
+  color: #ef4444;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.cancelCampaignBtn:hover {
+  background: rgba(239, 68, 68, 0.12);
+}
+
+.cancelCampaignBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ─── Responsive ──────────────────────────────────────────────────────────── */
+
+@media (max-width: 600px) {
+  .modal,
+  .modalWide {
+    padding: 1.1rem;
+    border-radius: 16px;
+  }
+
+  .panelHeader {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .newCampaignBtn {
+    justify-content: center;
+  }
+}

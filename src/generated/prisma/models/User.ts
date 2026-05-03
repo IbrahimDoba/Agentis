@@ -50,6 +50,7 @@ export type UserMinAggregateOutputType = {
   verificationCodeExpiry: Date | null
   businessCategory: string | null
   businessDescription: string | null
+  businessGoals: string | null
   businessAddress: string | null
   businessEmail: string | null
   businessWebsite: string | null
@@ -79,6 +80,7 @@ export type UserMaxAggregateOutputType = {
   verificationCodeExpiry: Date | null
   businessCategory: string | null
   businessDescription: string | null
+  businessGoals: string | null
   businessAddress: string | null
   businessEmail: string | null
   businessWebsite: string | null
@@ -108,6 +110,7 @@ export type UserCountAggregateOutputType = {
   verificationCodeExpiry: number
   businessCategory: number
   businessDescription: number
+  businessGoals: number
   businessAddress: number
   businessEmail: number
   businessWebsite: number
@@ -147,6 +150,7 @@ export type UserMinAggregateInputType = {
   verificationCodeExpiry?: true
   businessCategory?: true
   businessDescription?: true
+  businessGoals?: true
   businessAddress?: true
   businessEmail?: true
   businessWebsite?: true
@@ -176,6 +180,7 @@ export type UserMaxAggregateInputType = {
   verificationCodeExpiry?: true
   businessCategory?: true
   businessDescription?: true
+  businessGoals?: true
   businessAddress?: true
   businessEmail?: true
   businessWebsite?: true
@@ -205,6 +210,7 @@ export type UserCountAggregateInputType = {
   verificationCodeExpiry?: true
   businessCategory?: true
   businessDescription?: true
+  businessGoals?: true
   businessAddress?: true
   businessEmail?: true
   businessWebsite?: true
@@ -321,6 +327,7 @@ export type UserGroupByOutputType = {
   verificationCodeExpiry: Date | null
   businessCategory: string | null
   businessDescription: string | null
+  businessGoals: string | null
   businessAddress: string | null
   businessEmail: string | null
   businessWebsite: string | null
@@ -373,6 +380,7 @@ export type UserWhereInput = {
   verificationCodeExpiry?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   businessCategory?: Prisma.StringNullableFilter<"User"> | string | null
   businessDescription?: Prisma.StringNullableFilter<"User"> | string | null
+  businessGoals?: Prisma.StringNullableFilter<"User"> | string | null
   businessAddress?: Prisma.StringNullableFilter<"User"> | string | null
   businessEmail?: Prisma.StringNullableFilter<"User"> | string | null
   businessWebsite?: Prisma.StringNullableFilter<"User"> | string | null
@@ -410,6 +418,7 @@ export type UserOrderByWithRelationInput = {
   verificationCodeExpiry?: Prisma.SortOrderInput | Prisma.SortOrder
   businessCategory?: Prisma.SortOrderInput | Prisma.SortOrder
   businessDescription?: Prisma.SortOrderInput | Prisma.SortOrder
+  businessGoals?: Prisma.SortOrderInput | Prisma.SortOrder
   businessAddress?: Prisma.SortOrderInput | Prisma.SortOrder
   businessEmail?: Prisma.SortOrderInput | Prisma.SortOrder
   businessWebsite?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -451,6 +460,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   verificationCodeExpiry?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   businessCategory?: Prisma.StringNullableFilter<"User"> | string | null
   businessDescription?: Prisma.StringNullableFilter<"User"> | string | null
+  businessGoals?: Prisma.StringNullableFilter<"User"> | string | null
   businessAddress?: Prisma.StringNullableFilter<"User"> | string | null
   businessEmail?: Prisma.StringNullableFilter<"User"> | string | null
   businessWebsite?: Prisma.StringNullableFilter<"User"> | string | null
@@ -487,6 +497,7 @@ export type UserOrderByWithAggregationInput = {
   verificationCodeExpiry?: Prisma.SortOrderInput | Prisma.SortOrder
   businessCategory?: Prisma.SortOrderInput | Prisma.SortOrder
   businessDescription?: Prisma.SortOrderInput | Prisma.SortOrder
+  businessGoals?: Prisma.SortOrderInput | Prisma.SortOrder
   businessAddress?: Prisma.SortOrderInput | Prisma.SortOrder
   businessEmail?: Prisma.SortOrderInput | Prisma.SortOrder
   businessWebsite?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -524,6 +535,7 @@ export type UserScalarWhereWithAggregatesInput = {
   verificationCodeExpiry?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   businessCategory?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   businessDescription?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  businessGoals?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   businessAddress?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   businessEmail?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   businessWebsite?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
@@ -553,6 +565,7 @@ export type UserCreateInput = {
   verificationCodeExpiry?: Date | string | null
   businessCategory?: string | null
   businessDescription?: string | null
+  businessGoals?: string | null
   businessAddress?: string | null
   businessEmail?: string | null
   businessWebsite?: string | null
@@ -590,6 +603,7 @@ export type UserUncheckedCreateInput = {
   verificationCodeExpiry?: Date | string | null
   businessCategory?: string | null
   businessDescription?: string | null
+  businessGoals?: string | null
   businessAddress?: string | null
   businessEmail?: string | null
   businessWebsite?: string | null
@@ -627,6 +641,7 @@ export type UserUpdateInput = {
   verificationCodeExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   businessCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessGoals?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -664,6 +679,7 @@ export type UserUncheckedUpdateInput = {
   verificationCodeExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   businessCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessGoals?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -701,6 +717,7 @@ export type UserCreateManyInput = {
   verificationCodeExpiry?: Date | string | null
   businessCategory?: string | null
   businessDescription?: string | null
+  businessGoals?: string | null
   businessAddress?: string | null
   businessEmail?: string | null
   businessWebsite?: string | null
@@ -730,6 +747,7 @@ export type UserUpdateManyMutationInput = {
   verificationCodeExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   businessCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessGoals?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -759,6 +777,7 @@ export type UserUncheckedUpdateManyInput = {
   verificationCodeExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   businessCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessGoals?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -788,6 +807,7 @@ export type UserCountOrderByAggregateInput = {
   verificationCodeExpiry?: Prisma.SortOrder
   businessCategory?: Prisma.SortOrder
   businessDescription?: Prisma.SortOrder
+  businessGoals?: Prisma.SortOrder
   businessAddress?: Prisma.SortOrder
   businessEmail?: Prisma.SortOrder
   businessWebsite?: Prisma.SortOrder
@@ -821,6 +841,7 @@ export type UserMaxOrderByAggregateInput = {
   verificationCodeExpiry?: Prisma.SortOrder
   businessCategory?: Prisma.SortOrder
   businessDescription?: Prisma.SortOrder
+  businessGoals?: Prisma.SortOrder
   businessAddress?: Prisma.SortOrder
   businessEmail?: Prisma.SortOrder
   businessWebsite?: Prisma.SortOrder
@@ -850,6 +871,7 @@ export type UserMinOrderByAggregateInput = {
   verificationCodeExpiry?: Prisma.SortOrder
   businessCategory?: Prisma.SortOrder
   businessDescription?: Prisma.SortOrder
+  businessGoals?: Prisma.SortOrder
   businessAddress?: Prisma.SortOrder
   businessEmail?: Prisma.SortOrder
   businessWebsite?: Prisma.SortOrder
@@ -1043,6 +1065,7 @@ export type UserCreateWithoutAgentsInput = {
   verificationCodeExpiry?: Date | string | null
   businessCategory?: string | null
   businessDescription?: string | null
+  businessGoals?: string | null
   businessAddress?: string | null
   businessEmail?: string | null
   businessWebsite?: string | null
@@ -1079,6 +1102,7 @@ export type UserUncheckedCreateWithoutAgentsInput = {
   verificationCodeExpiry?: Date | string | null
   businessCategory?: string | null
   businessDescription?: string | null
+  businessGoals?: string | null
   businessAddress?: string | null
   businessEmail?: string | null
   businessWebsite?: string | null
@@ -1131,6 +1155,7 @@ export type UserUpdateWithoutAgentsInput = {
   verificationCodeExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   businessCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessGoals?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1167,6 +1192,7 @@ export type UserUncheckedUpdateWithoutAgentsInput = {
   verificationCodeExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   businessCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessGoals?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1203,6 +1229,7 @@ export type UserCreateWithoutLeadsInput = {
   verificationCodeExpiry?: Date | string | null
   businessCategory?: string | null
   businessDescription?: string | null
+  businessGoals?: string | null
   businessAddress?: string | null
   businessEmail?: string | null
   businessWebsite?: string | null
@@ -1239,6 +1266,7 @@ export type UserUncheckedCreateWithoutLeadsInput = {
   verificationCodeExpiry?: Date | string | null
   businessCategory?: string | null
   businessDescription?: string | null
+  businessGoals?: string | null
   businessAddress?: string | null
   businessEmail?: string | null
   businessWebsite?: string | null
@@ -1291,6 +1319,7 @@ export type UserUpdateWithoutLeadsInput = {
   verificationCodeExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   businessCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessGoals?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1327,6 +1356,7 @@ export type UserUncheckedUpdateWithoutLeadsInput = {
   verificationCodeExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   businessCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessGoals?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1363,6 +1393,7 @@ export type UserCreateWithoutConversationReadsInput = {
   verificationCodeExpiry?: Date | string | null
   businessCategory?: string | null
   businessDescription?: string | null
+  businessGoals?: string | null
   businessAddress?: string | null
   businessEmail?: string | null
   businessWebsite?: string | null
@@ -1399,6 +1430,7 @@ export type UserUncheckedCreateWithoutConversationReadsInput = {
   verificationCodeExpiry?: Date | string | null
   businessCategory?: string | null
   businessDescription?: string | null
+  businessGoals?: string | null
   businessAddress?: string | null
   businessEmail?: string | null
   businessWebsite?: string | null
@@ -1451,6 +1483,7 @@ export type UserUpdateWithoutConversationReadsInput = {
   verificationCodeExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   businessCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessGoals?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1487,6 +1520,7 @@ export type UserUncheckedUpdateWithoutConversationReadsInput = {
   verificationCodeExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   businessCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessGoals?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1523,6 +1557,7 @@ export type UserCreateWithoutReferralsMadeInput = {
   verificationCodeExpiry?: Date | string | null
   businessCategory?: string | null
   businessDescription?: string | null
+  businessGoals?: string | null
   businessAddress?: string | null
   businessEmail?: string | null
   businessWebsite?: string | null
@@ -1559,6 +1594,7 @@ export type UserUncheckedCreateWithoutReferralsMadeInput = {
   verificationCodeExpiry?: Date | string | null
   businessCategory?: string | null
   businessDescription?: string | null
+  businessGoals?: string | null
   businessAddress?: string | null
   businessEmail?: string | null
   businessWebsite?: string | null
@@ -1600,6 +1636,7 @@ export type UserCreateWithoutReferredByInput = {
   verificationCodeExpiry?: Date | string | null
   businessCategory?: string | null
   businessDescription?: string | null
+  businessGoals?: string | null
   businessAddress?: string | null
   businessEmail?: string | null
   businessWebsite?: string | null
@@ -1636,6 +1673,7 @@ export type UserUncheckedCreateWithoutReferredByInput = {
   verificationCodeExpiry?: Date | string | null
   businessCategory?: string | null
   businessDescription?: string | null
+  businessGoals?: string | null
   businessAddress?: string | null
   businessEmail?: string | null
   businessWebsite?: string | null
@@ -1688,6 +1726,7 @@ export type UserUpdateWithoutReferralsMadeInput = {
   verificationCodeExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   businessCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessGoals?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1724,6 +1763,7 @@ export type UserUncheckedUpdateWithoutReferralsMadeInput = {
   verificationCodeExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   businessCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessGoals?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1771,6 +1811,7 @@ export type UserUpdateWithoutReferredByInput = {
   verificationCodeExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   businessCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessGoals?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1807,6 +1848,7 @@ export type UserUncheckedUpdateWithoutReferredByInput = {
   verificationCodeExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   businessCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessGoals?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1843,6 +1885,7 @@ export type UserCreateWithoutWorkspaceMembersInput = {
   verificationCodeExpiry?: Date | string | null
   businessCategory?: string | null
   businessDescription?: string | null
+  businessGoals?: string | null
   businessAddress?: string | null
   businessEmail?: string | null
   businessWebsite?: string | null
@@ -1879,6 +1922,7 @@ export type UserUncheckedCreateWithoutWorkspaceMembersInput = {
   verificationCodeExpiry?: Date | string | null
   businessCategory?: string | null
   businessDescription?: string | null
+  businessGoals?: string | null
   businessAddress?: string | null
   businessEmail?: string | null
   businessWebsite?: string | null
@@ -1920,6 +1964,7 @@ export type UserCreateWithoutMemberOfInput = {
   verificationCodeExpiry?: Date | string | null
   businessCategory?: string | null
   businessDescription?: string | null
+  businessGoals?: string | null
   businessAddress?: string | null
   businessEmail?: string | null
   businessWebsite?: string | null
@@ -1956,6 +2001,7 @@ export type UserUncheckedCreateWithoutMemberOfInput = {
   verificationCodeExpiry?: Date | string | null
   businessCategory?: string | null
   businessDescription?: string | null
+  businessGoals?: string | null
   businessAddress?: string | null
   businessEmail?: string | null
   businessWebsite?: string | null
@@ -2008,6 +2054,7 @@ export type UserUpdateWithoutWorkspaceMembersInput = {
   verificationCodeExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   businessCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessGoals?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2044,6 +2091,7 @@ export type UserUncheckedUpdateWithoutWorkspaceMembersInput = {
   verificationCodeExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   businessCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessGoals?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2091,6 +2139,7 @@ export type UserUpdateWithoutMemberOfInput = {
   verificationCodeExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   businessCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessGoals?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2127,6 +2176,7 @@ export type UserUncheckedUpdateWithoutMemberOfInput = {
   verificationCodeExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   businessCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessGoals?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2163,6 +2213,7 @@ export type UserCreateWithoutPaymentRequestsInput = {
   verificationCodeExpiry?: Date | string | null
   businessCategory?: string | null
   businessDescription?: string | null
+  businessGoals?: string | null
   businessAddress?: string | null
   businessEmail?: string | null
   businessWebsite?: string | null
@@ -2199,6 +2250,7 @@ export type UserUncheckedCreateWithoutPaymentRequestsInput = {
   verificationCodeExpiry?: Date | string | null
   businessCategory?: string | null
   businessDescription?: string | null
+  businessGoals?: string | null
   businessAddress?: string | null
   businessEmail?: string | null
   businessWebsite?: string | null
@@ -2251,6 +2303,7 @@ export type UserUpdateWithoutPaymentRequestsInput = {
   verificationCodeExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   businessCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessGoals?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2287,6 +2340,7 @@ export type UserUncheckedUpdateWithoutPaymentRequestsInput = {
   verificationCodeExpiry?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   businessCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  businessGoals?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessWebsite?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2408,6 +2462,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   verificationCodeExpiry?: boolean
   businessCategory?: boolean
   businessDescription?: boolean
+  businessGoals?: boolean
   businessAddress?: boolean
   businessEmail?: boolean
   businessWebsite?: boolean
@@ -2446,6 +2501,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   verificationCodeExpiry?: boolean
   businessCategory?: boolean
   businessDescription?: boolean
+  businessGoals?: boolean
   businessAddress?: boolean
   businessEmail?: boolean
   businessWebsite?: boolean
@@ -2475,6 +2531,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   verificationCodeExpiry?: boolean
   businessCategory?: boolean
   businessDescription?: boolean
+  businessGoals?: boolean
   businessAddress?: boolean
   businessEmail?: boolean
   businessWebsite?: boolean
@@ -2504,6 +2561,7 @@ export type UserSelectScalar = {
   verificationCodeExpiry?: boolean
   businessCategory?: boolean
   businessDescription?: boolean
+  businessGoals?: boolean
   businessAddress?: boolean
   businessEmail?: boolean
   businessWebsite?: boolean
@@ -2517,7 +2575,7 @@ export type UserSelectScalar = {
   referralCode?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "phone" | "businessName" | "passwordHash" | "role" | "status" | "resetToken" | "resetTokenExpiry" | "emailVerified" | "verificationCode" | "verificationCodeExpiry" | "businessCategory" | "businessDescription" | "businessAddress" | "businessEmail" | "businessWebsite" | "maxAgents" | "plan" | "subscriptionExpiresAt" | "onboardingCompleted" | "referralsEnabled" | "createdAt" | "updatedAt" | "referralCode", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "phone" | "businessName" | "passwordHash" | "role" | "status" | "resetToken" | "resetTokenExpiry" | "emailVerified" | "verificationCode" | "verificationCodeExpiry" | "businessCategory" | "businessDescription" | "businessGoals" | "businessAddress" | "businessEmail" | "businessWebsite" | "maxAgents" | "plan" | "subscriptionExpiresAt" | "onboardingCompleted" | "referralsEnabled" | "createdAt" | "updatedAt" | "referralCode", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   workspaceMembers?: boolean | Prisma.User$workspaceMembersArgs<ExtArgs>
   memberOf?: boolean | Prisma.User$memberOfArgs<ExtArgs>
@@ -2560,6 +2618,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     verificationCodeExpiry: Date | null
     businessCategory: string | null
     businessDescription: string | null
+    businessGoals: string | null
     businessAddress: string | null
     businessEmail: string | null
     businessWebsite: string | null
@@ -3017,6 +3076,7 @@ export interface UserFieldRefs {
   readonly verificationCodeExpiry: Prisma.FieldRef<"User", 'DateTime'>
   readonly businessCategory: Prisma.FieldRef<"User", 'String'>
   readonly businessDescription: Prisma.FieldRef<"User", 'String'>
+  readonly businessGoals: Prisma.FieldRef<"User", 'String'>
   readonly businessAddress: Prisma.FieldRef<"User", 'String'>
   readonly businessEmail: Prisma.FieldRef<"User", 'String'>
   readonly businessWebsite: Prisma.FieldRef<"User", 'String'>

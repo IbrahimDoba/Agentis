@@ -53,6 +53,8 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   User: 'User',
   Agent: 'Agent',
+  FollowUpCampaign: 'FollowUpCampaign',
+  FollowUpMessage: 'FollowUpMessage',
   BroadcastCampaign: 'BroadcastCampaign',
   BroadcastRecipient: 'BroadcastRecipient',
   OrchestratorAgent: 'OrchestratorAgent',
@@ -72,7 +74,8 @@ export const ModelName = {
   WorkspaceMember: 'WorkspaceMember',
   PaymentRequest: 'PaymentRequest',
   BaileysSession: 'BaileysSession',
-  BaileysOutboundLog: 'BaileysOutboundLog'
+  BaileysOutboundLog: 'BaileysOutboundLog',
+  CreditUsage: 'CreditUsage'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -107,6 +110,7 @@ export const UserScalarFieldEnum = {
   verificationCodeExpiry: 'verificationCodeExpiry',
   businessCategory: 'businessCategory',
   businessDescription: 'businessDescription',
+  businessGoals: 'businessGoals',
   businessAddress: 'businessAddress',
   businessEmail: 'businessEmail',
   businessWebsite: 'businessWebsite',
@@ -147,6 +151,7 @@ export const AgentScalarFieldEnum = {
   address: 'address',
   productsData: 'productsData',
   toolsData: 'toolsData',
+  openaiApiKey: 'openaiApiKey',
   transportType: 'transportType',
   agentRuntime: 'agentRuntime',
   status: 'status',
@@ -155,6 +160,43 @@ export const AgentScalarFieldEnum = {
 } as const
 
 export type AgentScalarFieldEnum = (typeof AgentScalarFieldEnum)[keyof typeof AgentScalarFieldEnum]
+
+
+export const FollowUpCampaignScalarFieldEnum = {
+  id: 'id',
+  agentId: 'agentId',
+  status: 'status',
+  mode: 'mode',
+  minDaysSince: 'minDaysSince',
+  totalScanned: 'totalScanned',
+  totalFound: 'totalFound',
+  totalSent: 'totalSent',
+  totalSkipped: 'totalSkipped',
+  createdAt: 'createdAt',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt'
+} as const
+
+export type FollowUpCampaignScalarFieldEnum = (typeof FollowUpCampaignScalarFieldEnum)[keyof typeof FollowUpCampaignScalarFieldEnum]
+
+
+export const FollowUpMessageScalarFieldEnum = {
+  id: 'id',
+  campaignId: 'campaignId',
+  conversationId: 'conversationId',
+  phoneNumber: 'phoneNumber',
+  jid: 'jid',
+  contactName: 'contactName',
+  aiReason: 'aiReason',
+  generatedMessage: 'generatedMessage',
+  status: 'status',
+  scheduledAt: 'scheduledAt',
+  sentAt: 'sentAt',
+  error: 'error',
+  createdAt: 'createdAt'
+} as const
+
+export type FollowUpMessageScalarFieldEnum = (typeof FollowUpMessageScalarFieldEnum)[keyof typeof FollowUpMessageScalarFieldEnum]
 
 
 export const BroadcastCampaignScalarFieldEnum = {
@@ -258,6 +300,7 @@ export const ConversationScalarFieldEnum = {
   mode: 'mode',
   lastActivityAt: 'lastActivityAt',
   factsExtractedAt: 'factsExtractedAt',
+  lastFollowedUpAt: 'lastFollowedUpAt',
   createdAt: 'createdAt'
 } as const
 
@@ -268,6 +311,7 @@ export const MessageScalarFieldEnum = {
   id: 'id',
   conversationId: 'conversationId',
   direction: 'direction',
+  senderRole: 'senderRole',
   content: 'content',
   mediaUrl: 'mediaUrl',
   mediaDescription: 'mediaDescription',
@@ -459,6 +503,19 @@ export const BaileysOutboundLogScalarFieldEnum = {
 } as const
 
 export type BaileysOutboundLogScalarFieldEnum = (typeof BaileysOutboundLogScalarFieldEnum)[keyof typeof BaileysOutboundLogScalarFieldEnum]
+
+
+export const CreditUsageScalarFieldEnum = {
+  id: 'id',
+  agentId: 'agentId',
+  conversationId: 'conversationId',
+  messageType: 'messageType',
+  source: 'source',
+  creditsUsed: 'creditsUsed',
+  createdAt: 'createdAt'
+} as const
+
+export type CreditUsageScalarFieldEnum = (typeof CreditUsageScalarFieldEnum)[keyof typeof CreditUsageScalarFieldEnum]
 
 
 export const SortOrder = {

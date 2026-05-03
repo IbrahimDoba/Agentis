@@ -185,6 +185,23 @@ export const baileysClient = {
     if (!res.ok) throw new Error(`Worker error: ${res.status}`)
   },
 
+  async startFollowUpCampaign(campaignId: string, agentId: string, testMode = false): Promise<void> {
+    const res = await fetch(`${WORKER_URL}/v1/followup-campaigns/${campaignId}/start`, {
+      method: "POST",
+      headers: jsonHeaders(),
+      body: JSON.stringify({ agentId, testMode }),
+    })
+    if (!res.ok) throw new Error(`Worker error: ${res.status}`)
+  },
+
+  async cancelFollowUpCampaign(campaignId: string): Promise<void> {
+    const res = await fetch(`${WORKER_URL}/v1/followup-campaigns/${campaignId}/cancel`, {
+      method: "POST",
+      headers: authHeaders(),
+    })
+    if (!res.ok && res.status !== 404) throw new Error(`Worker error: ${res.status}`)
+  },
+
   async getHealth(): Promise<{ status: string; redis: string; uptime: number } | null> {
     try {
       const res = await fetch(`${WORKER_URL}/v1/health`, { cache: "no-store" })

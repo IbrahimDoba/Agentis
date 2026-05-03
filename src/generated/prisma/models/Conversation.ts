@@ -33,6 +33,7 @@ export type ConversationMinAggregateOutputType = {
   mode: string | null
   lastActivityAt: Date | null
   factsExtractedAt: Date | null
+  lastFollowedUpAt: Date | null
   createdAt: Date | null
 }
 
@@ -45,6 +46,7 @@ export type ConversationMaxAggregateOutputType = {
   mode: string | null
   lastActivityAt: Date | null
   factsExtractedAt: Date | null
+  lastFollowedUpAt: Date | null
   createdAt: Date | null
 }
 
@@ -57,6 +59,7 @@ export type ConversationCountAggregateOutputType = {
   mode: number
   lastActivityAt: number
   factsExtractedAt: number
+  lastFollowedUpAt: number
   createdAt: number
   _all: number
 }
@@ -71,6 +74,7 @@ export type ConversationMinAggregateInputType = {
   mode?: true
   lastActivityAt?: true
   factsExtractedAt?: true
+  lastFollowedUpAt?: true
   createdAt?: true
 }
 
@@ -83,6 +87,7 @@ export type ConversationMaxAggregateInputType = {
   mode?: true
   lastActivityAt?: true
   factsExtractedAt?: true
+  lastFollowedUpAt?: true
   createdAt?: true
 }
 
@@ -95,6 +100,7 @@ export type ConversationCountAggregateInputType = {
   mode?: true
   lastActivityAt?: true
   factsExtractedAt?: true
+  lastFollowedUpAt?: true
   createdAt?: true
   _all?: true
 }
@@ -180,6 +186,7 @@ export type ConversationGroupByOutputType = {
   mode: string
   lastActivityAt: Date | null
   factsExtractedAt: Date | null
+  lastFollowedUpAt: Date | null
   createdAt: Date
   _count: ConversationCountAggregateOutputType | null
   _min: ConversationMinAggregateOutputType | null
@@ -213,11 +220,13 @@ export type ConversationWhereInput = {
   mode?: Prisma.StringFilter<"Conversation"> | string
   lastActivityAt?: Prisma.DateTimeNullableFilter<"Conversation"> | Date | string | null
   factsExtractedAt?: Prisma.DateTimeNullableFilter<"Conversation"> | Date | string | null
+  lastFollowedUpAt?: Prisma.DateTimeNullableFilter<"Conversation"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Conversation"> | Date | string
   agent?: Prisma.XOR<Prisma.AgentScalarRelationFilter, Prisma.AgentWhereInput>
   orchestratorAgent?: Prisma.XOR<Prisma.OrchestratorAgentNullableScalarRelationFilter, Prisma.OrchestratorAgentWhereInput> | null
   messages?: Prisma.MessageListRelationFilter
   summary?: Prisma.XOR<Prisma.ConversationSummaryNullableScalarRelationFilter, Prisma.ConversationSummaryWhereInput> | null
+  followUpMessages?: Prisma.FollowUpMessageListRelationFilter
 }
 
 export type ConversationOrderByWithRelationInput = {
@@ -229,11 +238,13 @@ export type ConversationOrderByWithRelationInput = {
   mode?: Prisma.SortOrder
   lastActivityAt?: Prisma.SortOrderInput | Prisma.SortOrder
   factsExtractedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  lastFollowedUpAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   agent?: Prisma.AgentOrderByWithRelationInput
   orchestratorAgent?: Prisma.OrchestratorAgentOrderByWithRelationInput
   messages?: Prisma.MessageOrderByRelationAggregateInput
   summary?: Prisma.ConversationSummaryOrderByWithRelationInput
+  followUpMessages?: Prisma.FollowUpMessageOrderByRelationAggregateInput
 }
 
 export type ConversationWhereUniqueInput = Prisma.AtLeast<{
@@ -249,11 +260,13 @@ export type ConversationWhereUniqueInput = Prisma.AtLeast<{
   mode?: Prisma.StringFilter<"Conversation"> | string
   lastActivityAt?: Prisma.DateTimeNullableFilter<"Conversation"> | Date | string | null
   factsExtractedAt?: Prisma.DateTimeNullableFilter<"Conversation"> | Date | string | null
+  lastFollowedUpAt?: Prisma.DateTimeNullableFilter<"Conversation"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Conversation"> | Date | string
   agent?: Prisma.XOR<Prisma.AgentScalarRelationFilter, Prisma.AgentWhereInput>
   orchestratorAgent?: Prisma.XOR<Prisma.OrchestratorAgentNullableScalarRelationFilter, Prisma.OrchestratorAgentWhereInput> | null
   messages?: Prisma.MessageListRelationFilter
   summary?: Prisma.XOR<Prisma.ConversationSummaryNullableScalarRelationFilter, Prisma.ConversationSummaryWhereInput> | null
+  followUpMessages?: Prisma.FollowUpMessageListRelationFilter
 }, "id" | "agentId_phoneNumber">
 
 export type ConversationOrderByWithAggregationInput = {
@@ -265,6 +278,7 @@ export type ConversationOrderByWithAggregationInput = {
   mode?: Prisma.SortOrder
   lastActivityAt?: Prisma.SortOrderInput | Prisma.SortOrder
   factsExtractedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  lastFollowedUpAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.ConversationCountOrderByAggregateInput
   _max?: Prisma.ConversationMaxOrderByAggregateInput
@@ -283,6 +297,7 @@ export type ConversationScalarWhereWithAggregatesInput = {
   mode?: Prisma.StringWithAggregatesFilter<"Conversation"> | string
   lastActivityAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Conversation"> | Date | string | null
   factsExtractedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Conversation"> | Date | string | null
+  lastFollowedUpAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Conversation"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Conversation"> | Date | string
 }
 
@@ -293,11 +308,13 @@ export type ConversationCreateInput = {
   mode?: string
   lastActivityAt?: Date | string | null
   factsExtractedAt?: Date | string | null
+  lastFollowedUpAt?: Date | string | null
   createdAt?: Date | string
   agent: Prisma.AgentCreateNestedOneWithoutConversationsInput
   orchestratorAgent?: Prisma.OrchestratorAgentCreateNestedOneWithoutConversationsInput
   messages?: Prisma.MessageCreateNestedManyWithoutConversationInput
   summary?: Prisma.ConversationSummaryCreateNestedOneWithoutConversationInput
+  followUpMessages?: Prisma.FollowUpMessageCreateNestedManyWithoutConversationInput
 }
 
 export type ConversationUncheckedCreateInput = {
@@ -309,9 +326,11 @@ export type ConversationUncheckedCreateInput = {
   mode?: string
   lastActivityAt?: Date | string | null
   factsExtractedAt?: Date | string | null
+  lastFollowedUpAt?: Date | string | null
   createdAt?: Date | string
   messages?: Prisma.MessageUncheckedCreateNestedManyWithoutConversationInput
   summary?: Prisma.ConversationSummaryUncheckedCreateNestedOneWithoutConversationInput
+  followUpMessages?: Prisma.FollowUpMessageUncheckedCreateNestedManyWithoutConversationInput
 }
 
 export type ConversationUpdateInput = {
@@ -321,11 +340,13 @@ export type ConversationUpdateInput = {
   mode?: Prisma.StringFieldUpdateOperationsInput | string
   lastActivityAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   factsExtractedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastFollowedUpAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   agent?: Prisma.AgentUpdateOneRequiredWithoutConversationsNestedInput
   orchestratorAgent?: Prisma.OrchestratorAgentUpdateOneWithoutConversationsNestedInput
   messages?: Prisma.MessageUpdateManyWithoutConversationNestedInput
   summary?: Prisma.ConversationSummaryUpdateOneWithoutConversationNestedInput
+  followUpMessages?: Prisma.FollowUpMessageUpdateManyWithoutConversationNestedInput
 }
 
 export type ConversationUncheckedUpdateInput = {
@@ -337,9 +358,11 @@ export type ConversationUncheckedUpdateInput = {
   mode?: Prisma.StringFieldUpdateOperationsInput | string
   lastActivityAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   factsExtractedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastFollowedUpAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   messages?: Prisma.MessageUncheckedUpdateManyWithoutConversationNestedInput
   summary?: Prisma.ConversationSummaryUncheckedUpdateOneWithoutConversationNestedInput
+  followUpMessages?: Prisma.FollowUpMessageUncheckedUpdateManyWithoutConversationNestedInput
 }
 
 export type ConversationCreateManyInput = {
@@ -351,6 +374,7 @@ export type ConversationCreateManyInput = {
   mode?: string
   lastActivityAt?: Date | string | null
   factsExtractedAt?: Date | string | null
+  lastFollowedUpAt?: Date | string | null
   createdAt?: Date | string
 }
 
@@ -361,6 +385,7 @@ export type ConversationUpdateManyMutationInput = {
   mode?: Prisma.StringFieldUpdateOperationsInput | string
   lastActivityAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   factsExtractedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastFollowedUpAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -373,6 +398,7 @@ export type ConversationUncheckedUpdateManyInput = {
   mode?: Prisma.StringFieldUpdateOperationsInput | string
   lastActivityAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   factsExtractedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastFollowedUpAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -384,6 +410,11 @@ export type ConversationListRelationFilter = {
 
 export type ConversationOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
+}
+
+export type ConversationScalarRelationFilter = {
+  is?: Prisma.ConversationWhereInput
+  isNot?: Prisma.ConversationWhereInput
 }
 
 export type ConversationAgentIdPhoneNumberCompoundUniqueInput = {
@@ -400,6 +431,7 @@ export type ConversationCountOrderByAggregateInput = {
   mode?: Prisma.SortOrder
   lastActivityAt?: Prisma.SortOrder
   factsExtractedAt?: Prisma.SortOrder
+  lastFollowedUpAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -412,6 +444,7 @@ export type ConversationMaxOrderByAggregateInput = {
   mode?: Prisma.SortOrder
   lastActivityAt?: Prisma.SortOrder
   factsExtractedAt?: Prisma.SortOrder
+  lastFollowedUpAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -424,12 +457,8 @@ export type ConversationMinOrderByAggregateInput = {
   mode?: Prisma.SortOrder
   lastActivityAt?: Prisma.SortOrder
   factsExtractedAt?: Prisma.SortOrder
+  lastFollowedUpAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
-}
-
-export type ConversationScalarRelationFilter = {
-  is?: Prisma.ConversationWhereInput
-  isNot?: Prisma.ConversationWhereInput
 }
 
 export type ConversationCreateNestedManyWithoutAgentInput = {
@@ -472,6 +501,20 @@ export type ConversationUncheckedUpdateManyWithoutAgentNestedInput = {
   update?: Prisma.ConversationUpdateWithWhereUniqueWithoutAgentInput | Prisma.ConversationUpdateWithWhereUniqueWithoutAgentInput[]
   updateMany?: Prisma.ConversationUpdateManyWithWhereWithoutAgentInput | Prisma.ConversationUpdateManyWithWhereWithoutAgentInput[]
   deleteMany?: Prisma.ConversationScalarWhereInput | Prisma.ConversationScalarWhereInput[]
+}
+
+export type ConversationCreateNestedOneWithoutFollowUpMessagesInput = {
+  create?: Prisma.XOR<Prisma.ConversationCreateWithoutFollowUpMessagesInput, Prisma.ConversationUncheckedCreateWithoutFollowUpMessagesInput>
+  connectOrCreate?: Prisma.ConversationCreateOrConnectWithoutFollowUpMessagesInput
+  connect?: Prisma.ConversationWhereUniqueInput
+}
+
+export type ConversationUpdateOneRequiredWithoutFollowUpMessagesNestedInput = {
+  create?: Prisma.XOR<Prisma.ConversationCreateWithoutFollowUpMessagesInput, Prisma.ConversationUncheckedCreateWithoutFollowUpMessagesInput>
+  connectOrCreate?: Prisma.ConversationCreateOrConnectWithoutFollowUpMessagesInput
+  upsert?: Prisma.ConversationUpsertWithoutFollowUpMessagesInput
+  connect?: Prisma.ConversationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ConversationUpdateToOneWithWhereWithoutFollowUpMessagesInput, Prisma.ConversationUpdateWithoutFollowUpMessagesInput>, Prisma.ConversationUncheckedUpdateWithoutFollowUpMessagesInput>
 }
 
 export type ConversationCreateNestedManyWithoutOrchestratorAgentInput = {
@@ -551,10 +594,12 @@ export type ConversationCreateWithoutAgentInput = {
   mode?: string
   lastActivityAt?: Date | string | null
   factsExtractedAt?: Date | string | null
+  lastFollowedUpAt?: Date | string | null
   createdAt?: Date | string
   orchestratorAgent?: Prisma.OrchestratorAgentCreateNestedOneWithoutConversationsInput
   messages?: Prisma.MessageCreateNestedManyWithoutConversationInput
   summary?: Prisma.ConversationSummaryCreateNestedOneWithoutConversationInput
+  followUpMessages?: Prisma.FollowUpMessageCreateNestedManyWithoutConversationInput
 }
 
 export type ConversationUncheckedCreateWithoutAgentInput = {
@@ -565,9 +610,11 @@ export type ConversationUncheckedCreateWithoutAgentInput = {
   mode?: string
   lastActivityAt?: Date | string | null
   factsExtractedAt?: Date | string | null
+  lastFollowedUpAt?: Date | string | null
   createdAt?: Date | string
   messages?: Prisma.MessageUncheckedCreateNestedManyWithoutConversationInput
   summary?: Prisma.ConversationSummaryUncheckedCreateNestedOneWithoutConversationInput
+  followUpMessages?: Prisma.FollowUpMessageUncheckedCreateNestedManyWithoutConversationInput
 }
 
 export type ConversationCreateOrConnectWithoutAgentInput = {
@@ -608,7 +655,84 @@ export type ConversationScalarWhereInput = {
   mode?: Prisma.StringFilter<"Conversation"> | string
   lastActivityAt?: Prisma.DateTimeNullableFilter<"Conversation"> | Date | string | null
   factsExtractedAt?: Prisma.DateTimeNullableFilter<"Conversation"> | Date | string | null
+  lastFollowedUpAt?: Prisma.DateTimeNullableFilter<"Conversation"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Conversation"> | Date | string
+}
+
+export type ConversationCreateWithoutFollowUpMessagesInput = {
+  id?: string
+  phoneNumber: string
+  contactName?: string | null
+  mode?: string
+  lastActivityAt?: Date | string | null
+  factsExtractedAt?: Date | string | null
+  lastFollowedUpAt?: Date | string | null
+  createdAt?: Date | string
+  agent: Prisma.AgentCreateNestedOneWithoutConversationsInput
+  orchestratorAgent?: Prisma.OrchestratorAgentCreateNestedOneWithoutConversationsInput
+  messages?: Prisma.MessageCreateNestedManyWithoutConversationInput
+  summary?: Prisma.ConversationSummaryCreateNestedOneWithoutConversationInput
+}
+
+export type ConversationUncheckedCreateWithoutFollowUpMessagesInput = {
+  id?: string
+  agentId: string
+  orchestratorAgentId?: string | null
+  phoneNumber: string
+  contactName?: string | null
+  mode?: string
+  lastActivityAt?: Date | string | null
+  factsExtractedAt?: Date | string | null
+  lastFollowedUpAt?: Date | string | null
+  createdAt?: Date | string
+  messages?: Prisma.MessageUncheckedCreateNestedManyWithoutConversationInput
+  summary?: Prisma.ConversationSummaryUncheckedCreateNestedOneWithoutConversationInput
+}
+
+export type ConversationCreateOrConnectWithoutFollowUpMessagesInput = {
+  where: Prisma.ConversationWhereUniqueInput
+  create: Prisma.XOR<Prisma.ConversationCreateWithoutFollowUpMessagesInput, Prisma.ConversationUncheckedCreateWithoutFollowUpMessagesInput>
+}
+
+export type ConversationUpsertWithoutFollowUpMessagesInput = {
+  update: Prisma.XOR<Prisma.ConversationUpdateWithoutFollowUpMessagesInput, Prisma.ConversationUncheckedUpdateWithoutFollowUpMessagesInput>
+  create: Prisma.XOR<Prisma.ConversationCreateWithoutFollowUpMessagesInput, Prisma.ConversationUncheckedCreateWithoutFollowUpMessagesInput>
+  where?: Prisma.ConversationWhereInput
+}
+
+export type ConversationUpdateToOneWithWhereWithoutFollowUpMessagesInput = {
+  where?: Prisma.ConversationWhereInput
+  data: Prisma.XOR<Prisma.ConversationUpdateWithoutFollowUpMessagesInput, Prisma.ConversationUncheckedUpdateWithoutFollowUpMessagesInput>
+}
+
+export type ConversationUpdateWithoutFollowUpMessagesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  contactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mode?: Prisma.StringFieldUpdateOperationsInput | string
+  lastActivityAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  factsExtractedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastFollowedUpAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  agent?: Prisma.AgentUpdateOneRequiredWithoutConversationsNestedInput
+  orchestratorAgent?: Prisma.OrchestratorAgentUpdateOneWithoutConversationsNestedInput
+  messages?: Prisma.MessageUpdateManyWithoutConversationNestedInput
+  summary?: Prisma.ConversationSummaryUpdateOneWithoutConversationNestedInput
+}
+
+export type ConversationUncheckedUpdateWithoutFollowUpMessagesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  agentId?: Prisma.StringFieldUpdateOperationsInput | string
+  orchestratorAgentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  contactName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mode?: Prisma.StringFieldUpdateOperationsInput | string
+  lastActivityAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  factsExtractedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastFollowedUpAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  messages?: Prisma.MessageUncheckedUpdateManyWithoutConversationNestedInput
+  summary?: Prisma.ConversationSummaryUncheckedUpdateOneWithoutConversationNestedInput
 }
 
 export type ConversationCreateWithoutOrchestratorAgentInput = {
@@ -618,10 +742,12 @@ export type ConversationCreateWithoutOrchestratorAgentInput = {
   mode?: string
   lastActivityAt?: Date | string | null
   factsExtractedAt?: Date | string | null
+  lastFollowedUpAt?: Date | string | null
   createdAt?: Date | string
   agent: Prisma.AgentCreateNestedOneWithoutConversationsInput
   messages?: Prisma.MessageCreateNestedManyWithoutConversationInput
   summary?: Prisma.ConversationSummaryCreateNestedOneWithoutConversationInput
+  followUpMessages?: Prisma.FollowUpMessageCreateNestedManyWithoutConversationInput
 }
 
 export type ConversationUncheckedCreateWithoutOrchestratorAgentInput = {
@@ -632,9 +758,11 @@ export type ConversationUncheckedCreateWithoutOrchestratorAgentInput = {
   mode?: string
   lastActivityAt?: Date | string | null
   factsExtractedAt?: Date | string | null
+  lastFollowedUpAt?: Date | string | null
   createdAt?: Date | string
   messages?: Prisma.MessageUncheckedCreateNestedManyWithoutConversationInput
   summary?: Prisma.ConversationSummaryUncheckedCreateNestedOneWithoutConversationInput
+  followUpMessages?: Prisma.FollowUpMessageUncheckedCreateNestedManyWithoutConversationInput
 }
 
 export type ConversationCreateOrConnectWithoutOrchestratorAgentInput = {
@@ -670,10 +798,12 @@ export type ConversationCreateWithoutMessagesInput = {
   mode?: string
   lastActivityAt?: Date | string | null
   factsExtractedAt?: Date | string | null
+  lastFollowedUpAt?: Date | string | null
   createdAt?: Date | string
   agent: Prisma.AgentCreateNestedOneWithoutConversationsInput
   orchestratorAgent?: Prisma.OrchestratorAgentCreateNestedOneWithoutConversationsInput
   summary?: Prisma.ConversationSummaryCreateNestedOneWithoutConversationInput
+  followUpMessages?: Prisma.FollowUpMessageCreateNestedManyWithoutConversationInput
 }
 
 export type ConversationUncheckedCreateWithoutMessagesInput = {
@@ -685,8 +815,10 @@ export type ConversationUncheckedCreateWithoutMessagesInput = {
   mode?: string
   lastActivityAt?: Date | string | null
   factsExtractedAt?: Date | string | null
+  lastFollowedUpAt?: Date | string | null
   createdAt?: Date | string
   summary?: Prisma.ConversationSummaryUncheckedCreateNestedOneWithoutConversationInput
+  followUpMessages?: Prisma.FollowUpMessageUncheckedCreateNestedManyWithoutConversationInput
 }
 
 export type ConversationCreateOrConnectWithoutMessagesInput = {
@@ -712,10 +844,12 @@ export type ConversationUpdateWithoutMessagesInput = {
   mode?: Prisma.StringFieldUpdateOperationsInput | string
   lastActivityAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   factsExtractedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastFollowedUpAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   agent?: Prisma.AgentUpdateOneRequiredWithoutConversationsNestedInput
   orchestratorAgent?: Prisma.OrchestratorAgentUpdateOneWithoutConversationsNestedInput
   summary?: Prisma.ConversationSummaryUpdateOneWithoutConversationNestedInput
+  followUpMessages?: Prisma.FollowUpMessageUpdateManyWithoutConversationNestedInput
 }
 
 export type ConversationUncheckedUpdateWithoutMessagesInput = {
@@ -727,8 +861,10 @@ export type ConversationUncheckedUpdateWithoutMessagesInput = {
   mode?: Prisma.StringFieldUpdateOperationsInput | string
   lastActivityAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   factsExtractedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastFollowedUpAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   summary?: Prisma.ConversationSummaryUncheckedUpdateOneWithoutConversationNestedInput
+  followUpMessages?: Prisma.FollowUpMessageUncheckedUpdateManyWithoutConversationNestedInput
 }
 
 export type ConversationCreateWithoutSummaryInput = {
@@ -738,10 +874,12 @@ export type ConversationCreateWithoutSummaryInput = {
   mode?: string
   lastActivityAt?: Date | string | null
   factsExtractedAt?: Date | string | null
+  lastFollowedUpAt?: Date | string | null
   createdAt?: Date | string
   agent: Prisma.AgentCreateNestedOneWithoutConversationsInput
   orchestratorAgent?: Prisma.OrchestratorAgentCreateNestedOneWithoutConversationsInput
   messages?: Prisma.MessageCreateNestedManyWithoutConversationInput
+  followUpMessages?: Prisma.FollowUpMessageCreateNestedManyWithoutConversationInput
 }
 
 export type ConversationUncheckedCreateWithoutSummaryInput = {
@@ -753,8 +891,10 @@ export type ConversationUncheckedCreateWithoutSummaryInput = {
   mode?: string
   lastActivityAt?: Date | string | null
   factsExtractedAt?: Date | string | null
+  lastFollowedUpAt?: Date | string | null
   createdAt?: Date | string
   messages?: Prisma.MessageUncheckedCreateNestedManyWithoutConversationInput
+  followUpMessages?: Prisma.FollowUpMessageUncheckedCreateNestedManyWithoutConversationInput
 }
 
 export type ConversationCreateOrConnectWithoutSummaryInput = {
@@ -780,10 +920,12 @@ export type ConversationUpdateWithoutSummaryInput = {
   mode?: Prisma.StringFieldUpdateOperationsInput | string
   lastActivityAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   factsExtractedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastFollowedUpAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   agent?: Prisma.AgentUpdateOneRequiredWithoutConversationsNestedInput
   orchestratorAgent?: Prisma.OrchestratorAgentUpdateOneWithoutConversationsNestedInput
   messages?: Prisma.MessageUpdateManyWithoutConversationNestedInput
+  followUpMessages?: Prisma.FollowUpMessageUpdateManyWithoutConversationNestedInput
 }
 
 export type ConversationUncheckedUpdateWithoutSummaryInput = {
@@ -795,8 +937,10 @@ export type ConversationUncheckedUpdateWithoutSummaryInput = {
   mode?: Prisma.StringFieldUpdateOperationsInput | string
   lastActivityAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   factsExtractedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastFollowedUpAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   messages?: Prisma.MessageUncheckedUpdateManyWithoutConversationNestedInput
+  followUpMessages?: Prisma.FollowUpMessageUncheckedUpdateManyWithoutConversationNestedInput
 }
 
 export type ConversationCreateManyAgentInput = {
@@ -807,6 +951,7 @@ export type ConversationCreateManyAgentInput = {
   mode?: string
   lastActivityAt?: Date | string | null
   factsExtractedAt?: Date | string | null
+  lastFollowedUpAt?: Date | string | null
   createdAt?: Date | string
 }
 
@@ -817,10 +962,12 @@ export type ConversationUpdateWithoutAgentInput = {
   mode?: Prisma.StringFieldUpdateOperationsInput | string
   lastActivityAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   factsExtractedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastFollowedUpAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   orchestratorAgent?: Prisma.OrchestratorAgentUpdateOneWithoutConversationsNestedInput
   messages?: Prisma.MessageUpdateManyWithoutConversationNestedInput
   summary?: Prisma.ConversationSummaryUpdateOneWithoutConversationNestedInput
+  followUpMessages?: Prisma.FollowUpMessageUpdateManyWithoutConversationNestedInput
 }
 
 export type ConversationUncheckedUpdateWithoutAgentInput = {
@@ -831,9 +978,11 @@ export type ConversationUncheckedUpdateWithoutAgentInput = {
   mode?: Prisma.StringFieldUpdateOperationsInput | string
   lastActivityAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   factsExtractedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastFollowedUpAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   messages?: Prisma.MessageUncheckedUpdateManyWithoutConversationNestedInput
   summary?: Prisma.ConversationSummaryUncheckedUpdateOneWithoutConversationNestedInput
+  followUpMessages?: Prisma.FollowUpMessageUncheckedUpdateManyWithoutConversationNestedInput
 }
 
 export type ConversationUncheckedUpdateManyWithoutAgentInput = {
@@ -844,6 +993,7 @@ export type ConversationUncheckedUpdateManyWithoutAgentInput = {
   mode?: Prisma.StringFieldUpdateOperationsInput | string
   lastActivityAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   factsExtractedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastFollowedUpAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -855,6 +1005,7 @@ export type ConversationCreateManyOrchestratorAgentInput = {
   mode?: string
   lastActivityAt?: Date | string | null
   factsExtractedAt?: Date | string | null
+  lastFollowedUpAt?: Date | string | null
   createdAt?: Date | string
 }
 
@@ -865,10 +1016,12 @@ export type ConversationUpdateWithoutOrchestratorAgentInput = {
   mode?: Prisma.StringFieldUpdateOperationsInput | string
   lastActivityAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   factsExtractedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastFollowedUpAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   agent?: Prisma.AgentUpdateOneRequiredWithoutConversationsNestedInput
   messages?: Prisma.MessageUpdateManyWithoutConversationNestedInput
   summary?: Prisma.ConversationSummaryUpdateOneWithoutConversationNestedInput
+  followUpMessages?: Prisma.FollowUpMessageUpdateManyWithoutConversationNestedInput
 }
 
 export type ConversationUncheckedUpdateWithoutOrchestratorAgentInput = {
@@ -879,9 +1032,11 @@ export type ConversationUncheckedUpdateWithoutOrchestratorAgentInput = {
   mode?: Prisma.StringFieldUpdateOperationsInput | string
   lastActivityAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   factsExtractedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastFollowedUpAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   messages?: Prisma.MessageUncheckedUpdateManyWithoutConversationNestedInput
   summary?: Prisma.ConversationSummaryUncheckedUpdateOneWithoutConversationNestedInput
+  followUpMessages?: Prisma.FollowUpMessageUncheckedUpdateManyWithoutConversationNestedInput
 }
 
 export type ConversationUncheckedUpdateManyWithoutOrchestratorAgentInput = {
@@ -892,6 +1047,7 @@ export type ConversationUncheckedUpdateManyWithoutOrchestratorAgentInput = {
   mode?: Prisma.StringFieldUpdateOperationsInput | string
   lastActivityAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   factsExtractedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastFollowedUpAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -902,10 +1058,12 @@ export type ConversationUncheckedUpdateManyWithoutOrchestratorAgentInput = {
 
 export type ConversationCountOutputType = {
   messages: number
+  followUpMessages: number
 }
 
 export type ConversationCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   messages?: boolean | ConversationCountOutputTypeCountMessagesArgs
+  followUpMessages?: boolean | ConversationCountOutputTypeCountFollowUpMessagesArgs
 }
 
 /**
@@ -925,6 +1083,13 @@ export type ConversationCountOutputTypeCountMessagesArgs<ExtArgs extends runtime
   where?: Prisma.MessageWhereInput
 }
 
+/**
+ * ConversationCountOutputType without action
+ */
+export type ConversationCountOutputTypeCountFollowUpMessagesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.FollowUpMessageWhereInput
+}
+
 
 export type ConversationSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -935,11 +1100,13 @@ export type ConversationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   mode?: boolean
   lastActivityAt?: boolean
   factsExtractedAt?: boolean
+  lastFollowedUpAt?: boolean
   createdAt?: boolean
   agent?: boolean | Prisma.AgentDefaultArgs<ExtArgs>
   orchestratorAgent?: boolean | Prisma.Conversation$orchestratorAgentArgs<ExtArgs>
   messages?: boolean | Prisma.Conversation$messagesArgs<ExtArgs>
   summary?: boolean | Prisma.Conversation$summaryArgs<ExtArgs>
+  followUpMessages?: boolean | Prisma.Conversation$followUpMessagesArgs<ExtArgs>
   _count?: boolean | Prisma.ConversationCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["conversation"]>
 
@@ -952,6 +1119,7 @@ export type ConversationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   mode?: boolean
   lastActivityAt?: boolean
   factsExtractedAt?: boolean
+  lastFollowedUpAt?: boolean
   createdAt?: boolean
   agent?: boolean | Prisma.AgentDefaultArgs<ExtArgs>
   orchestratorAgent?: boolean | Prisma.Conversation$orchestratorAgentArgs<ExtArgs>
@@ -966,6 +1134,7 @@ export type ConversationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   mode?: boolean
   lastActivityAt?: boolean
   factsExtractedAt?: boolean
+  lastFollowedUpAt?: boolean
   createdAt?: boolean
   agent?: boolean | Prisma.AgentDefaultArgs<ExtArgs>
   orchestratorAgent?: boolean | Prisma.Conversation$orchestratorAgentArgs<ExtArgs>
@@ -980,15 +1149,17 @@ export type ConversationSelectScalar = {
   mode?: boolean
   lastActivityAt?: boolean
   factsExtractedAt?: boolean
+  lastFollowedUpAt?: boolean
   createdAt?: boolean
 }
 
-export type ConversationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "agentId" | "orchestratorAgentId" | "phoneNumber" | "contactName" | "mode" | "lastActivityAt" | "factsExtractedAt" | "createdAt", ExtArgs["result"]["conversation"]>
+export type ConversationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "agentId" | "orchestratorAgentId" | "phoneNumber" | "contactName" | "mode" | "lastActivityAt" | "factsExtractedAt" | "lastFollowedUpAt" | "createdAt", ExtArgs["result"]["conversation"]>
 export type ConversationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   agent?: boolean | Prisma.AgentDefaultArgs<ExtArgs>
   orchestratorAgent?: boolean | Prisma.Conversation$orchestratorAgentArgs<ExtArgs>
   messages?: boolean | Prisma.Conversation$messagesArgs<ExtArgs>
   summary?: boolean | Prisma.Conversation$summaryArgs<ExtArgs>
+  followUpMessages?: boolean | Prisma.Conversation$followUpMessagesArgs<ExtArgs>
   _count?: boolean | Prisma.ConversationCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ConversationIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1007,6 +1178,7 @@ export type $ConversationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     orchestratorAgent: Prisma.$OrchestratorAgentPayload<ExtArgs> | null
     messages: Prisma.$MessagePayload<ExtArgs>[]
     summary: Prisma.$ConversationSummaryPayload<ExtArgs> | null
+    followUpMessages: Prisma.$FollowUpMessagePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1017,6 +1189,7 @@ export type $ConversationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     mode: string
     lastActivityAt: Date | null
     factsExtractedAt: Date | null
+    lastFollowedUpAt: Date | null
     createdAt: Date
   }, ExtArgs["result"]["conversation"]>
   composites: {}
@@ -1416,6 +1589,7 @@ export interface Prisma__ConversationClient<T, Null = never, ExtArgs extends run
   orchestratorAgent<T extends Prisma.Conversation$orchestratorAgentArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Conversation$orchestratorAgentArgs<ExtArgs>>): Prisma.Prisma__OrchestratorAgentClient<runtime.Types.Result.GetResult<Prisma.$OrchestratorAgentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   messages<T extends Prisma.Conversation$messagesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Conversation$messagesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MessagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   summary<T extends Prisma.Conversation$summaryArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Conversation$summaryArgs<ExtArgs>>): Prisma.Prisma__ConversationSummaryClient<runtime.Types.Result.GetResult<Prisma.$ConversationSummaryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  followUpMessages<T extends Prisma.Conversation$followUpMessagesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Conversation$followUpMessagesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FollowUpMessagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1453,6 +1627,7 @@ export interface ConversationFieldRefs {
   readonly mode: Prisma.FieldRef<"Conversation", 'String'>
   readonly lastActivityAt: Prisma.FieldRef<"Conversation", 'DateTime'>
   readonly factsExtractedAt: Prisma.FieldRef<"Conversation", 'DateTime'>
+  readonly lastFollowedUpAt: Prisma.FieldRef<"Conversation", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"Conversation", 'DateTime'>
 }
     
@@ -1914,6 +2089,30 @@ export type Conversation$summaryArgs<ExtArgs extends runtime.Types.Extensions.In
    */
   include?: Prisma.ConversationSummaryInclude<ExtArgs> | null
   where?: Prisma.ConversationSummaryWhereInput
+}
+
+/**
+ * Conversation.followUpMessages
+ */
+export type Conversation$followUpMessagesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the FollowUpMessage
+   */
+  select?: Prisma.FollowUpMessageSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the FollowUpMessage
+   */
+  omit?: Prisma.FollowUpMessageOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FollowUpMessageInclude<ExtArgs> | null
+  where?: Prisma.FollowUpMessageWhereInput
+  orderBy?: Prisma.FollowUpMessageOrderByWithRelationInput | Prisma.FollowUpMessageOrderByWithRelationInput[]
+  cursor?: Prisma.FollowUpMessageWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.FollowUpMessageScalarFieldEnum | Prisma.FollowUpMessageScalarFieldEnum[]
 }
 
 /**

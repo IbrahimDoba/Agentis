@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { PLAN_CREDIT_LIMITS } from "@/lib/plans"
 import { getWorkspaceContext } from "@/lib/workspace"
 import { sumCreditsForAgents, sumCreditsBySourceForAgents } from "@/lib/creditUsage"
+import { getBillingPeriod } from "@/lib/billing-period"
 
 type RuntimeView = "orchestrator" | "elevenlabs"
 
@@ -20,10 +21,7 @@ export async function GET(req: NextRequest) {
     select: { plan: true, subscriptionExpiresAt: true },
   })
 
-  // Current calendar month window
-  const now = new Date()
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
-  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+  const { start: monthStart, end: monthEnd } = getBillingPeriod(user?.subscriptionExpiresAt)
 
   const runtimeAgents = await db.agent.findMany({
     where: {

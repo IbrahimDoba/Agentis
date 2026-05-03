@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { PLAN_CREDIT_LIMITS, PLAN_OVERAGE_RATE_PER_1K } from "@/lib/plans"
+import { getBillingPeriod } from "@/lib/billing-period"
 
 interface Params {
   params: Promise<{ id: string }>
@@ -39,9 +40,7 @@ export async function GET(req: NextRequest, { params }: Params) {
 
   const agentIds = agents.map((a) => a.id)
 
-  const now = new Date()
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
-  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+  const { start: monthStart, end: monthEnd } = getBillingPeriod(user.subscriptionExpiresAt)
 
   // Credit usage breakdown by messageType for this month
   const monthlyByType = agentIds.length

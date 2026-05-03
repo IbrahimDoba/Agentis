@@ -39,6 +39,37 @@
   background: var(--bg-card);
 }
 
+.tabs {
+  display: flex;
+  gap: 0.35rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0;
+  margin-bottom: -0.25rem;
+}
+
+.tabBtn {
+  padding: 0.55rem 1rem;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.12s, border-color 0.12s;
+  border-radius: 0;
+}
+
+.tabBtn:hover {
+  color: var(--text-primary);
+}
+
+.tabBtnActive {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
 .notice {
   display: flex;
   gap: 0.75rem;

@@ -25,6 +25,7 @@ import { webhookEmitter } from "../dashboard/webhook-emitter.js"
 import { logger as rootLogger } from "../lib/logger.js"
 import { RateLimitError } from "../lib/errors.js"
 import { PLAN_CREDIT_LIMITS, creditsForMessageType, allowsOverage } from "../billing/credits.js"
+import { getBillingPeriod } from "../billing/billing-period.js"
 
 const logger = rootLogger.child({ module: "outbound-queue" })
 const QUEUE_NAME = "outbound-messages"
@@ -98,9 +99,7 @@ const worker = new Worker<OutboundJob>(
 
       const monthlyLimit = PLAN_CREDIT_LIMITS[billing.plan] ?? PLAN_CREDIT_LIMITS.free
       if (monthlyLimit !== -1) {
-        const now = new Date()
-        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
-        const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+        const { start: monthStart, end: monthEnd } = getBillingPeriod(billing.subscriptionExpiresAt)
         const used = await getMonthlyCreditsUsed(agentId, monthStart, monthEnd)
         const overageAllowed = allowsOverage(billing.plan)
         if (!overageAllowed && used + creditsToCharge > monthlyLimit) {

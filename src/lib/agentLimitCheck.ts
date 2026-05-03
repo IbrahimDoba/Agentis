@@ -1,6 +1,7 @@
 import { db } from "@/lib/db"
 import { PLAN_CREDIT_LIMITS, PLAN_OVERAGE_RATE_PER_1K } from "@/lib/plans"
 import { sumCreditsForAgents } from "@/lib/creditUsage"
+import { getBillingPeriod } from "@/lib/billing-period"
 
 /**
  * Checks whether an agent should be disabled (subscription expired or monthly
@@ -48,9 +49,7 @@ export async function checkAndEnforceAgentLimit(agentId: string): Promise<void> 
   let creditsExceeded = false
 
   if (creditLimit !== -1) {
-    const now = new Date()
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
-    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+    const { start: monthStart, end: monthEnd } = getBillingPeriod(subscriptionExpiresAt)
 
     const used = agent.elevenlabsAgentId
       ? (await db.conversationLog.aggregate({

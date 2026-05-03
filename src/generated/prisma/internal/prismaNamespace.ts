@@ -386,6 +386,8 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 export const ModelName = {
   User: 'User',
   Agent: 'Agent',
+  FollowUpCampaign: 'FollowUpCampaign',
+  FollowUpMessage: 'FollowUpMessage',
   BroadcastCampaign: 'BroadcastCampaign',
   BroadcastRecipient: 'BroadcastRecipient',
   OrchestratorAgent: 'OrchestratorAgent',
@@ -405,7 +407,8 @@ export const ModelName = {
   WorkspaceMember: 'WorkspaceMember',
   PaymentRequest: 'PaymentRequest',
   BaileysSession: 'BaileysSession',
-  BaileysOutboundLog: 'BaileysOutboundLog'
+  BaileysOutboundLog: 'BaileysOutboundLog',
+  CreditUsage: 'CreditUsage'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -421,7 +424,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "agent" | "broadcastCampaign" | "broadcastRecipient" | "orchestratorAgent" | "document" | "documentChunk" | "mediaItem" | "conversation" | "message" | "conversationSummary" | "messageTemplate" | "lead" | "conversationRead" | "customer" | "referral" | "newsletterSubscriber" | "conversationLog" | "workspaceMember" | "paymentRequest" | "baileysSession" | "baileysOutboundLog"
+    modelProps: "user" | "agent" | "followUpCampaign" | "followUpMessage" | "broadcastCampaign" | "broadcastRecipient" | "orchestratorAgent" | "document" | "documentChunk" | "mediaItem" | "conversation" | "message" | "conversationSummary" | "messageTemplate" | "lead" | "conversationRead" | "customer" | "referral" | "newsletterSubscriber" | "conversationLog" | "workspaceMember" | "paymentRequest" | "baileysSession" | "baileysOutboundLog" | "creditUsage"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -570,6 +573,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.AgentCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.AgentCountAggregateOutputType> | number
+        }
+      }
+    }
+    FollowUpCampaign: {
+      payload: Prisma.$FollowUpCampaignPayload<ExtArgs>
+      fields: Prisma.FollowUpCampaignFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.FollowUpCampaignFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FollowUpCampaignPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.FollowUpCampaignFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FollowUpCampaignPayload>
+        }
+        findFirst: {
+          args: Prisma.FollowUpCampaignFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FollowUpCampaignPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.FollowUpCampaignFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FollowUpCampaignPayload>
+        }
+        findMany: {
+          args: Prisma.FollowUpCampaignFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FollowUpCampaignPayload>[]
+        }
+        create: {
+          args: Prisma.FollowUpCampaignCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FollowUpCampaignPayload>
+        }
+        createMany: {
+          args: Prisma.FollowUpCampaignCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.FollowUpCampaignCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FollowUpCampaignPayload>[]
+        }
+        delete: {
+          args: Prisma.FollowUpCampaignDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FollowUpCampaignPayload>
+        }
+        update: {
+          args: Prisma.FollowUpCampaignUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FollowUpCampaignPayload>
+        }
+        deleteMany: {
+          args: Prisma.FollowUpCampaignDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.FollowUpCampaignUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.FollowUpCampaignUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FollowUpCampaignPayload>[]
+        }
+        upsert: {
+          args: Prisma.FollowUpCampaignUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FollowUpCampaignPayload>
+        }
+        aggregate: {
+          args: Prisma.FollowUpCampaignAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateFollowUpCampaign>
+        }
+        groupBy: {
+          args: Prisma.FollowUpCampaignGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FollowUpCampaignGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.FollowUpCampaignCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FollowUpCampaignCountAggregateOutputType> | number
+        }
+      }
+    }
+    FollowUpMessage: {
+      payload: Prisma.$FollowUpMessagePayload<ExtArgs>
+      fields: Prisma.FollowUpMessageFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.FollowUpMessageFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FollowUpMessagePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.FollowUpMessageFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FollowUpMessagePayload>
+        }
+        findFirst: {
+          args: Prisma.FollowUpMessageFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FollowUpMessagePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.FollowUpMessageFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FollowUpMessagePayload>
+        }
+        findMany: {
+          args: Prisma.FollowUpMessageFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FollowUpMessagePayload>[]
+        }
+        create: {
+          args: Prisma.FollowUpMessageCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FollowUpMessagePayload>
+        }
+        createMany: {
+          args: Prisma.FollowUpMessageCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.FollowUpMessageCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FollowUpMessagePayload>[]
+        }
+        delete: {
+          args: Prisma.FollowUpMessageDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FollowUpMessagePayload>
+        }
+        update: {
+          args: Prisma.FollowUpMessageUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FollowUpMessagePayload>
+        }
+        deleteMany: {
+          args: Prisma.FollowUpMessageDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.FollowUpMessageUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.FollowUpMessageUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FollowUpMessagePayload>[]
+        }
+        upsert: {
+          args: Prisma.FollowUpMessageUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FollowUpMessagePayload>
+        }
+        aggregate: {
+          args: Prisma.FollowUpMessageAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateFollowUpMessage>
+        }
+        groupBy: {
+          args: Prisma.FollowUpMessageGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FollowUpMessageGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.FollowUpMessageCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FollowUpMessageCountAggregateOutputType> | number
         }
       }
     }
@@ -2053,6 +2204,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    CreditUsage: {
+      payload: Prisma.$CreditUsagePayload<ExtArgs>
+      fields: Prisma.CreditUsageFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CreditUsageFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CreditUsagePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CreditUsageFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CreditUsagePayload>
+        }
+        findFirst: {
+          args: Prisma.CreditUsageFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CreditUsagePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CreditUsageFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CreditUsagePayload>
+        }
+        findMany: {
+          args: Prisma.CreditUsageFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CreditUsagePayload>[]
+        }
+        create: {
+          args: Prisma.CreditUsageCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CreditUsagePayload>
+        }
+        createMany: {
+          args: Prisma.CreditUsageCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.CreditUsageCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CreditUsagePayload>[]
+        }
+        delete: {
+          args: Prisma.CreditUsageDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CreditUsagePayload>
+        }
+        update: {
+          args: Prisma.CreditUsageUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CreditUsagePayload>
+        }
+        deleteMany: {
+          args: Prisma.CreditUsageDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CreditUsageUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.CreditUsageUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CreditUsagePayload>[]
+        }
+        upsert: {
+          args: Prisma.CreditUsageUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CreditUsagePayload>
+        }
+        aggregate: {
+          args: Prisma.CreditUsageAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCreditUsage>
+        }
+        groupBy: {
+          args: Prisma.CreditUsageGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CreditUsageGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CreditUsageCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CreditUsageCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -2108,6 +2333,7 @@ export const UserScalarFieldEnum = {
   verificationCodeExpiry: 'verificationCodeExpiry',
   businessCategory: 'businessCategory',
   businessDescription: 'businessDescription',
+  businessGoals: 'businessGoals',
   businessAddress: 'businessAddress',
   businessEmail: 'businessEmail',
   businessWebsite: 'businessWebsite',
@@ -2148,6 +2374,7 @@ export const AgentScalarFieldEnum = {
   address: 'address',
   productsData: 'productsData',
   toolsData: 'toolsData',
+  openaiApiKey: 'openaiApiKey',
   transportType: 'transportType',
   agentRuntime: 'agentRuntime',
   status: 'status',
@@ -2156,6 +2383,43 @@ export const AgentScalarFieldEnum = {
 } as const
 
 export type AgentScalarFieldEnum = (typeof AgentScalarFieldEnum)[keyof typeof AgentScalarFieldEnum]
+
+
+export const FollowUpCampaignScalarFieldEnum = {
+  id: 'id',
+  agentId: 'agentId',
+  status: 'status',
+  mode: 'mode',
+  minDaysSince: 'minDaysSince',
+  totalScanned: 'totalScanned',
+  totalFound: 'totalFound',
+  totalSent: 'totalSent',
+  totalSkipped: 'totalSkipped',
+  createdAt: 'createdAt',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt'
+} as const
+
+export type FollowUpCampaignScalarFieldEnum = (typeof FollowUpCampaignScalarFieldEnum)[keyof typeof FollowUpCampaignScalarFieldEnum]
+
+
+export const FollowUpMessageScalarFieldEnum = {
+  id: 'id',
+  campaignId: 'campaignId',
+  conversationId: 'conversationId',
+  phoneNumber: 'phoneNumber',
+  jid: 'jid',
+  contactName: 'contactName',
+  aiReason: 'aiReason',
+  generatedMessage: 'generatedMessage',
+  status: 'status',
+  scheduledAt: 'scheduledAt',
+  sentAt: 'sentAt',
+  error: 'error',
+  createdAt: 'createdAt'
+} as const
+
+export type FollowUpMessageScalarFieldEnum = (typeof FollowUpMessageScalarFieldEnum)[keyof typeof FollowUpMessageScalarFieldEnum]
 
 
 export const BroadcastCampaignScalarFieldEnum = {
@@ -2259,6 +2523,7 @@ export const ConversationScalarFieldEnum = {
   mode: 'mode',
   lastActivityAt: 'lastActivityAt',
   factsExtractedAt: 'factsExtractedAt',
+  lastFollowedUpAt: 'lastFollowedUpAt',
   createdAt: 'createdAt'
 } as const
 
@@ -2269,6 +2534,7 @@ export const MessageScalarFieldEnum = {
   id: 'id',
   conversationId: 'conversationId',
   direction: 'direction',
+  senderRole: 'senderRole',
   content: 'content',
   mediaUrl: 'mediaUrl',
   mediaDescription: 'mediaDescription',
@@ -2460,6 +2726,19 @@ export const BaileysOutboundLogScalarFieldEnum = {
 } as const
 
 export type BaileysOutboundLogScalarFieldEnum = (typeof BaileysOutboundLogScalarFieldEnum)[keyof typeof BaileysOutboundLogScalarFieldEnum]
+
+
+export const CreditUsageScalarFieldEnum = {
+  id: 'id',
+  agentId: 'agentId',
+  conversationId: 'conversationId',
+  messageType: 'messageType',
+  source: 'source',
+  creditsUsed: 'creditsUsed',
+  createdAt: 'createdAt'
+} as const
+
+export type CreditUsageScalarFieldEnum = (typeof CreditUsageScalarFieldEnum)[keyof typeof CreditUsageScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -2857,6 +3136,8 @@ export type PrismaClientOptions = ({
 export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
   agent?: Prisma.AgentOmit
+  followUpCampaign?: Prisma.FollowUpCampaignOmit
+  followUpMessage?: Prisma.FollowUpMessageOmit
   broadcastCampaign?: Prisma.BroadcastCampaignOmit
   broadcastRecipient?: Prisma.BroadcastRecipientOmit
   orchestratorAgent?: Prisma.OrchestratorAgentOmit
@@ -2877,6 +3158,7 @@ export type GlobalOmitConfig = {
   paymentRequest?: Prisma.PaymentRequestOmit
   baileysSession?: Prisma.BaileysSessionOmit
   baileysOutboundLog?: Prisma.BaileysOutboundLogOmit
+  creditUsage?: Prisma.CreditUsageOmit
 }
 
 /* Types for Logging */

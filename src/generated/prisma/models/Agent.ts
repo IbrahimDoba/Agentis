@@ -46,6 +46,7 @@ export type AgentMinAggregateOutputType = {
   messagingEnabled: boolean | null
   category: string | null
   address: string | null
+  openaiApiKey: string | null
   transportType: string | null
   agentRuntime: string | null
   status: $Enums.AgentStatus | null
@@ -75,6 +76,7 @@ export type AgentMaxAggregateOutputType = {
   messagingEnabled: boolean | null
   category: string | null
   address: string | null
+  openaiApiKey: string | null
   transportType: string | null
   agentRuntime: string | null
   status: $Enums.AgentStatus | null
@@ -106,6 +108,7 @@ export type AgentCountAggregateOutputType = {
   address: number
   productsData: number
   toolsData: number
+  openaiApiKey: number
   transportType: number
   agentRuntime: number
   status: number
@@ -137,6 +140,7 @@ export type AgentMinAggregateInputType = {
   messagingEnabled?: true
   category?: true
   address?: true
+  openaiApiKey?: true
   transportType?: true
   agentRuntime?: true
   status?: true
@@ -166,6 +170,7 @@ export type AgentMaxAggregateInputType = {
   messagingEnabled?: true
   category?: true
   address?: true
+  openaiApiKey?: true
   transportType?: true
   agentRuntime?: true
   status?: true
@@ -197,6 +202,7 @@ export type AgentCountAggregateInputType = {
   address?: true
   productsData?: true
   toolsData?: true
+  openaiApiKey?: true
   transportType?: true
   agentRuntime?: true
   status?: true
@@ -301,6 +307,7 @@ export type AgentGroupByOutputType = {
   address: string | null
   productsData: runtime.JsonValue | null
   toolsData: runtime.JsonValue | null
+  openaiApiKey: string | null
   transportType: string
   agentRuntime: string
   status: $Enums.AgentStatus
@@ -353,6 +360,7 @@ export type AgentWhereInput = {
   address?: Prisma.StringNullableFilter<"Agent"> | string | null
   productsData?: Prisma.JsonNullableFilter<"Agent">
   toolsData?: Prisma.JsonNullableFilter<"Agent">
+  openaiApiKey?: Prisma.StringNullableFilter<"Agent"> | string | null
   transportType?: Prisma.StringFilter<"Agent"> | string
   agentRuntime?: Prisma.StringFilter<"Agent"> | string
   status?: Prisma.EnumAgentStatusFilter<"Agent"> | $Enums.AgentStatus
@@ -367,6 +375,7 @@ export type AgentWhereInput = {
   orchestratorAgents?: Prisma.OrchestratorAgentListRelationFilter
   conversations?: Prisma.ConversationListRelationFilter
   broadcasts?: Prisma.BroadcastCampaignListRelationFilter
+  followUpCampaigns?: Prisma.FollowUpCampaignListRelationFilter
 }
 
 export type AgentOrderByWithRelationInput = {
@@ -393,6 +402,7 @@ export type AgentOrderByWithRelationInput = {
   address?: Prisma.SortOrderInput | Prisma.SortOrder
   productsData?: Prisma.SortOrderInput | Prisma.SortOrder
   toolsData?: Prisma.SortOrderInput | Prisma.SortOrder
+  openaiApiKey?: Prisma.SortOrderInput | Prisma.SortOrder
   transportType?: Prisma.SortOrder
   agentRuntime?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -407,6 +417,7 @@ export type AgentOrderByWithRelationInput = {
   orchestratorAgents?: Prisma.OrchestratorAgentOrderByRelationAggregateInput
   conversations?: Prisma.ConversationOrderByRelationAggregateInput
   broadcasts?: Prisma.BroadcastCampaignOrderByRelationAggregateInput
+  followUpCampaigns?: Prisma.FollowUpCampaignOrderByRelationAggregateInput
 }
 
 export type AgentWhereUniqueInput = Prisma.AtLeast<{
@@ -436,6 +447,7 @@ export type AgentWhereUniqueInput = Prisma.AtLeast<{
   address?: Prisma.StringNullableFilter<"Agent"> | string | null
   productsData?: Prisma.JsonNullableFilter<"Agent">
   toolsData?: Prisma.JsonNullableFilter<"Agent">
+  openaiApiKey?: Prisma.StringNullableFilter<"Agent"> | string | null
   transportType?: Prisma.StringFilter<"Agent"> | string
   agentRuntime?: Prisma.StringFilter<"Agent"> | string
   status?: Prisma.EnumAgentStatusFilter<"Agent"> | $Enums.AgentStatus
@@ -450,6 +462,7 @@ export type AgentWhereUniqueInput = Prisma.AtLeast<{
   orchestratorAgents?: Prisma.OrchestratorAgentListRelationFilter
   conversations?: Prisma.ConversationListRelationFilter
   broadcasts?: Prisma.BroadcastCampaignListRelationFilter
+  followUpCampaigns?: Prisma.FollowUpCampaignListRelationFilter
 }, "id">
 
 export type AgentOrderByWithAggregationInput = {
@@ -476,6 +489,7 @@ export type AgentOrderByWithAggregationInput = {
   address?: Prisma.SortOrderInput | Prisma.SortOrder
   productsData?: Prisma.SortOrderInput | Prisma.SortOrder
   toolsData?: Prisma.SortOrderInput | Prisma.SortOrder
+  openaiApiKey?: Prisma.SortOrderInput | Prisma.SortOrder
   transportType?: Prisma.SortOrder
   agentRuntime?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -513,6 +527,7 @@ export type AgentScalarWhereWithAggregatesInput = {
   address?: Prisma.StringNullableWithAggregatesFilter<"Agent"> | string | null
   productsData?: Prisma.JsonNullableWithAggregatesFilter<"Agent">
   toolsData?: Prisma.JsonNullableWithAggregatesFilter<"Agent">
+  openaiApiKey?: Prisma.StringNullableWithAggregatesFilter<"Agent"> | string | null
   transportType?: Prisma.StringWithAggregatesFilter<"Agent"> | string
   agentRuntime?: Prisma.StringWithAggregatesFilter<"Agent"> | string
   status?: Prisma.EnumAgentStatusWithAggregatesFilter<"Agent"> | $Enums.AgentStatus
@@ -543,6 +558,7 @@ export type AgentCreateInput = {
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: string | null
   transportType?: string
   agentRuntime?: string
   status?: $Enums.AgentStatus
@@ -557,6 +573,7 @@ export type AgentCreateInput = {
   orchestratorAgents?: Prisma.OrchestratorAgentCreateNestedManyWithoutAgentInput
   conversations?: Prisma.ConversationCreateNestedManyWithoutAgentInput
   broadcasts?: Prisma.BroadcastCampaignCreateNestedManyWithoutAgentInput
+  followUpCampaigns?: Prisma.FollowUpCampaignCreateNestedManyWithoutAgentInput
 }
 
 export type AgentUncheckedCreateInput = {
@@ -583,6 +600,7 @@ export type AgentUncheckedCreateInput = {
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: string | null
   transportType?: string
   agentRuntime?: string
   status?: $Enums.AgentStatus
@@ -596,6 +614,7 @@ export type AgentUncheckedCreateInput = {
   orchestratorAgents?: Prisma.OrchestratorAgentUncheckedCreateNestedManyWithoutAgentInput
   conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutAgentInput
   broadcasts?: Prisma.BroadcastCampaignUncheckedCreateNestedManyWithoutAgentInput
+  followUpCampaigns?: Prisma.FollowUpCampaignUncheckedCreateNestedManyWithoutAgentInput
 }
 
 export type AgentUpdateInput = {
@@ -621,6 +640,7 @@ export type AgentUpdateInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   transportType?: Prisma.StringFieldUpdateOperationsInput | string
   agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -635,6 +655,7 @@ export type AgentUpdateInput = {
   orchestratorAgents?: Prisma.OrchestratorAgentUpdateManyWithoutAgentNestedInput
   conversations?: Prisma.ConversationUpdateManyWithoutAgentNestedInput
   broadcasts?: Prisma.BroadcastCampaignUpdateManyWithoutAgentNestedInput
+  followUpCampaigns?: Prisma.FollowUpCampaignUpdateManyWithoutAgentNestedInput
 }
 
 export type AgentUncheckedUpdateInput = {
@@ -661,6 +682,7 @@ export type AgentUncheckedUpdateInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   transportType?: Prisma.StringFieldUpdateOperationsInput | string
   agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -674,6 +696,7 @@ export type AgentUncheckedUpdateInput = {
   orchestratorAgents?: Prisma.OrchestratorAgentUncheckedUpdateManyWithoutAgentNestedInput
   conversations?: Prisma.ConversationUncheckedUpdateManyWithoutAgentNestedInput
   broadcasts?: Prisma.BroadcastCampaignUncheckedUpdateManyWithoutAgentNestedInput
+  followUpCampaigns?: Prisma.FollowUpCampaignUncheckedUpdateManyWithoutAgentNestedInput
 }
 
 export type AgentCreateManyInput = {
@@ -700,6 +723,7 @@ export type AgentCreateManyInput = {
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: string | null
   transportType?: string
   agentRuntime?: string
   status?: $Enums.AgentStatus
@@ -730,6 +754,7 @@ export type AgentUpdateManyMutationInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   transportType?: Prisma.StringFieldUpdateOperationsInput | string
   agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -761,6 +786,7 @@ export type AgentUncheckedUpdateManyInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   transportType?: Prisma.StringFieldUpdateOperationsInput | string
   agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -802,6 +828,7 @@ export type AgentCountOrderByAggregateInput = {
   address?: Prisma.SortOrder
   productsData?: Prisma.SortOrder
   toolsData?: Prisma.SortOrder
+  openaiApiKey?: Prisma.SortOrder
   transportType?: Prisma.SortOrder
   agentRuntime?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -831,6 +858,7 @@ export type AgentMaxOrderByAggregateInput = {
   messagingEnabled?: Prisma.SortOrder
   category?: Prisma.SortOrder
   address?: Prisma.SortOrder
+  openaiApiKey?: Prisma.SortOrder
   transportType?: Prisma.SortOrder
   agentRuntime?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -860,6 +888,7 @@ export type AgentMinOrderByAggregateInput = {
   messagingEnabled?: Prisma.SortOrder
   category?: Prisma.SortOrder
   address?: Prisma.SortOrder
+  openaiApiKey?: Prisma.SortOrder
   transportType?: Prisma.SortOrder
   agentRuntime?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -921,6 +950,20 @@ export type AgentUncheckedUpdateManyWithoutUserNestedInput = {
 
 export type EnumAgentStatusFieldUpdateOperationsInput = {
   set?: $Enums.AgentStatus
+}
+
+export type AgentCreateNestedOneWithoutFollowUpCampaignsInput = {
+  create?: Prisma.XOR<Prisma.AgentCreateWithoutFollowUpCampaignsInput, Prisma.AgentUncheckedCreateWithoutFollowUpCampaignsInput>
+  connectOrCreate?: Prisma.AgentCreateOrConnectWithoutFollowUpCampaignsInput
+  connect?: Prisma.AgentWhereUniqueInput
+}
+
+export type AgentUpdateOneRequiredWithoutFollowUpCampaignsNestedInput = {
+  create?: Prisma.XOR<Prisma.AgentCreateWithoutFollowUpCampaignsInput, Prisma.AgentUncheckedCreateWithoutFollowUpCampaignsInput>
+  connectOrCreate?: Prisma.AgentCreateOrConnectWithoutFollowUpCampaignsInput
+  upsert?: Prisma.AgentUpsertWithoutFollowUpCampaignsInput
+  connect?: Prisma.AgentWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.AgentUpdateToOneWithWhereWithoutFollowUpCampaignsInput, Prisma.AgentUpdateWithoutFollowUpCampaignsInput>, Prisma.AgentUncheckedUpdateWithoutFollowUpCampaignsInput>
 }
 
 export type AgentCreateNestedOneWithoutBroadcastsInput = {
@@ -1062,6 +1105,7 @@ export type AgentCreateWithoutUserInput = {
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: string | null
   transportType?: string
   agentRuntime?: string
   status?: $Enums.AgentStatus
@@ -1075,6 +1119,7 @@ export type AgentCreateWithoutUserInput = {
   orchestratorAgents?: Prisma.OrchestratorAgentCreateNestedManyWithoutAgentInput
   conversations?: Prisma.ConversationCreateNestedManyWithoutAgentInput
   broadcasts?: Prisma.BroadcastCampaignCreateNestedManyWithoutAgentInput
+  followUpCampaigns?: Prisma.FollowUpCampaignCreateNestedManyWithoutAgentInput
 }
 
 export type AgentUncheckedCreateWithoutUserInput = {
@@ -1100,6 +1145,7 @@ export type AgentUncheckedCreateWithoutUserInput = {
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: string | null
   transportType?: string
   agentRuntime?: string
   status?: $Enums.AgentStatus
@@ -1113,6 +1159,7 @@ export type AgentUncheckedCreateWithoutUserInput = {
   orchestratorAgents?: Prisma.OrchestratorAgentUncheckedCreateNestedManyWithoutAgentInput
   conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutAgentInput
   broadcasts?: Prisma.BroadcastCampaignUncheckedCreateNestedManyWithoutAgentInput
+  followUpCampaigns?: Prisma.FollowUpCampaignUncheckedCreateNestedManyWithoutAgentInput
 }
 
 export type AgentCreateOrConnectWithoutUserInput = {
@@ -1168,11 +1215,188 @@ export type AgentScalarWhereInput = {
   address?: Prisma.StringNullableFilter<"Agent"> | string | null
   productsData?: Prisma.JsonNullableFilter<"Agent">
   toolsData?: Prisma.JsonNullableFilter<"Agent">
+  openaiApiKey?: Prisma.StringNullableFilter<"Agent"> | string | null
   transportType?: Prisma.StringFilter<"Agent"> | string
   agentRuntime?: Prisma.StringFilter<"Agent"> | string
   status?: Prisma.EnumAgentStatusFilter<"Agent"> | $Enums.AgentStatus
   createdAt?: Prisma.DateTimeFilter<"Agent"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Agent"> | Date | string
+}
+
+export type AgentCreateWithoutFollowUpCampaignsInput = {
+  id?: string
+  businessName: string
+  businessDescription: string
+  productsServices: string
+  faqs: string
+  operatingHours: string
+  contactEmail?: string | null
+  contactPhone?: string | null
+  websiteLinks?: string | null
+  responseGuidelines?: string | null
+  profileImageUrl?: string | null
+  whatsappBusinessName?: string | null
+  whatsappAgentLink?: string | null
+  whatsappPhoneNumber?: string | null
+  qrCodeUrl?: string | null
+  elevenlabsAgentId?: string | null
+  whatsappPhoneNumberId?: string | null
+  messagingEnabled?: boolean
+  category?: string | null
+  address?: string | null
+  productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: string | null
+  transportType?: string
+  agentRuntime?: string
+  status?: $Enums.AgentStatus
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  user: Prisma.UserCreateNestedOneWithoutAgentsInput
+  leads?: Prisma.LeadCreateNestedManyWithoutAgentInput
+  conversationLogs?: Prisma.ConversationLogCreateNestedManyWithoutAgentInput
+  customers?: Prisma.CustomerCreateNestedManyWithoutAgentInput
+  templates?: Prisma.MessageTemplateCreateNestedManyWithoutAgentInput
+  baileysSession?: Prisma.BaileysSessionCreateNestedOneWithoutAgentInput
+  orchestratorAgents?: Prisma.OrchestratorAgentCreateNestedManyWithoutAgentInput
+  conversations?: Prisma.ConversationCreateNestedManyWithoutAgentInput
+  broadcasts?: Prisma.BroadcastCampaignCreateNestedManyWithoutAgentInput
+}
+
+export type AgentUncheckedCreateWithoutFollowUpCampaignsInput = {
+  id?: string
+  userId: string
+  businessName: string
+  businessDescription: string
+  productsServices: string
+  faqs: string
+  operatingHours: string
+  contactEmail?: string | null
+  contactPhone?: string | null
+  websiteLinks?: string | null
+  responseGuidelines?: string | null
+  profileImageUrl?: string | null
+  whatsappBusinessName?: string | null
+  whatsappAgentLink?: string | null
+  whatsappPhoneNumber?: string | null
+  qrCodeUrl?: string | null
+  elevenlabsAgentId?: string | null
+  whatsappPhoneNumberId?: string | null
+  messagingEnabled?: boolean
+  category?: string | null
+  address?: string | null
+  productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: string | null
+  transportType?: string
+  agentRuntime?: string
+  status?: $Enums.AgentStatus
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  leads?: Prisma.LeadUncheckedCreateNestedManyWithoutAgentInput
+  conversationLogs?: Prisma.ConversationLogUncheckedCreateNestedManyWithoutAgentInput
+  customers?: Prisma.CustomerUncheckedCreateNestedManyWithoutAgentInput
+  templates?: Prisma.MessageTemplateUncheckedCreateNestedManyWithoutAgentInput
+  baileysSession?: Prisma.BaileysSessionUncheckedCreateNestedOneWithoutAgentInput
+  orchestratorAgents?: Prisma.OrchestratorAgentUncheckedCreateNestedManyWithoutAgentInput
+  conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutAgentInput
+  broadcasts?: Prisma.BroadcastCampaignUncheckedCreateNestedManyWithoutAgentInput
+}
+
+export type AgentCreateOrConnectWithoutFollowUpCampaignsInput = {
+  where: Prisma.AgentWhereUniqueInput
+  create: Prisma.XOR<Prisma.AgentCreateWithoutFollowUpCampaignsInput, Prisma.AgentUncheckedCreateWithoutFollowUpCampaignsInput>
+}
+
+export type AgentUpsertWithoutFollowUpCampaignsInput = {
+  update: Prisma.XOR<Prisma.AgentUpdateWithoutFollowUpCampaignsInput, Prisma.AgentUncheckedUpdateWithoutFollowUpCampaignsInput>
+  create: Prisma.XOR<Prisma.AgentCreateWithoutFollowUpCampaignsInput, Prisma.AgentUncheckedCreateWithoutFollowUpCampaignsInput>
+  where?: Prisma.AgentWhereInput
+}
+
+export type AgentUpdateToOneWithWhereWithoutFollowUpCampaignsInput = {
+  where?: Prisma.AgentWhereInput
+  data: Prisma.XOR<Prisma.AgentUpdateWithoutFollowUpCampaignsInput, Prisma.AgentUncheckedUpdateWithoutFollowUpCampaignsInput>
+}
+
+export type AgentUpdateWithoutFollowUpCampaignsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessDescription?: Prisma.StringFieldUpdateOperationsInput | string
+  productsServices?: Prisma.StringFieldUpdateOperationsInput | string
+  faqs?: Prisma.StringFieldUpdateOperationsInput | string
+  operatingHours?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  websiteLinks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  responseGuidelines?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappBusinessName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappAgentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappPhoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  qrCodeUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  elevenlabsAgentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappPhoneNumberId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messagingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  transportType?: Prisma.StringFieldUpdateOperationsInput | string
+  agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneRequiredWithoutAgentsNestedInput
+  leads?: Prisma.LeadUpdateManyWithoutAgentNestedInput
+  conversationLogs?: Prisma.ConversationLogUpdateManyWithoutAgentNestedInput
+  customers?: Prisma.CustomerUpdateManyWithoutAgentNestedInput
+  templates?: Prisma.MessageTemplateUpdateManyWithoutAgentNestedInput
+  baileysSession?: Prisma.BaileysSessionUpdateOneWithoutAgentNestedInput
+  orchestratorAgents?: Prisma.OrchestratorAgentUpdateManyWithoutAgentNestedInput
+  conversations?: Prisma.ConversationUpdateManyWithoutAgentNestedInput
+  broadcasts?: Prisma.BroadcastCampaignUpdateManyWithoutAgentNestedInput
+}
+
+export type AgentUncheckedUpdateWithoutFollowUpCampaignsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  businessName?: Prisma.StringFieldUpdateOperationsInput | string
+  businessDescription?: Prisma.StringFieldUpdateOperationsInput | string
+  productsServices?: Prisma.StringFieldUpdateOperationsInput | string
+  faqs?: Prisma.StringFieldUpdateOperationsInput | string
+  operatingHours?: Prisma.StringFieldUpdateOperationsInput | string
+  contactEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  websiteLinks?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  responseGuidelines?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profileImageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappBusinessName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappAgentLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappPhoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  qrCodeUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  elevenlabsAgentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatsappPhoneNumberId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  messagingEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  transportType?: Prisma.StringFieldUpdateOperationsInput | string
+  agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  leads?: Prisma.LeadUncheckedUpdateManyWithoutAgentNestedInput
+  conversationLogs?: Prisma.ConversationLogUncheckedUpdateManyWithoutAgentNestedInput
+  customers?: Prisma.CustomerUncheckedUpdateManyWithoutAgentNestedInput
+  templates?: Prisma.MessageTemplateUncheckedUpdateManyWithoutAgentNestedInput
+  baileysSession?: Prisma.BaileysSessionUncheckedUpdateOneWithoutAgentNestedInput
+  orchestratorAgents?: Prisma.OrchestratorAgentUncheckedUpdateManyWithoutAgentNestedInput
+  conversations?: Prisma.ConversationUncheckedUpdateManyWithoutAgentNestedInput
+  broadcasts?: Prisma.BroadcastCampaignUncheckedUpdateManyWithoutAgentNestedInput
 }
 
 export type AgentCreateWithoutBroadcastsInput = {
@@ -1198,6 +1422,7 @@ export type AgentCreateWithoutBroadcastsInput = {
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: string | null
   transportType?: string
   agentRuntime?: string
   status?: $Enums.AgentStatus
@@ -1211,6 +1436,7 @@ export type AgentCreateWithoutBroadcastsInput = {
   baileysSession?: Prisma.BaileysSessionCreateNestedOneWithoutAgentInput
   orchestratorAgents?: Prisma.OrchestratorAgentCreateNestedManyWithoutAgentInput
   conversations?: Prisma.ConversationCreateNestedManyWithoutAgentInput
+  followUpCampaigns?: Prisma.FollowUpCampaignCreateNestedManyWithoutAgentInput
 }
 
 export type AgentUncheckedCreateWithoutBroadcastsInput = {
@@ -1237,6 +1463,7 @@ export type AgentUncheckedCreateWithoutBroadcastsInput = {
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: string | null
   transportType?: string
   agentRuntime?: string
   status?: $Enums.AgentStatus
@@ -1249,6 +1476,7 @@ export type AgentUncheckedCreateWithoutBroadcastsInput = {
   baileysSession?: Prisma.BaileysSessionUncheckedCreateNestedOneWithoutAgentInput
   orchestratorAgents?: Prisma.OrchestratorAgentUncheckedCreateNestedManyWithoutAgentInput
   conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutAgentInput
+  followUpCampaigns?: Prisma.FollowUpCampaignUncheckedCreateNestedManyWithoutAgentInput
 }
 
 export type AgentCreateOrConnectWithoutBroadcastsInput = {
@@ -1290,6 +1518,7 @@ export type AgentUpdateWithoutBroadcastsInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   transportType?: Prisma.StringFieldUpdateOperationsInput | string
   agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -1303,6 +1532,7 @@ export type AgentUpdateWithoutBroadcastsInput = {
   baileysSession?: Prisma.BaileysSessionUpdateOneWithoutAgentNestedInput
   orchestratorAgents?: Prisma.OrchestratorAgentUpdateManyWithoutAgentNestedInput
   conversations?: Prisma.ConversationUpdateManyWithoutAgentNestedInput
+  followUpCampaigns?: Prisma.FollowUpCampaignUpdateManyWithoutAgentNestedInput
 }
 
 export type AgentUncheckedUpdateWithoutBroadcastsInput = {
@@ -1329,6 +1559,7 @@ export type AgentUncheckedUpdateWithoutBroadcastsInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   transportType?: Prisma.StringFieldUpdateOperationsInput | string
   agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -1341,6 +1572,7 @@ export type AgentUncheckedUpdateWithoutBroadcastsInput = {
   baileysSession?: Prisma.BaileysSessionUncheckedUpdateOneWithoutAgentNestedInput
   orchestratorAgents?: Prisma.OrchestratorAgentUncheckedUpdateManyWithoutAgentNestedInput
   conversations?: Prisma.ConversationUncheckedUpdateManyWithoutAgentNestedInput
+  followUpCampaigns?: Prisma.FollowUpCampaignUncheckedUpdateManyWithoutAgentNestedInput
 }
 
 export type AgentCreateWithoutOrchestratorAgentsInput = {
@@ -1366,6 +1598,7 @@ export type AgentCreateWithoutOrchestratorAgentsInput = {
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: string | null
   transportType?: string
   agentRuntime?: string
   status?: $Enums.AgentStatus
@@ -1379,6 +1612,7 @@ export type AgentCreateWithoutOrchestratorAgentsInput = {
   baileysSession?: Prisma.BaileysSessionCreateNestedOneWithoutAgentInput
   conversations?: Prisma.ConversationCreateNestedManyWithoutAgentInput
   broadcasts?: Prisma.BroadcastCampaignCreateNestedManyWithoutAgentInput
+  followUpCampaigns?: Prisma.FollowUpCampaignCreateNestedManyWithoutAgentInput
 }
 
 export type AgentUncheckedCreateWithoutOrchestratorAgentsInput = {
@@ -1405,6 +1639,7 @@ export type AgentUncheckedCreateWithoutOrchestratorAgentsInput = {
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: string | null
   transportType?: string
   agentRuntime?: string
   status?: $Enums.AgentStatus
@@ -1417,6 +1652,7 @@ export type AgentUncheckedCreateWithoutOrchestratorAgentsInput = {
   baileysSession?: Prisma.BaileysSessionUncheckedCreateNestedOneWithoutAgentInput
   conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutAgentInput
   broadcasts?: Prisma.BroadcastCampaignUncheckedCreateNestedManyWithoutAgentInput
+  followUpCampaigns?: Prisma.FollowUpCampaignUncheckedCreateNestedManyWithoutAgentInput
 }
 
 export type AgentCreateOrConnectWithoutOrchestratorAgentsInput = {
@@ -1458,6 +1694,7 @@ export type AgentUpdateWithoutOrchestratorAgentsInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   transportType?: Prisma.StringFieldUpdateOperationsInput | string
   agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -1471,6 +1708,7 @@ export type AgentUpdateWithoutOrchestratorAgentsInput = {
   baileysSession?: Prisma.BaileysSessionUpdateOneWithoutAgentNestedInput
   conversations?: Prisma.ConversationUpdateManyWithoutAgentNestedInput
   broadcasts?: Prisma.BroadcastCampaignUpdateManyWithoutAgentNestedInput
+  followUpCampaigns?: Prisma.FollowUpCampaignUpdateManyWithoutAgentNestedInput
 }
 
 export type AgentUncheckedUpdateWithoutOrchestratorAgentsInput = {
@@ -1497,6 +1735,7 @@ export type AgentUncheckedUpdateWithoutOrchestratorAgentsInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   transportType?: Prisma.StringFieldUpdateOperationsInput | string
   agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -1509,6 +1748,7 @@ export type AgentUncheckedUpdateWithoutOrchestratorAgentsInput = {
   baileysSession?: Prisma.BaileysSessionUncheckedUpdateOneWithoutAgentNestedInput
   conversations?: Prisma.ConversationUncheckedUpdateManyWithoutAgentNestedInput
   broadcasts?: Prisma.BroadcastCampaignUncheckedUpdateManyWithoutAgentNestedInput
+  followUpCampaigns?: Prisma.FollowUpCampaignUncheckedUpdateManyWithoutAgentNestedInput
 }
 
 export type AgentCreateWithoutConversationsInput = {
@@ -1534,6 +1774,7 @@ export type AgentCreateWithoutConversationsInput = {
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: string | null
   transportType?: string
   agentRuntime?: string
   status?: $Enums.AgentStatus
@@ -1547,6 +1788,7 @@ export type AgentCreateWithoutConversationsInput = {
   baileysSession?: Prisma.BaileysSessionCreateNestedOneWithoutAgentInput
   orchestratorAgents?: Prisma.OrchestratorAgentCreateNestedManyWithoutAgentInput
   broadcasts?: Prisma.BroadcastCampaignCreateNestedManyWithoutAgentInput
+  followUpCampaigns?: Prisma.FollowUpCampaignCreateNestedManyWithoutAgentInput
 }
 
 export type AgentUncheckedCreateWithoutConversationsInput = {
@@ -1573,6 +1815,7 @@ export type AgentUncheckedCreateWithoutConversationsInput = {
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: string | null
   transportType?: string
   agentRuntime?: string
   status?: $Enums.AgentStatus
@@ -1585,6 +1828,7 @@ export type AgentUncheckedCreateWithoutConversationsInput = {
   baileysSession?: Prisma.BaileysSessionUncheckedCreateNestedOneWithoutAgentInput
   orchestratorAgents?: Prisma.OrchestratorAgentUncheckedCreateNestedManyWithoutAgentInput
   broadcasts?: Prisma.BroadcastCampaignUncheckedCreateNestedManyWithoutAgentInput
+  followUpCampaigns?: Prisma.FollowUpCampaignUncheckedCreateNestedManyWithoutAgentInput
 }
 
 export type AgentCreateOrConnectWithoutConversationsInput = {
@@ -1626,6 +1870,7 @@ export type AgentUpdateWithoutConversationsInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   transportType?: Prisma.StringFieldUpdateOperationsInput | string
   agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -1639,6 +1884,7 @@ export type AgentUpdateWithoutConversationsInput = {
   baileysSession?: Prisma.BaileysSessionUpdateOneWithoutAgentNestedInput
   orchestratorAgents?: Prisma.OrchestratorAgentUpdateManyWithoutAgentNestedInput
   broadcasts?: Prisma.BroadcastCampaignUpdateManyWithoutAgentNestedInput
+  followUpCampaigns?: Prisma.FollowUpCampaignUpdateManyWithoutAgentNestedInput
 }
 
 export type AgentUncheckedUpdateWithoutConversationsInput = {
@@ -1665,6 +1911,7 @@ export type AgentUncheckedUpdateWithoutConversationsInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   transportType?: Prisma.StringFieldUpdateOperationsInput | string
   agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -1677,6 +1924,7 @@ export type AgentUncheckedUpdateWithoutConversationsInput = {
   baileysSession?: Prisma.BaileysSessionUncheckedUpdateOneWithoutAgentNestedInput
   orchestratorAgents?: Prisma.OrchestratorAgentUncheckedUpdateManyWithoutAgentNestedInput
   broadcasts?: Prisma.BroadcastCampaignUncheckedUpdateManyWithoutAgentNestedInput
+  followUpCampaigns?: Prisma.FollowUpCampaignUncheckedUpdateManyWithoutAgentNestedInput
 }
 
 export type AgentCreateWithoutTemplatesInput = {
@@ -1702,6 +1950,7 @@ export type AgentCreateWithoutTemplatesInput = {
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: string | null
   transportType?: string
   agentRuntime?: string
   status?: $Enums.AgentStatus
@@ -1715,6 +1964,7 @@ export type AgentCreateWithoutTemplatesInput = {
   orchestratorAgents?: Prisma.OrchestratorAgentCreateNestedManyWithoutAgentInput
   conversations?: Prisma.ConversationCreateNestedManyWithoutAgentInput
   broadcasts?: Prisma.BroadcastCampaignCreateNestedManyWithoutAgentInput
+  followUpCampaigns?: Prisma.FollowUpCampaignCreateNestedManyWithoutAgentInput
 }
 
 export type AgentUncheckedCreateWithoutTemplatesInput = {
@@ -1741,6 +1991,7 @@ export type AgentUncheckedCreateWithoutTemplatesInput = {
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: string | null
   transportType?: string
   agentRuntime?: string
   status?: $Enums.AgentStatus
@@ -1753,6 +2004,7 @@ export type AgentUncheckedCreateWithoutTemplatesInput = {
   orchestratorAgents?: Prisma.OrchestratorAgentUncheckedCreateNestedManyWithoutAgentInput
   conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutAgentInput
   broadcasts?: Prisma.BroadcastCampaignUncheckedCreateNestedManyWithoutAgentInput
+  followUpCampaigns?: Prisma.FollowUpCampaignUncheckedCreateNestedManyWithoutAgentInput
 }
 
 export type AgentCreateOrConnectWithoutTemplatesInput = {
@@ -1794,6 +2046,7 @@ export type AgentUpdateWithoutTemplatesInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   transportType?: Prisma.StringFieldUpdateOperationsInput | string
   agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -1807,6 +2060,7 @@ export type AgentUpdateWithoutTemplatesInput = {
   orchestratorAgents?: Prisma.OrchestratorAgentUpdateManyWithoutAgentNestedInput
   conversations?: Prisma.ConversationUpdateManyWithoutAgentNestedInput
   broadcasts?: Prisma.BroadcastCampaignUpdateManyWithoutAgentNestedInput
+  followUpCampaigns?: Prisma.FollowUpCampaignUpdateManyWithoutAgentNestedInput
 }
 
 export type AgentUncheckedUpdateWithoutTemplatesInput = {
@@ -1833,6 +2087,7 @@ export type AgentUncheckedUpdateWithoutTemplatesInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   transportType?: Prisma.StringFieldUpdateOperationsInput | string
   agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -1845,6 +2100,7 @@ export type AgentUncheckedUpdateWithoutTemplatesInput = {
   orchestratorAgents?: Prisma.OrchestratorAgentUncheckedUpdateManyWithoutAgentNestedInput
   conversations?: Prisma.ConversationUncheckedUpdateManyWithoutAgentNestedInput
   broadcasts?: Prisma.BroadcastCampaignUncheckedUpdateManyWithoutAgentNestedInput
+  followUpCampaigns?: Prisma.FollowUpCampaignUncheckedUpdateManyWithoutAgentNestedInput
 }
 
 export type AgentCreateWithoutLeadsInput = {
@@ -1870,6 +2126,7 @@ export type AgentCreateWithoutLeadsInput = {
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: string | null
   transportType?: string
   agentRuntime?: string
   status?: $Enums.AgentStatus
@@ -1883,6 +2140,7 @@ export type AgentCreateWithoutLeadsInput = {
   orchestratorAgents?: Prisma.OrchestratorAgentCreateNestedManyWithoutAgentInput
   conversations?: Prisma.ConversationCreateNestedManyWithoutAgentInput
   broadcasts?: Prisma.BroadcastCampaignCreateNestedManyWithoutAgentInput
+  followUpCampaigns?: Prisma.FollowUpCampaignCreateNestedManyWithoutAgentInput
 }
 
 export type AgentUncheckedCreateWithoutLeadsInput = {
@@ -1909,6 +2167,7 @@ export type AgentUncheckedCreateWithoutLeadsInput = {
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: string | null
   transportType?: string
   agentRuntime?: string
   status?: $Enums.AgentStatus
@@ -1921,6 +2180,7 @@ export type AgentUncheckedCreateWithoutLeadsInput = {
   orchestratorAgents?: Prisma.OrchestratorAgentUncheckedCreateNestedManyWithoutAgentInput
   conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutAgentInput
   broadcasts?: Prisma.BroadcastCampaignUncheckedCreateNestedManyWithoutAgentInput
+  followUpCampaigns?: Prisma.FollowUpCampaignUncheckedCreateNestedManyWithoutAgentInput
 }
 
 export type AgentCreateOrConnectWithoutLeadsInput = {
@@ -1962,6 +2222,7 @@ export type AgentUpdateWithoutLeadsInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   transportType?: Prisma.StringFieldUpdateOperationsInput | string
   agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -1975,6 +2236,7 @@ export type AgentUpdateWithoutLeadsInput = {
   orchestratorAgents?: Prisma.OrchestratorAgentUpdateManyWithoutAgentNestedInput
   conversations?: Prisma.ConversationUpdateManyWithoutAgentNestedInput
   broadcasts?: Prisma.BroadcastCampaignUpdateManyWithoutAgentNestedInput
+  followUpCampaigns?: Prisma.FollowUpCampaignUpdateManyWithoutAgentNestedInput
 }
 
 export type AgentUncheckedUpdateWithoutLeadsInput = {
@@ -2001,6 +2263,7 @@ export type AgentUncheckedUpdateWithoutLeadsInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   transportType?: Prisma.StringFieldUpdateOperationsInput | string
   agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -2013,6 +2276,7 @@ export type AgentUncheckedUpdateWithoutLeadsInput = {
   orchestratorAgents?: Prisma.OrchestratorAgentUncheckedUpdateManyWithoutAgentNestedInput
   conversations?: Prisma.ConversationUncheckedUpdateManyWithoutAgentNestedInput
   broadcasts?: Prisma.BroadcastCampaignUncheckedUpdateManyWithoutAgentNestedInput
+  followUpCampaigns?: Prisma.FollowUpCampaignUncheckedUpdateManyWithoutAgentNestedInput
 }
 
 export type AgentCreateWithoutCustomersInput = {
@@ -2038,6 +2302,7 @@ export type AgentCreateWithoutCustomersInput = {
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: string | null
   transportType?: string
   agentRuntime?: string
   status?: $Enums.AgentStatus
@@ -2051,6 +2316,7 @@ export type AgentCreateWithoutCustomersInput = {
   orchestratorAgents?: Prisma.OrchestratorAgentCreateNestedManyWithoutAgentInput
   conversations?: Prisma.ConversationCreateNestedManyWithoutAgentInput
   broadcasts?: Prisma.BroadcastCampaignCreateNestedManyWithoutAgentInput
+  followUpCampaigns?: Prisma.FollowUpCampaignCreateNestedManyWithoutAgentInput
 }
 
 export type AgentUncheckedCreateWithoutCustomersInput = {
@@ -2077,6 +2343,7 @@ export type AgentUncheckedCreateWithoutCustomersInput = {
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: string | null
   transportType?: string
   agentRuntime?: string
   status?: $Enums.AgentStatus
@@ -2089,6 +2356,7 @@ export type AgentUncheckedCreateWithoutCustomersInput = {
   orchestratorAgents?: Prisma.OrchestratorAgentUncheckedCreateNestedManyWithoutAgentInput
   conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutAgentInput
   broadcasts?: Prisma.BroadcastCampaignUncheckedCreateNestedManyWithoutAgentInput
+  followUpCampaigns?: Prisma.FollowUpCampaignUncheckedCreateNestedManyWithoutAgentInput
 }
 
 export type AgentCreateOrConnectWithoutCustomersInput = {
@@ -2130,6 +2398,7 @@ export type AgentUpdateWithoutCustomersInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   transportType?: Prisma.StringFieldUpdateOperationsInput | string
   agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -2143,6 +2412,7 @@ export type AgentUpdateWithoutCustomersInput = {
   orchestratorAgents?: Prisma.OrchestratorAgentUpdateManyWithoutAgentNestedInput
   conversations?: Prisma.ConversationUpdateManyWithoutAgentNestedInput
   broadcasts?: Prisma.BroadcastCampaignUpdateManyWithoutAgentNestedInput
+  followUpCampaigns?: Prisma.FollowUpCampaignUpdateManyWithoutAgentNestedInput
 }
 
 export type AgentUncheckedUpdateWithoutCustomersInput = {
@@ -2169,6 +2439,7 @@ export type AgentUncheckedUpdateWithoutCustomersInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   transportType?: Prisma.StringFieldUpdateOperationsInput | string
   agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -2181,6 +2452,7 @@ export type AgentUncheckedUpdateWithoutCustomersInput = {
   orchestratorAgents?: Prisma.OrchestratorAgentUncheckedUpdateManyWithoutAgentNestedInput
   conversations?: Prisma.ConversationUncheckedUpdateManyWithoutAgentNestedInput
   broadcasts?: Prisma.BroadcastCampaignUncheckedUpdateManyWithoutAgentNestedInput
+  followUpCampaigns?: Prisma.FollowUpCampaignUncheckedUpdateManyWithoutAgentNestedInput
 }
 
 export type AgentCreateWithoutConversationLogsInput = {
@@ -2206,6 +2478,7 @@ export type AgentCreateWithoutConversationLogsInput = {
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: string | null
   transportType?: string
   agentRuntime?: string
   status?: $Enums.AgentStatus
@@ -2219,6 +2492,7 @@ export type AgentCreateWithoutConversationLogsInput = {
   orchestratorAgents?: Prisma.OrchestratorAgentCreateNestedManyWithoutAgentInput
   conversations?: Prisma.ConversationCreateNestedManyWithoutAgentInput
   broadcasts?: Prisma.BroadcastCampaignCreateNestedManyWithoutAgentInput
+  followUpCampaigns?: Prisma.FollowUpCampaignCreateNestedManyWithoutAgentInput
 }
 
 export type AgentUncheckedCreateWithoutConversationLogsInput = {
@@ -2245,6 +2519,7 @@ export type AgentUncheckedCreateWithoutConversationLogsInput = {
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: string | null
   transportType?: string
   agentRuntime?: string
   status?: $Enums.AgentStatus
@@ -2257,6 +2532,7 @@ export type AgentUncheckedCreateWithoutConversationLogsInput = {
   orchestratorAgents?: Prisma.OrchestratorAgentUncheckedCreateNestedManyWithoutAgentInput
   conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutAgentInput
   broadcasts?: Prisma.BroadcastCampaignUncheckedCreateNestedManyWithoutAgentInput
+  followUpCampaigns?: Prisma.FollowUpCampaignUncheckedCreateNestedManyWithoutAgentInput
 }
 
 export type AgentCreateOrConnectWithoutConversationLogsInput = {
@@ -2298,6 +2574,7 @@ export type AgentUpdateWithoutConversationLogsInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   transportType?: Prisma.StringFieldUpdateOperationsInput | string
   agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -2311,6 +2588,7 @@ export type AgentUpdateWithoutConversationLogsInput = {
   orchestratorAgents?: Prisma.OrchestratorAgentUpdateManyWithoutAgentNestedInput
   conversations?: Prisma.ConversationUpdateManyWithoutAgentNestedInput
   broadcasts?: Prisma.BroadcastCampaignUpdateManyWithoutAgentNestedInput
+  followUpCampaigns?: Prisma.FollowUpCampaignUpdateManyWithoutAgentNestedInput
 }
 
 export type AgentUncheckedUpdateWithoutConversationLogsInput = {
@@ -2337,6 +2615,7 @@ export type AgentUncheckedUpdateWithoutConversationLogsInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   transportType?: Prisma.StringFieldUpdateOperationsInput | string
   agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -2349,6 +2628,7 @@ export type AgentUncheckedUpdateWithoutConversationLogsInput = {
   orchestratorAgents?: Prisma.OrchestratorAgentUncheckedUpdateManyWithoutAgentNestedInput
   conversations?: Prisma.ConversationUncheckedUpdateManyWithoutAgentNestedInput
   broadcasts?: Prisma.BroadcastCampaignUncheckedUpdateManyWithoutAgentNestedInput
+  followUpCampaigns?: Prisma.FollowUpCampaignUncheckedUpdateManyWithoutAgentNestedInput
 }
 
 export type AgentCreateWithoutBaileysSessionInput = {
@@ -2374,6 +2654,7 @@ export type AgentCreateWithoutBaileysSessionInput = {
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: string | null
   transportType?: string
   agentRuntime?: string
   status?: $Enums.AgentStatus
@@ -2387,6 +2668,7 @@ export type AgentCreateWithoutBaileysSessionInput = {
   orchestratorAgents?: Prisma.OrchestratorAgentCreateNestedManyWithoutAgentInput
   conversations?: Prisma.ConversationCreateNestedManyWithoutAgentInput
   broadcasts?: Prisma.BroadcastCampaignCreateNestedManyWithoutAgentInput
+  followUpCampaigns?: Prisma.FollowUpCampaignCreateNestedManyWithoutAgentInput
 }
 
 export type AgentUncheckedCreateWithoutBaileysSessionInput = {
@@ -2413,6 +2695,7 @@ export type AgentUncheckedCreateWithoutBaileysSessionInput = {
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: string | null
   transportType?: string
   agentRuntime?: string
   status?: $Enums.AgentStatus
@@ -2425,6 +2708,7 @@ export type AgentUncheckedCreateWithoutBaileysSessionInput = {
   orchestratorAgents?: Prisma.OrchestratorAgentUncheckedCreateNestedManyWithoutAgentInput
   conversations?: Prisma.ConversationUncheckedCreateNestedManyWithoutAgentInput
   broadcasts?: Prisma.BroadcastCampaignUncheckedCreateNestedManyWithoutAgentInput
+  followUpCampaigns?: Prisma.FollowUpCampaignUncheckedCreateNestedManyWithoutAgentInput
 }
 
 export type AgentCreateOrConnectWithoutBaileysSessionInput = {
@@ -2466,6 +2750,7 @@ export type AgentUpdateWithoutBaileysSessionInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   transportType?: Prisma.StringFieldUpdateOperationsInput | string
   agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -2479,6 +2764,7 @@ export type AgentUpdateWithoutBaileysSessionInput = {
   orchestratorAgents?: Prisma.OrchestratorAgentUpdateManyWithoutAgentNestedInput
   conversations?: Prisma.ConversationUpdateManyWithoutAgentNestedInput
   broadcasts?: Prisma.BroadcastCampaignUpdateManyWithoutAgentNestedInput
+  followUpCampaigns?: Prisma.FollowUpCampaignUpdateManyWithoutAgentNestedInput
 }
 
 export type AgentUncheckedUpdateWithoutBaileysSessionInput = {
@@ -2505,6 +2791,7 @@ export type AgentUncheckedUpdateWithoutBaileysSessionInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   transportType?: Prisma.StringFieldUpdateOperationsInput | string
   agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -2517,6 +2804,7 @@ export type AgentUncheckedUpdateWithoutBaileysSessionInput = {
   orchestratorAgents?: Prisma.OrchestratorAgentUncheckedUpdateManyWithoutAgentNestedInput
   conversations?: Prisma.ConversationUncheckedUpdateManyWithoutAgentNestedInput
   broadcasts?: Prisma.BroadcastCampaignUncheckedUpdateManyWithoutAgentNestedInput
+  followUpCampaigns?: Prisma.FollowUpCampaignUncheckedUpdateManyWithoutAgentNestedInput
 }
 
 export type AgentCreateManyUserInput = {
@@ -2542,6 +2830,7 @@ export type AgentCreateManyUserInput = {
   address?: string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: string | null
   transportType?: string
   agentRuntime?: string
   status?: $Enums.AgentStatus
@@ -2572,6 +2861,7 @@ export type AgentUpdateWithoutUserInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   transportType?: Prisma.StringFieldUpdateOperationsInput | string
   agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -2585,6 +2875,7 @@ export type AgentUpdateWithoutUserInput = {
   orchestratorAgents?: Prisma.OrchestratorAgentUpdateManyWithoutAgentNestedInput
   conversations?: Prisma.ConversationUpdateManyWithoutAgentNestedInput
   broadcasts?: Prisma.BroadcastCampaignUpdateManyWithoutAgentNestedInput
+  followUpCampaigns?: Prisma.FollowUpCampaignUpdateManyWithoutAgentNestedInput
 }
 
 export type AgentUncheckedUpdateWithoutUserInput = {
@@ -2610,6 +2901,7 @@ export type AgentUncheckedUpdateWithoutUserInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   transportType?: Prisma.StringFieldUpdateOperationsInput | string
   agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -2623,6 +2915,7 @@ export type AgentUncheckedUpdateWithoutUserInput = {
   orchestratorAgents?: Prisma.OrchestratorAgentUncheckedUpdateManyWithoutAgentNestedInput
   conversations?: Prisma.ConversationUncheckedUpdateManyWithoutAgentNestedInput
   broadcasts?: Prisma.BroadcastCampaignUncheckedUpdateManyWithoutAgentNestedInput
+  followUpCampaigns?: Prisma.FollowUpCampaignUncheckedUpdateManyWithoutAgentNestedInput
 }
 
 export type AgentUncheckedUpdateManyWithoutUserInput = {
@@ -2648,6 +2941,7 @@ export type AgentUncheckedUpdateManyWithoutUserInput = {
   address?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   productsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   toolsData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  openaiApiKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   transportType?: Prisma.StringFieldUpdateOperationsInput | string
   agentRuntime?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumAgentStatusFieldUpdateOperationsInput | $Enums.AgentStatus
@@ -2668,6 +2962,7 @@ export type AgentCountOutputType = {
   orchestratorAgents: number
   conversations: number
   broadcasts: number
+  followUpCampaigns: number
 }
 
 export type AgentCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2678,6 +2973,7 @@ export type AgentCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.
   orchestratorAgents?: boolean | AgentCountOutputTypeCountOrchestratorAgentsArgs
   conversations?: boolean | AgentCountOutputTypeCountConversationsArgs
   broadcasts?: boolean | AgentCountOutputTypeCountBroadcastsArgs
+  followUpCampaigns?: boolean | AgentCountOutputTypeCountFollowUpCampaignsArgs
 }
 
 /**
@@ -2739,6 +3035,13 @@ export type AgentCountOutputTypeCountBroadcastsArgs<ExtArgs extends runtime.Type
   where?: Prisma.BroadcastCampaignWhereInput
 }
 
+/**
+ * AgentCountOutputType without action
+ */
+export type AgentCountOutputTypeCountFollowUpCampaignsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.FollowUpCampaignWhereInput
+}
+
 
 export type AgentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -2764,6 +3067,7 @@ export type AgentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   address?: boolean
   productsData?: boolean
   toolsData?: boolean
+  openaiApiKey?: boolean
   transportType?: boolean
   agentRuntime?: boolean
   status?: boolean
@@ -2778,6 +3082,7 @@ export type AgentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   orchestratorAgents?: boolean | Prisma.Agent$orchestratorAgentsArgs<ExtArgs>
   conversations?: boolean | Prisma.Agent$conversationsArgs<ExtArgs>
   broadcasts?: boolean | Prisma.Agent$broadcastsArgs<ExtArgs>
+  followUpCampaigns?: boolean | Prisma.Agent$followUpCampaignsArgs<ExtArgs>
   _count?: boolean | Prisma.AgentCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["agent"]>
 
@@ -2805,6 +3110,7 @@ export type AgentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   address?: boolean
   productsData?: boolean
   toolsData?: boolean
+  openaiApiKey?: boolean
   transportType?: boolean
   agentRuntime?: boolean
   status?: boolean
@@ -2837,6 +3143,7 @@ export type AgentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   address?: boolean
   productsData?: boolean
   toolsData?: boolean
+  openaiApiKey?: boolean
   transportType?: boolean
   agentRuntime?: boolean
   status?: boolean
@@ -2869,6 +3176,7 @@ export type AgentSelectScalar = {
   address?: boolean
   productsData?: boolean
   toolsData?: boolean
+  openaiApiKey?: boolean
   transportType?: boolean
   agentRuntime?: boolean
   status?: boolean
@@ -2876,7 +3184,7 @@ export type AgentSelectScalar = {
   updatedAt?: boolean
 }
 
-export type AgentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "businessName" | "businessDescription" | "productsServices" | "faqs" | "operatingHours" | "contactEmail" | "contactPhone" | "websiteLinks" | "responseGuidelines" | "profileImageUrl" | "whatsappBusinessName" | "whatsappAgentLink" | "whatsappPhoneNumber" | "qrCodeUrl" | "elevenlabsAgentId" | "whatsappPhoneNumberId" | "messagingEnabled" | "category" | "address" | "productsData" | "toolsData" | "transportType" | "agentRuntime" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["agent"]>
+export type AgentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "businessName" | "businessDescription" | "productsServices" | "faqs" | "operatingHours" | "contactEmail" | "contactPhone" | "websiteLinks" | "responseGuidelines" | "profileImageUrl" | "whatsappBusinessName" | "whatsappAgentLink" | "whatsappPhoneNumber" | "qrCodeUrl" | "elevenlabsAgentId" | "whatsappPhoneNumberId" | "messagingEnabled" | "category" | "address" | "productsData" | "toolsData" | "openaiApiKey" | "transportType" | "agentRuntime" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["agent"]>
 export type AgentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   leads?: boolean | Prisma.Agent$leadsArgs<ExtArgs>
@@ -2887,6 +3195,7 @@ export type AgentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   orchestratorAgents?: boolean | Prisma.Agent$orchestratorAgentsArgs<ExtArgs>
   conversations?: boolean | Prisma.Agent$conversationsArgs<ExtArgs>
   broadcasts?: boolean | Prisma.Agent$broadcastsArgs<ExtArgs>
+  followUpCampaigns?: boolean | Prisma.Agent$followUpCampaignsArgs<ExtArgs>
   _count?: boolean | Prisma.AgentCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type AgentIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2908,6 +3217,7 @@ export type $AgentPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     orchestratorAgents: Prisma.$OrchestratorAgentPayload<ExtArgs>[]
     conversations: Prisma.$ConversationPayload<ExtArgs>[]
     broadcasts: Prisma.$BroadcastCampaignPayload<ExtArgs>[]
+    followUpCampaigns: Prisma.$FollowUpCampaignPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2933,6 +3243,7 @@ export type $AgentPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     address: string | null
     productsData: runtime.JsonValue | null
     toolsData: runtime.JsonValue | null
+    openaiApiKey: string | null
     transportType: string
     agentRuntime: string
     status: $Enums.AgentStatus
@@ -3341,6 +3652,7 @@ export interface Prisma__AgentClient<T, Null = never, ExtArgs extends runtime.Ty
   orchestratorAgents<T extends Prisma.Agent$orchestratorAgentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Agent$orchestratorAgentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrchestratorAgentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   conversations<T extends Prisma.Agent$conversationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Agent$conversationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ConversationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   broadcasts<T extends Prisma.Agent$broadcastsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Agent$broadcastsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BroadcastCampaignPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  followUpCampaigns<T extends Prisma.Agent$followUpCampaignsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Agent$followUpCampaignsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FollowUpCampaignPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3393,6 +3705,7 @@ export interface AgentFieldRefs {
   readonly address: Prisma.FieldRef<"Agent", 'String'>
   readonly productsData: Prisma.FieldRef<"Agent", 'Json'>
   readonly toolsData: Prisma.FieldRef<"Agent", 'Json'>
+  readonly openaiApiKey: Prisma.FieldRef<"Agent", 'String'>
   readonly transportType: Prisma.FieldRef<"Agent", 'String'>
   readonly agentRuntime: Prisma.FieldRef<"Agent", 'String'>
   readonly status: Prisma.FieldRef<"Agent", 'AgentStatus'>
@@ -3983,6 +4296,30 @@ export type Agent$broadcastsArgs<ExtArgs extends runtime.Types.Extensions.Intern
   take?: number
   skip?: number
   distinct?: Prisma.BroadcastCampaignScalarFieldEnum | Prisma.BroadcastCampaignScalarFieldEnum[]
+}
+
+/**
+ * Agent.followUpCampaigns
+ */
+export type Agent$followUpCampaignsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the FollowUpCampaign
+   */
+  select?: Prisma.FollowUpCampaignSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the FollowUpCampaign
+   */
+  omit?: Prisma.FollowUpCampaignOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FollowUpCampaignInclude<ExtArgs> | null
+  where?: Prisma.FollowUpCampaignWhereInput
+  orderBy?: Prisma.FollowUpCampaignOrderByWithRelationInput | Prisma.FollowUpCampaignOrderByWithRelationInput[]
+  cursor?: Prisma.FollowUpCampaignWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.FollowUpCampaignScalarFieldEnum | Prisma.FollowUpCampaignScalarFieldEnum[]
 }
 
 /**
