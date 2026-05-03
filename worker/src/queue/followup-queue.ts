@@ -147,7 +147,7 @@ worker.on("completed", async (job) => {
  * Enqueue all approved messages for a campaign with progressive delays.
  * Spreads messages over ~24h or the natural anti-ban pacing, whichever is longer.
  */
-export async function enqueueFollowUpCampaign(campaignId: string, agentId: string, testMode = false): Promise<void> {
+export async function enqueueFollowUpCampaign(campaignId: string, agentId: string): Promise<void> {
   const messages = await sql<{
     id: string
     toJid: string
@@ -165,8 +165,8 @@ export async function enqueueFollowUpCampaign(campaignId: string, agentId: strin
 
   if (messages.length === 0) return
 
-  // Spread window: 2 min in test mode, 24h in production
-  const windowMs = testMode ? 2 * 60 * 1000 : 24 * 60 * 60 * 1000
+  // Spread messages over 24h minimum
+  const windowMs = 24 * 60 * 60 * 1000
   const minSpacingMs = Math.floor(windowMs / messages.length)
 
   let cumulativeDelayMs = 0
@@ -179,8 +179,8 @@ export async function enqueueFollowUpCampaign(campaignId: string, agentId: strin
     const spacingDelay = Math.max(naturalDelay, minSpacingMs)
     cumulativeDelayMs += spacingDelay
 
-    // Batch break every 10 messages (skip in test mode)
-    if (!testMode && i > 0 && i % 10 === 0) {
+    // Batch break every 10 messages
+    if (i > 0 && i % 10 === 0) {
       cumulativeDelayMs += truncatedNormal(60_000, 120_000)
     }
 

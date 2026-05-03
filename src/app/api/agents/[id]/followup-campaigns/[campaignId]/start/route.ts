@@ -10,8 +10,6 @@ export async function POST(req: NextRequest, { params }: Params) {
   const session = await auth()
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   const { id: agentId, campaignId } = await params
-  const body = await req.json().catch(() => ({}))
-  const testMode: boolean = body.testMode === true
   const { ownerId } = await getWorkspaceContext(session.user.id)
 
   const agent = await db.agent.findFirst({ where: { id: agentId, userId: ownerId } })
@@ -51,7 +49,7 @@ export async function POST(req: NextRequest, { params }: Params) {
   }
 
   // Hand off to the worker to schedule + send
-  await baileysClient.startFollowUpCampaign(campaignId, agentId, testMode)
+  await baileysClient.startFollowUpCampaign(campaignId, agentId)
 
   await db.followUpCampaign.update({
     where: { id: campaignId },

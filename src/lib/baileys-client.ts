@@ -185,11 +185,11 @@ export const baileysClient = {
     if (!res.ok) throw new Error(`Worker error: ${res.status}`)
   },
 
-  async startFollowUpCampaign(campaignId: string, agentId: string, testMode = false): Promise<void> {
+  async startFollowUpCampaign(campaignId: string, agentId: string): Promise<void> {
     const res = await fetch(`${WORKER_URL}/v1/followup-campaigns/${campaignId}/start`, {
       method: "POST",
       headers: jsonHeaders(),
-      body: JSON.stringify({ agentId, testMode }),
+      body: JSON.stringify({ agentId }),
     })
     if (!res.ok) throw new Error(`Worker error: ${res.status}`)
   },

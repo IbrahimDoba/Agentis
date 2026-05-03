@@ -9,7 +9,6 @@ const logger = rootLogger.child({ module: "routes/followup" })
 
 const StartSchema = z.object({
   agentId: z.string().min(1),
-  testMode: z.boolean().optional(),
 })
 
 export const followUpRoutes: FastifyPluginAsync = async (app) => {
@@ -37,7 +36,7 @@ export const followUpRoutes: FastifyPluginAsync = async (app) => {
     if (!campaign) return reply.status(404).send({ error: "Campaign not found" })
 
     // Fire enqueue async — don't block HTTP response
-    followUpQueue.enqueueFollowUpCampaign(campaignId, body.agentId, body.testMode ?? false).catch((err) => {
+    followUpQueue.enqueueFollowUpCampaign(campaignId, body.agentId).catch((err) => {
       logger.error({ campaignId, err: err.message }, "Failed to enqueue follow-up campaign")
     })
 

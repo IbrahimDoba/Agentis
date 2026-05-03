@@ -165,7 +165,6 @@ function CampaignDetailModal({ campaign, agentId, onClose, onRefresh }: {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editText, setEditText] = useState("")
   const [confirmCancel, setConfirmCancel] = useState(false)
-  const [testMode, setTestMode] = useState(false)
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/agents/${agentId}/followup-campaigns/${campaign.id}`)
@@ -215,11 +214,7 @@ function CampaignDetailModal({ campaign, agentId, onClose, onRefresh }: {
 
   const handleStart = async () => {
     setStarting(true)
-    await fetch(`/api/agents/${agentId}/followup-campaigns/${campaign.id}/start`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ testMode }),
-    })
+    await fetch(`/api/agents/${agentId}/followup-campaigns/${campaign.id}/start`, { method: "POST" })
     await load()
     onRefresh()
     setStarting(false)
@@ -392,16 +387,6 @@ function CampaignDetailModal({ campaign, agentId, onClose, onRefresh }: {
 
         {/* Footer actions */}
         <div className={styles.modalFooter}>
-          {isReview && messages.length > 0 && (
-            <label className={styles.testModeToggle}>
-              <input
-                type="checkbox"
-                checked={testMode}
-                onChange={(e) => setTestMode(e.target.checked)}
-              />
-              Test mode (2 min)
-            </label>
-          )}
           {isReview && messages.length > 0 && (
             <>
               {c.mode === "review" && pending.length > 0 && (
