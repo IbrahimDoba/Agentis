@@ -38,6 +38,7 @@ export async function GET(req: NextRequest) {
   const elevenLabsIds = runtimeAgents.map((a) => a.elevenlabsAgentId).filter((id): id is string => !!id)
 
   let totalConversations = 0
+  let totalAiMessages = 0
   let totalLeads = 0
   let totalContacts = 0
   let totalCreditsUsed = 0
@@ -47,8 +48,15 @@ export async function GET(req: NextRequest) {
 
   if (runtime === "orchestrator") {
     if (runtimeAgentIds.length > 0) {
-      const [convCount, leadCount, contacts, creditsTotal, creditsMonthly, creditsBreakdown] = await Promise.all([
+      const [convCount, aiMsgCount, leadCount, contacts, creditsTotal, creditsMonthly, creditsBreakdown] = await Promise.all([
         db.conversation.count({ where: { agentId: { in: runtimeAgentIds } } }),
+        db.message.count({
+          where: {
+            direction: "outbound",
+            senderRole: "ai",
+            conversation: { agentId: { in: runtimeAgentIds } },
+          },
+        }),
         db.lead.count({ where: { userId: ownerId, agentId: { in: runtimeAgentIds } } }),
         db.conversation.groupBy({
           by: ["phoneNumber"],
@@ -59,6 +67,7 @@ export async function GET(req: NextRequest) {
         sumCreditsBySourceForAgents(runtimeAgentIds, monthStart, monthEnd),
       ])
       totalConversations = convCount
+      totalAiMessages = aiMsgCount
       totalLeads = leadCount
       totalContacts = contacts.length
       totalCreditsUsed = creditsTotal
@@ -90,6 +99,7 @@ export async function GET(req: NextRequest) {
       ])
 
       totalConversations = convCount
+      totalAiMessages = convCount
       totalLeads = leadCount
       totalContacts = contacts.length
       totalCreditsUsed = creditsAgg?._sum?.creditsUsed ?? 0
@@ -103,6 +113,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     runtime,
     totalConversations,
+    totalAiMessages,
     totalLeads,
     totalContacts,
     totalCreditsUsed,

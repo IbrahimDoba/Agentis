@@ -9,10 +9,7 @@ import { AGENT_TEMPLATES } from "@/lib/agentTemplates"
 import { Input, Textarea } from "@/components/ui/Input"
 import Button from "@/components/ui/Button"
 import { ProductsEditor } from "@/components/dashboard/ProductsEditor"
-import {
-  CameraIcon, ArrowPathIcon, TagIcon,
-  EnvelopeIcon, PhoneIcon, MapPinIcon, GlobeAltIcon,
-} from "@heroicons/react/24/outline"
+import { CameraIcon, ArrowPathIcon, TagIcon } from "@heroicons/react/24/outline"
 import type { Product } from "@/types"
 import styles from "./CreateAgentFlow.module.css"
 
@@ -42,10 +39,6 @@ export function CreateAgentFlow() {
     businessName: "",
     category: "",
     businessDescription: "",
-    contactEmail: "",
-    contactPhone: "",
-    websiteLinks: "",
-    address: "",
     profileImageUrl: "",
   })
   const [previewUrl, setPreviewUrl] = useState("")
@@ -251,18 +244,6 @@ export function CreateAgentFlow() {
                 </div>
               </div>
               <Textarea label="Description" name="businessDescription" placeholder="What does your business do?" value={profile.businessDescription} onChange={handleProfileChange} style={{ minHeight: 90 }} />
-            </div>
-          </div>
-
-          <div className={styles.section}>
-            <div className={styles.sectionTitle}>Contact &amp; Location <span className={styles.optional}>(optional)</span></div>
-            <div className={styles.fields}>
-              <div className={styles.row}>
-                <div className={styles.iconField}><EnvelopeIcon width={14} height={14} className={styles.fieldIcon} /><Input label="Contact Email" name="contactEmail" type="email" placeholder="hello@yourbusiness.com" value={profile.contactEmail} onChange={handleProfileChange} /></div>
-                <div className={styles.iconField}><PhoneIcon width={14} height={14} className={styles.fieldIcon} /><Input label="Contact Phone" name="contactPhone" type="tel" placeholder="+234 800 000 0000" value={profile.contactPhone} onChange={handleProfileChange} /></div>
-              </div>
-              <div className={styles.iconField}><GlobeAltIcon width={14} height={14} className={styles.fieldIcon} /><Input label="Website" name="websiteLinks" placeholder="https://yourbusiness.com" value={profile.websiteLinks} onChange={handleProfileChange} /></div>
-              <div className={styles.iconField}><MapPinIcon width={14} height={14} className={styles.fieldIcon} /><Input label="Business Address" name="address" placeholder="123 Main Street, Lagos" value={profile.address} onChange={handleProfileChange} /></div>
             </div>
           </div>
 

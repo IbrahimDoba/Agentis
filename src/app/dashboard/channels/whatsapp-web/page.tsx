@@ -5,6 +5,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import Image from "next/image"
 import Link from "next/link"
 import QRCode from "qrcode"
+import { Modal } from "@/components/ui/Modal"
+import Button from "@/components/ui/Button"
 import styles from "./page.module.css"
 
 interface Agent {
@@ -66,6 +68,7 @@ export default function WhatsAppWebPage() {
   const [pairingCode, setPairingCode] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
   const [selectedTier, setSelectedTier] = useState<number>(1)
+  const [confirmRemove, setConfirmRemove] = useState(false)
 
   const { data: agents = [] } = useQuery({ queryKey: ["agents"], queryFn: fetchAgents })
   const { data: session, refetch: refetchSession } = useQuery({
@@ -141,6 +144,28 @@ export default function WhatsAppWebPage() {
       qc.invalidateQueries({ queryKey: ["baileys-session", selectedAgentId] })
     },
     onError: (err: Error) => setActionError(err.message),
+  })
+
+  const remove = useMutation({
+    mutationFn: async (agentId: string) => {
+      // Full wipe: stops socket, deletes auth files, removes DB record
+      const res = await fetch(`/api/baileys/sessions/${agentId}`, { method: "DELETE" })
+      if (!res.ok && res.status !== 404) throw new Error(`Worker error ${res.status} — try again`)
+    },
+    onSuccess: () => {
+      setActionError(null)
+      setConfirmRemove(false)
+      stopQrStream()
+      setQrDataUrl(null)
+      setSseStatus(null)
+      setPairingCode(null)
+      setSelectedTier(1)
+      qc.invalidateQueries({ queryKey: ["baileys-session", selectedAgentId] })
+    },
+    onError: (err: Error) => {
+      setConfirmRemove(false)
+      setActionError(err.message)
+    },
   })
 
   const restart = useMutation({
@@ -231,7 +256,6 @@ export default function WhatsAppWebPage() {
 
       {/* Disclaimer */}
       <div className={styles.disclaimer}>
-        <span className={styles.disclaimerIcon}>ℹ️</span>
         <div>
           Uses WhatsApp&apos;s Linked Devices feature. For enterprise-grade reliability,{" "}
           <a href="/contact" className={styles.disclaimerLink}>contact us</a> about our WhatsApp Business API tier.
@@ -317,7 +341,11 @@ export default function WhatsAppWebPage() {
               )}
 
               {connectMethod === "qr" && isConnecting && !qrDataUrl && (
-                <div className={styles.loadingQr}>Generating QR code…</div>
+                <div className={styles.loadingQr}>
+                  <div className={styles.loadingQrSpinner} />
+                  <div className={styles.loadingQrTitle}>Generating QR code…</div>
+                  <div className={styles.loadingQrHint}>This can take 1–3 minutes. Please keep this page open and wait.</div>
+                </div>
               )}
 
               {(!wasConnected && (!session || session.status === "DISCONNECTED" || session.status === "LOGGED_OUT")) && (
@@ -407,8 +435,8 @@ export default function WhatsAppWebPage() {
                       </button>
                       <button
                         className={styles.btnDanger}
-                        onClick={() => disconnect.mutate(selectedAgentId)}
-                        disabled={disconnect.isPending}
+                        onClick={() => setConfirmRemove(true)}
+                        disabled={remove.isPending}
                       >
                         Remove
                       </button>
@@ -441,7 +469,11 @@ export default function WhatsAppWebPage() {
                     </button>
                   ) : null
                 ) : isBanned ? (
-                  <button className={styles.btnDanger} onClick={() => disconnect.mutate(selectedAgentId)}>
+                  <button
+                    className={styles.btnDanger}
+                    onClick={() => setConfirmRemove(true)}
+                    disabled={remove.isPending}
+                  >
                     Remove session
                   </button>
                 ) : (
@@ -531,6 +563,35 @@ export default function WhatsAppWebPage() {
           )}
         </div>
       </div>
+
+      <Modal
+        open={confirmRemove}
+        onClose={() => !remove.isPending && setConfirmRemove(false)}
+        title="Remove WhatsApp connection?"
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setConfirmRemove(false)} disabled={remove.isPending}>
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              onClick={() => selectedAgentId && remove.mutate(selectedAgentId)}
+              loading={remove.isPending}
+            >
+              Remove
+            </Button>
+          </>
+        }
+      >
+        <p style={{ fontSize: 14, color: "var(--text-secondary)", lineHeight: 1.5 }}>
+          This will fully unlink{" "}
+          <strong style={{ color: "var(--text-primary)" }}>
+            {selectedAgent?.businessName}
+          </strong>
+          {session?.phoneNumber ? <> from <strong style={{ color: "var(--text-primary)" }}>+{session.phoneNumber}</strong></> : ""}.
+          Auth data and warmup tier will be wiped — you&apos;ll need to scan the QR code again to reconnect.
+        </p>
+      </Modal>
     </div>
   )
 }

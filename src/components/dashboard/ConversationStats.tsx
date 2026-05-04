@@ -1,7 +1,7 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
-import { ChatBubbleLeftRightIcon, UsersIcon, FireIcon, ArrowTrendingUpIcon } from "@heroicons/react/24/outline"
+import { PaperAirplaneIcon, UsersIcon, FireIcon, ArrowTrendingUpIcon } from "@heroicons/react/24/outline"
 import styles from "@/app/dashboard/page.module.css"
 import type { RuntimePreference } from "@/hooks/useRuntimePreference"
 
@@ -24,6 +24,7 @@ interface ConversationStatsProps {
 export function ConversationStats({ runtime, agentId }: ConversationStatsProps) {
   const { data, isLoading } = useQuery<{
     totalConversations: number
+    totalAiMessages: number
     totalLeads: number
     totalContacts: number
     totalCreditsUsed: number
@@ -54,6 +55,7 @@ export function ConversationStats({ runtime, agentId }: ConversationStatsProps) 
   }
 
   const total = data?.totalConversations ?? 0
+  const aiMessages = data?.totalAiMessages ?? 0
   const leads = data?.totalLeads ?? 0
   const contacts = data?.totalContacts ?? 0
   const leadsRate = total > 0 ? Math.round((leads / total) * 100) : 0
@@ -62,11 +64,11 @@ export function ConversationStats({ runtime, agentId }: ConversationStatsProps) 
     <>
       <div className={styles.statCard}>
         <div className={styles.statCardIcon} style={{ background: "rgba(0, 220, 130, 0.1)", color: "var(--accent)" }}>
-          <ChatBubbleLeftRightIcon width={18} height={18} />
+          <PaperAirplaneIcon width={18} height={18} />
         </div>
-        <div className={styles.statLabel}>Total Conversations</div>
-        <div className={styles.statValue}>{total}</div>
-        <div className={styles.statSub}>All time calls with your agent</div>
+        <div className={styles.statLabel}>Total AI Messages Sent</div>
+        <div className={styles.statValue}>{aiMessages}</div>
+        <div className={styles.statSub}>Replies your agent has sent</div>
       </div>
 
       <div className={styles.statCard}>

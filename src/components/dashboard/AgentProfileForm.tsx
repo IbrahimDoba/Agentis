@@ -1,10 +1,10 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { useQueryClient } from "@tanstack/react-query"
-import { CameraIcon, ArrowPathIcon, GlobeAltIcon, EnvelopeIcon, PhoneIcon, MapPinIcon, TagIcon, InformationCircleIcon } from "@heroicons/react/24/outline"
+import { CameraIcon, ArrowPathIcon, TagIcon, InformationCircleIcon } from "@heroicons/react/24/outline"
 import styles from "./AgentProfileForm.module.css"
 import { Input, Textarea } from "@/components/ui/Input"
 import Button from "@/components/ui/Button"
@@ -31,29 +31,34 @@ const CATEGORIES = [
 
 interface AgentProfileFormProps {
   agent: AgentPublic
+  onDirtyChange?: (dirty: boolean) => void
 }
 
-export function AgentProfileForm({ agent }: AgentProfileFormProps) {
+export function AgentProfileForm({ agent, onDirtyChange }: AgentProfileFormProps) {
   const router = useRouter()
   const queryClient = useQueryClient()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const [form, setForm] = useState({
+  const initialForm = {
     businessName: agent.businessName ?? "",
     category: agent.category ?? "",
     businessDescription: agent.businessDescription ?? "",
-    address: agent.address ?? "",
-    contactEmail: agent.contactEmail ?? "",
-    contactPhone: agent.contactPhone ?? "",
-    websiteLinks: agent.websiteLinks ?? "",
     profileImageUrl: agent.profileImageUrl ?? "",
-  })
+  }
+  const [form, setForm] = useState(initialForm)
   const { showToast } = useToast()
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
   const [uploadError, setUploadError] = useState("")
   const [isUploading, setIsUploading] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string>(agent.profileImageUrl ?? "")
+
+  const isDirty = (Object.keys(initialForm) as (keyof typeof initialForm)[])
+    .some((k) => form[k] !== initialForm[k])
+
+  useEffect(() => {
+    onDirtyChange?.(isDirty)
+  }, [isDirty, onDirtyChange])
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -201,61 +206,6 @@ export function AgentProfileForm({ agent }: AgentProfileFormProps) {
             error={errors.businessDescription}
             style={{ minHeight: 100 }}
           />
-        </div>
-      </div>
-
-      {/* Contact */}
-      <div className={styles.section}>
-        <div className={styles.sectionTitle}>Contact &amp; Location</div>
-        <div className={styles.fields}>
-          <div className={styles.row}>
-            <div className={styles.iconField}>
-              <EnvelopeIcon width={14} height={14} className={styles.fieldIcon} />
-              <Input
-                label="Contact Email"
-                name="contactEmail"
-                type="email"
-                placeholder="hello@yourbusiness.com"
-                value={form.contactEmail}
-                onChange={handleChange}
-                error={errors.contactEmail}
-              />
-            </div>
-            <div className={styles.iconField}>
-              <PhoneIcon width={14} height={14} className={styles.fieldIcon} />
-              <Input
-                label="Contact Phone"
-                name="contactPhone"
-                type="tel"
-                placeholder="+234 800 000 0000"
-                value={form.contactPhone}
-                onChange={handleChange}
-                error={errors.contactPhone}
-              />
-            </div>
-          </div>
-          <div className={styles.iconField}>
-            <GlobeAltIcon width={14} height={14} className={styles.fieldIcon} />
-            <Input
-              label="Website"
-              name="websiteLinks"
-              placeholder="https://yourbusiness.com"
-              value={form.websiteLinks}
-              onChange={handleChange}
-              error={errors.websiteLinks}
-            />
-          </div>
-          <div className={styles.iconField}>
-            <MapPinIcon width={14} height={14} className={styles.fieldIcon} />
-            <Input
-              label="Business Address"
-              name="address"
-              placeholder="123 Main Street, Lagos, Nigeria"
-              value={form.address}
-              onChange={handleChange}
-              error={errors.address}
-            />
-          </div>
         </div>
       </div>
 

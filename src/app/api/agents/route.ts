@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
         faqs: "",
         operatingHours: "",
         ...agentData,
-        businessName: session.user.businessName || agentData.businessName || "My Business",
+        businessName: agentData.businessName || session.user.businessName || "My Business",
         userId: session.user.id,
         agentRuntime: agentRuntime ?? "elevenlabs",
         ...(agentRuntime === "orchestrator" && { status: "ACTIVE", transportType: "baileys" }),

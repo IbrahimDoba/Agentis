@@ -18,13 +18,51 @@ import {
   DevicePhoneMobileIcon,
   MegaphoneIcon,
 } from "@heroicons/react/24/outline"
-import { LogoIcon } from "@/components/landing/Logo"
-import styles from "./Sidebar.module.css"
 import { cn } from "@/lib/utils"
 import { useDashboardData } from "@/hooks/useDashboardData"
 import { usePlanStats } from "@/hooks/usePlanStats"
 import { PLAN_LABELS } from "@/lib/plans"
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher"
+import styles from "./Sidebar.module.css"
+
+const AVATAR_COLORS = [
+  "#16a34a", "#2563eb", "#7c3aed", "#dc2626",
+  "#ea580c", "#0891b2", "#db2777", "#b45309",
+]
+
+function getAvatarColor(name: string): string {
+  let hash = 0
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length]
+}
+
+export function BusinessAvatar({ name, size }: { name: string; size: number }) {
+  const initials = name
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() ?? "")
+    .join("") || "?"
+  return (
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: size,
+        height: size,
+        borderRadius: 7,
+        background: getAvatarColor(name),
+        color: "#fff",
+        fontSize: size <= 24 ? 10 : 12,
+        fontWeight: 700,
+        letterSpacing: "-0.02em",
+        flexShrink: 0,
+      }}
+    >
+      {initials}
+    </span>
+  )
+}
 
 interface SidebarProps {
   userName: string
@@ -75,10 +113,10 @@ export function Sidebar({ userName, businessName, currentUserId, currentWorkspac
           href="/dashboard"
           className={styles.logo}
           onClick={onClose}
-          title={collapsed ? "D-Zero AI" : undefined}
+          title={collapsed ? businessName : undefined}
         >
-          <LogoIcon size={30} />
-          {!collapsed && <span>D-Zero AI</span>}
+          <BusinessAvatar name={businessName || "B"} size={30} />
+          {!collapsed && <span className={styles.logoName}>{businessName}</span>}
         </Link>
         {/* Collapse toggle — desktop only */}
         {onToggleCollapse && (

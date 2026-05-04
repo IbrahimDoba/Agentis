@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Sidebar } from "./Sidebar"
-import { LogoIcon } from "@/components/landing/Logo"
+import { Sidebar, BusinessAvatar } from "./Sidebar"
 import { ToastProvider } from "@/context/ToastContext"
 import styles from "./DashboardShell.module.css"
 
@@ -45,8 +44,8 @@ export function DashboardShell({ userName, businessName, currentUserId, currentW
           <span />
         </button>
         <Link href="/dashboard" className={styles.mobileLogo}>
-          <LogoIcon size={24} />
-          D-Zero AI
+          <BusinessAvatar name={businessName || "B"} size={24} />
+          <span className={styles.mobileLogoName}>{businessName}</span>
         </Link>
         <div className={styles.hamburgerSpacer} />
       </header>

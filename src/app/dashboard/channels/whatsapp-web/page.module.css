@@ -234,7 +234,40 @@
 }
 .qr { border-radius: 12px; border: 1px solid var(--border); }
 .qrHint { font-size: 12px; color: var(--text-muted); text-align: center; }
-.loadingQr { text-align: center; color: var(--text-muted); font-size: 13px; padding: 2rem 0; }
+.loadingQr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+.loadingQrSpinner {
+  width: 28px;
+  height: 28px;
+  border: 2.5px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: loadingQrSpin 0.8s linear infinite;
+}
+
+@keyframes loadingQrSpin {
+  to { transform: rotate(360deg); }
+}
+
+.loadingQrTitle {
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.loadingQrHint {
+  color: var(--text-muted);
+  font-size: 12px;
+  max-width: 260px;
+  line-height: 1.45;
+}
 
 /* Method toggle */
 .methodToggle {

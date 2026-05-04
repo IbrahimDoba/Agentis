@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useCallback } from "react"
 import { useParams } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
@@ -14,6 +14,8 @@ import { TemplatesTab } from "@/components/dashboard/TemplatesTab"
 import { DocumentsTab } from "@/components/dashboard/DocumentsTab"
 import { StatusBadge } from "@/components/ui/Badge"
 import { TestAgentWidget } from "@/components/dashboard/TestAgentWidget"
+import { Modal } from "@/components/ui/Modal"
+import Button from "@/components/ui/Button"
 import { useAgent } from "@/hooks/useAgent"
 import { cn } from "@/lib/utils"
 
@@ -165,8 +167,35 @@ export default function AgentDetailPage() {
   const params = useParams()
   const id = params.id as string
   const [activeTab, setActiveTab] = useState("profile")
+  const [profileDirty, setProfileDirty] = useState(false)
+  const [configDirty, setConfigDirty] = useState(false)
+  const [pendingTab, setPendingTab] = useState<string | null>(null)
   const { data, isLoading, error } = useAgent(id)
   const agent = data?.agent ?? null
+
+  const handleProfileDirty = useCallback((d: boolean) => setProfileDirty(d), [])
+  const handleConfigDirty = useCallback((d: boolean) => setConfigDirty(d), [])
+
+  const currentTabIsDirty =
+    (activeTab === "profile" && profileDirty) ||
+    (activeTab === "configuration" && configDirty)
+
+  const requestTabChange = (next: string) => {
+    if (next === activeTab) return
+    if (currentTabIsDirty) {
+      setPendingTab(next)
+      return
+    }
+    setActiveTab(next)
+  }
+
+  const discardAndSwitch = () => {
+    if (!pendingTab) return
+    if (activeTab === "profile") setProfileDirty(false)
+    if (activeTab === "configuration") setConfigDirty(false)
+    setActiveTab(pendingTab)
+    setPendingTab(null)
+  }
 
   if (isLoading) {
     return (
@@ -229,9 +258,12 @@ export default function AgentDetailPage() {
           <button
             key={tab.id}
             className={cn(styles.tab, activeTab === tab.id ? styles.tabActive : undefined)}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => requestTabChange(tab.id)}
           >
             {tab.label}
+            {((tab.id === "profile" && profileDirty) || (tab.id === "configuration" && configDirty)) && (
+              <span className={styles.dirtyDot} aria-label="Unsaved changes" />
+            )}
           </button>
         ))}
       </div>
@@ -239,10 +271,10 @@ export default function AgentDetailPage() {
       {/* Tab content */}
       <div className={styles.tabContent}>
         {activeTab === "profile" && (
-          <AgentProfileForm agent={agent} />
+          <AgentProfileForm agent={agent} onDirtyChange={handleProfileDirty} />
         )}
         {activeTab === "configuration" && (
-          <AgentForm initialData={agent} agentId={agent.id} />
+          <AgentForm initialData={agent} agentId={agent.id} onDirtyChange={handleConfigDirty} />
         )}
         {activeTab === "knowledge-base" && (
           <KnowledgeBaseTab agentId={agent.id} elevenlabsAgentId={agent.elevenlabsAgentId} agentRuntime={agent.agentRuntime} />
@@ -262,6 +294,30 @@ export default function AgentDetailPage() {
         {activeTab === "templates" && <TemplatesTab agentId={agent.id} />}
         {activeTab === "guide" && <AgentGuide />}
       </div>
+
+      <Modal
+        open={pendingTab !== null}
+        onClose={() => setPendingTab(null)}
+        title="Unsaved changes"
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setPendingTab(null)}>
+              Stay on this tab
+            </Button>
+            <Button variant="danger" onClick={discardAndSwitch}>
+              Discard changes
+            </Button>
+          </>
+        }
+      >
+        <p style={{ fontSize: 14, color: "var(--text-secondary)", lineHeight: 1.5 }}>
+          You have unsaved changes on the{" "}
+          <strong style={{ color: "var(--text-primary)" }}>
+            {activeTab === "profile" ? "Profile" : "Configuration"}
+          </strong>{" "}
+          tab. Switching now will lose them. Save first or discard to continue.
+        </p>
+      </Modal>
     </div>
   )
 }

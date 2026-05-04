@@ -14,17 +14,27 @@ import type { AgentPublic, Product } from "@/types"
 interface AgentFormProps {
   initialData?: Partial<AgentPublic>
   agentId?: string
+  onDirtyChange?: (dirty: boolean) => void
 }
 
-export function AgentForm({ initialData, agentId }: AgentFormProps) {
+export function AgentForm({ initialData, agentId, onDirtyChange }: AgentFormProps) {
   const router = useRouter()
   const queryClient = useQueryClient()
 
-  const [systemPrompt, setSystemPrompt] = useState(initialData?.responseGuidelines ?? "")
+  const initialPrompt = initialData?.responseGuidelines ?? ""
+  const initialProducts = (initialData?.productsData as Product[] | undefined) ?? []
+
+  const [systemPrompt, setSystemPrompt] = useState(initialPrompt)
   const [promptLoading, setPromptLoading] = useState(false)
-  const [products, setProducts] = useState<Product[]>(
-    (initialData?.productsData as Product[] | undefined) ?? []
-  )
+  const [products, setProducts] = useState<Product[]>(initialProducts)
+
+  const isDirty =
+    systemPrompt !== initialPrompt ||
+    JSON.stringify(products) !== JSON.stringify(initialProducts)
+
+  useEffect(() => {
+    onDirtyChange?.(isDirty)
+  }, [isDirty, onDirtyChange])
   const { showToast } = useToast()
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
