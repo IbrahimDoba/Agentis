@@ -12,7 +12,9 @@ import { mediaRoutes } from "./routes/media.js"
 import { startInboundWorker } from "./queue/workers/inbound-worker.js"
 import { startEmbedWorker } from "./queue/workers/embed-worker.js"
 
-const app = Fastify({ logger: false })
+// 15MB covers a 10MB raw file after base64 (~33% overhead). Per-route handlers
+// still enforce stricter raw-byte limits (documents: 10MB, media: 5MB).
+const app = Fastify({ logger: false, bodyLimit: 15 * 1024 * 1024 })
 
 await app.register(helmet)
 await app.register(cors, { origin: true })

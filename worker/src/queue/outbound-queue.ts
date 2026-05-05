@@ -67,13 +67,15 @@ const worker = new Worker<OutboundJob>(
     if (!session) throw new Error(`Session record not found for agent ${agentId}`)
 
     // §7.6 — Business hours check (AI replies still go through, just with extra delay)
+    // T4 numbers are fully warmed up — skip the off-hours penalty so they respond
+    // in real time around the clock. T1–T3 still get the delay for anti-ban safety.
     const { extraDelayMs } = businessHoursCheck(
       session.businessHoursStart,
       session.businessHoursEnd,
       session.timezone
     )
-    if (extraDelayMs > 0) {
-      logger.debug({ agentId, extraDelayMs }, "Outside business hours — adding extra delay")
+    if (extraDelayMs > 0 && session.warmupTier < 4) {
+      logger.debug({ agentId, extraDelayMs, tier: session.warmupTier }, "Outside business hours — adding extra delay")
       await new Promise((r) => setTimeout(r, extraDelayMs))
     }
 

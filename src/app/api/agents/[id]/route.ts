@@ -90,7 +90,12 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       const parsed = schema.safeParse(body)
 
       if (!parsed.success) {
-        return NextResponse.json({ error: "Invalid data" }, { status: 400 })
+        const errors: Record<string, string> = {}
+        parsed.error.issues.forEach((err) => {
+          const field = err.path[0] as string
+          errors[field] = err.message
+        })
+        return NextResponse.json({ errors }, { status: 400 })
       }
 
       // Strip orchestrator-only fields before passing to Agent table

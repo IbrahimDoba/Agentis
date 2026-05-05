@@ -8,6 +8,8 @@ import { ArrowLeftIcon } from "@heroicons/react/24/outline"
 import { AgentForm } from "@/components/dashboard/AgentForm"
 import { AgentProfileForm } from "@/components/dashboard/AgentProfileForm"
 import { KnowledgeBaseTab } from "@/components/dashboard/KnowledgeBaseTab"
+import { DocumentsTab } from "@/components/dashboard/DocumentsTab"
+import { TemplatesTab } from "@/components/dashboard/TemplatesTab"
 import { ToolsTab } from "@/components/dashboard/ToolsTab"
 
 import { AgentSetupForm } from "@/components/admin/AgentSetupForm"
@@ -18,20 +20,18 @@ import { cn, formatDate } from "@/lib/utils"
 import styles from "@/app/dashboard/agent/[id]/page.module.css"
 import adminStyles from "@/app/admin/agents/[id]/page.module.css"
 
-const TABS_ELEVENLABS = [
-    { id: "setup", label: "Admin Setup" },
-    { id: "profile", label: "Profile" },
-    { id: "configuration", label: "Configuration" },
-    { id: "knowledge-base", label: "Knowledge Base" },
-    { id: "tools", label: "Tools" },
-]
-
-const TABS_ORCHESTRATOR = [
-    { id: "setup", label: "Admin Setup" },
-    { id: "configuration", label: "Configuration" },
-    { id: "knowledge-base", label: "Knowledge Base" },
-    { id: "tools", label: "Tools" },
-]
+function buildTabs(agentRuntime: string) {
+    return [
+        { id: "setup", label: "Admin Setup" },
+        { id: "profile", label: "Profile" },
+        { id: "configuration", label: "Configuration" },
+        agentRuntime === "orchestrator"
+            ? { id: "documents", label: "Documents" }
+            : { id: "knowledge-base", label: "Knowledge Base" },
+        { id: "tools", label: "Tools" },
+        { id: "templates", label: "Templates" },
+    ]
+}
 
 function AgentAvatar({ src, name, size = 48 }: { src?: string | null; name: string; size?: number }) {
     const initials = name.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase()
@@ -50,7 +50,7 @@ function AgentAvatar({ src, name, size = 48 }: { src?: string | null; name: stri
 
 export function AdminAgentClient({ agent }: { agent: any }) {
     const isOrchestrator = agent.agentRuntime === "orchestrator"
-    const TABS = isOrchestrator ? TABS_ORCHESTRATOR : TABS_ELEVENLABS
+    const TABS = buildTabs(agent.agentRuntime ?? "elevenlabs")
     const [activeTab, setActiveTab] = useState("setup")
 
     const copyText = [
@@ -234,7 +234,14 @@ export function AdminAgentClient({ agent }: { agent: any }) {
 
                 {activeTab === "profile" && <AgentProfileForm agent={agent} />}
                 {activeTab === "configuration" && <AgentForm initialData={agent} agentId={agent.id} />}
-                {activeTab === "knowledge-base" && <KnowledgeBaseTab agentId={agent.id} elevenlabsAgentId={agent.elevenlabsAgentId} />}
+                {activeTab === "documents" && <DocumentsTab agentId={agent.id} />}
+                {activeTab === "knowledge-base" && (
+                    <KnowledgeBaseTab
+                        agentId={agent.id}
+                        elevenlabsAgentId={agent.elevenlabsAgentId}
+                        agentRuntime={agent.agentRuntime}
+                    />
+                )}
                 {activeTab === "tools" && (
                     <ToolsTab
                         agentId={agent.id}
@@ -244,6 +251,7 @@ export function AdminAgentClient({ agent }: { agent: any }) {
                         agentStatus={agent.status}
                     />
                 )}
+                {activeTab === "templates" && <TemplatesTab agentId={agent.id} />}
             </div>
         </div>
     )
