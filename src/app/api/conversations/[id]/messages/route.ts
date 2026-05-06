@@ -83,15 +83,12 @@ export async function POST(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    if (conversation.mode !== "human") {
-      return NextResponse.json({ error: "Switch this conversation to human handoff before sending" }, { status: 409 })
-    }
-
     // Save to DB
     await db.message.create({
       data: {
         conversationId,
         direction: "outbound",
+        senderRole: "human",
         content: text.trim(),
       },
     })
@@ -105,9 +102,17 @@ export async function POST(
       source: "human",
     })
 
+    // Auto-pause AI: any human-sent message flips an AI conversation into
+    // human-handoff mode. The orchestrator's handle-inbound checks this on
+    // the next customer message and skips the AI reply. User clicks the
+    // AI toggle in the dashboard when they want the agent back.
+    const wasAi = conversation.mode === "ai"
     await db.conversation.update({
       where: { id: conversationId },
-      data: { lastActivityAt: new Date() },
+      data: {
+        lastActivityAt: new Date(),
+        ...(wasAi && { mode: "human" }),
+      },
     })
 
     push(conversation.agentId, "message", { agentId: conversation.agentId })

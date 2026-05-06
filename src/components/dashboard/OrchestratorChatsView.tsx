@@ -441,14 +441,19 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Message input — only in human mode */}
-            {convMode === "human" && (
-              <div className={styles.inputWrap}>
+            {/* Message input — always visible. Sending in AI mode auto-pauses
+                the agent and flips the conversation to human mode (server-side). */}
+            <div className={styles.inputWrap}>
               {sendMessage.isError && (
                 <div className={styles.sendError}>
                   {sendMessage.error instanceof Error && sendMessage.error.message.toLowerCase().includes("cap")
                     ? "Daily message cap reached. Messages will resume tomorrow."
                     : (sendMessage.error instanceof Error ? sendMessage.error.message : "Failed to send message")}
+                </div>
+              )}
+              {convMode === "ai" && (
+                <div className={styles.aiHint}>
+                  Sending a message will pause the AI for this conversation. You can resume it anytime.
                 </div>
               )}
               <div className={styles.inputRow}>
@@ -480,8 +485,7 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
                   {sendMessage.isPending ? "…" : "Send"}
                 </button>
               </div>
-              </div>
-            )}
+            </div>
           </div>
         </div>
       )}
