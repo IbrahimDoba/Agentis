@@ -248,8 +248,14 @@ export async function saveHumanOutboundMessage(
     INSERT INTO "Message" ("id", "conversationId", "direction", "senderRole", "content", "createdAt")
     VALUES (${id}, ${conversationId}, 'outbound', 'human', ${text}, NOW())
   `
+  // Auto-pause AI: operator just replied directly. Flip the conversation to
+  // human mode so the orchestrator skips AI replies for the customer's next
+  // inbound. Idempotent — only changes mode when it was 'ai'.
   await sql`
-    UPDATE "Conversation" SET "lastActivityAt" = NOW() WHERE "id" = ${conversationId}
+    UPDATE "Conversation"
+    SET "lastActivityAt" = NOW(),
+        "mode" = CASE WHEN "mode" = 'ai' THEN 'human' ELSE "mode" END
+    WHERE "id" = ${conversationId}
   `
 }
 

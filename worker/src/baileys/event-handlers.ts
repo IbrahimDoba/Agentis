@@ -3,7 +3,7 @@ import { webhookEmitter } from "../dashboard/webhook-emitter.js"
 import { config } from "../config.js"
 import { logger as rootLogger } from "../lib/logger.js"
 import { resolvePhone, resolveContactName } from "./contacts-store.js"
-import { getConversationMode, getAgentIsHumanMode, saveHumanOutboundMessage } from "../db/queries.js"
+import { getConversationMode, saveHumanOutboundMessage } from "../db/queries.js"
 import { transcribeVoiceNote } from "../voice/transcribe.js"
 import { creditsForVoice } from "../billing/credits.js"
 import { wasSentByUs } from "./sent-message-cache.js"
@@ -47,26 +47,28 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
         : resolvePhone(agentId, senderJid)
       const pushName = msg.pushName ?? resolveContactName(agentId, phoneNumber) ?? undefined
 
-      // Handle human operator's own replies sent directly from their phone
+      // Operator replied to the customer directly from their own phone (not
+      // via our dashboard). The wasSentByUs cache already excludes the AI's
+      // own messages reflecting back via WhatsApp's multi-device sync, plus
+      // the 5-minute replay filter at session start covers worker restarts —
+      // so any fromMe message that ISN'T in the cache is a genuine operator
+      // reply. Save it AND flip the conversation to human mode so AI stops
+      // replying to the customer's next inbound (saveHumanOutboundMessage
+      // handles the mode flip atomically with the message insert).
       if (msg.key.fromMe) {
         const msgId = msg.key.id
         if (msgId && !wasSentByUs(msgId)) {
-          // Only save if the agent is in human handoff mode — otherwise this is just
-          // the AI's own message reflecting back, and saving it causes duplicates
-          const isHuman = await getAgentIsHumanMode(agentId).catch(() => false)
-          if (isHuman) {
-            const _mOut = msg.message as any
-            const text: string | null =
-              _mOut?.conversation ||
-              _mOut?.extendedTextMessage?.text ||
-              null
-            if (text) {
-              await saveHumanOutboundMessage(agentId, phoneNumber, text).catch((err) => {
-                logger.error({ err, agentId }, "Failed to save human operator message")
-              })
-              webhookEmitter.emit("message.sent", { agentId })
-              logger.info({ agentId, phoneNumber }, "Human operator message saved from phone")
-            }
+          const _mOut = msg.message as any
+          const text: string | null =
+            _mOut?.conversation ||
+            _mOut?.extendedTextMessage?.text ||
+            null
+          if (text) {
+            await saveHumanOutboundMessage(agentId, phoneNumber, text).catch((err) => {
+              logger.error({ err, agentId }, "Failed to save human operator message")
+            })
+            webhookEmitter.emit("message.sent", { agentId })
+            logger.info({ agentId, phoneNumber }, "Operator phone-sent message saved + AI paused")
           }
         }
         continue
