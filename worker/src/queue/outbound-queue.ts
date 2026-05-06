@@ -124,13 +124,20 @@ const worker = new Worker<OutboundJob>(
       // Register in dedup cache so event-handlers skips this reflected message
       if (sentMsgId) markSentByUs(sentMsgId)
 
-      await insertCreditUsage({
-        agentId,
-        conversationId,
-        messageType,
-        source,
-        creditsUsed: creditsToCharge,
-      })
+      // Only AI sends consume credits. Human operator replies — whether sent
+      // from the dashboard or the operator's own phone — are free. The user's
+      // value is "AI handles customer conversations"; charging when they take
+      // over to rescue a tricky conversation discourages exactly the behavior
+      // we want them to do.
+      if (source === "ai") {
+        await insertCreditUsage({
+          agentId,
+          conversationId,
+          messageType,
+          source,
+          creditsUsed: creditsToCharge,
+        })
+      }
 
       const delayAppliedMs = Date.now() - startMs
       if (logEntry) await markOutboundSent(logEntry, delayAppliedMs)
