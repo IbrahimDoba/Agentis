@@ -1,6 +1,7 @@
 import type { WASocket } from "@whiskeysockets/baileys"
 import { truncatedNormal } from "./distribution.js"
 import { getTierConfig } from "./warmup.js"
+import { markSentByUs } from "../baileys/sent-message-cache.js"
 import { logger as rootLogger } from "../lib/logger.js"
 
 const logger = rootLogger.child({ module: "pacing" })
@@ -46,6 +47,15 @@ export async function sendWithPacing(
   const sent = await sock.sendMessage(jid, { text })
   const msgId = sent?.key?.id ?? undefined
 
+  // CRITICAL: register in dedup cache IMMEDIATELY after the send returns.
+  // WhatsApp reflects fromMe events back to us within milliseconds, but the
+  // post-send pacing delay below is 5-90s depending on tier. If we waited
+  // until sendWithPacing returns to mark, the reflection event handler
+  // would see an empty cache and treat the AI's own message as an operator
+  // phone-reply — causing duplicate Message rows AND auto-flipping the
+  // conversation to human mode.
+  if (msgId) markSentByUs(msgId)
+
   // §7.2 — Paused presence
   try {
     await sock.sendPresenceUpdate("paused", jid)
@@ -87,6 +97,9 @@ export async function sendImageWithPacing(
     caption: caption || undefined,
   })
   const msgId = sent?.key?.id ?? undefined
+
+  // Mark BEFORE the post-send pacing delay — see comment in sendWithPacing.
+  if (msgId) markSentByUs(msgId)
 
   try {
     await sock.sendPresenceUpdate("paused", jid)

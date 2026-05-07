@@ -57,6 +57,25 @@ function tierDaysRemaining(tier: number, startedAt: string | null): number | nul
   return Math.max(0, Math.ceil(required - elapsed))
 }
 
+/**
+ * True when WhatsApp invalidated the session (401 loggedOut, 440 connectionReplaced).
+ * In those cases the worker auto-purges the auth files, so "Reconnect" cannot reuse
+ * the old session — a fresh QR scan is required. Used to drive different copy +
+ * button label so the user understands why a QR is about to appear.
+ */
+function isSessionExpired(reason: string | null | undefined): boolean {
+  if (!reason) return false
+  const lower = reason.toLowerCase()
+  return (
+    lower.includes("401") ||
+    lower.includes("440") ||
+    lower.includes("logged out") ||
+    lower.includes("loggedout") ||
+    lower.includes("connection replaced") ||
+    lower.includes("connectionreplaced")
+  )
+}
+
 export default function WhatsAppWebPage() {
   const qc = useQueryClient()
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null)
@@ -241,6 +260,7 @@ export default function WhatsAppWebPage() {
   const isConnecting = session?.status === "QR_PENDING" || session?.status === "CONNECTING"
   const isBanned = session?.status === "BANNED"
   const wasConnected = session?.status === "DISCONNECTED" && !!session?.phoneNumber
+  const sessionExpired = wasConnected && isSessionExpired(session?.lastDisconnectReason)
 
   return (
     <div className={styles.page}>
@@ -421,9 +441,15 @@ export default function WhatsAppWebPage() {
               <div className={styles.actions}>
                 {wasConnected ? (
                   <div>
-                    <div className={styles.prevConnection}>
-                      Previously connected: <strong>+{session!.phoneNumber}</strong>
-                    </div>
+                    {sessionExpired ? (
+                      <div className={styles.prevConnection}>
+                        <strong>Session expired by WhatsApp.</strong> Your phone unlinked the device or the session timed out. Scan a fresh QR to relink <strong>+{session!.phoneNumber}</strong>.
+                      </div>
+                    ) : (
+                      <div className={styles.prevConnection}>
+                        Previously connected: <strong>+{session!.phoneNumber}</strong>
+                      </div>
+                    )}
                     <div className={styles.actionGroup}>
                       <button
                         className={styles.btnSecondary}
@@ -431,7 +457,9 @@ export default function WhatsAppWebPage() {
                         onClick={() => restart.mutate(selectedAgentId)}
                         disabled={restart.isPending}
                       >
-                        {restart.isPending ? "Reconnecting…" : "Reconnect"}
+                        {restart.isPending
+                          ? (sessionExpired ? "Loading QR…" : "Reconnecting…")
+                          : (sessionExpired ? "Scan New QR" : "Reconnect")}
                       </button>
                       <button
                         className={styles.btnDanger}

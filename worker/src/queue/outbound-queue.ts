@@ -20,7 +20,6 @@ import {
   getMonthlyCreditsUsed,
   insertCreditUsage,
 } from "../db/queries.js"
-import { markSentByUs } from "../baileys/sent-message-cache.js"
 import { webhookEmitter } from "../dashboard/webhook-emitter.js"
 import { logger as rootLogger } from "../lib/logger.js"
 import { RateLimitError } from "../lib/errors.js"
@@ -115,14 +114,15 @@ const worker = new Worker<OutboundJob>(
     const startMs = Date.now()
 
     try {
-      let sentMsgId: string | undefined
+      // sendWithPacing / sendImageWithPacing register the msgId in the dedup
+      // cache internally — immediately after the send returns, before the
+      // post-send pacing delay — so we don't race the WhatsApp fromMe
+      // reflection arriving back at our event handler.
       if (type === "image" && mediaUrl) {
-        sentMsgId = await sendImageWithPacing(sock, toJid, mediaUrl, text, session.warmupTier)
+        await sendImageWithPacing(sock, toJid, mediaUrl, text, session.warmupTier)
       } else {
-        sentMsgId = await sendWithPacing(sock, toJid, text, session.warmupTier)
+        await sendWithPacing(sock, toJid, text, session.warmupTier)
       }
-      // Register in dedup cache so event-handlers skips this reflected message
-      if (sentMsgId) markSentByUs(sentMsgId)
 
       // Only AI sends consume credits. Human operator replies — whether sent
       // from the dashboard or the operator's own phone — are free. The user's
