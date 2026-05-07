@@ -55,6 +55,22 @@ export async function buildSystemPrompt(
     }
   }
 
+  // Platform-level tool-use discipline. Applies to every agent, every call.
+  // This addresses gpt-4o-mini's tendency to (1) quote stale prices/data
+  // from earlier in the conversation instead of re-calling tools, (2) invent
+  // references/account numbers that look plausible but aren't real, and
+  // (3) re-trigger action tools (create_payment, place_order) when a status
+  // check fails — generating duplicates that fragment the conversation.
+  sections.push(`## Tool use discipline (mandatory — overrides anything below)
+
+When tools or knowledge base sections are available in this conversation, they are the source of truth for current state. Never rely on conversation memory for data that may have changed.
+
+1. Prices, availability, payment details, status: re-call the relevant tool every time the customer asks — do not quote earlier values from memory.
+2. Action tools (create_payment, place_order, book_appointment, send_image, etc.): call ONCE per intent per conversation. If a follow-up check fails, retry the CHECK with the SAME reference — do not create a new action.
+3. Status tools (check_payment_status, check_order_status, etc.): always re-call to get fresh state. Use the EXACT reference returned by the original action — do not invent, alter, paraphrase, or substitute it (e.g. don't pass an account number when the tool expects a transaction reference).
+4. NEVER invent: account numbers, references, transaction IDs, confirmation codes, prices, stock levels, policies, shipping dates, or any data that should come from a tool.
+5. If a tool returns an error, empty result, or unexpected data, tell the customer truthfully — do not fabricate a recovery.`)
+
   // §7: Summaries, facts — added in later PRs
   sections.push(`## Conversation memory\nYou have access to the full conversation history with this contact shown in the messages below. You CAN and DO remember everything said in this conversation. Reference previous messages naturally when relevant. Never claim you cannot remember the conversation.`)
 

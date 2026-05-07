@@ -1,5 +1,20 @@
 [
   {
+    "date": "6 May 2026",
+    "tag": "Improvement",
+    "tagColor": "blue",
+    "title": "Reply Anywhere — AI Pauses Automatically",
+    "description": "Take over a customer conversation instantly without touching any toggle. Whenever you reply — from the D-Zero dashboard or directly from your linked WhatsApp on your phone — the AI pauses for that conversation until you switch it back on. Manual replies are now free too.",
+    "bullets": [
+      "Reply from the dashboard chat input — conversation switches to Human mode automatically",
+      "Reply directly from your phone via WhatsApp — same auto-switch, no dashboard required",
+      "AI stops responding to that customer until you click the AI toggle to resume",
+      "No more \"switch to human first\" error — just type and send",
+      "Your replies (dashboard or phone) appear in the chat history tagged as Human",
+      "Human messages no longer consume credits — only AI replies are billed"
+    ]
+  },
+  {
     "date": "3 May 2026",
     "tag": "New",
     "tagColor": "green",

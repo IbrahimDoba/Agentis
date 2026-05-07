@@ -5,11 +5,12 @@ import { useRouter } from "next/navigation"
 import { useQueryClient } from "@tanstack/react-query"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
-import { AGENT_TEMPLATES } from "@/lib/agentTemplates"
+import { AGENT_TEMPLATES, applyTemplateVariables, type TemplateVariables } from "@/lib/agentTemplates"
 import { Input, Textarea } from "@/components/ui/Input"
 import Button from "@/components/ui/Button"
 import { ProductsEditor } from "@/components/dashboard/ProductsEditor"
 import { CameraIcon, ArrowPathIcon, TagIcon } from "@heroicons/react/24/outline"
+import { useDashboardData } from "@/hooks/useDashboardData"
 import type { Product } from "@/types"
 import styles from "./CreateAgentFlow.module.css"
 
@@ -27,6 +28,16 @@ export function CreateAgentFlow() {
   const router = useRouter()
   const queryClient = useQueryClient()
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const { data: dashboardData } = useDashboardData()
+  const profileVars: TemplateVariables = {
+    BUSINESS_NAME: dashboardData?.user?.businessName ?? undefined,
+    BUSINESS_CATEGORY: dashboardData?.user?.businessCategory ?? undefined,
+    BUSINESS_DESCRIPTION: dashboardData?.user?.businessDescription ?? undefined,
+    CONTACT_EMAIL: dashboardData?.user?.businessEmail ?? dashboardData?.user?.email ?? undefined,
+    CONTACT_PHONE: dashboardData?.user?.phone ?? undefined,
+    WEBSITE: dashboardData?.user?.businessWebsite ?? undefined,
+    ADDRESS: dashboardData?.user?.businessAddress ?? undefined,
+  }
 
   const agentRuntime = "orchestrator"
 
@@ -71,8 +82,12 @@ export function CreateAgentFlow() {
               key={tpl.id}
               className={styles.pickerCard}
               onClick={() => {
-                setSelectedPrompt(tpl.systemPrompt)
-                setSystemPrompt(tpl.systemPrompt)
+                // Pre-fill placeholders from the user's profile so they don't
+                // have to type their own business name etc. Anything we don't
+                // know stays as `[fill this in]` for them to edit.
+                const filled = applyTemplateVariables(tpl.systemPrompt, profileVars)
+                setSelectedPrompt(filled)
+                setSystemPrompt(filled)
               }}
             >
               <span className={styles.pickerEmoji}>{tpl.emoji}</span>
