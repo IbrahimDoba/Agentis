@@ -157,6 +157,14 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
         timestamp: (msg.messageTimestamp as number) * 1000,
       })
 
+      // Extract click-to-WhatsApp ad referral if present. Only fires on the
+      // customer's first message after clicking a CTWA ad — subsequent
+      // messages won't carry it. Forwarding null is fine.
+      const adContext = extractAdContext(msg.message as Record<string, any> | null | undefined)
+      if (adContext) {
+        logger.info({ agentId, senderJid, adTitle: adContext.title, sourceId: adContext.sourceId }, "Inbound carries CTWA ad referral")
+      }
+
       // Forward to orchestrator for AI processing
       try {
         await forwardToOrchestrator({
@@ -168,6 +176,7 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
           timestamp: (msg.messageTimestamp as number) * 1000,
           pushName,
           extraCredits: voiceCredits || undefined,
+          adContext: adContext ?? undefined,
         })
       } catch (err) {
         logger.error({ err, agentId, senderJid }, "Failed to forward to orchestrator")
@@ -220,6 +229,66 @@ function extractFromMessage(m: Record<string, any>): string | null {
   return raw || null
 }
 
+export interface AdContext {
+  title: string | null
+  body: string | null
+  sourceUrl: string | null
+  sourceId: string | null
+  ctwaClid: string | null
+  thumbnailUrl: string | null
+  capturedAt: string
+}
+
+// Extract a click-to-WhatsApp ad referral payload from any inbound message
+// shape — text, image-with-caption, video-with-caption, or wrapped in an
+// ephemeral/viewOnce container. Returns null when the message did not
+// originate from an ad click. Same surface area as extractText so any new
+// message wrapper added there should be mirrored here.
+function extractAdContext(
+  message: Record<string, any> | null | undefined
+): AdContext | null {
+  if (!message) return null
+
+  const direct = findExternalAdReply(message)
+  if (direct) return normalizeAdReply(direct)
+
+  const wrappers = [
+    message.ephemeralMessage?.message,
+    message.viewOnceMessage?.message,
+    message.viewOnceMessageV2?.message?.viewOnceMessage?.message,
+    message.documentWithCaptionMessage?.message,
+  ]
+  for (const wrapped of wrappers) {
+    if (!wrapped) continue
+    const ext = findExternalAdReply(wrapped)
+    if (ext) return normalizeAdReply(ext)
+  }
+
+  return null
+}
+
+function findExternalAdReply(m: Record<string, any>): Record<string, any> | null {
+  return (
+    m.extendedTextMessage?.contextInfo?.externalAdReply ??
+    m.imageMessage?.contextInfo?.externalAdReply ??
+    m.videoMessage?.contextInfo?.externalAdReply ??
+    m.documentMessage?.contextInfo?.externalAdReply ??
+    null
+  )
+}
+
+function normalizeAdReply(raw: Record<string, any>): AdContext {
+  return {
+    title: typeof raw.title === "string" && raw.title.length > 0 ? raw.title : null,
+    body: typeof raw.body === "string" && raw.body.length > 0 ? raw.body : null,
+    sourceUrl: typeof raw.sourceUrl === "string" && raw.sourceUrl.length > 0 ? raw.sourceUrl : null,
+    sourceId: typeof raw.sourceId === "string" && raw.sourceId.length > 0 ? raw.sourceId : null,
+    ctwaClid: typeof raw.ctwaClid === "string" && raw.ctwaClid.length > 0 ? raw.ctwaClid : null,
+    thumbnailUrl: typeof raw.thumbnailUrl === "string" && raw.thumbnailUrl.length > 0 ? raw.thumbnailUrl : null,
+    capturedAt: new Date().toISOString(),
+  }
+}
+
 async function forwardToOrchestrator(payload: {
   agentId: string
   messageId: string
@@ -229,6 +298,7 @@ async function forwardToOrchestrator(payload: {
   timestamp: number
   pushName?: string
   extraCredits?: number  // e.g. voice transcription cost, billed on top of the AI reply cost
+  adContext?: AdContext
 }): Promise<void> {
   const url = `${config.ORCHESTRATOR_URL}/v1/inbound`
 

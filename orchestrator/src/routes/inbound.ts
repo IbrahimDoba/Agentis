@@ -6,6 +6,16 @@ import { logger as rootLogger } from "../lib/logger.js"
 
 const logger = rootLogger.child({ module: "route:inbound" })
 
+const adContextSchema = z.object({
+  title: z.string().nullable(),
+  body: z.string().nullable(),
+  sourceUrl: z.string().nullable(),
+  sourceId: z.string().nullable(),
+  ctwaClid: z.string().nullable(),
+  thumbnailUrl: z.string().nullable(),
+  capturedAt: z.string(),
+})
+
 const inboundSchema = z.object({
   agentId: z.string().min(1),
   messageId: z.string().min(1),
@@ -15,6 +25,7 @@ const inboundSchema = z.object({
   timestamp: z.number(),
   pushName: z.string().optional(),
   transportType: z.string().optional(),
+  adContext: adContextSchema.optional(),
 })
 
 export async function inboundRoutes(app: FastifyInstance) {
@@ -24,7 +35,7 @@ export async function inboundRoutes(app: FastifyInstance) {
       return reply.code(400).send({ error: "Invalid payload", details: parsed.error.flatten() })
     }
 
-    const { agentId, messageId, fromPhone, senderJid, text, timestamp, pushName } = parsed.data
+    const { agentId, messageId, fromPhone, senderJid, text, timestamp, pushName, adContext } = parsed.data
 
     // Dedup check
     if (await isDuplicate(messageId)) {
@@ -41,6 +52,7 @@ export async function inboundRoutes(app: FastifyInstance) {
       text,
       timestamp,
       pushName,
+      adContext,
     })
 
     logger.info({ agentId, fromPhone, messageId }, "Inbound message enqueued")

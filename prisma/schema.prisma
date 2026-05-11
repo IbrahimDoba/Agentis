@@ -234,6 +234,7 @@ model Conversation {
   lastActivityAt       DateTime?           @default(now())
   factsExtractedAt     DateTime?
   lastFollowedUpAt     DateTime?
+  adContext            Json?
   createdAt            DateTime            @default(now())
   messages             Message[]
   summary              ConversationSummary?

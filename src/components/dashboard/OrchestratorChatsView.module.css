@@ -333,6 +333,60 @@
   flex-shrink: 0;
 }
 
+/* CTWA ad referral banner */
+.adBanner {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  background: rgba(59, 130, 246, 0.08);
+  border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+  color: var(--text-primary);
+  padding: 0.65rem 1rem;
+  flex-shrink: 0;
+}
+
+.adBannerIcon {
+  color: #60a5fa;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.adBannerBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.adBannerTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.adBannerDesc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.adBannerMeta {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.adBannerLink {
+  color: #60a5fa;
+  text-decoration: none;
+}
+
+.adBannerLink:hover {
+  text-decoration: underline;
+}
+
 /* Message input */
 .inputWrap {
   display: flex;

@@ -1,6 +1,6 @@
 import type { ChatMessage } from "../providers/types.js"
 import type { OrchestratorAgent } from "../db/queries/agents.js"
-import type { Message } from "../db/queries/conversations.js"
+import type { AdContext, Message } from "../db/queries/conversations.js"
 import { getRecentMessages } from "../db/queries/conversations.js"
 import { retrieveRelevantChunks } from "../rag/indexer.js"
 import { listMediaItems } from "../db/queries/media.js"
@@ -15,7 +15,8 @@ const logger = rootLogger.child({ module: "context-builder" })
 export async function buildSystemPrompt(
   agent: OrchestratorAgent,
   timezone: string,
-  queryText?: string
+  queryText?: string,
+  adContext?: AdContext | null
 ): Promise<string> {
   const sections: string[] = []
 
@@ -23,6 +24,22 @@ export async function buildSystemPrompt(
 
   if (agent.personality) {
     sections.push(`## Personality\n${agent.personality}`)
+  }
+
+  // CTWA ad referral context — only present during the opening exchanges
+  // of a conversation that started with a click on a WhatsApp ad. Gated
+  // upstream by handle-inbound (message count window), so this section
+  // disappears naturally once the conversation moves past the greeting.
+  if (adContext && (adContext.title || adContext.body)) {
+    const lines: string[] = []
+    if (adContext.title) lines.push(`Ad headline: "${adContext.title}"`)
+    if (adContext.body) lines.push(`Ad description: "${adContext.body}"`)
+    sections.push(`## How this customer arrived
+This customer just clicked your WhatsApp ad and started this conversation.
+
+${lines.join("\n")}
+
+Greet them with awareness of what brought them here. Do NOT ask a generic "how can I help" — they came for a specific thing. Reference the product or offer from the ad and move them toward the next step (confirming price, sending an image, taking an order, booking, etc.). After the first few messages, treat the conversation normally and stop bringing up the ad explicitly.`)
   }
 
   // Media Library: tell the AI what images are available to send

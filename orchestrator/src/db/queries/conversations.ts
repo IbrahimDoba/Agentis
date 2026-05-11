@@ -1,6 +1,16 @@
 import { randomUUID } from "crypto"
 import { sql } from "../client.js"
 
+export interface AdContext {
+  title: string | null
+  body: string | null
+  sourceUrl: string | null
+  sourceId: string | null
+  ctwaClid: string | null
+  thumbnailUrl: string | null
+  capturedAt: string
+}
+
 export interface Conversation {
   id: string
   agentId: string
@@ -8,6 +18,7 @@ export interface Conversation {
   phoneNumber: string
   mode: "ai" | "human"
   lastActivityAt: string | null
+  adContext: AdContext | null
 }
 
 export interface Message {
@@ -34,7 +45,7 @@ export async function getOrCreateConversation(
 ): Promise<Conversation> {
   // Try to find existing
   const existing = await sql<Conversation[]>`
-    SELECT "id", "agentId", "orchestratorAgentId", "phoneNumber", "mode", "lastActivityAt"
+    SELECT "id", "agentId", "orchestratorAgentId", "phoneNumber", "mode", "lastActivityAt", "adContext"
     FROM "Conversation"
     WHERE "agentId" = ${agentId} AND "phoneNumber" = ${phoneNumber}
     LIMIT 1
@@ -58,9 +69,25 @@ export async function getOrCreateConversation(
   const rows = await sql<Conversation[]>`
     INSERT INTO "Conversation" ("id", "agentId", "orchestratorAgentId", "phoneNumber", "contactName", "mode", "lastActivityAt", "createdAt")
     VALUES (${id}, ${agentId}, ${orchestratorAgentId}, ${phoneNumber}, ${contactName ?? null}, ${defaultMode}, NOW(), NOW())
-    RETURNING "id", "agentId", "orchestratorAgentId", "phoneNumber", "mode", "lastActivityAt"
+    RETURNING "id", "agentId", "orchestratorAgentId", "phoneNumber", "mode", "lastActivityAt", "adContext"
   `
   return rows[0]
+}
+
+// Persist ad referral context on a conversation the FIRST time it appears.
+// Sticky-first: never overwrites an existing value, so a later ad click
+// doesn't clobber the original context the AI used to greet the customer.
+export async function setConversationAdContextIfEmpty(
+  conversationId: string,
+  adContext: AdContext
+): Promise<boolean> {
+  const rows = await sql<{ id: string }[]>`
+    UPDATE "Conversation"
+    SET "adContext" = ${JSON.stringify(adContext)}::jsonb
+    WHERE "id" = ${conversationId} AND "adContext" IS NULL
+    RETURNING "id"
+  `
+  return rows.length > 0
 }
 
 export async function insertMessage(msg: {

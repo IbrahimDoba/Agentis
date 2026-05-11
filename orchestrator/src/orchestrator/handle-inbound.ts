@@ -2,6 +2,9 @@ import { getOrchestratorAgent, getAgentTools } from "../db/queries/agents.js"
 import {
   getOrCreateConversation,
   insertMessage,
+  setConversationAdContextIfEmpty,
+  getConversationMessageCount,
+  type AdContext,
 } from "../db/queries/conversations.js"
 import { buildSystemPrompt, buildMessages } from "./context-builder.js"
 import { dispatchReply } from "./response-dispatcher.js"
@@ -21,6 +24,7 @@ export interface InboundPayload {
   text: string
   timestamp: number
   pushName?: string
+  adContext?: AdContext
 }
 
 /**
@@ -29,7 +33,7 @@ export interface InboundPayload {
  */
 export async function handleInbound(payload: InboundPayload): Promise<void> {
   const startMs = Date.now()
-  const { agentId, fromPhone, senderJid, text, pushName } = payload
+  const { agentId, fromPhone, senderJid, text, pushName, adContext: incomingAdContext } = payload
 
   // 1. Load orchestrator agent config
   const agent = await getOrchestratorAgent(agentId)
@@ -46,6 +50,18 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
     pushName
   )
 
+  // 2a. Persist CTWA ad context on first detection. Sticky-first — won't
+  // overwrite an existing value, so a later ad click can't clobber the
+  // original context the AI used to greet the customer.
+  let effectiveAdContext = conversation.adContext
+  if (incomingAdContext && !effectiveAdContext) {
+    const stored = await setConversationAdContextIfEmpty(conversation.id, incomingAdContext)
+    if (stored) {
+      effectiveAdContext = incomingAdContext
+      logger.info({ agentId, conversationId: conversation.id, adTitle: incomingAdContext.title }, "Captured CTWA ad referral on conversation")
+    }
+  }
+
   // 3. Always save the inbound message regardless of mode
   await insertMessage({
     conversationId: conversation.id,
@@ -59,8 +75,12 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
     return
   }
 
-  // 5. Build context
-  const systemPrompt = await buildSystemPrompt(agent, "Africa/Lagos", text)
+  // 5. Build context. Only inject the ad referral section during the
+  // opening exchanges so the AI doesn't keep referencing the ad weeks
+  // later for unrelated questions.
+  const messageCount = await getConversationMessageCount(conversation.id)
+  const adContextForPrompt = effectiveAdContext && messageCount <= 6 ? effectiveAdContext : null
+  const systemPrompt = await buildSystemPrompt(agent, "Africa/Lagos", text, adContextForPrompt)
   const messages = await buildMessages(conversation.id, agent.shortTermWindow)
 
   // 6. Call LLM — tool-calling loop (max 5 iterations to avoid runaway loops)

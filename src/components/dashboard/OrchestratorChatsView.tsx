@@ -3,8 +3,18 @@
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { Cog6ToothIcon } from "@heroicons/react/24/outline"
+import { Cog6ToothIcon, MegaphoneIcon } from "@heroicons/react/24/outline"
 import styles from "./OrchestratorChatsView.module.css"
+
+interface AdContext {
+  title: string | null
+  body: string | null
+  sourceUrl: string | null
+  sourceId: string | null
+  ctwaClid: string | null
+  thumbnailUrl: string | null
+  capturedAt: string
+}
 
 interface OrchestratorConversation {
   id: string
@@ -16,6 +26,7 @@ interface OrchestratorConversation {
   lastActivityAt: string
   createdAt: string
   messageCount: number
+  adContext: AdContext | null
   lastMessage: {
     content: string
     direction: string
@@ -431,6 +442,39 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
             {convMode === "human" && (
               <div className={styles.humanBanner}>
                 AI paused for this conversation — you are handling replies manually
+              </div>
+            )}
+
+            {/* CTWA ad referral banner — surfaced when this customer arrived
+                via a click-to-WhatsApp ad. Helps the operator see context
+                without scrolling to the first message. */}
+            {selectedConv?.adContext && (selectedConv.adContext.title || selectedConv.adContext.body) && (
+              <div className={styles.adBanner}>
+                <MegaphoneIcon width={16} height={16} className={styles.adBannerIcon} />
+                <div className={styles.adBannerBody}>
+                  <div className={styles.adBannerTitle}>
+                    From ad{selectedConv.adContext.title ? `: "${selectedConv.adContext.title}"` : ""}
+                  </div>
+                  {selectedConv.adContext.body && (
+                    <div className={styles.adBannerDesc}>{selectedConv.adContext.body}</div>
+                  )}
+                  <div className={styles.adBannerMeta}>
+                    Clicked {formatFullTime(selectedConv.adContext.capturedAt)}
+                    {selectedConv.adContext.sourceUrl && (
+                      <>
+                        {" · "}
+                        <a
+                          href={selectedConv.adContext.sourceUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={styles.adBannerLink}
+                        >
+                          View ad ↗
+                        </a>
+                      </>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
 

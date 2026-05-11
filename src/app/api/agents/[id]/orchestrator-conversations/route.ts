@@ -42,6 +42,7 @@ export async function GET(
         mode: true,
         lastActivityAt: true,
         createdAt: true,
+        adContext: true,
         _count: { select: { messages: true } },
         messages: {
           orderBy: { createdAt: "desc" },
@@ -113,6 +114,7 @@ export async function GET(
         mode: c.mode,
         lastActivityAt: (c.lastActivityAt ?? c.createdAt).toISOString(),
         createdAt: c.createdAt.toISOString(),
+        adContext: c.adContext,
         messageCount: c._count.messages,
         lastMessage: c.messages[0]
           ? {
