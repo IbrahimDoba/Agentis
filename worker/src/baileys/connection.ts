@@ -16,6 +16,12 @@ export interface ConnectionOptions {
   onConnected: (phoneNumber: string) => void
   onDisconnected: (reason: string, shouldReconnect: boolean) => void
   onBanned: () => void
+  // When true, ask WhatsApp to push full chat history on link.
+  // Caller is responsible for gating this to first-ever connect for the
+  // session (we set it once via session-manager when the user has the
+  // history-sync admin feature enabled and BaileysSession.historySyncedAt
+  // is null).
+  syncFullHistory?: boolean
 }
 
 
@@ -40,6 +46,7 @@ export async function createConnection(opts: ConnectionOptions): Promise<WASocke
     retryRequestDelayMs: 2_000,
     markOnlineOnConnect: false,
     defaultQueryTimeoutMs: undefined,
+    syncFullHistory: opts.syncFullHistory ?? false,
   })
 
   // NOTE: creds.update is handled in session-manager.ts via saveCreds

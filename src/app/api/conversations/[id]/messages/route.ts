@@ -74,6 +74,7 @@ export async function POST(
           select: {
             userId: true,
             agentRuntime: true,
+            autoPauseOnHumanReply: true,
           },
         },
       },
@@ -102,16 +103,20 @@ export async function POST(
       source: "human",
     })
 
-    // Auto-pause AI: any human-sent message flips an AI conversation into
-    // human-handoff mode. The orchestrator's handle-inbound checks this on
-    // the next customer message and skips the AI reply. User clicks the
-    // AI toggle in the dashboard when they want the agent back.
-    const wasAi = conversation.mode === "ai"
+    // Auto-pause AI: when the agent's autoPauseOnHumanReply setting is on
+    // (default true), any human-sent message flips an AI conversation into
+    // human-handoff mode. The orchestrator's handle-inbound checks the mode
+    // on the next customer message and skips the AI reply. User clicks the
+    // AI toggle when they want the agent back. If the setting is off, the
+    // operator's send goes through but the AI keeps replying to subsequent
+    // customer messages — useful for power users who manage handoff manually.
+    const shouldAutoPause =
+      conversation.mode === "ai" && conversation.agent.autoPauseOnHumanReply
     await db.conversation.update({
       where: { id: conversationId },
       data: {
         lastActivityAt: new Date(),
-        ...(wasAi && { mode: "human" }),
+        ...(shouldAutoPause && { mode: "human" }),
       },
     })
 

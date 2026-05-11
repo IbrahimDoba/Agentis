@@ -267,6 +267,22 @@
 }
 .closeBtn:hover { color: var(--text-primary); background: var(--bg-hover); }
 
+.settingsBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.35rem;
+  border-radius: var(--radius-sm);
+  transition: color 0.15s, background 0.15s;
+  text-decoration: none;
+}
+
+.settingsBtn:hover { color: var(--text-primary); background: var(--bg-hover); }
+
 /* Mode toggle */
 .modeToggle {
   display: flex;

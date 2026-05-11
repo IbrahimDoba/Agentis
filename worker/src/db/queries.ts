@@ -124,6 +124,106 @@ export async function deleteSession(agentId: string): Promise<void> {
   await sql`DELETE FROM "BaileysSession" WHERE "agentId" = ${agentId}`
 }
 
+// ── History sync (admin-gated chat-history-on-link feature) ──────────────────
+
+export interface HistorySyncStatus {
+  // True when the agent's owning user has the admin-controlled feature enabled.
+  userEnabled: boolean
+  // True when this session has already received a history sync — set after
+  // the first messaging-history.set finishes. Reconnects skip re-pulling.
+  alreadySynced: boolean
+}
+
+export async function getHistorySyncStatus(agentId: string): Promise<HistorySyncStatus> {
+  const rows = await sql<{ userEnabled: boolean; historySyncedAt: string | null }[]>`
+    SELECT u."historySyncEnabled" as "userEnabled",
+           s."historySyncedAt"
+    FROM "Agent" a
+    JOIN "User" u ON u."id" = a."userId"
+    LEFT JOIN "BaileysSession" s ON s."agentId" = a."id"
+    WHERE a."id" = ${agentId}
+    LIMIT 1
+  `
+  const r = rows[0]
+  if (!r) return { userEnabled: false, alreadySynced: false }
+  return {
+    userEnabled: Boolean(r.userEnabled),
+    alreadySynced: r.historySyncedAt !== null,
+  }
+}
+
+export async function markSessionHistorySynced(agentId: string): Promise<void> {
+  await sql`
+    UPDATE "BaileysSession"
+    SET "historySyncedAt" = NOW(), "updatedAt" = NOW()
+    WHERE "agentId" = ${agentId}
+  `
+}
+
+// Upsert a Conversation by (agentId, phoneNumber) and return its id.
+// Used by the history-sync handler — does not bump lastActivityAt past
+// the historical timestamp, so newly synced old chats sort correctly.
+export async function upsertConversationForHistory(
+  agentId: string,
+  phoneNumber: string,
+  contactName: string | null,
+  lastActivityAt: Date
+): Promise<string> {
+  const existing = await sql<{ id: string }[]>`
+    SELECT "id" FROM "Conversation"
+    WHERE "agentId" = ${agentId} AND "phoneNumber" = ${phoneNumber}
+    LIMIT 1
+  `
+  if (existing[0]) {
+    await sql`
+      UPDATE "Conversation"
+      SET "contactName" = COALESCE("contactName", ${contactName}),
+          "lastActivityAt" = GREATEST("lastActivityAt", ${lastActivityAt.toISOString()}::timestamptz)
+      WHERE "id" = ${existing[0].id}
+    `
+    return existing[0].id
+  }
+  const id = randomUUID()
+  await sql`
+    INSERT INTO "Conversation" ("id", "agentId", "phoneNumber", "contactName", "mode", "lastActivityAt", "createdAt")
+    VALUES (${id}, ${agentId}, ${phoneNumber}, ${contactName}, 'ai',
+            ${lastActivityAt.toISOString()}::timestamptz, NOW())
+  `
+  return id
+}
+
+export interface HistoryMessageInsert {
+  conversationId: string
+  direction: "inbound" | "outbound"
+  senderRole: "ai" | "human"
+  content: string
+  createdAt: Date
+}
+
+export async function bulkInsertHistoryMessages(rows: HistoryMessageInsert[]): Promise<number> {
+  if (rows.length === 0) return 0
+  let inserted = 0
+  // Insert in batches of 200 to avoid an unbounded statement.
+  const batchSize = 200
+  for (let i = 0; i < rows.length; i += batchSize) {
+    const batch = rows.slice(i, i + batchSize)
+    const values = batch.map((m) => ({
+      id: randomUUID(),
+      conversationId: m.conversationId,
+      direction: m.direction,
+      senderRole: m.senderRole,
+      content: m.content,
+      createdAt: m.createdAt.toISOString(),
+    }))
+    await sql`
+      INSERT INTO "Message" ("id", "conversationId", "direction", "senderRole", "content", "createdAt")
+      SELECT * FROM ${sql(values, "id", "conversationId", "direction", "senderRole", "content", "createdAt")}
+    `
+    inserted += batch.length
+  }
+  return inserted
+}
+
 // ── Outbound log ──────────────────────────────────────────────────────────────
 
 export async function logOutbound(entry: {
@@ -248,14 +348,21 @@ export async function saveHumanOutboundMessage(
     INSERT INTO "Message" ("id", "conversationId", "direction", "senderRole", "content", "createdAt")
     VALUES (${id}, ${conversationId}, 'outbound', 'human', ${text}, NOW())
   `
-  // Auto-pause AI: operator just replied directly. Flip the conversation to
-  // human mode so the orchestrator skips AI replies for the customer's next
-  // inbound. Idempotent — only changes mode when it was 'ai'.
+  // Auto-pause AI: when the agent's autoPauseOnHumanReply setting is on,
+  // flip the conversation to human mode so the orchestrator skips AI
+  // replies for the customer's next inbound. The CASE condition is
+  // idempotent — only changes mode when current mode is 'ai' AND the
+  // agent has the feature enabled.
   await sql`
-    UPDATE "Conversation"
+    UPDATE "Conversation" c
     SET "lastActivityAt" = NOW(),
-        "mode" = CASE WHEN "mode" = 'ai' THEN 'human' ELSE "mode" END
-    WHERE "id" = ${conversationId}
+        "mode" = CASE
+          WHEN c."mode" = 'ai' AND a."autoPauseOnHumanReply" = true THEN 'human'
+          ELSE c."mode"
+        END
+    FROM "Agent" a
+    WHERE c."id" = ${conversationId}
+      AND a."id" = c."agentId"
   `
 }
 

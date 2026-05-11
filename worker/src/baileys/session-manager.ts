@@ -2,8 +2,9 @@ import type { WASocket } from "@whiskeysockets/baileys"
 import { getEncryptedAuthState, purgeAuthFiles } from "./auth-store.js"
 import { createConnection } from "./connection.js"
 import { createEventHandlers } from "./event-handlers.js"
+import { attachHistorySyncHandler } from "./history-sync.js"
 import { updateContacts, setLidMappingStore } from "./contacts-store.js"
-import { updateSessionStatus, upsertSession, deleteSession, getSessionByAgentId } from "../db/queries.js"
+import { updateSessionStatus, upsertSession, deleteSession, getSessionByAgentId, getHistorySyncStatus } from "../db/queries.js"
 import { webhookEmitter } from "../dashboard/webhook-emitter.js"
 import { logger as rootLogger } from "../lib/logger.js"
 import { NotFoundError, SessionError } from "../lib/errors.js"
@@ -136,6 +137,21 @@ async function startSession(agentId: string, reconnectAttempt = 0): Promise<void
 
   const { state, saveCreds } = await getEncryptedAuthState(agentId)
 
+  // Admin-gated chat-history-on-link feature: only request a full history
+  // pull when the agent's owning user has the toggle on AND this session
+  // hasn't already been synced once. Reconnects of an already-synced session
+  // skip the full pull regardless of the user flag.
+  let syncFullHistory = false
+  try {
+    const status = await getHistorySyncStatus(agentId)
+    syncFullHistory = status.userEnabled && !status.alreadySynced
+    if (syncFullHistory) {
+      logger.info({ agentId }, "History sync enabled for this connect — requesting full chat history")
+    }
+  } catch (err) {
+    logger.warn({ err, agentId }, "Failed to read history sync status — defaulting to off")
+  }
+
   const active: ActiveSession = {
     sock: null as never, // assigned below
     agentId,
@@ -149,6 +165,7 @@ async function startSession(agentId: string, reconnectAttempt = 0): Promise<void
   const sock = await createConnection({
     agentId,
     authState: { creds: state.creds, keys: state.keys },
+    syncFullHistory,
 
     onQr: async (qr) => {
       active.qrCallbacks.forEach((cb) => cb(qr, "qr"))
@@ -248,4 +265,10 @@ async function startSession(agentId: string, reconnectAttempt = 0): Promise<void
 
   // Attach inbound message handlers
   createEventHandlers(sock, agentId)
+
+  // Attach history-sync handler only when we asked for the pull. If we
+  // didn't, attaching is harmless but pointless — the event won't fire.
+  if (syncFullHistory) {
+    attachHistorySyncHandler(sock, agentId)
+  }
 }

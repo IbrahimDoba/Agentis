@@ -71,6 +71,7 @@ export interface AgentPublic {
   elevenlabsAgentId?: string
   agentRuntime?: string
   messagingEnabled?: boolean
+  autoPauseOnHumanReply?: boolean
   category?: string | null
   address?: string | null
   productsData?: Product[] | null

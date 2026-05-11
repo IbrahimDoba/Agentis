@@ -17,6 +17,7 @@ import {
   UsersIcon,
   DevicePhoneMobileIcon,
   MegaphoneIcon,
+  BookOpenIcon,
 } from "@heroicons/react/24/outline"
 import { cn } from "@/lib/utils"
 import { useDashboardData } from "@/hooks/useDashboardData"
@@ -173,6 +174,20 @@ export function Sidebar({ userName, businessName, currentUserId, currentWorkspac
             {!collapsed && "Profile"}
           </Link>
           {collapsed && <span className={styles.tooltip}>Profile</span>}
+        </div>
+
+        <div className={styles.navItemWrap}>
+          <Link
+            href="/dashboard/guide"
+            className={cn(styles.navLink, isActive("/dashboard/guide") ? styles.active : undefined)}
+            onClick={onClose}
+          >
+            <span className={styles.navIcon}>
+              <BookOpenIcon width={16} height={16} />
+            </span>
+            {!collapsed && "Guide"}
+          </Link>
+          {collapsed && <span className={styles.tooltip}>Guide</span>}
         </div>
 
         <div className={styles.navItemWrap}>

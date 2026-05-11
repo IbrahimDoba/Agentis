@@ -36,6 +36,7 @@ model User {
   subscriptionExpiresAt   DateTime?
   onboardingCompleted     Boolean    @default(false)
   referralsEnabled    Boolean    @default(false)
+  historySyncEnabled  Boolean    @default(false)
   createdAt           DateTime   @default(now())
   updatedAt          DateTime   @updatedAt
   agents             Agent[]
@@ -68,6 +69,7 @@ model Agent {
   elevenlabsAgentId    String?
   whatsappPhoneNumberId String?
   messagingEnabled     Boolean     @default(true)
+  autoPauseOnHumanReply Boolean    @default(true)
   category             String?
   address              String?
   productsData         Json?
@@ -452,6 +454,7 @@ model BaileysSession {
   authBackupPath       String?
   warmupStartedAt      DateTime?
   warmupTier           Int              @default(1)
+  historySyncedAt      DateTime?
   dailyMessageCount    Int              @default(0)
   dailyCountResetAt    DateTime         @default(now())
   businessHoursStart   String           @default("08:00")

@@ -38,6 +38,7 @@ export const agentSchema = z.object({
   whatsappBusinessName: z.string().optional(),
   category: z.string().optional(),
   address: z.string().optional(),
+  autoPauseOnHumanReply: z.boolean().optional(),
   agentRuntime: z.enum(["elevenlabs", "orchestrator"]).optional(),
   productsData: z.array(z.object({
     id: z.string(),

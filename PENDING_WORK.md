@@ -1,56 +1,47 @@
 # Pending Work Log
 
-## ✅ Completed & Pushed
+## 🔜 Planned: Per-Agent Conversation Settings
 
-- Onboarding: brand name "Agentis" → "D-Zero AI"
-- Onboarding: removed "team reviews within 24 hours" from step 5
-- Onboarding: saves goals to new `businessGoals` DB field (migration included)
-- Agent detail page: added "Guide" tab with collapsible accordion explaining all tabs + step-by-step agent setup guide
-- Credits: human operator messages now charge credits (5/text, 8/image) same as AI
-- Credits: billing limit enforcement still AI-only (operators always go through)
-- Credits: billing page now shows AI vs Team credit breakdown
-- Worker: daily message count display now reads from Redis (source of truth)
-- All pushed to GitHub. Migration runs automatically on next deploy.
+Discussed 2026-05-07. Goal: move always-on behaviours (like the auto-pause-on-human-reply we just shipped) behind user-controllable toggles, with a clean home for future conversation-level settings to land.
 
----
+### Placement decisions
+- Settings live on the **Agent detail page** as a new "Settings" tab — alongside Profile / Configuration / Documents / Tools.
+- The Conversations chat header gets a small ⚙ icon that deeplinks to `/dashboard/agent/<id>?tab=settings`. One-click from the work surface.
+- Templates tab + Guide tab are being **removed from the agent detail page**. Guide moves to a standalone `/dashboard/guide` page accessible from the sidebar (next to "What's New").
 
-## ✅ Completed Locally — Ready to Commit/Push
+### v1 implementation chunks
 
-### Basic Plan (₦30,000 / 25,000 credits):
+**1. Cleanup — remove Templates + Guide tabs**
+- Drop both from the `TABS()` array in `src/app/dashboard/agent/[id]/page.tsx`.
+- Remove `<TemplatesTab>` and `<AgentGuide>` rendering blocks + unused imports.
+- Move `AgentGuide` function + `GUIDE_SECTIONS` constant out of the agent page.
 
-1. **`src/lib/plans.ts`** — Added `basic` to:
-   - `PLAN_PRICES` (30000)
-   - `PLAN_CREDIT_LIMITS` (25000)
-   - `PLAN_OVERAGE_RATE_PER_1K` (null — no overage)
-   - `PLAN_LABELS` ("Basic")
-   - `PLAN_FEATURES` (list of features)
-   - `PLAN_ORDER` (between free and starter)
-   - `PLAN_SEAT_LIMITS` (1)
+**2. Move Guide → standalone page**
+- New route `/dashboard/guide` rendering the existing accordion.
+- Drop the now-irrelevant "Templates" section from `GUIDE_SECTIONS`.
+- Add a "Guide" entry to the dashboard `Sidebar` nav (next to "What's New").
 
-2. **`worker/src/billing/credits.ts`** — Added `basic: 25000` to `PLAN_CREDIT_LIMITS`
+**3. New "Settings" tab on agent detail**
+- New `AgentSettingsTab` component.
+- v1 ships exactly one toggle: **"Auto-pause AI when I reply manually"** — default `ON` to preserve current behaviour.
+- Description of what the toggle does, then a Save button → PATCH `/api/agents/[id]`.
+- Agent detail page accepts `?tab=settings` query param so the deeplink lands on the right tab.
 
-3. **`src/app/api/subscription/request/route.ts`** — Added `"basic"` to the zod enum
+**4. Backend plumbing**
+- Prisma migration: `Agent.autoPauseOnHumanReply Boolean @default(true)`.
+- Update `agentSchema` in `src/lib/validations.ts` to accept the new field.
+- Two enforcement sites must consult the flag before flipping `Conversation.mode` to "human":
+  - `src/app/api/conversations/[id]/messages/route.ts` (dashboard human-send path).
+  - Worker's `saveHumanOutboundMessage` in `worker/src/db/queries.ts` (phone-reply path) — needs a small SELECT for the flag.
 
-4. **`src/components/admin/AdminPaymentsTable.tsx`** — Added `basic: "#0f766e"` color
+**5. Deeplink ⚙ on Conversations**
+- Small icon next to the agent name in the chats header → links to the Settings tab.
 
-5. **`src/app/(marketing)/pricing/page.tsx`** — Added `basicMonthly` + `basicFeatures`, then completed:
-   - Basic plan card in the plans grid
-   - Comparison table Basic column
-   - FAQ updates to mention Basic plan behavior
-
-6. **`src/app/(marketing)/pricing/page.module.css`** — Updated comparison table grid from 3 columns to 4 columns for Feature + Basic + Starter + Pro
-
-7. **`src/app/dashboard/subscription/page.tsx`** — Added `basic: false` to `PLAN_POPULAR`
-
-8. **Validation** — ESLint passed on touched pricing/subscription files
-
-### Remaining TODO:
-
-1. **Commit & push** all Basic-plan related changes together
-
----
-
-## 📋 Other Things to Consider (not discussed yet)
-
-- Media display in conversation view (mentioned but deferred)
-- Credits for inbound customer messages (decided: not applicable)
+### Future toggles to add to the same panel (not v1)
+- Greet new contacts automatically with a configurable message
+- Default mode for new conversations (ai / human)
+- Quiet hours / AI working hours (when to NOT respond)
+- Auto-mark-as-read toggle
+- Send typing indicator toggle
+- Welcome / away messages
+- Forward unhandled messages to email or SMS

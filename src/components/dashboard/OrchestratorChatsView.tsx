@@ -1,7 +1,9 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
+import Link from "next/link"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { Cog6ToothIcon } from "@heroicons/react/24/outline"
 import styles from "./OrchestratorChatsView.module.css"
 
 interface OrchestratorConversation {
@@ -411,6 +413,17 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
                   </button>
                 </div>
               )}
+              {/* Settings deeplink — opens the agent's Settings tab in a new tab so
+                  the operator doesn't lose their place in the chat. */}
+              <Link
+                href={`/dashboard/agent/${agentId}?tab=settings`}
+                className={styles.settingsBtn}
+                title="Conversation settings for this agent"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Cog6ToothIcon width={16} height={16} />
+              </Link>
               <button className={styles.closeBtn} onClick={() => setSelectedId(null)}>✕</button>
             </div>
 
