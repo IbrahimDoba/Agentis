@@ -7,6 +7,22 @@ import { sumCreditsForAgents, sumCreditsBySourceForAgents } from "@/lib/creditUs
 import { getBillingPeriod } from "@/lib/billing-period"
 
 type RuntimeView = "orchestrator" | "elevenlabs"
+type StatsRange = "7d" | "1m" | "6m" | "1y" | "all"
+
+const VALID_RANGES: ReadonlySet<StatsRange> = new Set(["7d", "1m", "6m", "1y", "all"])
+
+function rangeStart(range: StatsRange): Date | null {
+  if (range === "all") return null
+  const now = new Date()
+  const d = new Date(now)
+  switch (range) {
+    case "7d": d.setDate(d.getDate() - 7); break
+    case "1m": d.setMonth(d.getMonth() - 1); break
+    case "6m": d.setMonth(d.getMonth() - 6); break
+    case "1y": d.setFullYear(d.getFullYear() - 1); break
+  }
+  return d
+}
 
 export async function GET(req: NextRequest) {
   const session = await auth()
@@ -15,6 +31,9 @@ export async function GET(req: NextRequest) {
   const { ownerId } = await getWorkspaceContext(session.user.id)
   const runtime = (req.nextUrl.searchParams.get("runtime") ?? "orchestrator") as RuntimeView
   const agentId = req.nextUrl.searchParams.get("agentId")
+  const rangeParam = req.nextUrl.searchParams.get("range") as StatsRange | null
+  const range: StatsRange = rangeParam && VALID_RANGES.has(rangeParam) ? rangeParam : "all"
+  const since = rangeStart(range)
 
   const user = await db.user.findUnique({
     where: { id: ownerId },
@@ -46,21 +65,43 @@ export async function GET(req: NextRequest) {
   let monthlyAiCredits = 0
   let monthlyHumanCredits = 0
 
+  // The 4 stat cards (conversations, AI messages, leads, contacts) are
+  // scoped by `range` via createdAt. Credits stay tied to the billing
+  // period — those drive the plan/overage UI and shouldn't move with
+  // the cards' selector.
+  const createdAtFilter = since ? { gte: since } : undefined
+
   if (runtime === "orchestrator") {
     if (runtimeAgentIds.length > 0) {
       const [convCount, aiMsgCount, leadCount, contacts, creditsTotal, creditsMonthly, creditsBreakdown] = await Promise.all([
-        db.conversation.count({ where: { agentId: { in: runtimeAgentIds } } }),
+        db.conversation.count({
+          where: {
+            agentId: { in: runtimeAgentIds },
+            ...(createdAtFilter ? { createdAt: createdAtFilter } : {}),
+          },
+        }),
         db.message.count({
           where: {
             direction: "outbound",
             senderRole: "ai",
             conversation: { agentId: { in: runtimeAgentIds } },
+            ...(createdAtFilter ? { createdAt: createdAtFilter } : {}),
           },
         }),
-        db.lead.count({ where: { userId: ownerId, agentId: { in: runtimeAgentIds } } }),
+        db.lead.count({
+          where: {
+            userId: ownerId,
+            agentId: { in: runtimeAgentIds },
+            ...(createdAtFilter ? { createdAt: createdAtFilter } : {}),
+          },
+        }),
         db.conversation.groupBy({
           by: ["phoneNumber"],
-          where: { agentId: { in: runtimeAgentIds }, phoneNumber: { not: "" } },
+          where: {
+            agentId: { in: runtimeAgentIds },
+            phoneNumber: { not: "" },
+            ...(createdAtFilter ? { createdAt: createdAtFilter } : {}),
+          },
         }),
         sumCreditsForAgents(runtimeAgentIds),
         sumCreditsForAgents(runtimeAgentIds, monthStart, monthEnd),
@@ -83,13 +124,22 @@ export async function GET(req: NextRequest) {
           ...(elevenLabsIds.length > 0 ? [{ elevenlabsAgentId: { in: elevenLabsIds } }] : []),
         ],
       }
+      const rangedLogFilter = createdAtFilter
+        ? { ...logFilter, createdAt: createdAtFilter }
+        : logFilter
 
       const [convCount, leadCount, contacts, creditsAgg, monthlyCreditsAgg] = await Promise.all([
-        db.conversationLog.count({ where: logFilter }),
-        db.lead.count({ where: { userId: ownerId, agentId: { in: runtimeAgentIds } } }),
+        db.conversationLog.count({ where: rangedLogFilter }),
+        db.lead.count({
+          where: {
+            userId: ownerId,
+            agentId: { in: runtimeAgentIds },
+            ...(createdAtFilter ? { createdAt: createdAtFilter } : {}),
+          },
+        }),
         db.conversationLog.groupBy({
           by: ["phoneNumber"],
-          where: { ...logFilter, phoneNumber: { not: null } },
+          where: { ...rangedLogFilter, phoneNumber: { not: null } },
         }),
         db.conversationLog.aggregate({ where: logFilter, _sum: { creditsUsed: true } }),
         db.conversationLog.aggregate({
@@ -112,6 +162,7 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({
     runtime,
+    range,
     totalConversations,
     totalAiMessages,
     totalLeads,

@@ -22,18 +22,8 @@ async function fetchAgents(): Promise<AgentPublic[]> {
   return Array.isArray(data) ? data : (data.agents ?? [])
 }
 
-function SkeletonCard() {
-  return (
-    <div className={styles.statCard} style={{ animation: "pulse 1.5s ease-in-out infinite" }}>
-      <div style={{ height: 12, width: 80, background: "var(--border)", borderRadius: 6, marginBottom: 12 }} />
-      <div style={{ height: 28, width: 100, background: "var(--border)", borderRadius: 6, marginBottom: 8 }} />
-      <div style={{ height: 12, width: 140, background: "var(--border)", borderRadius: 6 }} />
-    </div>
-  )
-}
-
 export default function DashboardPage() {
-  const { data, isLoading } = useDashboardData()
+  const { data } = useDashboardData()
   const { data: stats } = usePlanStats()
   const { runtime, setRuntime } = useRuntimePreference("orchestrator")
   const { data: agents = [] } = useQuery({
@@ -145,20 +135,7 @@ export default function DashboardPage() {
         )}
       </div>
 
-      <div className={styles.grid}>
-        {isLoading ? (
-          <>
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-          </>
-        ) : (
-          <>
-            <ConversationStats runtime={effectiveRuntime} agentId={selectedRuntimeAgent?.id} />
-          </>
-        )}
-      </div>
+      <ConversationStats runtime={effectiveRuntime} agentId={selectedRuntimeAgent?.id} />
 
       {/* <div className={styles.agentSection}>
         <div className={styles.sectionTitle}>Your AI Agent</div>
