@@ -362,6 +362,110 @@ const features = [
     ],
     illustration: <AnalyticsIllustration />,
   },
+  {
+    icon: "🔁",
+    title: "AI-Personalised Follow-Ups",
+    description:
+      "Your agent scans stale conversations, drafts a unique re-engagement message for each contact based on what they were last asking about, and sends them over 24 hours with anti-ban pacing. Review every message before it goes out — or let it run on autopilot.",
+    bullets: [
+      "AI drafts personalised messages per contact",
+      "Review mode or fully automatic",
+      "7-day cooldown so contacts never feel spammed",
+      "Cancel a campaign mid-flight any time",
+    ],
+    illustration: <ChatIllustration />,
+  },
+  {
+    icon: "📢",
+    title: "Broadcast Campaigns",
+    description:
+      "Send one-to-many WhatsApp messages to your contact list with built-in anti-ban safety. Warmup-tier-aware pacing, pause/resume controls, and automatic stop on repeated failures keep your number out of trouble.",
+    bullets: [
+      "Anti-ban pacing built in",
+      "Pause / resume in flight",
+      "Auto-stop on repeated failures",
+      "Daily tier-aware sending limits",
+    ],
+    illustration: <ChatIllustration />,
+  },
+  {
+    icon: "🌐",
+    title: "Embeddable Web Widget",
+    description:
+      "Drop a single script tag on any website and the same AI agent talks to visitors there too. Conversations land in the same dashboard as your WhatsApp chats. Theme it to match your brand, scope it to specific domains.",
+    bullets: [
+      "Single-script install",
+      "Per-domain origin allowlist",
+      "Shadow DOM — won't conflict with your site's CSS",
+      "Same dashboard, same AI, different surface",
+    ],
+    illustration: <ToolsIllustration />,
+  },
+  {
+    icon: "📣",
+    title: "Click-to-WhatsApp Ad Context",
+    description:
+      "When a customer clicks your Meta ad on Facebook, Instagram, or Messenger, your agent already knows which product or offer brought them in. No generic \"How can I help?\" — the AI greets them with awareness of the ad and moves them straight to the next step.",
+    bullets: [
+      "Captures Meta ad headline, body, and source",
+      "Sticky-first — keeps the original context",
+      "Surfaced on the dashboard for human operators",
+      "Drops out automatically after the opening exchanges",
+    ],
+    illustration: <AiLeadIllustration />,
+  },
+  {
+    icon: "🛡️",
+    title: "WhatsApp Anti-Ban Safety",
+    description:
+      "Built specifically to keep your business WhatsApp number alive. Warmup tiers ramp daily sending limits gradually, human-like delays vary between messages, business-hours awareness throttles off-hours sends, and throttle detection backs off automatically.",
+    bullets: [
+      "4-tier warmup system",
+      "Human-like send delays",
+      "Business-hours throttling for non-warmed numbers",
+      "Automatic backoff on WhatsApp throttle signals",
+    ],
+    illustration: <MultiAgentIllustration />,
+  },
+  {
+    icon: "👥",
+    title: "Live Operator Handoff",
+    description:
+      "Take over any conversation from the dashboard or directly from your phone — the AI auto-pauses for that chat so you don't double-message the customer. Hand it back any time with a single click.",
+    bullets: [
+      "One-click takeover from the dashboard",
+      "Phone-sent messages also pause the AI",
+      "Per-agent control over auto-pause behaviour",
+      "Customer never sees the handoff happen",
+    ],
+    illustration: <ChatIllustration />,
+  },
+  {
+    icon: "🧠",
+    title: "Persistent Customer Memory",
+    description:
+      "Your agent remembers what each contact bought, asked, or complained about — across days, months, conversations. New chats start with full context, so customers never have to repeat themselves.",
+    bullets: [
+      "Long-term per-contact memory",
+      "Conversation summaries auto-generated",
+      "Survives WhatsApp reconnects and reboots",
+      "Operator dashboard shows the full history",
+    ],
+    illustration: <KnowledgeBaseIllustration />,
+  },
+  {
+    icon: "🤝",
+    title: "Referral Program",
+    description:
+      "Bring other businesses on board and earn credit-back when they subscribe. Track your referrals, status, and earnings from the dashboard.",
+    bullets: [
+      "Personal referral link per account",
+      "Credits awarded on paid signups",
+      "Dashboard view of referrals + payouts",
+      "Admin controls for approving rewards",
+    ],
+    illustration: <AnalyticsIllustration />,
+  },
 ]
 
 export default function FeaturesPage() {

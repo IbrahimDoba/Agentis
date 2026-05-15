@@ -1,0 +1,106 @@
+# D-Zero AI
+
+> WhatsApp AI agents for Nigerian businesses. Configure an AI agent for your business, connect your WhatsApp number, and let it handle customer conversations 24/7 — answering questions, sending product info, capturing leads, taking orders, and routing complex cases to a human operator.
+
+D-Zero AI is built specifically for the Nigerian market: pricing in Naira, support for English and Nigerian conversational patterns, anti-ban pacing for WhatsApp Business safety (warmup tiers, business-hours throttling, human-like send delays), and a dashboard for live operators to take over from the AI when needed. Businesses configure the agent with their products, FAQs, knowledge-base documents, and optional webhook tools that call their own backend.
+
+## Plans (NGN)
+
+- **Free** — 2,000 credits/month, 1 agent — for evaluation
+- **Basic** — ₦30,000/month, 25,000 credits, 1 agent — small businesses getting started
+- **Starter** — ₦50,000/month, 60,000 credits, 1 agent + lead detection + customer memory + ₦1,000/1k credit overage
+- **Pro** — ₦85,000/month, 100,000 credits, 2 agents, priority support, automated follow-ups, ₦800/1k credit overage
+- **Enterprise** — custom pricing, unlimited credits, multiple agents
+
+Credits cover both AI-generated replies and human operator messages. Per-message cost: text replies = 5 credits, images = 8 credits, voice = 3 credits/second.
+
+## Core capabilities
+
+### Messaging & AI
+- 24/7 automated WhatsApp customer service — sub-2-second average response time
+- Context-aware multi-turn conversations with persistent per-contact memory across sessions
+- Auto-generated conversation summaries for long threads
+- Handles unlimited concurrent chats per agent
+- Configurable agent personality, response language (English + Nigerian conversational patterns), business hours, and tone
+- Voice call support on WhatsApp via ElevenLabs (Pro plan) — natural-sounding AI voice with custom tones and transcripts
+- Image & media sharing — agent can send product photos, PDFs, catalogues; receives and understands incoming images
+- Voice note transcription — customer voice messages are transcribed and answered like text
+
+### Knowledge & integration
+- Knowledge base with RAG — upload PDFs, Word docs, text files; agent retrieves the most relevant chunks per question
+- Structured product/services catalogue baked into the system prompt
+- Custom webhook tools — connect any REST API (GET/POST), agent decides when to call each tool based on conversation
+- Media library — manage product images the agent can send proactively
+
+### Engagement automation
+- AI-personalised follow-up campaigns — agent scans stale conversations, drafts unique re-engagement messages per contact, spreads sends over 24h+ with anti-ban pacing; review mode or fully automatic; 7-day cooldown per contact
+- Broadcast campaigns to existing WhatsApp contacts — anti-ban paced, pause/resume controls, auto-stop on repeated failures
+- Click-to-WhatsApp (CTWA) ad context — when a customer clicks a Meta ad (Facebook, Instagram, Messenger), the agent already knows which product/offer brought them in and greets them accordingly
+- Welcome / out-of-hours messages
+- Conversation history sync on link — pulls existing WhatsApp chats into the dashboard on first connect (admin-gated per user)
+
+### Lead & operator workflow
+- AI lead detection — every conversation is scanned for buying intent; matches become structured lead cards
+- Lead pipeline: New → Contacted → Won / Lost
+- Live operator handoff — take over any chat from the dashboard or directly from your phone; AI auto-pauses for that conversation (configurable per agent)
+- Message templates / quick replies for operators
+- Real-time conversations dashboard with search, filters, and customer profile view
+
+### Multi-tenant & growth
+- Multi-agent workspaces — one workspace can run multiple AI agents (each agent = one WhatsApp number) and multiple team members with role-based access
+- Embeddable web widget — drop a single script tag on any website, the same AI agent talks to visitors there too; conversations flow into the same dashboard; Shadow DOM isolation so it doesn't conflict with the host site
+- Referral program — earn credit-back when businesses you refer subscribe; track referrals and earnings from the dashboard
+
+### Safety & operations
+- WhatsApp anti-ban safety engineered in: 4-tier warmup system, human-like send delays, business-hours throttling for non-warmed numbers, automatic backoff on WhatsApp throttle signals, batch breaks every 10 messages
+- Conversation analytics — daily/weekly reports, popular question tracking, response time metrics, customer satisfaction scoring
+- 30-day rolling billing cycle anchored to subscription start (not calendar month)
+- Credit-based pricing covers both AI and human operator messages — predictable cost scaling
+- Encrypted at rest for WhatsApp auth state with Supabase Storage backup
+
+## Pages
+
+- [Homepage](https://dailzero.com/): Product overview, hero, feature highlights
+- [Pricing](https://dailzero.com/pricing): Full plan comparison, FAQ, overage rates
+- [How It Works](https://dailzero.com/how-it-works): Setup walkthrough
+- [Features](https://dailzero.com/features): Capabilities deep-dive
+- [Contact](https://dailzero.com/contact): Sales and support contact
+- [Blog](https://dailzero.com/blog): Articles on WhatsApp automation for African businesses
+- [Changelog](https://dailzero.com/changelog): Product release notes
+
+## Solutions by industry
+
+- [E-commerce](https://dailzero.com/solutions/ecommerce): Catalogue browsing, order capture, payment links
+- [Restaurants](https://dailzero.com/solutions/restaurants): Menu, ordering, reservations
+- [Real Estate](https://dailzero.com/solutions/real-estate): Property enquiries, viewings, agent routing
+- [Finance / Fintech](https://dailzero.com/solutions/finance): Account questions, KYC nudges, transaction lookups
+- [Healthcare](https://dailzero.com/solutions/healthcare): Appointment booking, FAQ, intake
+- [Logistics](https://dailzero.com/solutions/logistics): Shipment tracking, delivery enquiries
+- [Customer Support](https://dailzero.com/solutions/customer-support): General-purpose support automation
+- [Lead Generation](https://dailzero.com/solutions/lead-generation): Inbound lead capture and qualification
+- [Appointment Booking](https://dailzero.com/solutions/appointment-booking): Scheduling and reminders
+- [Broadcasts](https://dailzero.com/solutions/broadcasts): One-to-many campaigns with anti-ban safety
+
+## What sets D-Zero apart
+
+- Built for Nigerian businesses first — Naira pricing, local payment integrations, regional conversational patterns
+- WhatsApp Business safety engineered in from day one — anti-ban warmup tiers, business-hours throttling, automatic backoff on throttle signals
+- Credit-based pricing instead of per-message fees — predictable cost scaling with usage
+- Persistent customer memory across conversations, not just within a single thread
+- Operator-friendly dashboard: live takeover, message templates, follow-up review, lead pipeline
+- AI-personalised follow-ups instead of generic broadcasts to stale contacts
+- 30-day rolling billing cycle anchored to subscription start (not calendar month)
+- Multi-channel from one AI: WhatsApp + embeddable web widget, same agent, same dashboard
+- Referral program with credit-back rewards for growth-aligned customers
+
+## Legal
+
+- [Privacy Policy](https://dailzero.com/privacy): NDPR-compliant data handling, Meta WhatsApp Platform alignment
+- [Terms of Service](https://dailzero.com/terms): Plans, payments, acceptable use
+- [Security](https://dailzero.com/security): Infrastructure and data protection practices
+- [Data Deletion](https://dailzero.com/data-deletion): How to request account and data removal
+
+## Contact
+
+- Website: https://dailzero.com
+- Contact form: https://dailzero.com/contact

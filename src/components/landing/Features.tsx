@@ -200,6 +200,72 @@ const marqueeItems = [
   "Event Planning", "Professional Services", "Financial Services", "Hospitality",
 ]
 
+// "More capabilities" grid — everything not big enough for a full mockup
+// section but still worth surfacing on the landing page. Kept in sync with
+// public/llms.txt and the /features page.
+const moreCapabilities = [
+  {
+    icon: "🔁",
+    title: "AI-personalised follow-ups",
+    desc: "The agent scans stale conversations, drafts a tailored re-engagement message per contact, and ships them over 24h with anti-ban pacing — review them first or let it send automatically.",
+  },
+  {
+    icon: "📢",
+    title: "Broadcast campaigns",
+    desc: "Send one-to-many WhatsApp campaigns to your contact list with warmup-tier-aware pacing, pause/resume controls, and auto-stop on repeated failures.",
+  },
+  {
+    icon: "🎯",
+    title: "AI lead detection & pipeline",
+    desc: "Every conversation is scanned for buying intent. Leads land in a New → Contacted → Won pipeline so you never lose a hot enquiry to the AI's inbox.",
+  },
+  {
+    icon: "📚",
+    title: "Knowledge base with RAG",
+    desc: "Upload PDFs, Word docs, or text files. The agent retrieves the most relevant chunks per question — answers stay accurate even as your business grows.",
+  },
+  {
+    icon: "🔧",
+    title: "Custom webhook tools",
+    desc: "Plug in your own REST APIs — order lookup, payment status, booking, anything. The agent decides when to call each tool based on the conversation.",
+  },
+  {
+    icon: "🌐",
+    title: "Embeddable web widget",
+    desc: "Drop a single script tag on your website and the same AI agent talks to visitors there too. Conversations land in the same dashboard as WhatsApp.",
+  },
+  {
+    icon: "📣",
+    title: "Click-to-WhatsApp ad context",
+    desc: "When a customer clicks your Meta ad, the agent already knows which product/offer brought them in and greets them with the right context — no \"how can I help\" needed.",
+  },
+  {
+    icon: "🧠",
+    title: "Persistent customer memory",
+    desc: "The agent remembers what each contact bought, asked, or complained about — across days, months, conversations. New chats start with full context.",
+  },
+  {
+    icon: "🛡️",
+    title: "WhatsApp anti-ban safety",
+    desc: "Warmup tiers, business-hours awareness, throttle detection, human-like send delays, and batch breaks every 10 messages — engineered to keep your number alive.",
+  },
+  {
+    icon: "👥",
+    title: "Live operator handoff",
+    desc: "Take over any conversation from the dashboard or directly from your phone. The AI auto-pauses for that chat until you hand it back. Configurable per agent.",
+  },
+  {
+    icon: "🤝",
+    title: "Referral program",
+    desc: "Bring other businesses on board, earn credit-back when they subscribe. Track your referrals and earnings from the dashboard.",
+  },
+  {
+    icon: "💼",
+    title: "Multi-agent workspaces",
+    desc: "One workspace, multiple AI agents (one per WhatsApp number) and multiple team members. Invite operators with role-based access.",
+  },
+]
+
 export function Features() {
   return (
     <section id="features" className={styles.section}>
@@ -230,6 +296,25 @@ export function Features() {
             </div>
           </div>
         ))}
+      </div>
+
+      <div className={styles.moreCapsSection}>
+        <div className={styles.moreCapsHeader}>
+          <div className={styles.sectionLabel}>More capabilities</div>
+          <h3 className={styles.moreCapsTitle}>Every piece you need to run a serious AI WhatsApp operation</h3>
+          <p className={styles.moreCapsSub}>
+            Beyond instant replies — the dashboard, automations, and safety layers that make customer conversations a system instead of chaos.
+          </p>
+        </div>
+        <div className={styles.moreCapsGrid}>
+          {moreCapabilities.map((c) => (
+            <div key={c.title} className={styles.moreCapCard}>
+              <div className={styles.moreCapIcon}>{c.icon}</div>
+              <div className={styles.moreCapName}>{c.title}</div>
+              <p className={styles.moreCapDesc}>{c.desc}</p>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className={styles.marqueeSection}>

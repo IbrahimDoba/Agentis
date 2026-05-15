@@ -658,6 +658,90 @@
   font-weight: 500;
 }
 
+/* More capabilities grid */
+.moreCapsSection {
+  max-width: 1200px;
+  margin: 6rem auto 0;
+  padding: 0 1.5rem;
+}
+
+.moreCapsHeader {
+  max-width: 720px;
+  margin: 0 auto 3rem;
+  text-align: center;
+}
+
+.moreCapsTitle {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  margin: 0.75rem 0 0.75rem;
+  line-height: 1.15;
+}
+
+.moreCapsSub {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.moreCapsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+.moreCapCard {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  transition: border-color var(--transition), transform var(--transition);
+}
+
+.moreCapCard:hover {
+  border-color: rgba(0, 220, 130, 0.35);
+  transform: translateY(-2px);
+}
+
+.moreCapIcon {
+  font-size: 1.5rem;
+  margin-bottom: 0.75rem;
+  line-height: 1;
+}
+
+.moreCapName {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  margin-bottom: 0.5rem;
+}
+
+.moreCapDesc {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin: 0;
+}
+
+@media (max-width: 900px) {
+  .moreCapsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .moreCapsTitle {
+    font-size: 1.65rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .moreCapsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* CTA link */
 .featuresCta {
   max-width: 1200px;
