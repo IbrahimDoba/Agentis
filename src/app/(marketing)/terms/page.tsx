@@ -1,5 +1,6 @@
 import { Navbar } from "@/components/landing/Navbar"
 import { Footer } from "@/components/landing/Footer"
+import { PLAN_PRICES, formatNaira } from "@/lib/plans"
 import styles from "./page.module.css"
 
 export const metadata = {
@@ -134,8 +135,9 @@ export default function TermsPage() {
                 D-Zero AI offers paid subscription plans as described on our Pricing page. By subscribing, you authorise us to charge the applicable fees to your payment method.
               </p>
               <ul>
-                <li><strong>Starter Plan:</strong> ₦50,000/month — includes one AI agent, basic conversation monitoring</li>
-                <li><strong>Pro Plan:</strong> ₦100,000/month — includes one AI agent, full analytics, priority support</li>
+                <li><strong>Basic Plan:</strong> {formatNaira(PLAN_PRICES.basic)}/month — 25,000 credits, one AI agent, conversation monitoring</li>
+                <li><strong>Starter Plan:</strong> {formatNaira(PLAN_PRICES.starter)}/month — 60,000 credits, one AI agent, lead detection, customer memory</li>
+                <li><strong>Pro Plan:</strong> {formatNaira(PLAN_PRICES.pro)}/month — 100,000 credits, two AI agents, full analytics, priority support</li>
               </ul>
               <p>
                 All fees are stated in Nigerian Naira (NGN) and are exclusive of applicable taxes. Subscriptions renew automatically unless cancelled at least 5 business days before the renewal date. Refunds are not provided for partial billing periods.

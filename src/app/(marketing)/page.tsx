@@ -5,6 +5,7 @@ import { Hero } from "@/components/landing/Hero"
 import { Features } from "@/components/landing/Features"
 import { HowItWorks } from "@/components/landing/HowItWorks"
 import { Footer } from "@/components/landing/Footer"
+import { PLAN_PRICES, formatNaira } from "@/lib/plans"
 
 const testimonials = [
   {
@@ -86,7 +87,7 @@ export default function LandingPage() {
             <div className={styles.pricingCard}>
               <div className={styles.pricingPlan}>Starter</div>
               <div className={styles.pricingPrice}>
-                ₦50,000<span>/month</span>
+                {formatNaira(PLAN_PRICES.starter)}<span>/month</span>
               </div>
               <p className={styles.pricingDesc}>
                 Perfect for small businesses getting started with AI-powered customer service.
@@ -94,10 +95,11 @@ export default function LandingPage() {
               <ul className={styles.pricingFeatures}>
                 {[
                   "1 AI WhatsApp Agent",
-                  "Up to 1,000 conversations/month",
-                  "Text responses only",
-                  "Basic FAQ handling",
+                  "60,000 credits/month (~900 conversations)",
+                  "Text + image responses",
+                  "Advanced FAQ handling",
                   "Conversation monitoring dashboard",
+                  "Lead detection & customer memory",
                   "7-day free trial",
                 ].map((f) => (
                   <li key={f} className={styles.pricingFeature}>
@@ -116,17 +118,17 @@ export default function LandingPage() {
               <div className={styles.pricingBadge}>Most Popular</div>
               <div className={styles.pricingPlan}>Pro</div>
               <div className={styles.pricingPrice}>
-                ₦100,000<span>/month</span>
+                {formatNaira(PLAN_PRICES.pro)}<span>/month</span>
               </div>
               <p className={styles.pricingDesc}>
-                For growing businesses that need advanced AI capabilities and higher volume.
+                For growing businesses that need higher volume and multiple agents.
               </p>
               <ul className={styles.pricingFeatures}>
                 {[
-                  "1 AI WhatsApp Agent",
-                  "Up to 5,000 conversations/month",
-                  "Text + Voice call capability",
-                  "Advanced AI with custom personality",
+                  "2 AI WhatsApp Agents",
+                  "100,000 credits/month (~1,500 conversations)",
+                  "Text + image + media sending",
+                  "Automated follow-up messages",
                   "Multi-language support",
                   "Priority support + analytics",
                   "7-day free trial",

@@ -3,32 +3,38 @@ import { useState } from "react"
 import Link from "next/link"
 import { Navbar } from "@/components/landing/Navbar"
 import { Footer } from "@/components/landing/Footer"
+import { PLAN_PRICES, PLAN_CREDIT_LIMITS, PLAN_OVERAGE_RATE_PER_1K, formatNaira } from "@/lib/plans"
 import styles from "./page.module.css"
 
-const basicMonthly = {
-  price: "₦30,000",
-  priceNote: "/month",
-  annualPrice: "₦24,000",
-  annualNote: "/month, billed annually",
+// Annual billing = 20% off the monthly rate. Single source of truth for
+// prices is src/lib/plans.ts; this file just formats them.
+const ANNUAL_DISCOUNT = 0.2
+
+function plan(slug: "basic" | "starter" | "pro") {
+  const monthly = PLAN_PRICES[slug]
+  const annualMonthly = Math.round((monthly * (1 - ANNUAL_DISCOUNT)) / 1000) * 1000
+  return {
+    price: formatNaira(monthly),
+    priceNote: "/month",
+    annualPrice: formatNaira(annualMonthly),
+    annualNote: "/month, billed annually",
+  }
 }
 
-const starterMonthly = {
-  price: "₦50,000",
-  priceNote: "/month",
-  annualPrice: "₦40,000",
-  annualNote: "/month, billed annually",
-}
+const basicMonthly = plan("basic")
+const starterMonthly = plan("starter")
+const proMonthly = plan("pro")
 
-const proMonthly = {
-  price: "₦85,000",
-  priceNote: "/month",
-  annualPrice: "₦68,000",
-  annualNote: "/month, billed annually",
-}
+// Pre-formatted strings for marketing copy below.
+const BASIC_CREDITS_FMT = PLAN_CREDIT_LIMITS.basic.toLocaleString("en-NG")
+const STARTER_CREDITS_FMT = PLAN_CREDIT_LIMITS.starter.toLocaleString("en-NG")
+const PRO_CREDITS_FMT = PLAN_CREDIT_LIMITS.pro.toLocaleString("en-NG")
+const STARTER_OVERAGE_FMT = `${formatNaira(PLAN_OVERAGE_RATE_PER_1K.starter ?? 0)} / 1k credits`
+const PRO_OVERAGE_FMT = `${formatNaira(PLAN_OVERAGE_RATE_PER_1K.pro ?? 0)} / 1k credits`
 
 const basicFeatures = [
   { text: "1 AI WhatsApp Agent", included: true },
-  { text: "25,000 credits/month (~500 text conversations)", included: true },
+  { text: `${BASIC_CREDITS_FMT} credits/month (~500 text conversations)`, included: true },
   { text: "Text + image responses", included: true },
   { text: "FAQ handling", included: true },
   { text: "Business hours configuration", included: true },
@@ -43,7 +49,7 @@ const basicFeatures = [
 
 const starterFeatures = [
   { text: "1 AI WhatsApp Agent", included: true },
-  { text: "60,000 credits/month (~923 text convos @ 13 AI msgs)", included: true },
+  { text: `${STARTER_CREDITS_FMT} credits/month (~923 text convos @ 13 AI msgs)`, included: true },
   { text: "Text + image responses", included: true },
   { text: "Advanced FAQ handling", included: true },
   { text: "Business hours configuration", included: true },
@@ -51,7 +57,7 @@ const starterFeatures = [
   { text: "Conversation monitoring dashboard", included: true },
   { text: "Email support", included: true },
   { text: "7-day free trial", included: true },
-  { text: "₦1,000 per 1,000 extra credits", included: true },
+  { text: `${formatNaira(PLAN_OVERAGE_RATE_PER_1K.starter ?? 0)} per 1,000 extra credits`, included: true },
   { text: "Voice call capability", included: false },
   { text: "Advanced AI personality", included: false },
   { text: "Multi-language support", included: false },
@@ -61,7 +67,7 @@ const starterFeatures = [
 
 const proFeatures = [
   { text: "2 AI WhatsApp Agents", included: true },
-  { text: "100,000 credits/month (~1,538 text convos @ 13 AI msgs)", included: true },
+  { text: `${PRO_CREDITS_FMT} credits/month (~1,538 text convos @ 13 AI msgs)`, included: true },
   { text: "Text + image + media sending", included: true },
   { text: "Automated follow-up messages", included: true },
   { text: "Advanced AI with custom personality", included: true },
@@ -70,7 +76,7 @@ const proFeatures = [
   { text: "Advanced analytics & insights", included: true },
   { text: "Custom response guidelines", included: true },
   { text: "7-day free trial", included: true },
-  { text: "₦800 per 1,000 extra credits", included: true },
+  { text: `${formatNaira(PLAN_OVERAGE_RATE_PER_1K.pro ?? 0)} per 1,000 extra credits`, included: true },
 ]
 
 const faqs = [
@@ -84,7 +90,7 @@ const faqs = [
   },
   {
     q: "What happens if I exceed my credit limit?",
-    a: "Basic does not include overage credits. On Starter, additional credits beyond 60,000/month are charged at ₦1,000 per 1,000 credits. On Pro, overage is ₦800 per 1,000 credits.",
+    a: `Basic does not include overage credits. On Starter, additional credits beyond ${STARTER_CREDITS_FMT}/month are charged at ${STARTER_OVERAGE_FMT}. On Pro, overage is ${PRO_OVERAGE_FMT}.`,
   },
   {
     q: "Do you offer custom plans?",
@@ -253,8 +259,8 @@ export default function PricingPage() {
                 <div className={`${styles.comparisonPlanCol} ${styles.comparisonPlanColPro}`}>Pro</div>
               </div>
               {[
-                ["Monthly Credits", "25,000 (~500 text convos)", "60,000 (~923 text convos)", "100,000 (~1,538 text convos)"],
-                ["Overage Rate", "None", "₦1,000 / 1k credits", "₦800 / 1k credits"],
+                ["Monthly Credits", `${BASIC_CREDITS_FMT} (~500 text convos)`, `${STARTER_CREDITS_FMT} (~923 text convos)`, `${PRO_CREDITS_FMT} (~1,538 text convos)`],
+                ["Overage Rate", "None", STARTER_OVERAGE_FMT, PRO_OVERAGE_FMT],
                 ["Response Type", "Text + Image", "Text + Image", "Text + Image + Media"],
                 ["Media Sending", "✓ Images", "✓ Images", "✓ Images, PDFs"],
                 ["FAQ Handling", "Standard", "Advanced", "Advanced AI"],
