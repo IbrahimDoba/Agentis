@@ -12,6 +12,7 @@ import { KnowledgeBaseTab } from "@/components/dashboard/KnowledgeBaseTab"
 import { ToolsTab } from "@/components/dashboard/ToolsTab"
 import { DocumentsTab } from "@/components/dashboard/DocumentsTab"
 import { AgentSettingsTab } from "@/components/dashboard/AgentSettingsTab"
+import { EmbedTab } from "@/components/dashboard/EmbedTab"
 import { StatusBadge } from "@/components/ui/Badge"
 import { TestAgentWidget } from "@/components/dashboard/TestAgentWidget"
 import { Modal } from "@/components/ui/Modal"
@@ -26,10 +27,11 @@ const TABS = (agentRuntime: string) => [
     ? [{ id: "documents", label: "Documents" }]
     : [{ id: "knowledge-base", label: "Knowledge Base" }]),
   { id: "tools", label: "Tools" },
+  { id: "embed", label: "Embed" },
   { id: "settings", label: "Settings" },
 ]
 
-const VALID_TABS = new Set(["profile", "configuration", "documents", "knowledge-base", "tools", "settings"])
+const VALID_TABS = new Set(["profile", "configuration", "documents", "knowledge-base", "tools", "embed", "settings"])
 
 function Skeleton({ height, width }: { height: number; width?: string }) {
   return (
@@ -69,6 +71,7 @@ export default function AgentDetailPage() {
   const [profileDirty, setProfileDirty] = useState(false)
   const [configDirty, setConfigDirty] = useState(false)
   const [settingsDirty, setSettingsDirty] = useState(false)
+  const [embedDirty, setEmbedDirty] = useState(false)
   const [pendingTab, setPendingTab] = useState<string | null>(null)
   const { data, isLoading, error } = useAgent(id)
   const agent = data?.agent ?? null
@@ -84,11 +87,13 @@ export default function AgentDetailPage() {
   const handleProfileDirty = useCallback((d: boolean) => setProfileDirty(d), [])
   const handleConfigDirty = useCallback((d: boolean) => setConfigDirty(d), [])
   const handleSettingsDirty = useCallback((d: boolean) => setSettingsDirty(d), [])
+  const handleEmbedDirty = useCallback((d: boolean) => setEmbedDirty(d), [])
 
   const currentTabIsDirty =
     (activeTab === "profile" && profileDirty) ||
     (activeTab === "configuration" && configDirty) ||
-    (activeTab === "settings" && settingsDirty)
+    (activeTab === "settings" && settingsDirty) ||
+    (activeTab === "embed" && embedDirty)
 
   const requestTabChange = (next: string) => {
     if (next === activeTab) return
@@ -104,6 +109,7 @@ export default function AgentDetailPage() {
     if (activeTab === "profile") setProfileDirty(false)
     if (activeTab === "configuration") setConfigDirty(false)
     if (activeTab === "settings") setSettingsDirty(false)
+    if (activeTab === "embed") setEmbedDirty(false)
     setActiveTab(pendingTab)
     setPendingTab(null)
   }
@@ -174,7 +180,8 @@ export default function AgentDetailPage() {
             {tab.label}
             {((tab.id === "profile" && profileDirty) ||
               (tab.id === "configuration" && configDirty) ||
-              (tab.id === "settings" && settingsDirty)) && (
+              (tab.id === "settings" && settingsDirty) ||
+              (tab.id === "embed" && embedDirty)) && (
               <span className={styles.dirtyDot} aria-label="Unsaved changes" />
             )}
           </button>
@@ -207,6 +214,9 @@ export default function AgentDetailPage() {
         {activeTab === "settings" && (
           <AgentSettingsTab agent={agent} onDirtyChange={handleSettingsDirty} />
         )}
+        {activeTab === "embed" && (
+          <EmbedTab agentId={agent.id} onDirtyChange={handleEmbedDirty} />
+        )}
       </div>
 
       <Modal
@@ -227,7 +237,7 @@ export default function AgentDetailPage() {
         <p style={{ fontSize: 14, color: "var(--text-secondary)", lineHeight: 1.5 }}>
           You have unsaved changes on the{" "}
           <strong style={{ color: "var(--text-primary)" }}>
-            {activeTab === "profile" ? "Profile" : activeTab === "configuration" ? "Configuration" : "Settings"}
+            {activeTab === "profile" ? "Profile" : activeTab === "configuration" ? "Configuration" : activeTab === "embed" ? "Embed" : "Settings"}
           </strong>{" "}
           tab. Switching now will lose them. Save first or discard to continue.
         </p>

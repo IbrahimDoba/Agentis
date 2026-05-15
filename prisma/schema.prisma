@@ -34,6 +34,8 @@ model User {
   maxAgents               Int        @default(1)
   plan                    String     @default("free")
   subscriptionExpiresAt   DateTime?
+  expiryWarningEmailSentAt DateTime?
+  expiredEmailSentAt       DateTime?
   onboardingCompleted     Boolean    @default(false)
   referralsEnabled    Boolean    @default(false)
   historySyncEnabled  Boolean    @default(false)
@@ -89,6 +91,21 @@ model Agent {
   conversations        Conversation[]
   broadcasts           BroadcastCampaign[]
   followUpCampaigns    FollowUpCampaign[]
+  embedSite            EmbedSite?
+}
+
+model EmbedSite {
+  id             String   @id @default(cuid())
+  agentId        String   @unique
+  agent          Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  publicKey      String   @unique
+  allowedOrigins String[] @default([])
+  themeJson      Json?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([publicKey])
 }
 
 model FollowUpCampaign {
@@ -231,6 +248,8 @@ model Conversation {
   phoneNumber          String
   contactName          String?
   mode                 String              @default("ai")
+  channel              String              @default("whatsapp")
+  visitorId            String?
   lastActivityAt       DateTime?           @default(now())
   factsExtractedAt     DateTime?
   lastFollowedUpAt     DateTime?
@@ -241,6 +260,7 @@ model Conversation {
   followUpMessages     FollowUpMessage[]
 
   @@unique([agentId, phoneNumber])
+  @@index([agentId, visitorId])
 }
 
 model Message {

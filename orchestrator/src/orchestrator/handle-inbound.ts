@@ -25,6 +25,11 @@ export interface InboundPayload {
   timestamp: number
   pushName?: string
   adContext?: AdContext
+  // Embed-widget transport. When "embed", the orchestrator skips Baileys
+  // dispatch and just persists the outbound reply — the visitor's widget
+  // picks it up via polling.
+  channel?: "whatsapp" | "embed"
+  visitorId?: string
 }
 
 /**
@@ -34,6 +39,7 @@ export interface InboundPayload {
 export async function handleInbound(payload: InboundPayload): Promise<void> {
   const startMs = Date.now()
   const { agentId, fromPhone, senderJid, text, pushName, adContext: incomingAdContext } = payload
+  const channel = payload.channel ?? "whatsapp"
 
   // 1. Load orchestrator agent config
   const agent = await getOrchestratorAgent(agentId)
@@ -42,12 +48,18 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
     return
   }
 
-  // 2. Get or create conversation
+  // 2. Get or create conversation. For embed channel we attach the visitorId
+  // so the dashboard / queries can distinguish web from WhatsApp without
+  // pattern-matching phoneNumber.
   const conversation = await getOrCreateConversation(
     agentId,
     fromPhone,
     agent.id,
-    pushName
+    {
+      contactName: pushName,
+      channel,
+      visitorId: payload.visitorId,
+    }
   )
 
   // 2a. Persist CTWA ad context on first detection. Sticky-first — won't
@@ -62,11 +74,16 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
     }
   }
 
-  // 3. Always save the inbound message regardless of mode
+  // 3. Always save the inbound message regardless of mode. We pass the
+  // payload's messageId as the row id so the widget's optimistic-render
+  // id matches the DB row exactly — prevents the double-bubble problem
+  // when polling fetches the same content back. messageId is already
+  // unique and is also our dedup key, so reusing it as a row id is safe.
   await insertMessage({
     conversationId: conversation.id,
     direction: "inbound",
     content: text,
+    id: payload.messageId,
   })
 
   // 4. Check mode — skip AI reply if human is handling this conversation
@@ -164,15 +181,19 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
     })
   }
 
-  // 9. Dispatch via transport
-  for (const part of replyParts) {
-    await dispatchReply({
-      agentId,
-      conversationId: conversation.id,
-      toJid: senderJid,
-      text: part,
-      source: "ai",
-    })
+  // 9. Dispatch via transport. Embed conversations skip the Baileys worker
+  // round-trip — the outbound rows persisted at step 8 are picked up by
+  // the visitor's widget via polling on /api/embed/messages.
+  if (channel !== "embed") {
+    for (const part of replyParts) {
+      await dispatchReply({
+        agentId,
+        conversationId: conversation.id,
+        toJid: senderJid,
+        text: part,
+        source: "ai",
+      })
+    }
   }
 
   const duration = Date.now() - startMs

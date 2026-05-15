@@ -26,6 +26,11 @@ const inboundSchema = z.object({
   pushName: z.string().optional(),
   transportType: z.string().optional(),
   adContext: adContextSchema.optional(),
+  // Embed-widget specific. When channel === "embed" the orchestrator skips
+  // the WhatsApp-only dispatch path and just persists the outbound reply —
+  // the visitor's browser picks it up via polling on /api/embed/messages.
+  channel: z.enum(["whatsapp", "embed"]).optional(),
+  visitorId: z.string().min(1).optional(),
 })
 
 export async function inboundRoutes(app: FastifyInstance) {
@@ -35,7 +40,7 @@ export async function inboundRoutes(app: FastifyInstance) {
       return reply.code(400).send({ error: "Invalid payload", details: parsed.error.flatten() })
     }
 
-    const { agentId, messageId, fromPhone, senderJid, text, timestamp, pushName, adContext } = parsed.data
+    const { agentId, messageId, fromPhone, senderJid, text, timestamp, pushName, adContext, channel, visitorId } = parsed.data
 
     // Dedup check
     if (await isDuplicate(messageId)) {
@@ -53,6 +58,8 @@ export async function inboundRoutes(app: FastifyInstance) {
       timestamp,
       pushName,
       adContext,
+      channel,
+      visitorId,
     })
 
     logger.info({ agentId, fromPhone, messageId }, "Inbound message enqueued")

@@ -23,6 +23,8 @@ interface OrchestratorConversation {
   phoneSource?: "conversation" | "customer_name_match" | "worker_lid_mapping"
   contactName: string | null
   mode: string
+  channel?: "whatsapp" | "embed"
+  visitorId?: string | null
   lastActivityAt: string
   createdAt: string
   messageCount: number
@@ -33,6 +35,19 @@ interface OrchestratorConversation {
     senderRole: string
     createdAt: string
   } | null
+}
+
+function isEmbed(c: OrchestratorConversation): boolean {
+  return c.channel === "embed"
+}
+
+// Short, stable label for embed visitors who haven't identified themselves.
+// Shows the last 6 chars of the visitorId so the operator can at least
+// distinguish two anonymous visitors from each other.
+function embedLabel(c: OrchestratorConversation): string {
+  if (c.contactName) return c.contactName
+  const id = c.visitorId || c.phoneNumber
+  return "Visitor " + (id.length > 6 ? "…" + id.slice(-6) : id)
 }
 
 interface Message {
@@ -107,6 +122,7 @@ function formatPhone(raw: string) {
 }
 
 function displayName(conv: OrchestratorConversation) {
+  if (isEmbed(conv)) return embedLabel(conv)
   return conv.contactName?.trim() || "Unknown Contact"
 }
 
@@ -355,9 +371,11 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
                 <span className={styles.time}>{formatTime(conv.lastActivityAt)}</span>
               </div>
               <div className={styles.phoneSecondary}>
-                {isLid(displayPhone(conv))
-                  ? `ID: ${displayPhone(conv).replace(/@.*$/, "")}`
-                  : formatPhone(displayPhone(conv))}
+                {isEmbed(conv)
+                  ? <><span className={styles.channelTag}>🌐 Web</span> {conv.contactName ? embedLabel(conv) : ""}</>
+                  : isLid(displayPhone(conv))
+                    ? `ID: ${displayPhone(conv).replace(/@.*$/, "")}`
+                    : formatPhone(displayPhone(conv))}
               </div>
               <div className={styles.preview}>
                 {conv.lastMessage
@@ -395,11 +413,13 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
                   {selectedConv ? displayName(selectedConv) : ""}
                 </div>
                 <div className={styles.drawerSub}>
-                  {selectedConv
-                    ? isLid(displayPhone(selectedConv))
-                      ? `ID: ${displayPhone(selectedConv).replace(/@.*$/, "")} · `
-                      : `${formatPhone(displayPhone(selectedConv))} · `
-                    : ""}
+                  {selectedConv && isEmbed(selectedConv)
+                    ? <><span className={styles.channelTag}>🌐 Web</span>{" · "}</>
+                    : selectedConv
+                      ? isLid(displayPhone(selectedConv))
+                        ? `ID: ${displayPhone(selectedConv).replace(/@.*$/, "")} · `
+                        : `${formatPhone(displayPhone(selectedConv))} · `
+                      : ""}
                   {selectedConv?.messageCount} messages
                 </div>
               </div>
