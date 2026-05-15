@@ -215,9 +215,60 @@ export async function enqueueFollowUpCampaign(campaignId: string, agentId: strin
   }, "Follow-up campaign enqueued")
 }
 
+/**
+ * Reset a failed campaign so it can be re-enqueued. Touches three places:
+ *   1. FollowUpMessage rows in `failed` state → reset to `approved`, clear error
+ *      and scheduledAt (they had no successful send, safe to retry).
+ *   2. FollowUpMessage rows in `scheduled` state whose scheduledAt is already
+ *      in the past → these had a BullMQ job that never completed (worker
+ *      crashed, campaign was auto-paused, etc.); reset to `approved` so the
+ *      re-enqueue picks them up. Future-scheduled rows are left alone — their
+ *      BullMQ job is still pending and will fire on time.
+ *   3. FollowUpCampaign: status → `sending`, clear completedAt.
+ *
+ * The Redis failure counter is also cleared so a fresh burst of failures
+ * doesn't immediately re-trigger the auto-pause.
+ *
+ * Does NOT re-enqueue. Caller invokes enqueueFollowUpCampaign separately so
+ * the route can fire-and-forget the heavy work while returning a count.
+ *
+ * Returns the number of rows that were reset back to `approved` and will be
+ * picked up by the next enqueue pass.
+ */
+export async function resetForResume(campaignId: string): Promise<number> {
+  const failedReset = await sql<{ id: string }[]>`
+    UPDATE "FollowUpMessage"
+    SET "status" = 'approved', "error" = NULL, "scheduledAt" = NULL
+    WHERE "campaignId" = ${campaignId} AND "status" = 'failed'
+    RETURNING "id"
+  `
+
+  const stuckReset = await sql<{ id: string }[]>`
+    UPDATE "FollowUpMessage"
+    SET "status" = 'approved', "scheduledAt" = NULL
+    WHERE "campaignId" = ${campaignId}
+      AND "status" = 'scheduled'
+      AND "scheduledAt" < NOW()
+    RETURNING "id"
+  `
+
+  await sql`
+    UPDATE "FollowUpCampaign"
+    SET "status" = 'sending', "completedAt" = NULL
+    WHERE "id" = ${campaignId}
+  `
+
+  const redis = getRedis()
+  await redis.del(`fu:failures:${campaignId}`).catch(() => {})
+
+  const total = failedReset.length + stuckReset.length
+  logger.info({ campaignId, requeued: total, failed: failedReset.length, stuck: stuckReset.length }, "Follow-up campaign reset for resume")
+  return total
+}
+
 export async function closeFollowUpQueue(): Promise<void> {
   await worker.close()
   await queue.close()
 }
 
-export const followUpQueue = { enqueueFollowUpCampaign, close: closeFollowUpQueue }
+export const followUpQueue = { enqueueFollowUpCampaign, resetForResume, close: closeFollowUpQueue }

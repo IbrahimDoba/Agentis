@@ -643,6 +643,17 @@
   color: var(--text-muted);
 }
 
+.msgError {
+  font-size: 11px;
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.08);
+  border: 1px solid rgba(248, 113, 113, 0.22);
+  padding: 4px 8px;
+  border-radius: 6px;
+  word-break: break-word;
+  cursor: help;
+}
+
 .msgActions {
   display: flex;
   gap: 0.5rem;

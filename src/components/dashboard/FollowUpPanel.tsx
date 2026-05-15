@@ -15,6 +15,7 @@ interface FollowUpMessage {
   status: MessageStatus
   scheduledAt: string | null
   sentAt: string | null
+  error: string | null
 }
 
 interface FollowUpCampaign {
@@ -165,6 +166,8 @@ function CampaignDetailModal({ campaign, agentId, onClose, onRefresh }: {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editText, setEditText] = useState("")
   const [confirmCancel, setConfirmCancel] = useState(false)
+  const [resuming, setResuming] = useState(false)
+  const [resumeError, setResumeError] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/agents/${agentId}/followup-campaigns/${campaign.id}`)
@@ -227,6 +230,26 @@ function CampaignDetailModal({ campaign, agentId, onClose, onRefresh }: {
     onRefresh()
     setCancelling(false)
     setConfirmCancel(false)
+  }
+
+  const handleResume = async () => {
+    setResuming(true)
+    setResumeError(null)
+    try {
+      const res = await fetch(
+        `/api/agents/${agentId}/followup-campaigns/${campaign.id}/resume`,
+        { method: "POST" }
+      )
+      const data = await res.json().catch(() => null)
+      if (!res.ok) {
+        setResumeError(data?.error || "Couldn't resume — try again or check the worker logs.")
+      } else {
+        await load()
+        onRefresh()
+      }
+    } finally {
+      setResuming(false)
+    }
   }
 
   const c = detail ?? campaign
@@ -343,6 +366,11 @@ function CampaignDetailModal({ campaign, agentId, onClose, onRefresh }: {
                 {msg.scheduledAt && msg.status === "scheduled" && (
                   <div className={styles.msgSentAt}>Scheduled for {formatTime(msg.scheduledAt)}</div>
                 )}
+                {msg.status === "failed" && msg.error && (
+                  <div className={styles.msgError} title={msg.error}>
+                    ⚠ {msg.error.length > 140 ? msg.error.slice(0, 140) + "…" : msg.error}
+                  </div>
+                )}
 
                 {/* Actions for pending messages */}
                 {isReview && msg.status === "pending" && (
@@ -420,6 +448,20 @@ function CampaignDetailModal({ campaign, agentId, onClose, onRefresh }: {
                 Cancel Campaign
               </button>
             )
+          )}
+
+          {c.status === "failed" && (
+            <>
+              {resumeError && <span className={styles.confirmText}>⚠ {resumeError}</span>}
+              <button
+                className={styles.startBtn}
+                onClick={handleResume}
+                disabled={resuming}
+                title="Reset failed + stuck messages back to approved and re-queue them for sending"
+              >
+                {resuming ? "Resuming…" : "Resume Campaign"}
+              </button>
+            </>
           )}
 
           <button className={styles.cancelBtn} onClick={onClose}>Close</button>

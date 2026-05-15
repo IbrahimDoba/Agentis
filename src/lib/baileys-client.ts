@@ -202,6 +202,19 @@ export const baileysClient = {
     if (!res.ok && res.status !== 404) throw new Error(`Worker error: ${res.status}`)
   },
 
+  async resumeFollowUpCampaign(campaignId: string, agentId: string): Promise<{ requeued: number }> {
+    const res = await fetch(`${WORKER_URL}/v1/followup-campaigns/${campaignId}/resume`, {
+      method: "POST",
+      headers: jsonHeaders(),
+      body: JSON.stringify({ agentId }),
+    })
+    if (!res.ok) {
+      const body = await res.text().catch(() => "")
+      throw new Error(`Worker error ${res.status}: ${body || "resume failed"}`)
+    }
+    return res.json() as Promise<{ requeued: number }>
+  },
+
   async getHealth(): Promise<{ status: string; redis: string; uptime: number } | null> {
     try {
       const res = await fetch(`${WORKER_URL}/v1/health`, { cache: "no-store" })
