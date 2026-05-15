@@ -630,3 +630,73 @@ export async function sendWorkspaceInviteEmail(data: {
     html,
   })
 }
+
+// ---------------------------------------------------------------------------
+// 13. Subscription expiring soon — sent ~7 days before subscriptionExpiresAt
+// ---------------------------------------------------------------------------
+
+export async function sendSubscriptionExpiringSoonEmail(data: {
+  name: string
+  email: string
+  planLabel: string
+  daysRemaining: number
+  expiresAt: Date
+}) {
+  const dayWord = data.daysRemaining === 1 ? "day" : "days"
+  const expiryStr = data.expiresAt.toLocaleString("en-NG", { dateStyle: "long", timeStyle: "short" })
+  const renewUrl = `${APP_URL}/dashboard/billing`
+
+  await resend().emails.send({
+    from: FROM,
+    to: data.email,
+    subject: `Your D-Zero AI ${data.planLabel} subscription expires in ${data.daysRemaining} ${dayWord}`,
+    html: baseTemplate(`
+      <h2 style="margin:0 0 8px;font-size:22px;color:#111111;">Heads up — your subscription expires soon</h2>
+      <p style="margin:0 0 20px;color:#4b5563;">
+        Hi ${data.name}, your <strong>${data.planLabel}</strong> plan ends in <strong>${data.daysRemaining} ${dayWord}</strong> on <strong>${expiryStr}</strong>.
+      </p>
+      <p style="margin:0 0 16px;color:#4b5563;">
+        After it expires, your AI agents will stop replying to customer messages until you renew. Your conversations, contacts, and configuration are kept safe.
+      </p>
+      ${btn("Renew Subscription", renewUrl)}
+      ${divider()}
+      <p style="margin:0;color:#6b7280;font-size:13px;">
+        Already renewed? You can ignore this email — we'll update automatically once the payment is confirmed.
+      </p>
+    `),
+  })
+}
+
+// ---------------------------------------------------------------------------
+// 14. Subscription expired — sent on or just after subscriptionExpiresAt
+// ---------------------------------------------------------------------------
+
+export async function sendSubscriptionExpiredEmail(data: {
+  name: string
+  email: string
+  planLabel: string
+  expiresAt: Date
+}) {
+  const expiryStr = data.expiresAt.toLocaleString("en-NG", { dateStyle: "long" })
+  const renewUrl = `${APP_URL}/dashboard/billing`
+
+  await resend().emails.send({
+    from: FROM,
+    to: data.email,
+    subject: `Your D-Zero AI subscription has expired`,
+    html: baseTemplate(`
+      <h2 style="margin:0 0 8px;font-size:22px;color:#111111;">Your subscription has expired</h2>
+      <p style="margin:0 0 20px;color:#4b5563;">
+        Hi ${data.name}, your <strong>${data.planLabel}</strong> plan expired on <strong>${expiryStr}</strong>. Your AI agents have stopped replying to incoming WhatsApp messages.
+      </p>
+      <p style="margin:0 0 16px;color:#4b5563;">
+        Everything you set up — agents, conversations, contacts, knowledge base, templates — is safely preserved. Renewing brings the AI back online instantly.
+      </p>
+      ${btn("Renew Subscription", renewUrl)}
+      ${divider()}
+      <p style="margin:0;color:#6b7280;font-size:13px;">
+        Questions about renewing? Reply to this email or reach <a href="mailto:support@dailzero.com" style="color:#00dc82;text-decoration:none;font-weight:600;">support@dailzero.com</a>.
+      </p>
+    `),
+  })
+}

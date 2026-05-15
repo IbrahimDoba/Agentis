@@ -9,7 +9,7 @@ const updateSchema = z.object({
   status: z.enum(["PENDING", "APPROVED", "REJECTED", "SUSPENDED"]).optional(),
   role: z.enum(["USER", "ADMIN"]).optional(),
   maxAgents: z.number().int().min(1).max(20).optional(),
-  plan: z.enum(["free", "starter", "pro", "enterprise"]).optional(),
+  plan: z.enum(["free", "basic", "starter", "pro", "enterprise"]).optional(),
   subscriptionExpiresAt: z.coerce.date().nullable().optional(),
 })
 
@@ -37,9 +37,23 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: "Invalid data" }, { status: 400 })
     }
 
+    // If the admin is extending the subscription into the future, clear the
+    // expiry-email tracking flags so the user gets fresh warning + expired
+    // emails for the new cycle (otherwise we'd think they were already
+    // notified for this period and silently skip them).
+    const dataWithFlagReset: Record<string, unknown> = { ...parsed.data }
+    if (
+      parsed.data.subscriptionExpiresAt !== undefined &&
+      parsed.data.subscriptionExpiresAt !== null &&
+      parsed.data.subscriptionExpiresAt > new Date()
+    ) {
+      dataWithFlagReset.expiryWarningEmailSentAt = null
+      dataWithFlagReset.expiredEmailSentAt = null
+    }
+
     const user = await db.user.update({
       where: { id },
-      data: parsed.data,
+      data: dataWithFlagReset,
     })
 
     // If plan changed to a paid plan, calculate commission for referrer

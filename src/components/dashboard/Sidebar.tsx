@@ -214,6 +214,42 @@ export function Sidebar({ userName, businessName, currentUserId, currentWorkspac
           const remaining = unlimited ? null : Math.max(0, limit - used)
           const isWarning = !unlimited && pct >= 75
           const isDanger = !unlimited && pct >= 90
+
+          // Subscription expiry awareness. Free plan has no expiry; paid
+          // plans get an "expires in N days" hint inside the window and a
+          // hard "Expired" state once the date is past.
+          const expiresAt = stats.subscriptionExpiresAt ? new Date(stats.subscriptionExpiresAt) : null
+          let expiryState: "none" | "expiring" | "expired" = "none"
+          let daysUntilExpiry = 0
+          if (plan !== "free" && expiresAt) {
+            const msUntil = expiresAt.getTime() - Date.now()
+            if (msUntil <= 0) {
+              expiryState = "expired"
+            } else {
+              daysUntilExpiry = Math.ceil(msUntil / (24 * 60 * 60 * 1000))
+              if (daysUntilExpiry <= 7) expiryState = "expiring"
+            }
+          }
+
+          // Expired takes over the whole card — usage is moot until they
+          // renew (the agents have stopped replying anyway).
+          if (expiryState === "expired") {
+            return (
+              <Link href="/dashboard/billing" className={`${styles.usageMini} ${styles.usageMiniExpired}`} onClick={onClose}>
+                <div className={styles.usageMiniHeader}>
+                  <span className={`${styles.usageMiniPlanDot} ${styles.dotDanger}`} />
+                  <span className={styles.usageMiniPlan}>{planLabel}</span>
+                  <span className={`${styles.usageMiniPct} ${styles.textDanger}`}>Expired</span>
+                </div>
+                <div className={styles.expiredBanner}>
+                  <div className={styles.expiredTitle}>Subscription expired</div>
+                  <div className={styles.expiredDesc}>Your AI agents have stopped replying. Renew to bring them back online.</div>
+                </div>
+                <div className={styles.expiredCta}>Renew now →</div>
+              </Link>
+            )
+          }
+
           return (
             <Link href="/dashboard/billing" className={styles.usageMini} onClick={onClose}>
               <div className={styles.usageMiniHeader}>
@@ -223,6 +259,11 @@ export function Sidebar({ userName, businessName, currentUserId, currentWorkspac
                   {unlimited ? "∞" : `${pct}%`}
                 </span>
               </div>
+              {expiryState === "expiring" && (
+                <div className={styles.expiringHint}>
+                  ⚠ Expires in {daysUntilExpiry} {daysUntilExpiry === 1 ? "day" : "days"} · Renew
+                </div>
+              )}
               {!unlimited && (
                 <div className={styles.usageMiniTrack}>
                   <div

@@ -262,6 +262,42 @@
   padding: 2px 7px;
 }
 
+.resetUsageRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border);
+  flex-wrap: wrap;
+}
+
+.resetUsageBtn {
+  background: rgba(0, 220, 130, 0.08);
+  border: 1px solid rgba(0, 220, 130, 0.3);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.resetUsageBtn:hover:not(:disabled) {
+  background: rgba(0, 220, 130, 0.16);
+}
+
+.resetUsageBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.resetUsageHint {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
 /* Credits bar */
 .creditBarWrap {
   display: flex;

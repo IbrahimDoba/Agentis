@@ -141,6 +141,35 @@ function UserDetailModal({ user, onClose, onStatusChange, loading }: {
     finally { setSavingExpiry(false) }
   }
 
+  const [resettingUsage, setResettingUsage] = useState(false)
+  const [usageReset, setUsageReset] = useState(false)
+  const handleResetUsage = async () => {
+    setResettingUsage(true)
+    try {
+      const res = await fetch(`/api/admin/users/${user.id}/reset-usage`, { method: "POST" })
+      if (!res.ok) throw new Error("Failed")
+      const data = await res.json()
+      if (data.subscriptionExpiresAt) {
+        setExpiresAt(toDateInputValue(data.subscriptionExpiresAt))
+      }
+      // Refresh the billing panel so the "this month" totals update
+      setBillingLoading(true)
+      const billingRes = await fetch(`/api/admin/users/${user.id}/billing`)
+      if (billingRes.ok) {
+        const billingData: BillingData = await billingRes.json()
+        setBilling(billingData)
+      }
+      setBillingLoading(false)
+      setUsageReset(true)
+      setTimeout(() => setUsageReset(false), 2500)
+      router.refresh()
+    } catch {
+      alert("Failed to reset usage")
+    } finally {
+      setResettingUsage(false)
+    }
+  }
+
   const expiryDate = expiresAt ? new Date(expiresAt) : null
   const isExpired = expiryDate ? expiryDate < new Date() : false
   const creditPct = billing && billing.creditLimit > 0
@@ -337,6 +366,19 @@ function UserDetailModal({ user, onClose, onStatusChange, loading }: {
                           {isExpired ? "Expired" : `Active · expires ${formatDate(new Date(expiresAt).toISOString())}`}
                         </span>
                       )}
+                      <div className={styles.resetUsageRow}>
+                        <button
+                          className={styles.resetUsageBtn}
+                          onClick={handleResetUsage}
+                          disabled={resettingUsage}
+                          title="Set subscription to 30 days from now and reset the rolling usage window. Use this when the customer pays for another month."
+                        >
+                          {resettingUsage ? "Resetting…" : usageReset ? "Reset ✓" : "Reset usage / New cycle"}
+                        </button>
+                        <span className={styles.resetUsageHint}>
+                          Starts a fresh 30-day window from today.
+                        </span>
+                      </div>
                     </div>
                   </span>
                 </div>
