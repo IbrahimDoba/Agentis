@@ -8,6 +8,7 @@ import { setAgentWebhook, addCustomerHistoryTool, setWhatsAppAccountAgent } from
 import type { Product } from "@/types"
 import { syncProductImagesToOrchestratorMedia } from "@/lib/orchestrator-media-sync"
 import { buildOrchestratorSystemPrompt } from "@/lib/orchestratorSync"
+import { baileysClient } from "@/lib/baileys-client"
 
 interface Params {
   params: Promise<{ id: string }>
@@ -241,5 +242,43 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   } catch (error) {
     console.error("[PATCH /api/agents/:id]", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+  }
+}
+
+// DELETE /api/agents/:id — permanently delete the agent.
+// Logs out the WhatsApp session + purges auth (best-effort) then deletes the
+// Agent row. All relations with onDelete: Cascade go with it (Conversations,
+// Messages, BaileysSession, FollowUpCampaigns, broadcasts, etc.). Auxiliary
+// tables that store agentId without a Prisma relation (knowledge base files,
+// document chunks) orphan — they're per-agent and only ever read with an
+// agentId filter, so they're harmless dead rows.
+export async function DELETE(_req: NextRequest, { params }: Params) {
+  try {
+    const session = await auth()
+    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    const { id } = await params
+
+    const agent = await db.agent.findUnique({ where: { id }, select: { userId: true } })
+    if (!agent) return NextResponse.json({ error: "Agent not found" }, { status: 404 })
+
+    const isOwner = agent.userId === session.user.id
+    const isAdmin = session.user.role === "ADMIN"
+    if (!isOwner && !isAdmin) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+
+    // Best-effort: tell the worker to log out + wipe auth files. Non-fatal if
+    // the session was never connected.
+    try {
+      await baileysClient.deleteSession(id)
+    } catch (err) {
+      console.warn("[DELETE /api/agents/:id] worker destroy failed (continuing):", err)
+    }
+
+    await db.agent.delete({ where: { id } })
+    return NextResponse.json({ ok: true })
+  } catch (error) {
+    console.error("[DELETE /api/agents/:id]", error)
+    return NextResponse.json({ error: "Failed to delete agent" }, { status: 500 })
   }
 }

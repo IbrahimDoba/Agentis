@@ -3,6 +3,7 @@ import { getEncryptedAuthState, purgeAuthFiles } from "./auth-store.js"
 import { createConnection } from "./connection.js"
 import { createEventHandlers } from "./event-handlers.js"
 import { attachHistorySyncHandler } from "./history-sync.js"
+import { importProfileFromWhatsApp } from "./profile-import.js"
 import { updateContacts, setLidMappingStore } from "./contacts-store.js"
 import { updateSessionStatus, upsertSession, deleteSession, getSessionByAgentId, getHistorySyncStatus } from "../db/queries.js"
 import { webhookEmitter } from "../dashboard/webhook-emitter.js"
@@ -197,6 +198,13 @@ async function startSession(agentId: string, reconnectAttempt = 0): Promise<void
         logger.info({ agentId }, "Session outbound auto-resumed on reconnect")
       }
       webhookEmitter.emit("session.connected", { agentId, phoneNumber })
+
+      // Fire-and-forget profile import on first connect. Internally guarded
+      // by Agent.autoConfigStartedAt — re-connects after the first one are
+      // no-ops, so this is safe to call on every connect event.
+      importProfileFromWhatsApp(active.sock, agentId).catch((err) => {
+        logger.warn({ agentId, err: err.message }, "Profile import failed (non-fatal)")
+      })
     },
 
     onDisconnected: async (reason, shouldReconnect) => {
@@ -266,9 +274,10 @@ async function startSession(agentId: string, reconnectAttempt = 0): Promise<void
   // Attach inbound message handlers
   createEventHandlers(sock, agentId)
 
-  // Attach history-sync handler only when we asked for the pull. If we
-  // didn't, attaching is harmless but pointless — the event won't fire.
-  if (syncFullHistory) {
-    attachHistorySyncHandler(sock, agentId)
-  }
+  // Always attach the history-sync handler. WhatsApp sends a small amount
+  // of history on every new link even when syncFullHistory is false, and
+  // the auto-configure pipeline needs whatever it can get. The syncFullHistory
+  // flag above only controls whether we ASK for a full pull — we still want
+  // to process the limited recent history we receive by default.
+  attachHistorySyncHandler(sock, agentId)
 }

@@ -39,6 +39,8 @@ export const agentSchema = z.object({
   category: z.string().optional(),
   address: z.string().optional(),
   autoPauseOnHumanReply: z.boolean().optional(),
+  pauseOnAiHandoff: z.boolean().optional(),
+  pauseOnQualifiedLead: z.boolean().optional(),
   agentRuntime: z.enum(["elevenlabs", "orchestrator"]).optional(),
   productsData: z.array(z.object({
     id: z.string(),

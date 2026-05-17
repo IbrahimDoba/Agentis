@@ -111,3 +111,104 @@
   justify-content: flex-end;
   gap: 0.75rem;
 }
+
+.dangerSection {
+  margin-top: 2.5rem;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid #fecaca;
+  background: #fff5f5;
+  border-radius: 0.75rem;
+}
+
+.dangerTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #b91c1c;
+  margin: 0 0 0.25rem;
+}
+
+.dangerDesc {
+  font-size: 0.875rem;
+  color: #7f1d1d;
+  margin: 0 0 1rem;
+  line-height: 1.5;
+}
+
+.dangerBtn {
+  appearance: none;
+  border: none;
+  background: #dc2626;
+  color: #fff;
+  padding: 0.55rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.dangerBtn:hover {
+  background: #b91c1c;
+}
+
+.dangerBtn:disabled {
+  background: #f3a8a8;
+  cursor: not-allowed;
+}
+
+.confirmBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.confirmLabel {
+  font-size: 0.875rem;
+  color: #7f1d1d;
+}
+
+.confirmLabel code {
+  background: #fee2e2;
+  padding: 0.05rem 0.35rem;
+  border-radius: 0.25rem;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.875rem;
+}
+
+.confirmInput {
+  appearance: none;
+  border: 1px solid #fca5a5;
+  background: #fff;
+  color: #1f2937;
+  padding: 0.55rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  width: 100%;
+  max-width: 320px;
+  outline: none;
+}
+
+.confirmInput::placeholder {
+  color: #9ca3af;
+}
+
+.confirmInput:focus {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.15);
+}
+
+.confirmActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.cancelBtn {
+  appearance: none;
+  border: 1px solid #d4d4d8;
+  background: #fff;
+  color: #3f3f46;
+  padding: 0.55rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+}

@@ -72,6 +72,10 @@ export interface AgentPublic {
   agentRuntime?: string
   messagingEnabled?: boolean
   autoPauseOnHumanReply?: boolean
+  pauseOnAiHandoff?: boolean
+  pauseOnQualifiedLead?: boolean
+  isVerified?: boolean
+  autoConfigStatus?: string | null
   category?: string | null
   address?: string | null
   productsData?: Product[] | null

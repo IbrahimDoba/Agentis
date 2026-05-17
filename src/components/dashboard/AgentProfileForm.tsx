@@ -213,8 +213,111 @@ export function AgentProfileForm({ agent, onDirtyChange }: AgentProfileFormProps
         <Button type="submit" loading={saving || isUploading}>
           Save Profile
         </Button>
+        <ReimportControls agentId={agent.id} />
       </div>
     </form>
+  )
+}
+
+// Two-tier re-sync UX:
+//   - "Regenerate from existing chats" — re-runs the LLM on whatever chats
+//     are already in our DB. Cheap, non-destructive, no WhatsApp re-link.
+//   - "Re-link WhatsApp" — destructive: logs out the current WhatsApp
+//     session, wipes auth, resets auto-config state. Required to pull
+//     fresh history from WhatsApp (which only sends on first link).
+function ReimportControls({ agentId }: { agentId: string }) {
+  const [confirming, setConfirming] = useState(false)
+  const [relinking, setRelinking] = useState(false)
+
+  const startRelink = async () => {
+    if (!confirming) {
+      setConfirming(true)
+      return
+    }
+    setRelinking(true)
+    try {
+      const res = await fetch(`/api/agents/${agentId}/relink`, { method: "POST" })
+      if (!res.ok) {
+        const text = await res.text().catch(() => "")
+        alert("Couldn't reset the session: " + text)
+        return
+      }
+      // Redirect to the channels page in onboarding mode so the user re-scans.
+      // The channels page auto-bounces to /onboarding/auto-configure once
+      // the new session connects, where history-sync + analysis will run.
+      window.location.href = `/dashboard/channels/whatsapp-web?onboarding=1&agentId=${agentId}`
+    } finally {
+      setRelinking(false)
+    }
+  }
+
+  const linkStyle: React.CSSProperties = {
+    fontSize: 12,
+    textDecoration: "none",
+    padding: "8px 12px",
+    border: "1px solid var(--border)",
+    borderRadius: 6,
+  }
+
+  return (
+    <div style={{ display: "flex", gap: 8, marginLeft: "auto", flexWrap: "wrap", alignItems: "center" }}>
+      <a
+        href={`/onboarding/auto-configure?agentId=${agentId}`}
+        style={{ ...linkStyle, color: "var(--text-muted)" }}
+        title="Re-runs the AI analysis on whatever customer chats are already in your dashboard. Use this when the agent has been live and you want to refresh its config based on recent conversations."
+      >
+        ↻ Regenerate from existing chats
+      </a>
+      {confirming ? (
+        <>
+          <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>
+            This logs out WhatsApp and you&apos;ll need to re-scan a QR. Continue?
+          </span>
+          <button
+            type="button"
+            onClick={startRelink}
+            disabled={relinking}
+            style={{
+              ...linkStyle,
+              color: "#ef4444",
+              background: "transparent",
+              borderColor: "rgba(239, 68, 68, 0.4)",
+              cursor: "pointer",
+            }}
+          >
+            {relinking ? "Resetting…" : "Yes, re-link"}
+          </button>
+          <button
+            type="button"
+            onClick={() => setConfirming(false)}
+            disabled={relinking}
+            style={{
+              ...linkStyle,
+              color: "var(--text-muted)",
+              background: "transparent",
+              cursor: "pointer",
+            }}
+          >
+            Cancel
+          </button>
+        </>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setConfirming(true)}
+          style={{
+            ...linkStyle,
+            color: "var(--text-muted)",
+            background: "transparent",
+            cursor: "pointer",
+            fontFamily: "inherit",
+          }}
+          title="Destructive: logs out the current WhatsApp session, wipes all auth state, and walks you back to the QR-scan step so we can re-pull a fresh history. Use this when first-time history-pull failed or you want to switch the agent to a different WhatsApp account."
+        >
+          🔄 Re-link WhatsApp to refresh history
+        </button>
+      )}
+    </div>
   )
 }
 

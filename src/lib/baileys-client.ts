@@ -97,6 +97,24 @@ export const baileysClient = {
     if (!res.ok && res.status !== 404) throw new Error(`Worker error: ${res.status}`)
   },
 
+  async extractChatsForAgent(agentId: string): Promise<{ candidateCount: number; totalMessages: number; status: string }> {
+    const res = await fetch(`${WORKER_URL}/v1/sessions/${agentId}/extract-chats`, {
+      method: "POST",
+      headers: authHeaders(),
+    })
+    if (!res.ok) {
+      // Try to surface the worker's actual error message — much more
+      // useful than just the HTTP status.
+      let detail = ""
+      try {
+        const body = (await res.json()) as { error?: string }
+        detail = body?.error ? `: ${body.error}` : ""
+      } catch { /* not JSON */ }
+      throw new Error(`Worker error ${res.status}${detail}`)
+    }
+    return res.json()
+  },
+
   async restartSession(agentId: string): Promise<void> {
     const res = await fetch(`${WORKER_URL}/v1/sessions/${agentId}/restart`, {
       method: "POST",

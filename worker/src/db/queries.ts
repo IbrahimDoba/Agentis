@@ -1,5 +1,8 @@
 import { sql } from "./client.js"
 import { randomUUID } from "crypto"
+import { logger as rootLogger } from "../lib/logger.js"
+
+const logger = rootLogger.child({ module: "queries" })
 
 export type BaileysStatus =
   | "DISCONNECTED"
@@ -175,9 +178,12 @@ export async function upsertConversationForHistory(
     LIMIT 1
   `
   if (existing[0]) {
+    // If a later chunk surfaces a contact name we didn't have before, fill it
+    // in. We don't overwrite a name that's already set, since contacts.upsert
+    // sometimes gives us better names than a single message's pushName.
     await sql`
       UPDATE "Conversation"
-      SET "contactName" = COALESCE("contactName", ${contactName}),
+      SET "contactName" = COALESCE(NULLIF("contactName", ''), ${contactName}),
           "lastActivityAt" = GREATEST("lastActivityAt", ${lastActivityAt.toISOString()}::timestamptz)
       WHERE "id" = ${existing[0].id}
     `
@@ -194,10 +200,25 @@ export async function upsertConversationForHistory(
 
 export interface HistoryMessageInsert {
   conversationId: string
+  // WhatsApp's per-message id (from key.id). Used to dedupe — see below.
+  waMessageId: string | null
   direction: "inbound" | "outbound"
   senderRole: "ai" | "human"
   content: string
   createdAt: Date
+}
+
+// Deterministic Message.id derived from the WhatsApp message key. Re-running
+// history sync (or re-processing overlapping chunks) sees the same waMessageId
+// and naturally hits the primary-key constraint — we use ON CONFLICT DO
+// NOTHING to silently skip dupes. If WhatsApp didn't give us a key.id (rare),
+// fall back to a random UUID so we still insert, accepting that those rows
+// can't be deduped.
+function historyMessageId(conversationId: string, waMessageId: string | null): string {
+  if (waMessageId && waMessageId.length > 0) {
+    return `wahist:${conversationId}:${waMessageId}`
+  }
+  return randomUUID()
 }
 
 export async function bulkInsertHistoryMessages(rows: HistoryMessageInsert[]): Promise<number> {
@@ -207,19 +228,50 @@ export async function bulkInsertHistoryMessages(rows: HistoryMessageInsert[]): P
   const batchSize = 200
   for (let i = 0; i < rows.length; i += batchSize) {
     const batch = rows.slice(i, i + batchSize)
-    const values = batch.map((m) => ({
-      id: randomUUID(),
-      conversationId: m.conversationId,
-      direction: m.direction,
-      senderRole: m.senderRole,
-      content: m.content,
-      createdAt: m.createdAt.toISOString(),
-    }))
-    await sql`
-      INSERT INTO "Message" ("id", "conversationId", "direction", "senderRole", "content", "createdAt")
-      SELECT * FROM ${sql(values, "id", "conversationId", "direction", "senderRole", "content", "createdAt")}
-    `
-    inserted += batch.length
+
+    // Defensive shape coercion: WhatsApp message extraction occasionally
+    // yields non-string content (templated buttons, list selections, etc.
+    // that don't always serialize cleanly). postgres-js choked on those
+    // with "str.replace is not a function" when handed the raw values.
+    // We force every column to its correct primitive shape and drop rows
+    // that don't have at least content + conversationId + a valid Date.
+    const values = batch
+      .map((m) => {
+        const content = typeof m.content === "string" ? m.content : String(m.content ?? "")
+        if (!content.trim()) return null
+        if (!m.conversationId) return null
+        const createdAt = m.createdAt instanceof Date ? m.createdAt : new Date(m.createdAt as unknown as string)
+        if (Number.isNaN(createdAt.getTime())) return null
+        return {
+          id: historyMessageId(String(m.conversationId), m.waMessageId),
+          conversationId: String(m.conversationId),
+          direction: m.direction === "outbound" ? "outbound" : "inbound",
+          senderRole: m.senderRole === "human" ? "human" : "ai",
+          content,
+          createdAt: createdAt.toISOString(),
+        }
+      })
+      .filter((v): v is NonNullable<typeof v> => v !== null)
+
+    if (values.length === 0) continue
+
+    // postgres-js doesn't allow ON CONFLICT with the `${sql(values, ...)}`
+    // multi-row helper, so we emit per-row inserts. Slower but lets every
+    // row dedupe individually via primary key.
+    for (const v of values) {
+      try {
+        const result = await sql`
+          INSERT INTO "Message" ("id", "conversationId", "direction", "senderRole", "content", "createdAt")
+          VALUES (${v.id}, ${v.conversationId}, ${v.direction}, ${v.senderRole}, ${v.content}, ${v.createdAt}::timestamptz)
+          ON CONFLICT ("id") DO NOTHING
+        `
+        // postgres-js returns the affected row count via `.count`
+        if ((result as unknown as { count: number }).count > 0) inserted++
+      } catch (rowErr) {
+        const rowErrMsg = rowErr instanceof Error ? rowErr.message : String(rowErr)
+        logger.warn({ err: rowErrMsg, conversationId: v.conversationId }, "Skipped bad history row")
+      }
+    }
   }
   return inserted
 }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { useRouter, useSearchParams } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
 import QRCode from "qrcode"
@@ -78,7 +79,15 @@ function isSessionExpired(reason: string | null | undefined): boolean {
 
 export default function WhatsAppWebPage() {
   const qc = useQueryClient()
-  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null)
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  // Onboarding mode: user landed here from /onboarding's final step. The
+  // query string carries the freshly-created agent id; we pre-select it,
+  // and on successful link we redirect to /onboarding/auto-configure to
+  // continue the auto-configure flow (history sync + LLM draft + review).
+  const onboardingMode = searchParams.get("onboarding") === "1"
+  const onboardingAgentId = searchParams.get("agentId")
+  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(onboardingAgentId)
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
   const [sseStatus, setSseStatus] = useState<string | null>(null)
   const sseRef = useRef<EventSource | null>(null)
@@ -254,6 +263,19 @@ export default function WhatsAppWebPage() {
   useEffect(() => {
     if (session?.status === "CONNECTED") setPairingCode(null)
   }, [session?.status])
+
+  // Onboarding bounce: once WhatsApp links successfully during onboarding,
+  // hand off to the auto-configure page where history sync + LLM analysis
+  // happen. Small delay so the "Connected" UI flashes before we navigate.
+  useEffect(() => {
+    if (!onboardingMode) return
+    if (session?.status !== "CONNECTED") return
+    if (!selectedAgentId) return
+    const id = setTimeout(() => {
+      router.push(`/onboarding/auto-configure?agentId=${selectedAgentId}`)
+    }, 800)
+    return () => clearTimeout(id)
+  }, [onboardingMode, session?.status, selectedAgentId, router])
 
   const selectedAgent = agents.find((a) => a.id === selectedAgentId)
   const isConnected = session?.status === "CONNECTED"

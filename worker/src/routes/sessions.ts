@@ -5,6 +5,8 @@ import { getSessionByAgentId, deleteSession, updateWarmupTier } from "../db/quer
 import { NotFoundError } from "../lib/errors.js"
 import { resolvePhone } from "../baileys/contacts-store.js"
 import { getRedis } from "../queue/redis.js"
+import { extractChatsForAutoConfig } from "../baileys/chat-extractor.js"
+import { waitForHistorySyncToSettle } from "../baileys/history-sync.js"
 
 function dailyRedisKey(agentId: string) {
   const d = new Date().toISOString().slice(0, 10)
@@ -48,6 +50,30 @@ export const sessionRoutes: FastifyPluginAsync = async (app) => {
   app.delete<{ Params: { agentId: string } }>("/sessions/:agentId", async (req, reply) => {
     await sessionManager.destroy(req.params.agentId)
     reply.code(204).send()
+  })
+
+  // POST /v1/sessions/:agentId/extract-chats — re-run the chat extractor
+  // against whatever's in the DB right now. Waits for any in-flight
+  // history sync to settle first (bulk insert can take 30-60s) so the
+  // extractor doesn't see a half-persisted dataset.
+  app.post<{ Params: { agentId: string } }>("/sessions/:agentId/extract-chats", async (req, reply) => {
+    try {
+      const settled = await waitForHistorySyncToSettle(req.params.agentId)
+      if (settled.waited > 0) {
+        req.log.info(
+          { agentId: req.params.agentId, waitedMs: settled.waited, pendingOnExit: settled.pendingOnExit },
+          "extract-chats waited for history sync to settle"
+        )
+      }
+      const result = await extractChatsForAutoConfig(req.params.agentId)
+      reply.send({ ok: true, ...result })
+    } catch (err) {
+      // Surface the real error so the Next.js side gets something useful
+      // instead of a generic 500. Fastify's default catch hides the message.
+      const message = err instanceof Error ? err.message : String(err)
+      req.log.error({ err: message, agentId: req.params.agentId }, "extract-chats route threw")
+      reply.status(500).send({ ok: false, error: message })
+    }
   })
 
   // GET /v1/sessions/:agentId/qr — SSE stream of QR codes
