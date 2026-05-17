@@ -1,7 +1,7 @@
 .root {
   min-height: 100vh;
-  background: var(--bg-base, #0a0a0a);
-  color: var(--text-primary, #fff);
+  background: var(--bg-primary);
+  color: var(--text-primary);
   padding: 2rem 1rem;
   display: flex;
   flex-direction: column;
@@ -132,6 +132,10 @@
   display: inline-block;
 }
 
+/* Light mode accent is a darker green where black text reads muddy —
+   switch to white for better contrast. */
+:global(html[data-theme="light"]) .primaryBtn { color: #fff; }
+
 .primaryBtn:hover { filter: brightness(0.95); }
 .primaryBtn:disabled { opacity: 0.6; cursor: not-allowed; }
 
@@ -183,7 +187,7 @@
 
 .textarea, .input {
   width: 100%;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--bg-secondary);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 9px 11px;
@@ -193,9 +197,14 @@
   resize: vertical;
 }
 
+.textarea::placeholder, .input::placeholder {
+  color: var(--text-muted);
+}
+
 .textarea:focus, .input:focus {
   outline: none;
   border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-light);
 }
 
 .itemList {
