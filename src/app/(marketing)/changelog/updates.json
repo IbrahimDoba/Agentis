@@ -1,5 +1,169 @@
 [
   {
+    "date": "17 May 2026",
+    "tag": "New",
+    "tagColor": "green",
+    "title": "Auto-Configure Your AI Agent from Your WhatsApp Chats",
+    "description": "Connect WhatsApp and we'll build your AI agent for you — automatically. We read your recent customer chats, learn how you reply, and draft a complete agent ready for you to review and activate. No prompt engineering, no manual product entry, no FAQ writing.",
+    "bullets": [
+      "Triggers automatically right after you scan the QR code",
+      "Pulls your 50 most recent 1:1 customer conversations (groups and broadcasts skipped)",
+      "Auto-fills your business name, category, profile picture, address, and website from your WhatsApp Business profile",
+      "AI drafts a complete system prompt in your tone, plus products, FAQs, and personality notes",
+      "Review screen lets you tweak anything before going live",
+      "Try Again button if you want to regenerate after more chats have synced",
+      "Re-link WhatsApp button on the Profile tab if you ever want to refresh from a cleaner history pull"
+    ]
+  },
+  {
+    "date": "17 May 2026",
+    "tag": "New",
+    "tagColor": "green",
+    "title": "Smart Auto-Pause for Handoff & Qualified Leads",
+    "description": "Your AI now knows when to step aside. When a customer is frustrated, asks to speak to a human, or shows clear buying intent, the AI flags the conversation and pauses so you (or a salesperson) can take it personally.",
+    "bullets": [
+      "AI calls a handoff tool when a customer is upset, asks for a human, or raises something sensitive (refunds, complaints, custom quotes)",
+      "AI marks a qualified lead when a customer confirms specific product, quantity, budget, or timeline",
+      "Both behaviours pause the AI for that single conversation and surface it on your dashboard with a 🚨 badge",
+      "Handoff conversations sort to the top of your chat list automatically",
+      "Each behaviour has its own on/off toggle in agent Settings — turn off if you'd rather the AI stay engaged",
+      "Inline banners in the chat view explain why the AI handed off (urgency level, reason, lead intent)"
+    ]
+  },
+  {
+    "date": "17 May 2026",
+    "tag": "Improvement",
+    "tagColor": "blue",
+    "title": "Faster, Simpler Onboarding",
+    "description": "Onboarding now takes 3 steps instead of 5. We removed the goals and platform-tour steps and replaced them with a single Connect WhatsApp CTA that takes you straight to the QR scan and auto-configuration.",
+    "bullets": [
+      "Three steps: Welcome → Business Profile → Connect WhatsApp",
+      "Goals and platform tour removed — you can explore the dashboard at your own pace once you're in",
+      "Final step creates your agent and bounces you straight to the QR scan",
+      "From signup to a fully-configured AI agent in under 10 minutes for most users"
+    ]
+  },
+  {
+    "date": "17 May 2026",
+    "tag": "New",
+    "tagColor": "green",
+    "title": "Delete Agents from the Dashboard",
+    "description": "You can now permanently delete an agent — and everything it owned — directly from the Settings tab. Useful when you're done testing or want to start fresh with a different WhatsApp number.",
+    "bullets": [
+      "New Danger zone section at the bottom of the Settings tab",
+      "Type-to-confirm pattern: you must type the business name to enable the delete button — no accidental deletions",
+      "Deleting an agent disconnects its WhatsApp session, wipes its conversations, messages, broadcasts, follow-up campaigns, and all configuration",
+      "Worker session is cleaned up automatically so the linked device is freed for re-use"
+    ]
+  },
+  {
+    "date": "15 May 2026",
+    "tag": "New",
+    "tagColor": "green",
+    "title": "Subscription Expiry Warnings & Reminders",
+    "description": "No more surprises when your subscription runs out. We now warn you in the dashboard and over email a few days before your plan expires — and again the moment it does.",
+    "bullets": [
+      "Orange \"Expires in N days\" pill appears in the sidebar usage card within the last 7 days of your billing cycle",
+      "Red \"Subscription expired\" banner with a Renew CTA shown once your cycle ends",
+      "Heads-up email sent 5–8 days before expiry",
+      "Expiry confirmation email sent the day your subscription lapses",
+      "Each user receives exactly one warning and one expiry email per cycle — no spam"
+    ]
+  },
+  {
+    "date": "15 May 2026",
+    "tag": "Improvement",
+    "tagColor": "blue",
+    "title": "Resume Failed Follow-up Campaigns",
+    "description": "If a follow-up campaign auto-pauses after a few send failures, you can now resume it where it left off instead of starting a new one from scratch.",
+    "bullets": [
+      "New Resume Campaign button shown in the follow-up panel when a campaign is in a failed state",
+      "Failed messages are reset to approved and re-queued for sending",
+      "Stuck-scheduled messages are caught up automatically",
+      "Per-message errors now show next to each failed message so you can see exactly why it didn't send"
+    ]
+  },
+  {
+    "date": "15 May 2026",
+    "tag": "New",
+    "tagColor": "green",
+    "title": "Embeddable Web Chat Widget",
+    "description": "The same AI agent that runs on your WhatsApp number can now handle visitors on your website. Paste one script tag and your AI starts replying to web traffic — conversations land in the same dashboard, tagged 🌐 Web.",
+    "bullets": [
+      "Drop-in script tag — no frameworks, no build step",
+      "Visually isolated chat bubble that won't clash with your site's CSS",
+      "Configure greeting text and primary color per agent",
+      "Origin allowlist so only your domains can talk to the widget",
+      "Conversations tagged 🌐 Web in the dashboard alongside WhatsApp chats",
+      "Anonymous visitors tracked with a persistent ID so the AI remembers them across page loads"
+    ]
+  },
+  {
+    "date": "12 May 2026",
+    "tag": "Improvement",
+    "tagColor": "blue",
+    "title": "Filter Dashboard Stats by Time Range",
+    "description": "The four top stat cards on the Overview page (AI messages, contacts, leads, leads rate) now have a 7D / 1M / 6M / 1Y / All time-range selector, so you can focus on recent performance instead of always seeing all-time totals.",
+    "bullets": [
+      "Pill selector above the stat cards: 7D, 1M, 6M, 1Y, All",
+      "Each card updates instantly to reflect the selected window",
+      "Credits remain anchored to your billing period since they drive the plan UI",
+      "Defaults to All on first load so nothing changes for existing users until they pick a range"
+    ]
+  },
+  {
+    "date": "11 May 2026",
+    "tag": "New",
+    "tagColor": "green",
+    "title": "Ad Context for Click-to-WhatsApp Campaigns",
+    "description": "When a customer clicks one of your Meta ads (Facebook, Instagram, Messenger) and lands in WhatsApp, we capture the ad details and tell your AI exactly which product or offer brought them in. The AI opens the conversation with context instead of a generic \"how can I help\".",
+    "bullets": [
+      "Ad title, body, source URL, and click ID captured automatically on first message",
+      "AI references the specific ad/product the customer clicked when greeting them",
+      "Context only used during the opening exchanges, then drops out so the AI doesn't keep bringing it up",
+      "Ad referral banner shown in the dashboard chat header with title, body, capture time, and a link back to the source ad",
+      "Works for Facebook, Instagram, and Messenger ad placements"
+    ]
+  },
+  {
+    "date": "11 May 2026",
+    "tag": "Improvement",
+    "tagColor": "blue",
+    "title": "Per-Agent Settings Tab & Standalone Help Guide",
+    "description": "Each agent now has a dedicated Settings tab for behaviour toggles, and the help Guide has moved out of the agent page into a full multi-page resource section at /dashboard/guide.",
+    "bullets": [
+      "New Settings tab per agent with toggles for conversation behaviour (auto-pause on human reply, and more)",
+      "⚙ deeplink from any conversation header straight into the agent's Settings",
+      "Guide moved to /dashboard/guide with categories, slugs, related links, and richer content",
+      "Agent detail page is now cleaner — Templates and Guide removed in favour of focused per-agent settings"
+    ]
+  },
+  {
+    "date": "7 May 2026",
+    "tag": "Improvement",
+    "tagColor": "blue",
+    "title": "Smarter Agent Templates",
+    "description": "Picking a template (Receptionist, Sales, Support) now drops a working system prompt straight into your agent — pre-filled with your business name, category, description, contact details, and website. You only need to add the bits we don't already know (operating hours, products, common issues).",
+    "bullets": [
+      "Template placeholders auto-fill from your business profile on selection",
+      "Anything we don't know shows as a clear \"[fill this in]\" hint instead of a cryptic variable name",
+      "Templates rewritten to reference your business context throughout, not just at the top",
+      "Picking a template now gets you ~80% of the way to a working prompt"
+    ]
+  },
+  {
+    "date": "7 May 2026",
+    "tag": "Fix",
+    "tagColor": "orange",
+    "title": "AI No Longer Auto-Pauses After Replying to Itself",
+    "description": "Fixed a bug where the AI would silently pause itself after every reply, forcing you to manually re-enable it for the next message. Also resolves the related issue of AI replies appearing twice in the chat history.",
+    "bullets": [
+      "AI replies no longer trigger the human-reply auto-pause behaviour",
+      "Each AI reply now appears exactly once in the chat history",
+      "Conversation mode stays on AI through back-and-forth exchanges as it should"
+    ]
+  },
+  {
     "date": "6 May 2026",
     "tag": "Improvement",
     "tagColor": "blue",
