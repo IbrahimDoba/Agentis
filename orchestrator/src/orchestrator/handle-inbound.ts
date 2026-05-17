@@ -10,7 +10,10 @@ import { buildSystemPrompt, buildMessages } from "./context-builder.js"
 import { dispatchReply } from "./response-dispatcher.js"
 import { resolveProvider } from "../providers/registry.js"
 import { SEND_IMAGE_TOOL, executeSendImage } from "../tools/built-in/send-image.js"
+import { REQUEST_HUMAN_HANDOFF_TOOL, executeRequestHumanHandoff } from "../tools/built-in/request-human-handoff.js"
+import { MARK_QUALIFIED_LEAD_TOOL, executeMarkQualifiedLead } from "../tools/built-in/mark-qualified-lead.js"
 import { buildWebhookToolDefinitions, executeWebhookTool } from "../tools/external/webhook-tools.js"
+import { sql } from "../db/client.js"
 import type { ChatMessage } from "../providers/types.js"
 import { logger as rootLogger } from "../lib/logger.js"
 
@@ -100,10 +103,19 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
   const systemPrompt = await buildSystemPrompt(agent, "Africa/Lagos", text, adContextForPrompt)
   const messages = await buildMessages(conversation.id, agent.shortTermWindow)
 
-  // 6. Call LLM — tool-calling loop (max 5 iterations to avoid runaway loops)
+  // 6. Call LLM — tool-calling loop (max 5 iterations to avoid runaway loops).
+  // mark_qualified_lead needs the agent owner's userId so the Lead row is
+  // attributed correctly. Fetch it once here rather than per-tool-call.
   const provider = resolveProvider(agent.model)
   const externalTools = await getAgentTools(agentId)
-  const tools = [SEND_IMAGE_TOOL, ...buildWebhookToolDefinitions(externalTools)]
+  const ownerRows = await sql<{ userId: string }[]>`SELECT "userId" FROM "Agent" WHERE "id" = ${agentId} LIMIT 1`
+  const ownerUserId = ownerRows[0]?.userId ?? ""
+  const tools = [
+    SEND_IMAGE_TOOL,
+    REQUEST_HUMAN_HANDOFF_TOOL,
+    MARK_QUALIFIED_LEAD_TOOL,
+    ...buildWebhookToolDefinitions(externalTools),
+  ]
   const currentMessages: ChatMessage[] = [...messages]
   let totalInputTokens = 0
   let totalOutputTokens = 0
@@ -139,6 +151,17 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
             agentId,
             conversationId: conversation.id,
             toJid: senderJid,
+          })
+        } else if (tc.name === "request_human_handoff") {
+          toolResult = await executeRequestHumanHandoff(tc.arguments, {
+            agentId,
+            conversationId: conversation.id,
+          })
+        } else if (tc.name === "mark_qualified_lead") {
+          toolResult = await executeMarkQualifiedLead(tc.arguments, {
+            agentId,
+            conversationId: conversation.id,
+            userId: ownerUserId,
           })
         } else if (externalTools.some((t) => t.name === tc.name)) {
           toolResult = await executeWebhookTool(tc.name, tc.arguments, externalTools)

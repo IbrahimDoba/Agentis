@@ -126,6 +126,44 @@
   background: rgba(34, 197, 94, 0.06);
 }
 
+/* Unread visual — soft accent tint on the card so the row pops without
+ * fighting the active state. The unread dot, bolded name, and bolded
+ * preview do most of the work; this is a subtle background nudge. */
+.itemUnread {
+  background: rgba(34, 197, 94, 0.04);
+  border-color: rgba(34, 197, 94, 0.22);
+}
+
+.itemUnread.itemActive {
+  border-color: var(--accent);
+  background: rgba(34, 197, 94, 0.08);
+}
+
+/* AI flagged this conversation for human takeover — red tint on the card
+ * so it's distinct from active/unread states. Pairs with the "Needs human"
+ * pill in the right cluster. */
+.itemHandoff {
+  background: rgba(239, 68, 68, 0.05);
+  border-color: rgba(239, 68, 68, 0.32);
+}
+
+.itemHandoff.itemActive {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.09);
+}
+
+.handoffBadge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 99px;
+  background: rgba(239, 68, 68, 0.14);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.32);
+  white-space: nowrap;
+}
+
 .avatar {
   width: 44px;
   height: 44px;
@@ -149,8 +187,52 @@
   margin-bottom: 0.2rem;
 }
 
-.phone { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+.phone {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.phoneUnread {
+  color: var(--accent);
+}
 .time { font-size: 11px; color: var(--text-muted); flex-shrink: 0; }
+.timeUnread { color: var(--accent); font-weight: 700; }
+
+/* Right-side cluster on the item top: lead badge sits inline to the left
+ * of the time so a row doesn't get taller when it's a lead. Both nodes
+ * stay flex-shrink:0 so the left-hand name truncates instead. */
+.itemTopRight {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+.unreadDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  display: inline-block;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 0 rgba(0, 220, 130, 0.5);
+  animation: dzUnreadPulse 2s infinite;
+}
+
+@keyframes dzUnreadPulse {
+  0%   { box-shadow: 0 0 0 0 rgba(0, 220, 130, 0.45); }
+  70%  { box-shadow: 0 0 0 6px rgba(0, 220, 130, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 220, 130, 0); }
+}
 
 .phoneSecondary {
   font-size: 11px;
@@ -177,6 +259,11 @@
   overflow: hidden;
   text-overflow: ellipsis;
   margin-bottom: 0.35rem;
+}
+
+.previewUnread {
+  color: var(--text-primary);
+  font-weight: 600;
 }
 
 .meta { display: flex; align-items: center; gap: 0.5rem; }
@@ -549,4 +636,78 @@
 
 @media (max-width: 640px) {
   .drawer { max-width: 100%; }
+}
+
+/* AI-handoff banner shown above the messages in the drawer when the AI
+ * has flagged this conversation. High-urgency variant gets a brighter
+ * red border to draw the eye. */
+.handoffBanner {
+  display: flex;
+  gap: 0.65rem;
+  padding: 0.7rem 1rem;
+  background: rgba(239, 68, 68, 0.08);
+  border-bottom: 1px solid rgba(239, 68, 68, 0.22);
+  align-items: flex-start;
+}
+.handoffBannerHigh {
+  background: rgba(239, 68, 68, 0.14);
+  border-bottom-color: rgba(239, 68, 68, 0.45);
+}
+.handoffBannerIcon { font-size: 16px; line-height: 1.2; flex-shrink: 0; }
+.handoffBannerBody { flex: 1; min-width: 0; }
+.handoffBannerTitle {
+  font-size: 12px;
+  font-weight: 700;
+  color: #ef4444;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.urgencyChip {
+  background: #ef4444;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 99px;
+  letter-spacing: 0.04em;
+}
+.handoffBannerReason {
+  font-size: 13px;
+  color: var(--text-primary);
+  margin-top: 3px;
+  line-height: 1.4;
+}
+.handoffBannerMeta {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* AI-qualified-lead banner — same shape as handoff banner but green. */
+.leadBanner {
+  display: flex;
+  gap: 0.65rem;
+  padding: 0.7rem 1rem;
+  background: rgba(245, 158, 11, 0.08);
+  border-bottom: 1px solid rgba(245, 158, 11, 0.22);
+  align-items: flex-start;
+}
+.leadBannerIcon { font-size: 16px; line-height: 1.2; flex-shrink: 0; }
+.leadBannerBody { flex: 1; min-width: 0; }
+.leadBannerTitle {
+  font-size: 12px;
+  font-weight: 700;
+  color: #f59e0b;
+}
+.leadBannerReason {
+  font-size: 13px;
+  color: var(--text-primary);
+  margin-top: 3px;
+  line-height: 1.4;
+}
+.leadBannerMeta {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
 }

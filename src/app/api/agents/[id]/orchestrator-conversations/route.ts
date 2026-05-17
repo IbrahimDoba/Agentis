@@ -45,6 +45,11 @@ export async function GET(
         lastActivityAt: true,
         createdAt: true,
         adContext: true,
+        handoffReason: true,
+        handoffAt: true,
+        handoffUrgency: true,
+        leadQualifiedAt: true,
+        leadIntent: true,
         _count: { select: { messages: true } },
         messages: {
           orderBy: { createdAt: "desc" },
@@ -119,6 +124,11 @@ export async function GET(
         lastActivityAt: (c.lastActivityAt ?? c.createdAt).toISOString(),
         createdAt: c.createdAt.toISOString(),
         adContext: c.adContext,
+        handoffReason: c.handoffReason,
+        handoffAt: c.handoffAt ? c.handoffAt.toISOString() : null,
+        handoffUrgency: c.handoffUrgency,
+        leadQualifiedAt: c.leadQualifiedAt ? c.leadQualifiedAt.toISOString() : null,
+        leadIntent: c.leadIntent,
         messageCount: c._count.messages,
         lastMessage: c.messages[0]
           ? {

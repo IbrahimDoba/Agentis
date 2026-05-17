@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import Link from "next/link"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { Cog6ToothIcon, MegaphoneIcon } from "@heroicons/react/24/outline"
@@ -29,12 +29,29 @@ interface OrchestratorConversation {
   createdAt: string
   messageCount: number
   adContext: AdContext | null
+  handoffReason?: string | null
+  handoffAt?: string | null
+  handoffUrgency?: string | null
+  leadQualifiedAt?: string | null
+  leadIntent?: string | null
   lastMessage: {
     content: string
     direction: string
     senderRole: string
     createdAt: string
   } | null
+}
+
+// True when the AI has flagged this conversation for human takeover and the
+// operator hasn't yet handled it (i.e. it's still in human mode after the
+// handoff was recorded). We treat handoff as "active" until the agent goes
+// back to ai mode or the conversation is otherwise resolved.
+function needsHumanNow(c: OrchestratorConversation): boolean {
+  return !!c.handoffAt && c.mode === "human"
+}
+
+function isQualifiedLeadNow(c: OrchestratorConversation): boolean {
+  return !!c.leadQualifiedAt
 }
 
 function isEmbed(c: OrchestratorConversation): boolean {
@@ -135,7 +152,7 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [search, setSearch] = useState("")
   const [draftText, setDraftText] = useState("")
-  const [leadFilter, setLeadFilter] = useState<"all" | "leads">("all")
+  const [leadFilter, setLeadFilter] = useState<"all" | "leads" | "handoff">("all")
   const drawerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
@@ -173,6 +190,40 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
     },
     staleTime: 30 * 1000,
   })
+
+  // Read receipts for "unread" badging. We compare the conversation's last
+  // inbound message timestamp against the user's readAt; if it's newer (or
+  // there's no read record at all), the row renders as unread.
+  const { data: readsData } = useQuery<{ reads: { conversationId: string; readAt: string }[] }>({
+    queryKey: ["conversation-reads"],
+    queryFn: async () => {
+      const res = await fetch("/api/conversations/read")
+      if (!res.ok) return { reads: [] }
+      return res.json()
+    },
+    staleTime: 30 * 1000,
+  })
+
+  const markRead = useCallback(
+    (conversationId: string) => {
+      // Optimistic: bump the local readAt cache immediately so the unread
+      // indicator clears without waiting for the network round-trip.
+      const nowIso = new Date().toISOString()
+      qc.setQueryData<{ reads: { conversationId: string; readAt: string }[] }>(
+        ["conversation-reads"],
+        (old) => {
+          const others = (old?.reads ?? []).filter((r) => r.conversationId !== conversationId)
+          return { reads: [...others, { conversationId, readAt: nowIso }] }
+        }
+      )
+      fetch("/api/conversations/read", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ conversationId }),
+      }).catch(() => {})
+    },
+    [qc]
+  )
 
   // SSE: subscribe to live message events while drawer is open
   useEffect(() => {
@@ -261,14 +312,62 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
       .filter((l) => l.agentId === agentId)
       .map((l) => l.conversationId)
   )
+
+  // readMap: conversationId → readAt ISO string. Built from the reads query.
+  const readMap = useMemo(() => {
+    const m = new Map<string, string>()
+    for (const r of readsData?.reads ?? []) m.set(r.conversationId, r.readAt)
+    return m
+  }, [readsData])
+
+  // Unread = the latest message is INBOUND (customer-sent) AND arrived after
+  // we last marked the conversation read. Outbound (our own/AI replies) don't
+  // turn the row unread because we already know about those.
+  const isUnread = useCallback(
+    (conv: OrchestratorConversation): boolean => {
+      const last = conv.lastMessage
+      if (!last || last.direction !== "inbound") return false
+      const readAt = readMap.get(conv.id)
+      if (!readAt) return true
+      return new Date(last.createdAt).getTime() > new Date(readAt).getTime()
+    },
+    [readMap]
+  )
+
+  const handleSelect = useCallback(
+    (id: string) => {
+      setSelectedId(id)
+      const conv = conversations.find((c) => c.id === id)
+      if (conv && isUnread(conv)) markRead(id)
+    },
+    [conversations, isUnread, markRead]
+  )
   const searchFiltered = conversations.filter((c) => {
     if (!search) return true
     const q = search.toLowerCase()
     return c.phoneNumber.includes(q) || (c.contactName?.toLowerCase().includes(q) ?? false)
   })
-  const filtered = leadFilter === "leads"
-    ? searchFiltered.filter((c) => leadIds.has(c.id))
-    : searchFiltered
+  let filtered =
+    leadFilter === "leads"
+      ? searchFiltered.filter((c) => leadIds.has(c.id) || isQualifiedLeadNow(c))
+      : leadFilter === "handoff"
+        ? searchFiltered.filter((c) => needsHumanNow(c))
+        : searchFiltered
+
+  // Sort: conversations needing a human bubble to the top, then anything
+  // unread by the operator, then most-recent activity. We sort a shallow
+  // copy so we don't mutate the React-Query cache.
+  filtered = [...filtered].sort((a, b) => {
+    const aHandoff = needsHumanNow(a) ? 1 : 0
+    const bHandoff = needsHumanNow(b) ? 1 : 0
+    if (aHandoff !== bHandoff) return bHandoff - aHandoff
+    const aUnread = isUnread(a) ? 1 : 0
+    const bUnread = isUnread(b) ? 1 : 0
+    if (aUnread !== bUnread) return bUnread - aUnread
+    return (b.lastActivityAt ?? "").localeCompare(a.lastActivityAt ?? "")
+  })
+
+  const handoffCount = conversations.filter(needsHumanNow).length
   const selectedConv = conversations.find((c) => c.id === selectedId)
   const convMode = selectedConv?.mode ?? "ai"
 
@@ -320,6 +419,14 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
         >
           Leads ({leadIds.size})
         </button>
+        {handoffCount > 0 && (
+          <button
+            className={`${styles.metaFilterBtn} ${leadFilter === "handoff" ? styles.metaFilterBtnActive : ""}`}
+            onClick={() => setLeadFilter("handoff")}
+          >
+            🚨 Needs human ({handoffCount})
+          </button>
+        )}
       </div>
 
       {/* Resume all banner — only shown when at least one conversation is in human mode */}
@@ -354,43 +461,63 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
       )}
 
       <div className={styles.list}>
-        {filtered.map((conv) => (
-          <button
-            key={conv.id}
-            className={`${styles.item} ${selectedId === conv.id ? styles.itemActive : ""}`}
-            onClick={() => setSelectedId(conv.id)}
-          >
-            <div className={styles.avatar}>
-              {conv.contactName
-                ? conv.contactName.trim().slice(0, 2).toUpperCase()
-                : conv.phoneNumber.replace(/\D/g, "").slice(-4, -2)}
-            </div>
-            <div className={styles.itemBody}>
-              <div className={styles.itemTop}>
-                <span className={styles.phone}>{displayName(conv)}</span>
-                <span className={styles.time}>{formatTime(conv.lastActivityAt)}</span>
+        {filtered.map((conv) => {
+          const unread = isUnread(conv)
+          const isLead = leadIds.has(conv.id) || isQualifiedLeadNow(conv)
+          const needsHuman = needsHumanNow(conv)
+          return (
+            <button
+              key={conv.id}
+              className={`${styles.item} ${selectedId === conv.id ? styles.itemActive : ""} ${unread ? styles.itemUnread : ""} ${needsHuman ? styles.itemHandoff : ""}`}
+              onClick={() => handleSelect(conv.id)}
+            >
+              <div className={styles.avatar}>
+                {conv.contactName
+                  ? conv.contactName.trim().slice(0, 2).toUpperCase()
+                  : conv.phoneNumber.replace(/\D/g, "").slice(-4, -2)}
               </div>
-              <div className={styles.phoneSecondary}>
-                {isEmbed(conv)
-                  ? <><span className={styles.channelTag}>🌐 Web</span> {conv.contactName ? embedLabel(conv) : ""}</>
-                  : isLid(displayPhone(conv))
-                    ? `ID: ${displayPhone(conv).replace(/@.*$/, "")}`
-                    : formatPhone(displayPhone(conv))}
+              <div className={styles.itemBody}>
+                <div className={styles.itemTop}>
+                  <span className={`${styles.phone} ${unread ? styles.phoneUnread : ""}`}>
+                    {unread && <span className={styles.unreadDot} aria-label="Unread" />}
+                    {displayName(conv)}
+                  </span>
+                  <span className={styles.itemTopRight}>
+                    {needsHuman && (
+                      <span
+                        className={styles.handoffBadge}
+                        title={conv.handoffReason ? `Needs human: ${conv.handoffReason}` : "Needs human"}
+                      >
+                        🚨 Needs human
+                      </span>
+                    )}
+                    {isLead && <span className={styles.leadBadge} title={conv.leadIntent ?? "Lead"}>🔥 Lead</span>}
+                    <span className={`${styles.time} ${unread ? styles.timeUnread : ""}`}>
+                      {formatTime(conv.lastActivityAt)}
+                    </span>
+                  </span>
+                </div>
+                <div className={styles.phoneSecondary}>
+                  {isEmbed(conv)
+                    ? <><span className={styles.channelTag}>🌐 Web</span> {conv.contactName ? embedLabel(conv) : ""}</>
+                    : isLid(displayPhone(conv))
+                      ? `ID: ${displayPhone(conv).replace(/@.*$/, "")}`
+                      : formatPhone(displayPhone(conv))}
+                </div>
+                <div className={`${styles.preview} ${unread ? styles.previewUnread : ""}`}>
+                  {conv.lastMessage
+                    ? `${conv.lastMessage.direction === "outbound" ? (conv.lastMessage.senderRole === "human" ? "You: " : "AI: ") : ""}${conv.lastMessage.content.slice(0, 80)}${conv.lastMessage.content.length > 80 ? "…" : ""}`
+                    : "No messages yet"}
+                </div>
+                <div className={styles.meta}>
+                  <span className={styles.msgCount}>{conv.messageCount} messages</span>
+                  {conv.mode === "human" && <span className={styles.humanBadge}>Human</span>}
+                  <span className={styles.badge}>DZero AI</span>
+                </div>
               </div>
-              <div className={styles.preview}>
-                {conv.lastMessage
-                  ? `${conv.lastMessage.direction === "outbound" ? (conv.lastMessage.senderRole === "human" ? "You: " : "AI: ") : ""}${conv.lastMessage.content.slice(0, 80)}${conv.lastMessage.content.length > 80 ? "…" : ""}`
-                  : "No messages yet"}
-              </div>
-              <div className={styles.meta}>
-                <span className={styles.msgCount}>{conv.messageCount} messages</span>
-                {leadIds.has(conv.id) && <span className={styles.leadBadge}>Lead</span>}
-                {conv.mode === "human" && <span className={styles.humanBadge}>Human</span>}
-                <span className={styles.badge}>DZero AI</span>
-              </div>
-            </div>
-          </button>
-        ))}
+            </button>
+          )
+        })}
       </div>
 
       {/* Message drawer */}
@@ -462,6 +589,43 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
             {convMode === "human" && (
               <div className={styles.humanBanner}>
                 AI paused for this conversation — you are handling replies manually
+              </div>
+            )}
+
+            {/* AI-initiated handoff — the AI called request_human_handoff and
+                surfaced a reason. Show prominently above the message stream so
+                the operator triages with the AI's own justification in view. */}
+            {selectedConv?.handoffAt && selectedConv.handoffReason && (
+              <div
+                className={`${styles.handoffBanner} ${selectedConv.handoffUrgency === "high" ? styles.handoffBannerHigh : ""}`}
+              >
+                <span className={styles.handoffBannerIcon}>🚨</span>
+                <div className={styles.handoffBannerBody}>
+                  <div className={styles.handoffBannerTitle}>
+                    AI requested human takeover
+                    {selectedConv.handoffUrgency === "high" && <span className={styles.urgencyChip}>HIGH</span>}
+                  </div>
+                  <div className={styles.handoffBannerReason}>{selectedConv.handoffReason}</div>
+                  <div className={styles.handoffBannerMeta}>
+                    Flagged {formatFullTime(selectedConv.handoffAt)}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* AI-qualified lead banner — separate from the handoff banner so
+                both can appear if both fired. Lead intent is the AI's stated
+                summary of what the customer wants. */}
+            {selectedConv?.leadQualifiedAt && selectedConv.leadIntent && (
+              <div className={styles.leadBanner}>
+                <span className={styles.leadBannerIcon}>🔥</span>
+                <div className={styles.leadBannerBody}>
+                  <div className={styles.leadBannerTitle}>AI marked this a qualified lead</div>
+                  <div className={styles.leadBannerReason}>{selectedConv.leadIntent}</div>
+                  <div className={styles.leadBannerMeta}>
+                    Qualified {formatFullTime(selectedConv.leadQualifiedAt)}
+                  </div>
+                </div>
               </div>
             )}
 

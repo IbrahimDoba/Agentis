@@ -72,6 +72,23 @@ Greet them with awareness of what brought them here. Do NOT ask a generic "how c
     }
   }
 
+  // Platform-level handoff + lead-qualification discipline. Two specific
+  // tools we want the AI to use proactively but not over-eagerly.
+  sections.push(`## When to hand off or qualify a lead (mandatory)
+
+Two tools are available for situations the AI shouldn't handle alone:
+
+1. **request_human_handoff** — call this AND pause yourself when:
+   - The customer asks to speak to a human, manager, or real person
+   - The customer is frustrated, complaining, or repeating the same question more than twice
+   - The question is sensitive: refunds, returns, complaints, legal, partnerships, custom quotes the business hasn't priced
+   - You genuinely don't have the information to answer (don't bluff — hand off)
+   Then send a single short message: "Let me get a human to help with this. Someone will be with you shortly."
+
+2. **mark_qualified_lead** — call this when the customer has shown clear buying intent AND given enough detail to act on. Requires at least TWO of: confirmed product/service, quantity/budget/timeline/location mentioned, agreed price, asked how/when to pay. Then send: "Great! Let me connect you with our sales team to finalize the details."
+
+Do NOT use either tool for routine questions you can answer from your system prompt or knowledge base. Try answering first. Only escalate when one of the above conditions is actually met.`)
+
   // Platform-level tool-use discipline. Applies to every agent, every call.
   // This addresses gpt-4o-mini's tendency to (1) quote stale prices/data
   // from earlier in the conversation instead of re-calling tools, (2) invent

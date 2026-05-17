@@ -2,17 +2,28 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 
-// GET — return all read conversation IDs for user
+// GET — return all read conversations for this user.
+// Response shape returns BOTH:
+//   - readIds: string[]               (legacy consumer: ChatList for ElevenLabs)
+//   - reads:   { conversationId, readAt }[]  (newer consumer: OrchestratorChatsView,
+//     which compares readAt against the conversation's last inbound message to
+//     decide whether the row should display as "unread")
 export async function GET() {
   const session = await auth()
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const reads = await db.conversationRead.findMany({
     where: { userId: session.user.id },
-    select: { conversationId: true },
+    select: { conversationId: true, readAt: true },
   })
 
-  return NextResponse.json({ readIds: reads.map((r) => r.conversationId) })
+  return NextResponse.json({
+    readIds: reads.map((r) => r.conversationId),
+    reads: reads.map((r) => ({
+      conversationId: r.conversationId,
+      readAt: r.readAt.toISOString(),
+    })),
+  })
 }
 
 // POST — mark a conversation as read
