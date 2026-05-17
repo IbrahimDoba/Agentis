@@ -66,3 +66,11 @@ scripts/check-*.ts
 scripts/seed-*.ts
 scripts/setup-*.ts
 scripts/add-*.ts
+scripts/reset-*
+
+# raw WhatsApp history snapshots — PII, dev-only debugging artifact
+worker/history_snapshots/
+worker/auth_sessions/
+
+# dev-only test endpoints (payment sandbox, etc.) — never ship to prod
+src/app/api/test/

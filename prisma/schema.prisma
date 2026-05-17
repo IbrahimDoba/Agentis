@@ -72,6 +72,14 @@ model Agent {
   whatsappPhoneNumberId String?
   messagingEnabled     Boolean     @default(true)
   autoPauseOnHumanReply Boolean    @default(true)
+  pauseOnAiHandoff     Boolean     @default(true)
+  pauseOnQualifiedLead Boolean     @default(true)
+  isVerified           Boolean     @default(false)
+  autoConfigStatus     String?
+  autoConfigInputs     Json?
+  autoConfigDraft      Json?
+  autoConfigStartedAt   DateTime?
+  autoConfigCompletedAt DateTime?
   category             String?
   address              String?
   productsData         Json?
@@ -254,6 +262,11 @@ model Conversation {
   factsExtractedAt     DateTime?
   lastFollowedUpAt     DateTime?
   adContext            Json?
+  handoffReason        String?
+  handoffAt            DateTime?
+  handoffUrgency       String?
+  leadQualifiedAt      DateTime?
+  leadIntent           String?
   createdAt            DateTime            @default(now())
   messages             Message[]
   summary              ConversationSummary?
