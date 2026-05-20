@@ -38,6 +38,10 @@ export interface AgentTool {
   method: "GET" | "POST"
   parameters: AgentToolParameter[]
   headers?: Record<string, string>
+  // Optional widget-rendering hint. When set, the orchestrator uses this to
+  // pull structured product / card data out of the tool's response and
+  // attach it to the assistant reply for the embed widget to render.
+  responseMapping?: Record<string, unknown>
 }
 
 export async function getAgentRuntime(agentId: string): Promise<AgentWithRuntime | null> {
@@ -85,6 +89,9 @@ export async function getAgentTools(agentId: string): Promise<AgentTool[]> {
       method: (String(item.method ?? "GET").toUpperCase() === "POST" ? "POST" : "GET") as "GET" | "POST",
       headers: item.headers && typeof item.headers === "object" && !Array.isArray(item.headers)
         ? (item.headers as Record<string, string>)
+        : undefined,
+      responseMapping: item.responseMapping && typeof item.responseMapping === "object" && !Array.isArray(item.responseMapping)
+        ? (item.responseMapping as Record<string, unknown>)
         : undefined,
       parameters: Array.isArray(item.parameters)
         ? item.parameters

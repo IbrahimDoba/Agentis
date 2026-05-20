@@ -122,6 +122,9 @@ export async function insertMessage(msg: {
   mediaUrl?: string | null
   mediaDescription?: string | null
   toolCalls?: unknown
+  // Structured payload for the widget UI (product cards, etc.) — rendered
+  // alongside / in place of the text bubble. Plain WhatsApp dispatch ignores this.
+  richContent?: unknown
   tokensInput?: number
   tokensOutput?: number
   modelUsed?: string
@@ -135,12 +138,13 @@ export async function insertMessage(msg: {
   const senderRole = msg.senderRole ?? "ai"
   await sql`
     INSERT INTO "Message" ("id", "conversationId", "direction", "senderRole", "content",
-      "mediaUrl", "mediaDescription", "toolCalls",
+      "mediaUrl", "mediaDescription", "toolCalls", "richContent",
       "tokensInput", "tokensOutput", "modelUsed", "createdAt")
     VALUES (
       ${id}, ${msg.conversationId}, ${msg.direction}, ${senderRole}, ${msg.content},
       ${msg.mediaUrl ?? null}, ${msg.mediaDescription ?? null},
       ${msg.toolCalls ? JSON.stringify(msg.toolCalls) : null},
+      ${msg.richContent ? JSON.stringify(msg.richContent) : null},
       ${msg.tokensInput ?? null}, ${msg.tokensOutput ?? null},
       ${msg.modelUsed ?? null}, NOW()
     )

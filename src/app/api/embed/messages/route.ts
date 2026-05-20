@@ -74,6 +74,7 @@ export async function GET(req: NextRequest) {
       senderRole: true,
       content: true,
       mediaUrl: true,
+      richContent: true,
       createdAt: true,
     },
   })
@@ -86,6 +87,7 @@ export async function GET(req: NextRequest) {
         senderRole: m.senderRole,
         content: m.content,
         mediaUrl: m.mediaUrl,
+        richContent: m.richContent ?? null,
         createdAt: m.createdAt.toISOString(),
       })),
     },

@@ -13,6 +13,7 @@ import { SEND_IMAGE_TOOL, executeSendImage } from "../tools/built-in/send-image.
 import { REQUEST_HUMAN_HANDOFF_TOOL, executeRequestHumanHandoff } from "../tools/built-in/request-human-handoff.js"
 import { MARK_QUALIFIED_LEAD_TOOL, executeMarkQualifiedLead } from "../tools/built-in/mark-qualified-lead.js"
 import { buildWebhookToolDefinitions, executeWebhookTool } from "../tools/external/webhook-tools.js"
+import { buildRichContent, type ProductResponseMapping } from "./rich-content.js"
 import { sql } from "../db/client.js"
 import type { ChatMessage } from "../providers/types.js"
 import { logger as rootLogger } from "../lib/logger.js"
@@ -120,6 +121,9 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
   let totalInputTokens = 0
   let totalOutputTokens = 0
   let finalReply: string | null = null
+  // Capture every external-tool result this turn so we can post-process them
+  // into structured UI payloads (product cards, etc.) for the widget.
+  const collectedToolResults: { toolName: string; rawResult: string; mapping?: ProductResponseMapping }[] = []
 
   for (let iteration = 0; iteration < 5; iteration++) {
     const result = await provider.chat({
@@ -165,6 +169,15 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
           })
         } else if (externalTools.some((t) => t.name === tc.name)) {
           toolResult = await executeWebhookTool(tc.name, tc.arguments, externalTools)
+          const def = externalTools.find((t) => t.name === tc.name)
+          collectedToolResults.push({
+            toolName: tc.name,
+            rawResult: toolResult,
+            // Cast: AgentTool stores the mapping as untyped JSON. The
+            // extractor validates fields it actually uses, so a bad shape
+            // just falls back to the heuristic — not a runtime hazard.
+            mapping: def?.responseMapping as ProductResponseMapping | undefined,
+          })
         } else {
           toolResult = JSON.stringify({ error: `Unknown tool: ${tc.name}` })
         }
@@ -192,12 +205,18 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
   // 7. Output shaping — split long replies into multiple messages
   const replyParts = splitReply(finalReply)
 
+  // Build structured payload (product cards etc.) from the tool results
+  // captured during the LLM loop. Attaches only to the first part so the
+  // cards don't render twice when a long reply gets split.
+  const richContent = buildRichContent(collectedToolResults)
+
   // 8. Persist outbound message(s)
-  for (const part of replyParts) {
+  for (let i = 0; i < replyParts.length; i++) {
     await insertMessage({
       conversationId: conversation.id,
       direction: "outbound",
-      content: part,
+      content: replyParts[i],
+      richContent: i === 0 ? richContent ?? undefined : undefined,
       tokensInput: totalInputTokens,
       tokensOutput: totalOutputTokens,
       modelUsed: agent.model,

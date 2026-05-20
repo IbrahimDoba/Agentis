@@ -60,14 +60,16 @@ prisma/migrations_manual_backup/
 # generated prisma client — recreated by `postinstall` (prisma generate)
 src/generated/
 
-# one-off utility / backfill scripts
-scripts/backfill-*.ts
-scripts/check-*.ts
-scripts/seed-*.ts
-scripts/setup-*.ts
-scripts/add-*.ts
+# one-off utility / backfill scripts (both .ts and .mjs diagnostic versions)
+scripts/backfill-*
+scripts/check-*
+scripts/seed-*
+scripts/setup-*
+scripts/add-*
 scripts/reset-*
 scripts/insert-*
+scripts/find-*
+scripts/verify-*
 
 # raw WhatsApp history snapshots — PII, dev-only debugging artifact
 worker/history_snapshots/

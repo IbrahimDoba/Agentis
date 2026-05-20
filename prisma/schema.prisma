@@ -286,6 +286,7 @@ model Message {
   mediaUrl         String?
   mediaDescription String?      @db.Text
   toolCalls        Json?
+  richContent      Json?
   tokensInput      Int?
   tokensOutput     Int?
   modelUsed        String?

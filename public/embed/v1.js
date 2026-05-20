@@ -341,6 +341,8 @@
   }
 
   // ── Message rendering ──────────────────────────────────────────────────────
+  // Inbound = visitor's own message (right side), outbound = AI reply (left).
+  // Naming reflects the server's perspective which is opposite of the UI's.
   function renderMessage(m) {
     if (!refs.messages) return
     var row = document.createElement("div")
@@ -348,10 +350,145 @@
     row.setAttribute("data-msg-id", m.id)
     var bubble = document.createElement("div")
     bubble.className = "dz-bubble"
-    bubble.textContent = m.content
+    // Visitor messages render as plain text; AI bubbles get safe markdown
+    // (bold, italic, links). Product cards from richContent render separately
+    // below the bubble.
+    if (m.direction === "outbound") {
+      bubble.innerHTML = renderMarkdown(m.content || "")
+    } else {
+      bubble.textContent = m.content
+    }
     row.appendChild(bubble)
     refs.messages.appendChild(row)
+
+    if (m.richContent && m.richContent.type === "products" && Array.isArray(m.richContent.products)) {
+      var cardsRow = renderProductCards(m.richContent.products)
+      if (cardsRow) refs.messages.appendChild(cardsRow)
+    }
+
     refs.messages.scrollTop = refs.messages.scrollHeight
+  }
+
+  // Tiny safe markdown: **bold**, *italic*, [text](url), inline `code`,
+  // and bare URLs become links. We escape everything first so the result
+  // can't smuggle HTML, then re-introduce the recognised markup.
+  function escapeHtml(s) {
+    return String(s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;")
+  }
+  // Only http(s) URLs make it into href — refuse javascript: / data: etc.
+  function safeUrl(u) {
+    if (!/^https?:\/\//i.test(u)) return null
+    return u
+  }
+  function renderMarkdown(src) {
+    var text = escapeHtml(src)
+    // [text](url) — must come before bare-URL pass so we don't double-link.
+    text = text.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, function (_, label, url) {
+      var safe = safeUrl(url)
+      if (!safe) return label
+      return '<a href="' + safe + '" target="_blank" rel="noopener noreferrer">' + label + "</a>"
+    })
+    // Strip stray markdown image syntax — those become real cards instead.
+    text = text.replace(/!\[[^\]]*\]\(https?:\/\/[^\s)]+\)/g, "")
+    // **bold**
+    text = text.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    // *italic* — single asterisks, but not when adjacent to another * (already handled).
+    text = text.replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, "$1<em>$2</em>")
+    // `code`
+    text = text.replace(/`([^`]+)`/g, "<code>$1</code>")
+    // Bare URLs not already wrapped in an <a>.
+    text = text.replace(/(^|[\s(])(https?:\/\/[^\s)]+)/g, function (_, pre, url) {
+      return pre + '<a href="' + url + '" target="_blank" rel="noopener noreferrer">' + url + "</a>"
+    })
+    // Newlines → <br>
+    text = text.replace(/\n/g, "<br>")
+    return text
+  }
+
+  // ── Product card rendering ───────────────────────────────────────────────
+  function formatPrice(cents, currency) {
+    var major = Math.round(cents / 100)
+    var formatted = major.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+    var symbol = currency === "NGN" ? "₦" : (currency + " ")
+    return symbol + formatted
+  }
+  function renderProductCards(products) {
+    if (!products || products.length === 0) return null
+    var row = document.createElement("div")
+    row.className = "dz-row dz-row-in"
+    var scroller = document.createElement("div")
+    scroller.className = "dz-cards"
+    products.forEach(function (p) {
+      scroller.appendChild(renderProductCard(p))
+    })
+    row.appendChild(scroller)
+    return row
+  }
+  function renderProductCard(p) {
+    var node
+    var url = p.productUrl ? safeUrl(p.productUrl) : null
+    if (url) {
+      node = document.createElement("a")
+      node.href = url
+      node.target = "_blank"
+      node.rel = "noopener noreferrer"
+    } else {
+      node = document.createElement("div")
+    }
+    node.className = "dz-card"
+
+    var imgWrap = document.createElement("div")
+    imgWrap.className = "dz-card-img"
+    if (p.imageUrl && safeUrl(p.imageUrl)) {
+      var img = document.createElement("img")
+      img.src = p.imageUrl
+      img.alt = p.name || ""
+      img.loading = "lazy"
+      imgWrap.appendChild(img)
+    }
+    node.appendChild(imgWrap)
+
+    var body = document.createElement("div")
+    body.className = "dz-card-body"
+
+    var title = document.createElement("div")
+    title.className = "dz-card-title"
+    title.textContent = p.name || ""
+    body.appendChild(title)
+
+    var priceRow = document.createElement("div")
+    priceRow.className = "dz-card-price-row"
+    var price = document.createElement("span")
+    price.className = "dz-card-price"
+    price.textContent = formatPrice(p.priceCents, p.currency)
+    priceRow.appendChild(price)
+    if (p.originalPriceCents != null && p.originalPriceCents > p.priceCents) {
+      var was = document.createElement("span")
+      was.className = "dz-card-was"
+      was.textContent = formatPrice(p.originalPriceCents, p.currency)
+      priceRow.appendChild(was)
+    }
+    body.appendChild(priceRow)
+
+    if (p.inStock === false) {
+      var badge = document.createElement("span")
+      badge.className = "dz-card-badge dz-card-oos"
+      badge.textContent = "Out of stock"
+      body.appendChild(badge)
+    } else if (typeof p.stock === "number" && p.stock > 0 && p.stock <= 5) {
+      var low = document.createElement("span")
+      low.className = "dz-card-badge dz-card-low"
+      low.textContent = "Only " + p.stock + " left"
+      body.appendChild(low)
+    }
+
+    node.appendChild(body)
+    return node
   }
 
   function showTyping() {
@@ -384,6 +521,24 @@
     ".dz-bubble { max-width: 80%; padding: 9px 12px; border-radius: 14px; font-size: 14px; line-height: 1.45; word-wrap: break-word; white-space: pre-wrap; }",
     ".dz-row-out .dz-bubble { background: #00DC82; color: #000; border-bottom-right-radius: 4px; }",
     ".dz-row-in .dz-bubble { background: #fff; color: #111; border: 1px solid #e5e7eb; border-bottom-left-radius: 4px; }",
+    ".dz-bubble a { color: inherit; text-decoration: underline; }",
+    ".dz-bubble strong { font-weight: 600; }",
+    ".dz-bubble code { background: rgba(0,0,0,0.06); padding: 1px 4px; border-radius: 4px; font-size: 12.5px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }",
+    ".dz-cards { display: flex; gap: 10px; overflow-x: auto; padding: 2px 2px 6px; margin-right: -16px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }",
+    ".dz-cards::-webkit-scrollbar { height: 6px; }",
+    ".dz-cards::-webkit-scrollbar-thumb { background: #d4d7dc; border-radius: 3px; }",
+    ".dz-card { flex: 0 0 168px; scroll-snap-align: start; background: #fff; border: 1px solid #e5e7eb; border-radius: 14px; overflow: hidden; text-decoration: none; color: inherit; display: flex; flex-direction: column; transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease; cursor: pointer; }",
+    ".dz-card:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.08); border-color: #d4d7dc; }",
+    ".dz-card-img { width: 100%; aspect-ratio: 1 / 1; background: #f5f6f8; display: flex; align-items: center; justify-content: center; overflow: hidden; }",
+    ".dz-card-img img { width: 100%; height: 100%; object-fit: cover; display: block; }",
+    ".dz-card-body { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 5px; }",
+    ".dz-card-title { font-size: 13px; font-weight: 500; line-height: 1.35; color: #111; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 36px; }",
+    ".dz-card-price-row { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }",
+    ".dz-card-price { font-size: 14px; font-weight: 700; color: #111; }",
+    ".dz-card-was { font-size: 12px; color: #9aa0a6; text-decoration: line-through; }",
+    ".dz-card-badge { display: inline-block; font-size: 10.5px; font-weight: 600; padding: 2px 7px; border-radius: 999px; align-self: flex-start; margin-top: 2px; }",
+    ".dz-card-low { background: #fff3cd; color: #8a5a00; }",
+    ".dz-card-oos { background: #f1f3f5; color: #6b7280; }",
     "#dz-typing { display: none; gap: 4px; padding: 8px 12px; }",
     "#dz-typing span { width: 6px; height: 6px; border-radius: 50%; background: #aaa; animation: dzBounce 1.2s infinite; }",
     "#dz-typing span:nth-child(2) { animation-delay: 0.15s; }",
