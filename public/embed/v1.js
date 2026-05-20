@@ -387,14 +387,16 @@
   }
   function renderMarkdown(src) {
     var text = escapeHtml(src)
+    // Strip markdown images FIRST — otherwise the [text](url) link regex
+    // below matches the inner [alt](url) of an image, turning ![Image](url)
+    // into "!" + linkified "Image", which leaks "!Image" into the bubble.
+    text = text.replace(/!\[[^\]]*\]\(https?:\/\/[^\s)]+\)/g, "")
     // [text](url) — must come before bare-URL pass so we don't double-link.
     text = text.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, function (_, label, url) {
       var safe = safeUrl(url)
       if (!safe) return label
       return '<a href="' + safe + '" target="_blank" rel="noopener noreferrer">' + label + "</a>"
     })
-    // Strip stray markdown image syntax — those become real cards instead.
-    text = text.replace(/!\[[^\]]*\]\(https?:\/\/[^\s)]+\)/g, "")
     // **bold**
     text = text.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
     // *italic* — single asterisks, but not when adjacent to another * (already handled).

@@ -3,6 +3,7 @@ import { z } from "zod"
 import { db } from "@/lib/db"
 import { resolveEmbedSite } from "@/lib/embed-auth"
 import { corsJson, isAllowedOrigin, preflight } from "@/lib/embed-cors"
+import { parseJsonbColumn } from "@/lib/agent-auto-config"
 
 // Polling endpoint — the widget calls this every few seconds to pick up
 // new replies. Returns all messages on the conversation newer than the
@@ -87,7 +88,9 @@ export async function GET(req: NextRequest) {
         senderRole: m.senderRole,
         content: m.content,
         mediaUrl: m.mediaUrl,
-        richContent: m.richContent ?? null,
+        // PrismaNeon adapter returns JSONB as a raw string on some driver
+        // paths — parse so the widget gets a real object.
+        richContent: parseJsonbColumn<unknown>(m.richContent),
         createdAt: m.createdAt.toISOString(),
       })),
     },
