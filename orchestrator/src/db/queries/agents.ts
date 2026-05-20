@@ -37,6 +37,7 @@ export interface AgentTool {
   url: string
   method: "GET" | "POST"
   parameters: AgentToolParameter[]
+  headers?: Record<string, string>
 }
 
 export async function getAgentRuntime(agentId: string): Promise<AgentWithRuntime | null> {
@@ -82,6 +83,9 @@ export async function getAgentTools(agentId: string): Promise<AgentTool[]> {
       description: String(item.description ?? ""),
       url: String(item.url ?? ""),
       method: (String(item.method ?? "GET").toUpperCase() === "POST" ? "POST" : "GET") as "GET" | "POST",
+      headers: item.headers && typeof item.headers === "object" && !Array.isArray(item.headers)
+        ? (item.headers as Record<string, string>)
+        : undefined,
       parameters: Array.isArray(item.parameters)
         ? item.parameters
             .filter((p): p is Record<string, unknown> => !!p && typeof p === "object")

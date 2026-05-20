@@ -39,6 +39,24 @@ function stringifyValue(value: unknown): string {
   return JSON.stringify(value)
 }
 
+// Replace {param} placeholders in the URL with values from args.
+// Returns the resolved URL and the remaining args not consumed by path params.
+function applyUrlTemplate(
+  rawUrl: string,
+  args: Record<string, unknown>
+): { resolvedUrl: string; remainingArgs: Record<string, unknown> } {
+  const remaining = { ...args }
+  const resolvedUrl = rawUrl.replace(/\{([^}]+)\}/g, (_, key) => {
+    if (key in remaining && remaining[key] != null) {
+      const val = encodeURIComponent(stringifyValue(remaining[key]))
+      delete remaining[key]
+      return val
+    }
+    return `{${key}}`
+  })
+  return { resolvedUrl, remainingArgs: remaining }
+}
+
 export async function executeWebhookTool(
   toolName: string,
   args: Record<string, unknown>,
@@ -47,14 +65,20 @@ export async function executeWebhookTool(
   const tool = tools.find((t) => t.name === toolName)
   if (!tool) return JSON.stringify({ error: `Unknown tool: ${toolName}` })
 
+  const toolHeaders: Record<string, string> = tool.headers ?? {}
+
   try {
     if (tool.method === "GET") {
-      const url = new URL(tool.url)
-      for (const [key, value] of Object.entries(args ?? {})) {
+      const { resolvedUrl, remainingArgs } = applyUrlTemplate(tool.url, args ?? {})
+      const url = new URL(resolvedUrl)
+      for (const [key, value] of Object.entries(remainingArgs)) {
         if (value === undefined || value === null) continue
         url.searchParams.set(key, stringifyValue(value))
       }
-      const res = await fetch(url.toString(), { method: "GET" })
+      const res = await fetch(url.toString(), {
+        method: "GET",
+        headers: toolHeaders,
+      })
       const body = await res.text()
       if (!res.ok) {
         return JSON.stringify({
@@ -72,10 +96,11 @@ export async function executeWebhookTool(
       })
     }
 
-    const res = await fetch(tool.url, {
+    const { resolvedUrl, remainingArgs } = applyUrlTemplate(tool.url, args ?? {})
+    const res = await fetch(resolvedUrl, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(args ?? {}),
+      headers: { "Content-Type": "application/json", ...toolHeaders },
+      body: JSON.stringify(remainingArgs),
     })
     const body = await res.text()
     if (!res.ok) {

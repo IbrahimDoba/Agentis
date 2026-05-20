@@ -26,6 +26,7 @@ function SignupForm() {
     businessName: "",
     phone: "",
     password: "",
+    confirmPassword: "",
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [error, setError] = useState("")
@@ -43,8 +44,10 @@ function SignupForm() {
     e.preventDefault()
     setError("")
 
-    // Client-side validation
-    const parsed = signupSchema.safeParse(form)
+    // Client-side validation. confirmPassword is a UX-only field — we check
+    // the match here but never send it to the API.
+    const { confirmPassword, ...payload } = form
+    const parsed = signupSchema.safeParse(payload)
     if (!parsed.success) {
       const fieldErrors: Record<string, string> = {}
       parsed.error.issues.forEach((issue) => {
@@ -52,6 +55,10 @@ function SignupForm() {
         if (!fieldErrors[field]) fieldErrors[field] = issue.message
       })
       setErrors(fieldErrors)
+      return
+    }
+    if (payload.password !== confirmPassword) {
+      setErrors({ confirmPassword: "Passwords don't match" })
       return
     }
     if (!agreed) {
@@ -66,7 +73,7 @@ function SignupForm() {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, ...(refCode ? { refCode } : {}) }),
+        body: JSON.stringify({ ...payload, ...(refCode ? { refCode } : {}) }),
       })
 
       const data = await res.json()
@@ -183,6 +190,18 @@ function SignupForm() {
             value={form.password}
             onChange={handleChange}
             error={errors.password}
+            required
+            autoComplete="new-password"
+          />
+
+          <Input
+            label="Confirm Password"
+            name="confirmPassword"
+            type="password"
+            placeholder="Re-enter your password"
+            value={form.confirmPassword}
+            onChange={handleChange}
+            error={errors.confirmPassword}
             required
             autoComplete="new-password"
           />
