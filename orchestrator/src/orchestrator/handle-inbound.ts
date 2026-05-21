@@ -125,7 +125,11 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
   // into structured UI payloads (product cards, etc.) for the widget.
   const collectedToolResults: { toolName: string; rawResult: string; mapping?: ProductResponseMapping }[] = []
 
-  for (let iteration = 0; iteration < 5; iteration++) {
+  // Cap raised from 5 → 8 to fit multi-step e-commerce flows (search →
+  // cart_quote → shipping_quote → create_payment_link → create_order is
+  // already 5 by itself, leaving no room for retries or extra lookups).
+  const MAX_TOOL_ITERATIONS = 8
+  for (let iteration = 0; iteration < MAX_TOOL_ITERATIONS; iteration++) {
     const result = await provider.chat({
       model: agent.model,
       system: systemPrompt,
@@ -194,6 +198,30 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
     } else {
       finalReply = result.content?.trim() ?? null
       break
+    }
+  }
+
+  // Fallback: loop ended without a text reply — either the model still
+  // wanted to call tools at the cap, or it returned an empty turn with
+  // no content and no tool_calls (rare OpenAI edge case after a long
+  // tool chain). Force one more call with tools disabled so the model
+  // MUST produce text. Without this, the customer just sees silence.
+  if (!finalReply) {
+    logger.warn({ agentId, conversationId: conversation.id }, "LLM produced no text reply — forcing closing turn with tools disabled")
+    try {
+      const closing = await provider.chat({
+        model: agent.model,
+        system: systemPrompt,
+        messages: currentMessages,
+        tools: [],
+        temperature: Number(agent.temperature),
+        max_output_tokens: agent.maxOutputTokens,
+      })
+      totalInputTokens += closing.usage.input_tokens
+      totalOutputTokens += closing.usage.output_tokens
+      finalReply = closing.content?.trim() ?? null
+    } catch (err) {
+      logger.error({ agentId, conversationId: conversation.id, err }, "Forced text-reply call failed")
     }
   }
 
