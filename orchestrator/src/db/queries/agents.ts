@@ -23,10 +23,15 @@ export interface AgentWithRuntime {
 
 export interface AgentToolParameter {
   name: string
-  type: "string" | "integer" | "boolean" | "number"
+  type: "string" | "integer" | "boolean" | "number" | "object" | "array"
   description: string
   required: boolean
   enum?: string[]
+  // For type: "object" — nested params. The OpenAI function-calling spec
+  // expects these as a JSON Schema; we recursively convert in toJsonSchema.
+  properties?: AgentToolParameter[]
+  // For type: "array" — schema of each item.
+  items?: AgentToolParameter
 }
 
 export interface AgentTool {
@@ -96,14 +101,33 @@ export async function getAgentTools(agentId: string): Promise<AgentTool[]> {
       parameters: Array.isArray(item.parameters)
         ? item.parameters
             .filter((p): p is Record<string, unknown> => !!p && typeof p === "object")
-            .map((p) => ({
-              name: String(p.name ?? ""),
-              type: (["string", "integer", "boolean", "number"].includes(String(p.type)) ? String(p.type) : "string") as AgentToolParameter["type"],
-              description: String(p.description ?? ""),
-              required: Boolean(p.required),
-              enum: Array.isArray(p.enum) ? p.enum.map((v) => String(v)) : undefined,
-            }))
+            .map(parseParameter)
         : [],
     }))
     .filter((tool) => !!tool.name && !!tool.url)
+}
+
+// Recursive so nested object/array params (e.g. AVMall's create_order with
+// `contact` + `shipping` objects and an `items` array of {productSlug,quantity})
+// can be declared in toolsData JSON and converted to JSON Schema downstream.
+function parseParameter(p: Record<string, unknown>): AgentToolParameter {
+  const ALLOWED_TYPES = ["string", "integer", "boolean", "number", "object", "array"] as const
+  const rawType = String(p.type ?? "string")
+  const type = (ALLOWED_TYPES.includes(rawType as typeof ALLOWED_TYPES[number]) ? rawType : "string") as AgentToolParameter["type"]
+  const result: AgentToolParameter = {
+    name: String(p.name ?? ""),
+    type,
+    description: String(p.description ?? ""),
+    required: Boolean(p.required),
+    enum: Array.isArray(p.enum) ? p.enum.map((v) => String(v)) : undefined,
+  }
+  if (type === "object" && Array.isArray(p.properties)) {
+    result.properties = p.properties
+      .filter((np): np is Record<string, unknown> => !!np && typeof np === "object")
+      .map(parseParameter)
+  }
+  if (type === "array" && p.items && typeof p.items === "object") {
+    result.items = parseParameter(p.items as Record<string, unknown>)
+  }
+  return result
 }

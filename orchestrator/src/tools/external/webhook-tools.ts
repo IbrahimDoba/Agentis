@@ -1,16 +1,38 @@
 import type { ToolDefinition } from "../../providers/types.js"
-import type { AgentTool } from "../../db/queries/agents.js"
+import type { AgentTool, AgentToolParameter } from "../../db/queries/agents.js"
+
+// Recursive — supports nested object/array params so we can declare schemas
+// like AVMall's create_order ({contact: {...}, shipping: {...}, items: [...]})
+// instead of forcing everything into stringified JSON the AI gets wrong.
+function paramToSchema(p: AgentToolParameter): Record<string, unknown> {
+  const schema: Record<string, unknown> = {
+    type: p.type,
+    ...(p.description ? { description: p.description } : {}),
+    ...(p.enum && p.enum.length > 0 ? { enum: p.enum } : {}),
+  }
+  if (p.type === "object" && p.properties && p.properties.length > 0) {
+    const properties: Record<string, unknown> = {}
+    const required: string[] = []
+    for (const np of p.properties) {
+      properties[np.name] = paramToSchema(np)
+      if (np.required) required.push(np.name)
+    }
+    schema.properties = properties
+    if (required.length > 0) schema.required = required
+    schema.additionalProperties = false
+  }
+  if (p.type === "array" && p.items) {
+    schema.items = paramToSchema(p.items)
+  }
+  return schema
+}
 
 function toJsonSchema(tool: AgentTool): Record<string, unknown> {
   const properties: Record<string, unknown> = {}
   const required: string[] = []
 
   for (const param of tool.parameters) {
-    properties[param.name] = {
-      type: param.type,
-      description: param.description || undefined,
-      ...(param.enum && param.enum.length > 0 ? { enum: param.enum } : {}),
-    }
+    properties[param.name] = paramToSchema(param)
     if (param.required) required.push(param.name)
   }
 
