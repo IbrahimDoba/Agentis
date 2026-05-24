@@ -2,15 +2,11 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { baileysClient } from "@/lib/baileys-client"
-
-function normalizeName(value: string | null | undefined): string {
-  return (value ?? "").trim().toLowerCase()
-}
-
-function isLikelyLid(raw: string): boolean {
-  const digits = raw.replace(/@.*$/, "").replace(/\D/g, "")
-  return digits.length > 13
-}
+import {
+  getCustomerPhonesByName,
+  isLikelyLid,
+  resolveDisplayPhone,
+} from "@/lib/queries/conversations"
 
 export async function GET(
   req: NextRequest,
@@ -59,27 +55,16 @@ export async function GET(
       },
     })
 
-    const customers = await db.customer.findMany({
-      where: { agentId },
-      select: {
-        phoneNumber: true,
-        name: true,
-      },
-      take: 1000,
-    })
+    // Only resolve LID conversations, and only fetch the customers whose names
+    // could match them — instead of pulling up to 1000 customer rows per poll.
+    const lidConversations = conversations.filter((c) => isLikelyLid(c.phoneNumber))
+    const phonesByName = await getCustomerPhonesByName(
+      db,
+      agentId,
+      lidConversations.map((c) => c.contactName)
+    )
 
-    const phonesByName = new Map<string, Set<string>>()
-    for (const customer of customers) {
-      const key = normalizeName(customer.name)
-      if (!key) continue
-      const current = phonesByName.get(key) ?? new Set<string>()
-      current.add(customer.phoneNumber)
-      phonesByName.set(key, current)
-    }
-
-    const lidCandidates = conversations
-      .map((c) => c.phoneNumber)
-      .filter((phone) => isLikelyLid(phone))
+    const lidCandidates = lidConversations.map((c) => c.phoneNumber)
 
     const workerResolvedMap = new Map<string, string>()
     if (lidCandidates.length > 0) {
@@ -97,24 +82,7 @@ export async function GET(
 
     return NextResponse.json({
       conversations: conversations.map((c) => ({
-        ...(() => {
-          const resolvedFromWorker = workerResolvedMap.get(c.phoneNumber) ?? null
-          const nameKey = normalizeName(c.contactName)
-          const candidates = nameKey ? phonesByName.get(nameKey) : undefined
-          const resolvedFromName =
-            isLikelyLid(c.phoneNumber) && candidates && candidates.size === 1
-              ? Array.from(candidates)[0]
-              : null
-
-          return {
-            displayPhoneNumber: resolvedFromWorker ?? resolvedFromName ?? c.phoneNumber,
-            phoneSource: resolvedFromWorker
-              ? "worker_lid_mapping"
-              : resolvedFromName
-                ? "customer_name_match"
-                : "conversation",
-          }
-        })(),
+        ...resolveDisplayPhone(c, phonesByName, workerResolvedMap),
         id: c.id,
         phoneNumber: c.phoneNumber,
         contactName: c.contactName,

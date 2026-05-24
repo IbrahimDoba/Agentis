@@ -49,10 +49,13 @@ export function LeadsClient() {
   }, [])
   const handleCloseConv = useCallback(() => setOpenConv(null), [])
 
+  // Distinct key from the chats views' ["leads"] query: this page asks for
+  // ?enrich=1 (resolves missing caller numbers via ElevenLabs), so it must not
+  // share a cache entry with the fast badging-only read.
   const { data, isLoading, error } = useQuery<{ leads: Lead[] }>({
-    queryKey: ["leads"],
+    queryKey: ["leads", "enriched"],
     queryFn: async () => {
-      const res = await fetch("/api/leads")
+      const res = await fetch("/api/leads?enrich=1")
       if (!res.ok) throw new Error("Failed to fetch leads")
       return res.json()
     },

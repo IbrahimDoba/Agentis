@@ -70,6 +70,7 @@ scripts/reset-*
 scripts/insert-*
 scripts/find-*
 scripts/verify-*
+scripts/apply-*
 
 # raw WhatsApp history snapshots — PII, dev-only debugging artifact
 worker/history_snapshots/

@@ -274,6 +274,7 @@ model Conversation {
 
   @@unique([agentId, phoneNumber])
   @@index([agentId, visitorId])
+  @@index([agentId, lastActivityAt])
 }
 
 model Message {
@@ -291,6 +292,8 @@ model Message {
   tokensOutput     Int?
   modelUsed        String?
   createdAt        DateTime     @default(now())
+
+  @@index([conversationId, createdAt])
 }
 
 model ConversationSummary {
@@ -328,6 +331,7 @@ model Lead {
   user           User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([conversationId, userId])
+  @@index([userId, createdAt])
 }
 
 model ConversationRead {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { getWorkspaceContext } from "@/lib/workspace"
+import { getLeadsForUser } from "@/lib/queries/leads"
 
 const ELEVENLABS_BASE = "https://api.elevenlabs.io/v1"
 
@@ -35,66 +36,57 @@ function extractPhone(conv: Record<string, unknown>): string | null {
   return null
 }
 
-// GET /api/leads — all leads for the current user
-export async function GET() {
+// GET /api/leads — all leads for the current user.
+//
+// Pure DB read by default (lead rows + ConversationLog backfill). The chats
+// views poll this only for conversationId/agentId badging and don't need the
+// caller number, so they get the fast path. The leads PAGE passes ?enrich=1
+// to additionally resolve still-missing numbers from ElevenLabs (slow external
+// calls, persisted so they only happen once per lead).
+export async function GET(req: NextRequest) {
   const session = await auth()
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const { ownerId } = await getWorkspaceContext(session.user.id)
 
-  const leads = await db.lead.findMany({
-    where: { userId: ownerId },
-    include: {
-      agent: { select: { businessName: true, profileImageUrl: true, elevenlabsAgentId: true } },
-    },
-    orderBy: { createdAt: "desc" },
-  })
+  const leads = await getLeadsForUser(db, ownerId)
 
-  // Fill missing callerNumbers from ConversationLog
-  const missingIds = leads
-    .filter((l) => !l.callerNumber)
-    .map((l) => l.conversationId)
-
-  const logs = missingIds.length
-    ? await db.conversationLog.findMany({
-        where: { conversationId: { in: missingIds } },
-        select: { conversationId: true, phoneNumber: true },
-      })
-    : []
-
-  const phoneMap = new Map(logs.map((l) => [l.conversationId, l.phoneNumber]))
-
-  // For leads still missing a number, try fetching from ElevenLabs
-  const stillMissing = missingIds.filter((id) => !phoneMap.get(id))
-  if (stillMissing.length > 0 && process.env.ELEVENLABS_API_KEY) {
-    const fetches = stillMissing.map(async (convId) => {
-      try {
-        const res = await fetch(`${ELEVENLABS_BASE}/convai/conversations/${convId}`, {
-          headers: { "xi-api-key": process.env.ELEVENLABS_API_KEY! },
-        })
-        if (!res.ok) return
-        const data = await res.json()
-        const phone = extractPhone(data)
-        if (phone) {
-          phoneMap.set(convId, phone)
-          // Persist so we don't have to fetch again
-          db.lead.updateMany({
-            where: { conversationId: convId, callerNumber: null },
-            data: { callerNumber: phone },
-          }).catch(() => {})
+  const shouldEnrich = req.nextUrl.searchParams.get("enrich") === "1"
+  const extraPhones = new Map<string, string>()
+  if (shouldEnrich && process.env.ELEVENLABS_API_KEY) {
+    const stillMissing = leads.filter((l) => !l.callerNumber).map((l) => l.conversationId)
+    await Promise.all(
+      stillMissing.map(async (convId) => {
+        try {
+          const res = await fetch(`${ELEVENLABS_BASE}/convai/conversations/${convId}`, {
+            headers: { "xi-api-key": process.env.ELEVENLABS_API_KEY! },
+          })
+          if (!res.ok) return
+          const phone = extractPhone(await res.json())
+          if (phone) {
+            extraPhones.set(convId, phone)
+            // Persist so this lookup never has to happen again.
+            db.lead
+              .updateMany({
+                where: { conversationId: convId, callerNumber: null },
+                data: { callerNumber: phone },
+              })
+              .catch(() => {})
+          }
+        } catch {
+          /* best-effort enrichment */
         }
-      } catch { /* skip */ }
-    })
-    await Promise.all(fetches)
+      })
+    )
   }
 
-  const enriched = leads.map((l) => ({
+  const serialized = leads.map((l) => ({
     ...l,
-    callerNumber: l.callerNumber || phoneMap.get(l.conversationId) || null,
+    callerNumber: l.callerNumber || extraPhones.get(l.conversationId) || null,
     agent: { businessName: l.agent.businessName, profileImageUrl: l.agent.profileImageUrl },
   }))
 
-  return NextResponse.json({ leads: enriched })
+  return NextResponse.json({ leads: serialized })
 }
 
 // POST /api/leads — create or toggle a lead

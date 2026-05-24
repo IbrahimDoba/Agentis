@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { baileysClient } from "@/lib/baileys-client"
 import { push } from "@/lib/sse-store"
+import { getConversationMessages } from "@/lib/queries/messages"
 
 export async function GET(
   req: NextRequest,
@@ -24,20 +25,16 @@ export async function GET(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    const messages = await db.message.findMany({
-      where: { conversationId },
-      orderBy: { createdAt: "asc" },
-      select: {
-        id: true,
-        direction: true,
-        content: true,
-        mediaUrl: true,
-        createdAt: true,
-      },
+    const url = req.nextUrl
+    const limitParam = url.searchParams.get("limit")
+    const before = url.searchParams.get("before") ?? undefined
+    const page = await getConversationMessages(db, conversationId, {
+      limit: limitParam ? parseInt(limitParam, 10) : undefined,
+      before,
     })
 
     return NextResponse.json({
-      messages: messages.map((m) => ({
+      messages: page.messages.map((m) => ({
         id: m.id,
         direction: m.direction,
         senderRole: "ai",
@@ -45,6 +42,8 @@ export async function GET(
         mediaUrl: m.mediaUrl,
         createdAt: m.createdAt.toISOString(),
       })),
+      hasMore: page.hasMore,
+      nextCursor: page.nextCursor,
     })
   } catch (err) {
     console.error("[GET conversation messages]", err)

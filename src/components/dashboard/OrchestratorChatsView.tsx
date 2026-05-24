@@ -169,7 +169,14 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
   })
 
 
-  const { data: messagesData, isLoading: messagesLoading } = useQuery<{ messages: Message[] }>({
+  // The live window: newest 50 messages, kept fresh by polling. Older history
+  // is loaded on demand into `olderMessages` (see below) so the default read
+  // stays cheap instead of pulling a whole conversation every 30s.
+  const { data: messagesData, isLoading: messagesLoading } = useQuery<{
+    messages: Message[]
+    hasMore?: boolean
+    nextCursor?: string | null
+  }>({
     queryKey: ["orchestrator-messages", selectedId],
     queryFn: async () => {
       const res = await fetch(`/api/conversations/${selectedId}/messages`)
@@ -180,6 +187,52 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
     staleTime: 30 * 1000,
     refetchInterval: 30 * 1000,
   })
+
+  // "Load earlier" pagination — older pages prepended on demand, kept separate
+  // from the polled live window so the 30s refetch never re-pulls them.
+  const [olderMessages, setOlderMessages] = useState<Message[]>([])
+  const [hasMoreOlder, setHasMoreOlder] = useState(false)
+  const [loadingOlder, setLoadingOlder] = useState(false)
+
+  // Reset pagination whenever a different conversation is opened.
+  useEffect(() => {
+    setOlderMessages([])
+    setHasMoreOlder(false)
+  }, [selectedId])
+
+  // Seed the "has older" flag from the live window's first load. Only while no
+  // older page is loaded yet — otherwise the 30s poll would clobber the flag
+  // that loadOlder maintains.
+  useEffect(() => {
+    if (messagesData && olderMessages.length === 0) {
+      setHasMoreOlder(messagesData.hasMore ?? false)
+    }
+  }, [messagesData, olderMessages.length])
+
+  const loadOlder = useCallback(async () => {
+    if (!selectedId || loadingOlder) return
+    const earliest = olderMessages[0] ?? messagesData?.messages[0]
+    if (!earliest) return
+    setLoadingOlder(true)
+    try {
+      const res = await fetch(
+        `/api/conversations/${selectedId}/messages?before=${encodeURIComponent(earliest.id)}`
+      )
+      if (res.ok) {
+        const data: { messages: Message[]; hasMore?: boolean } = await res.json()
+        setOlderMessages((prev) => [...data.messages, ...prev])
+        setHasMoreOlder(data.hasMore ?? false)
+      }
+    } finally {
+      setLoadingOlder(false)
+    }
+  }, [selectedId, loadingOlder, olderMessages, messagesData])
+
+  // Full ordered list = loaded older history + the live (polled) window.
+  const allMessages = useMemo(
+    () => [...olderMessages, ...(messagesData?.messages ?? [])],
+    [olderMessages, messagesData]
+  )
 
   const { data: leadsData } = useQuery<{ leads: { conversationId: string; agentId: string }[] }>({
     queryKey: ["leads"],
@@ -667,7 +720,17 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
               {messagesLoading && (
                 <div className={styles.loadingMessages}>Loading messages…</div>
               )}
-              {!messagesLoading && messagesData?.messages.map((msg) => (
+              {!messagesLoading && hasMoreOlder && (
+                <button
+                  type="button"
+                  className={styles.loadOlderBtn}
+                  onClick={loadOlder}
+                  disabled={loadingOlder}
+                >
+                  {loadingOlder ? "Loading…" : "Load earlier messages"}
+                </button>
+              )}
+              {!messagesLoading && allMessages.map((msg) => (
                 <div
                   key={msg.id}
                   className={`${styles.bubble} ${msg.direction === "outbound" ? styles.bubbleOut : styles.bubbleIn}`}
