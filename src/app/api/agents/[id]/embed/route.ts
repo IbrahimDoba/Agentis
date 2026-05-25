@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { randomBytes } from "crypto"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
+import { invalidateEmbedSite } from "@/lib/embed-auth"
 import { z } from "zod"
 
 interface Params {
@@ -125,6 +126,10 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       isActive: parsed.data.isActive ?? true,
     },
   })
+
+  // Drop the cached lookup so origin/active/theme changes take effect now
+  // rather than after the 60s TTL.
+  await invalidateEmbedSite(site.publicKey)
 
   return NextResponse.json({
     embed: {
