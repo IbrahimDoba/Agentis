@@ -14,6 +14,7 @@ import { REQUEST_HUMAN_HANDOFF_TOOL, executeRequestHumanHandoff } from "../tools
 import { MARK_QUALIFIED_LEAD_TOOL, executeMarkQualifiedLead } from "../tools/built-in/mark-qualified-lead.js"
 import { buildWebhookToolDefinitions, executeWebhookTool } from "../tools/external/webhook-tools.js"
 import { buildRichContent, type ProductResponseMapping } from "./rich-content.js"
+import { publishSseEvent } from "../lib/sse-publish.js"
 import { sql } from "../db/client.js"
 import type { ChatMessage } from "../providers/types.js"
 import { logger as rootLogger } from "../lib/logger.js"
@@ -88,6 +89,13 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
     direction: "inbound",
     content: text,
     id: payload.messageId,
+  })
+
+  // Real-time: tell any open dashboard stream a customer message landed, so it
+  // shows immediately — even when AI is paused (human-handoff mode below).
+  await publishSseEvent(agentId, "message", {
+    conversationId: conversation.id,
+    direction: "inbound",
   })
 
   // 4. Check mode — skip AI reply if human is handling this conversation
@@ -250,6 +258,12 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
       modelUsed: agent.model,
     })
   }
+
+  // Real-time: notify open dashboard streams that the AI reply is persisted.
+  await publishSseEvent(agentId, "message", {
+    conversationId: conversation.id,
+    direction: "outbound",
+  })
 
   // 9. Dispatch via transport. Embed conversations skip the Baileys worker
   // round-trip — the outbound rows persisted at step 8 are picked up by

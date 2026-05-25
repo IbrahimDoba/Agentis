@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { Cog6ToothIcon, MegaphoneIcon } from "@heroicons/react/24/outline"
 import styles from "./OrchestratorChatsView.module.css"
+import { useAgentEventStream } from "@/lib/useAgentEventStream"
 
 interface AdContext {
   title: string | null
@@ -156,6 +157,11 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
   const drawerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
+  // Freshness comes from the SSE stream below (invalidates on push). The
+  // interval is just a safety net for a dropped/zombie connection — hence
+  // 5 min instead of 30s. refetchIntervalInBackground:false (global default)
+  // pauses it while the tab is hidden.
+  const SAFETY_NET_MS = 5 * 60 * 1000
   const { data, isLoading } = useQuery<{ conversations: OrchestratorConversation[] }>({
     queryKey: ["orchestrator-chats", agentId],
     queryFn: async () => {
@@ -165,7 +171,7 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
     },
     enabled: !!agentId,
     staleTime: 30 * 1000,
-    refetchInterval: 30 * 1000,
+    refetchInterval: SAFETY_NET_MS,
   })
 
 
@@ -185,8 +191,22 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
     },
     enabled: !!selectedId,
     staleTime: 30 * 1000,
-    refetchInterval: 30 * 1000,
+    refetchInterval: SAFETY_NET_MS,
   })
+
+  // Real-time: invalidate the chats list + the open conversation's messages
+  // when the agent stream pushes an event. One refetch per actual change,
+  // instead of a fixed 30s poll. Falls back to the safety-net interval above
+  // if the SSE connection drops.
+  useAgentEventStream(
+    agentId,
+    useCallback(() => {
+      qc.invalidateQueries({ queryKey: ["orchestrator-chats", agentId] })
+      if (selectedId) {
+        qc.invalidateQueries({ queryKey: ["orchestrator-messages", selectedId] })
+      }
+    }, [qc, agentId, selectedId])
+  )
 
   // "Load earlier" pagination — older pages prepended on demand, kept separate
   // from the polled live window so the 30s refetch never re-pulls them.
