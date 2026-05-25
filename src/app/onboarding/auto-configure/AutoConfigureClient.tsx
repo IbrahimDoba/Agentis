@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import styles from "./page.module.css"
+import { useVisibleInterval } from "@/lib/useVisibleInterval"
 
 type Status = "pending" | "analyzing" | "ready_for_review" | "activated" | "failed"
 
@@ -35,29 +36,29 @@ export function AutoConfigureClient({ agentId }: { agentId: string }) {
   const [activating, setActivating] = useState(false)
   const [triggered, setTriggered] = useState(false)
 
-  // Poll until we have a draft or a failure.
-  useEffect(() => {
-    let cancelled = false
-    const poll = async () => {
-      const res = await fetch(`/api/agents/${agentId}/auto-configure`)
-      if (!res.ok || cancelled) return
-      const data: AutoConfigPayload = await res.json()
-      if (cancelled) return
-      setPayload(data)
-      // Once we have a draft, snapshot it into editable state — only the
-      // first time, so we don't clobber the user's in-progress edits.
-      if (data.status === "ready_for_review" && data.draft && !("error" in data.draft) && !editingDraft) {
-        setEditingDraft(data.draft as AutoConfigDraft)
-      }
+  const poll = useCallback(async () => {
+    const res = await fetch(`/api/agents/${agentId}/auto-configure`)
+    if (!res.ok) return
+    const data: AutoConfigPayload = await res.json()
+    setPayload(data)
+    // Once we have a draft, snapshot it into editable state — only the first
+    // time, so we don't clobber the user's in-progress edits.
+    if (data.status === "ready_for_review" && data.draft && !("error" in data.draft) && !editingDraft) {
+      setEditingDraft(data.draft as AutoConfigDraft)
     }
+  }, [agentId, editingDraft])
+
+  // Fetch once on mount.
+  useEffect(() => {
     poll()
-    const handle = setInterval(() => {
-      // Stop polling once we're in a terminal state.
-      if (payload?.status === "ready_for_review" || payload?.status === "failed" || payload?.status === "activated") return
-      poll()
-    }, POLL_INTERVAL_MS)
-    return () => { cancelled = true; clearInterval(handle) }
-  }, [agentId, payload?.status, editingDraft])
+  }, [poll])
+
+  // Keep polling — visible-only, and only until we reach a terminal state.
+  const isTerminal =
+    payload?.status === "ready_for_review" ||
+    payload?.status === "failed" ||
+    payload?.status === "activated"
+  useVisibleInterval(poll, POLL_INTERVAL_MS, !isTerminal)
 
   // Auto-trigger the LLM step once inputs are ready and we haven't kicked
   // off the analysis yet. The worker writes autoConfigStatus='analyzing'

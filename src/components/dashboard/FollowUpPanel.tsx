@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import styles from "./FollowUpPanel.module.css"
+import { useVisibleInterval } from "@/lib/useVisibleInterval"
 
 type CampaignStatus = "scanning" | "review" | "scheduled" | "sending" | "completed" | "cancelled" | "failed"
 type MessageStatus = "pending" | "approved" | "rejected" | "scheduled" | "sent" | "skipped" | "failed"
@@ -178,14 +179,14 @@ function CampaignDetailModal({ campaign, agentId, onClose, onRefresh }: {
     setLoading(false)
   }, [agentId, campaign.id])
 
+  // Initial load on mount.
   useEffect(() => {
     load()
-    // Poll while scanning or sending
-    const interval = setInterval(() => {
-      if (detail?.status === "scanning" || detail?.status === "sending") load()
-    }, 3000)
-    return () => clearInterval(interval)
-  }, [load, detail?.status])
+  }, [load])
+
+  // Poll only while the campaign is actively working AND the tab is visible.
+  const detailActive = detail?.status === "scanning" || detail?.status === "sending"
+  useVisibleInterval(load, 3000, detailActive)
 
   const callApproveApi = async (body: object) => {
     await fetch(`/api/agents/${agentId}/followup-campaigns/${campaign.id}/approve`, {
@@ -490,11 +491,17 @@ export function FollowUpPanel({ agentId, isConnected }: Props) {
     setLoading(false)
   }, [agentId])
 
+  // Initial load on mount.
   useEffect(() => {
     loadCampaigns()
-    const interval = setInterval(loadCampaigns, 5000)
-    return () => clearInterval(interval)
   }, [loadCampaigns])
+
+  // Previously polled every 5s forever. Now only while a campaign is actively
+  // scanning/sending AND the tab is visible — idle dashboards stop polling.
+  const hasActiveCampaign = campaigns.some(
+    (c) => c.status === "scanning" || c.status === "sending"
+  )
+  useVisibleInterval(loadCampaigns, 5000, hasActiveCampaign)
 
   const handleStart = async (mode: "auto" | "review", minDays: number) => {
     setCreating(true)
