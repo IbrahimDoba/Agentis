@@ -41,6 +41,7 @@ export interface Agent {
 
 export interface AgentBillingInfo {
   id: string
+  userId: string
   plan: string
   subscriptionExpiresAt: string | null
 }
@@ -384,7 +385,7 @@ export async function getAgent(agentId: string): Promise<Agent | null> {
 
 export async function getAgentBillingInfo(agentId: string): Promise<AgentBillingInfo | null> {
   const rows = await sql<AgentBillingInfo[]>`
-    SELECT a."id", COALESCE(u."plan", 'free') as "plan", u."subscriptionExpiresAt"
+    SELECT a."id", a."userId", COALESCE(u."plan", 'free') as "plan", u."subscriptionExpiresAt"
     FROM "Agent" a
     JOIN "User" u ON u."id" = a."userId"
     WHERE a."id" = ${agentId}
@@ -410,16 +411,24 @@ export async function insertCreditUsage(entry: {
   messageType: "text" | "image"
   source?: "ai" | "human"
   creditsUsed: number
+  // PAYG audit (added in 20260525000000_add_payg_credits):
+  tokensInput?: number | null
+  tokensOutput?: number | null
+  billedTo?: "plan" | "wallet" | null
 }): Promise<void> {
   await sql`
     INSERT INTO "CreditUsage"
-      ("agentId", "conversationId", "messageType", "source", "creditsUsed", "createdAt")
+      ("agentId", "conversationId", "messageType", "source", "creditsUsed",
+       "tokensInput", "tokensOutput", "billedTo", "createdAt")
     VALUES (
       ${entry.agentId},
       ${entry.conversationId ?? null},
       ${entry.messageType},
       ${entry.source ?? "ai"},
       ${entry.creditsUsed},
+      ${entry.tokensInput ?? null},
+      ${entry.tokensOutput ?? null},
+      ${entry.billedTo ?? null},
       NOW()
     )
   `

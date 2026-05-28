@@ -2,6 +2,27 @@ import { db } from "@/lib/db"
 import { PLAN_CREDIT_LIMITS, PLAN_OVERAGE_RATE_PER_1K } from "@/lib/plans"
 import { sumCreditsForAgents } from "@/lib/creditUsage"
 import { getBillingPeriod } from "@/lib/billing-period"
+import { getBalance } from "@/lib/creditWallet"
+
+/**
+ * Pure decision: should we flip messagingEnabled off?
+ * Disable when:
+ *   - subscription has expired, OR
+ *   - plan allowance is exhausted AND there's no overage entitlement AND
+ *     the wallet has no spendable credits.
+ *
+ * Extracted as a pure function so the truth table is trivially unit-testable.
+ */
+export function shouldDisableMessaging(opts: {
+  subscriptionExpired: boolean
+  planExhausted: boolean
+  overageAllowed: boolean
+  walletBalance: number
+}): boolean {
+  if (opts.subscriptionExpired) return true
+  if (opts.planExhausted && !opts.overageAllowed && opts.walletBalance <= 0) return true
+  return false
+}
 
 /**
  * Checks whether an agent should be disabled (subscription expired or monthly
@@ -25,6 +46,7 @@ export async function checkAndEnforceAgentLimit(agentId: string): Promise<void> 
       whatsappPhoneNumberId: true,
       messagingEnabled: true,
       status: true,
+      userId: true,
       user: {
         select: {
           plan: true,
@@ -67,12 +89,25 @@ export async function checkAndEnforceAgentLimit(agentId: string): Promise<void> 
     console.log(`[agentLimit] Agent ${agentId}: used=${used}, limit=${creditLimit}, exceeded=${creditsExceeded}`)
   }
 
-  const shouldDisable = subscriptionExpired || (creditsExceeded && !overageAllowed)
+  // Wallet check — PAYG credits keep messaging alive after the plan allowance
+  // is exhausted (and outside of any overage entitlement). Only fetched when
+  // the plan IS exhausted, to avoid an extra query on every limit check.
+  let walletBalance = 0
+  if (creditsExceeded && !overageAllowed) {
+    walletBalance = (await getBalance(agent.userId)).creditBalance
+  }
+
+  const shouldDisable = shouldDisableMessaging({
+    subscriptionExpired,
+    planExhausted: creditsExceeded,
+    overageAllowed,
+    walletBalance,
+  })
 
   if (shouldDisable && agent.messagingEnabled) {
     try {
       await db.agent.update({ where: { id: agentId }, data: { messagingEnabled: false } })
-      console.log(`[agentLimit] ❌ Flagged agent ${agentId} as disabled — subscriptionExpired=${subscriptionExpired}, creditsExceeded=${creditsExceeded}`)
+      console.log(`[agentLimit] ❌ Flagged agent ${agentId} as disabled — subscriptionExpired=${subscriptionExpired}, creditsExceeded=${creditsExceeded}, walletBalance=${walletBalance}`)
     } catch (err) {
       console.error(`[agentLimit] Failed to disable agent ${agentId}:`, err)
     }

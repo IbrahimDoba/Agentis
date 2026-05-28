@@ -11,6 +11,12 @@ const sendSchema = z.object({
   type: z.enum(["text", "image"]).default("text"),
   conversationId: z.string().optional(),
   source: z.enum(["ai", "human"]).default("ai"),
+  // PAYG: orchestrator passes real OpenAI token counts so the worker bills
+  // by actual cost instead of the flat per-type rate. Only the FIRST part of
+  // a split reply carries non-zero tokens — subsequent parts pass 0/0 to
+  // avoid double-charging the same LLM turn.
+  tokensInput: z.number().int().min(0).optional(),
+  tokensOutput: z.number().int().min(0).optional(),
 })
 
 export const messageRoutes: FastifyPluginAsync = async (app) => {
@@ -27,6 +33,8 @@ export const messageRoutes: FastifyPluginAsync = async (app) => {
       type: body.type,
       conversationId: body.conversationId,
       source: body.source,
+      tokensInput: body.tokensInput,
+      tokensOutput: body.tokensOutput,
     })
 
     if (!job) throw new RateLimitError("Daily or hourly cap reached")

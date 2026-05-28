@@ -23,7 +23,8 @@ import {
 import { webhookEmitter } from "../dashboard/webhook-emitter.js"
 import { logger as rootLogger } from "../lib/logger.js"
 import { RateLimitError } from "../lib/errors.js"
-import { PLAN_CREDIT_LIMITS, creditsForMessageType, allowsOverage } from "../billing/credits.js"
+import { PLAN_CREDIT_LIMITS, creditsForMessageType, creditsForTokens, allowsOverage } from "../billing/credits.js"
+import { routeMessageCharge, deductFromWallet } from "../billing/wallet.js"
 import { getBillingPeriod } from "../billing/billing-period.js"
 
 const logger = rootLogger.child({ module: "outbound-queue" })
@@ -37,6 +38,13 @@ export interface OutboundJob {
   type?: "text" | "image"
   conversationId?: string
   source: "ai" | "human"
+  // PAYG: real OpenAI token counts from the orchestrator's chat completion.
+  // Only carried on the FIRST part of a split reply; subsequent parts pass 0
+  // so we don't double-charge the same LLM turn. When absent (broadcasts,
+  // follow-ups, anything non-orchestrator), we fall back to the flat per-type
+  // rate via creditsForMessageType().
+  tokensInput?: number
+  tokensOutput?: number
 }
 
 const queue = new Queue<OutboundJob>(QUEUE_NAME, {
@@ -52,7 +60,7 @@ const queue = new Queue<OutboundJob>(QUEUE_NAME, {
 const worker = new Worker<OutboundJob>(
   QUEUE_NAME,
   async (job: Job<OutboundJob>) => {
-    const { agentId, toJid, text, mediaUrl, type, conversationId, source } = job.data
+    const { agentId, toJid, text, mediaUrl, type, conversationId, source, tokensInput, tokensOutput } = job.data
 
     // §7.8 — Phone online check
     const sock = sessionManager.get(agentId)
@@ -86,7 +94,15 @@ const worker = new Worker<OutboundJob>(
 
     // Billing guardrails (AI sends only — human operator messages always go through)
     const messageType: "text" | "image" = type === "image" ? "image" : "text"
-    const creditsToCharge = creditsForMessageType(messageType)
+    // Token-weighted when the orchestrator passed real OpenAI token counts;
+    // otherwise fall back to the legacy flat per-type rate (broadcasts,
+    // follow-ups, any non-orchestrator AI path that doesn't know tokens).
+    const hasTokens = typeof tokensInput === "number" && typeof tokensOutput === "number" &&
+      (tokensInput > 0 || tokensOutput > 0)
+    const creditsToCharge = hasTokens
+      ? creditsForTokens(tokensInput!, tokensOutput!)
+      : creditsForMessageType(messageType)
+    let billedTo: "plan" | "wallet" = "plan"
     if (source === "ai") {
       const billing = await getAgentBillingInfo(agentId)
       if (!billing) throw new RateLimitError("Billing profile not found")
@@ -99,12 +115,28 @@ const worker = new Worker<OutboundJob>(
       }
 
       const monthlyLimit = PLAN_CREDIT_LIMITS[billing.plan] ?? PLAN_CREDIT_LIMITS.free
+      const overageAllowed = allowsOverage(billing.plan)
       if (monthlyLimit !== -1) {
         const { start: monthStart, end: monthEnd } = getBillingPeriod(billing.subscriptionExpiresAt)
         const used = await getMonthlyCreditsUsed(agentId, monthStart, monthEnd)
-        const overageAllowed = allowsOverage(billing.plan)
-        if (!overageAllowed && used + creditsToCharge > monthlyLimit) {
-          throw new RateLimitError(`Monthly credit limit reached (${used}/${monthlyLimit})`)
+        // Decide whether this charge lands on the plan allowance or the PAYG
+        // wallet. Wallet draws happen ONLY when the plan would overflow and
+        // overage isn't allowed (Free/Basic). The decision is pure — see
+        // routeMessageCharge tests for the truth table.
+        const decision = routeMessageCharge({
+          creditsToCharge,
+          planLimit: monthlyLimit,
+          used,
+          overageAllowed,
+        })
+        billedTo = decision.billedTo
+        if (decision.needsWalletDeduction) {
+          const result = await deductFromWallet(billing.userId, creditsToCharge)
+          if (!result.ok) {
+            throw new RateLimitError(
+              `Plan credits exhausted (${used}/${monthlyLimit}) and wallet has insufficient balance`
+            )
+          }
         }
       }
     }
@@ -136,6 +168,11 @@ const worker = new Worker<OutboundJob>(
           messageType,
           source,
           creditsUsed: creditsToCharge,
+          // PAYG audit columns — let the support UI reconstruct WHY a given
+          // message cost what it cost (token counts) and WHERE it billed to.
+          tokensInput: hasTokens ? tokensInput : null,
+          tokensOutput: hasTokens ? tokensOutput : null,
+          billedTo,
         })
       }
 

@@ -269,13 +269,17 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
   // round-trip — the outbound rows persisted at step 8 are picked up by
   // the visitor's widget via polling on /api/embed/messages.
   if (channel !== "embed") {
-    for (const part of replyParts) {
+    for (let i = 0; i < replyParts.length; i++) {
       await dispatchReply({
         agentId,
         conversationId: conversation.id,
         toJid: senderJid,
-        text: part,
+        text: replyParts[i],
         source: "ai",
+        // PAYG: charge the full turn's tokens against the FIRST part only.
+        // Subsequent parts pass 0/0 so the worker doesn't double-charge.
+        tokensInput: i === 0 ? totalInputTokens : 0,
+        tokensOutput: i === 0 ? totalOutputTokens : 0,
       })
     }
   }

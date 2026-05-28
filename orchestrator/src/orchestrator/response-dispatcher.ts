@@ -9,6 +9,11 @@ export interface DispatchOptions {
   toJid: string
   text: string
   source: "ai" | "human"
+  // PAYG: real OpenAI token counts for this LLM turn. Pass on the FIRST part
+  // of a split reply; pass 0/0 on subsequent parts so they don't re-charge
+  // the same turn. Worker falls back to flat per-type rate when omitted.
+  tokensInput?: number
+  tokensOutput?: number
 }
 
 /**
@@ -30,6 +35,8 @@ export async function dispatchReply(opts: DispatchOptions): Promise<void> {
       text: opts.text,
       conversationId: opts.conversationId,
       source: opts.source,
+      ...(opts.tokensInput !== undefined ? { tokensInput: opts.tokensInput } : {}),
+      ...(opts.tokensOutput !== undefined ? { tokensOutput: opts.tokensOutput } : {}),
     }),
   })
 

@@ -36,6 +36,11 @@ model User {
   subscriptionExpiresAt   DateTime?
   expiryWarningEmailSentAt DateTime?
   expiredEmailSentAt       DateTime?
+  // Pay-as-you-go wallet. Spent only after the user's plan allowance is
+  // exhausted for the cycle. `creditsExpireAt` is set to (now + 12mo) on
+  // every top-up — rolling expiry, so active users never lose credits.
+  creditBalance           Int        @default(0)
+  creditsExpireAt         DateTime?
   onboardingCompleted     Boolean    @default(false)
   referralsEnabled    Boolean    @default(false)
   historySyncEnabled  Boolean    @default(false)
@@ -48,6 +53,7 @@ model User {
   referralsMade      Referral[] @relation("ReferralsMade")
   referredBy         Referral?  @relation("ReferredBy")
   paymentRequests    PaymentRequest[]
+  creditPurchases    CreditPurchase[]
 }
 
 model Agent {
@@ -540,8 +546,34 @@ model CreditUsage {
   messageType    String
   source         String   @default("ai")
   creditsUsed    Int
+  // PAYG audit (nullable so historical rows still validate):
+  // tokensInput / tokensOutput let the support UI reconstruct exactly why
+  // a given message cost what it cost. billedTo distinguishes plan vs wallet.
+  tokensInput    Int?
+  tokensOutput   Int?
+  billedTo       String?  // 'plan' | 'wallet'
   createdAt      DateTime @default(now()) @db.Timestamptz()
 
   @@index([agentId, createdAt])
   @@index([conversationId])
+}
+
+// Audit log of every Paystack credit top-up. One row per purchase attempt;
+// `reference` is unique so duplicate webhook deliveries are no-ops.
+model CreditPurchase {
+  id           String        @id @default(cuid())
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amountNaira  Int                                      // gross price paid by the user
+  netNaira     Int                                      // after Paystack fees
+  creditsAdded Int                                      // credits granted on completion
+  unitRateNGN  Decimal       @db.Decimal(6, 3)         // for audit (NGN per credit at purchase time)
+  reference    String        @unique                    // Paystack transaction ref
+  status       PaymentStatus @default(PENDING)
+  createdAt    DateTime      @default(now())
+  completedAt  DateTime?
+  expiresAt    DateTime                                 // = completedAt + 12 months (when known)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([status, createdAt])
 }
