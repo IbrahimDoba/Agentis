@@ -1,6 +1,7 @@
 import { sql } from "./client.js"
 import { randomUUID } from "crypto"
 import { logger as rootLogger } from "../lib/logger.js"
+import { cachedTtl, invalidateTtl } from "../lib/ttl-cache.js"
 
 const logger = rootLogger.child({ module: "queries" })
 
@@ -93,11 +94,51 @@ export async function upsertSession(
   return rows[0]
 }
 
+// Debounce duplicate writes. The Baileys lifecycle fires the SAME (status,
+// reason) combo many times in a row during a reconnect loop (e.g. CONNECTING
+// + CONNECTING + DISCONNECTED + CONNECTING…). Per the prod logs that one path
+// burned >12k UPDATEs/day for a handful of flapping agents. We compare each
+// incoming write against the previous one per agent and skip identical ones.
+//
+// Always write when any field that observably changes is being set
+// (lastConnectedAt, phoneNumber, warmupTier, warmupStartedAt) — the goal is
+// to drop NO-OP writes, not real ones.
+interface LastSessionWrite {
+  status: BaileysStatus
+  lastDisconnectReason: string | null
+  phoneNumber: string | null
+  warmupTier: number | null
+  warmupStartedAt: string | null
+}
+const lastSessionWrite = new Map<string, LastSessionWrite>()
+
+// Pure decision, extracted for unit testing.
+export function shouldSkipSessionStatusWrite(
+  prev: LastSessionWrite | undefined,
+  next: { status: BaileysStatus; extra?: Partial<BaileysSession> }
+): boolean {
+  if (!prev) return false
+  if (prev.status !== next.status) return false
+  const e = next.extra ?? {}
+  // Any provided value that differs from prev → write.
+  if (e.lastDisconnectReason !== undefined && e.lastDisconnectReason !== prev.lastDisconnectReason) return false
+  if (e.phoneNumber !== undefined && e.phoneNumber !== prev.phoneNumber) return false
+  if (e.warmupTier !== undefined && e.warmupTier !== prev.warmupTier) return false
+  if (e.warmupStartedAt !== undefined && e.warmupStartedAt !== prev.warmupStartedAt) return false
+  // lastConnectedAt is "fresh moment of connection" — when provided, always
+  // record it (a re-connect to the same status still wants the timestamp).
+  if (e.lastConnectedAt !== undefined) return false
+  return true
+}
+
 export async function updateSessionStatus(
   agentId: string,
   status: BaileysStatus,
   extra?: Partial<BaileysSession>
 ): Promise<void> {
+  if (shouldSkipSessionStatusWrite(lastSessionWrite.get(agentId), { status, extra })) {
+    return
+  }
   const now = new Date().toISOString()
   await sql`
     UPDATE "BaileysSession" SET
@@ -110,6 +151,20 @@ export async function updateSessionStatus(
       "updatedAt" = ${now}
     WHERE "agentId" = ${agentId}
   `
+  // Record what we just wrote so the next call can compare.
+  const prev = lastSessionWrite.get(agentId)
+  lastSessionWrite.set(agentId, {
+    status,
+    lastDisconnectReason: extra?.lastDisconnectReason ?? prev?.lastDisconnectReason ?? null,
+    phoneNumber: extra?.phoneNumber ?? prev?.phoneNumber ?? null,
+    warmupTier: extra?.warmupTier ?? prev?.warmupTier ?? null,
+    warmupStartedAt: extra?.warmupStartedAt ?? prev?.warmupStartedAt ?? null,
+  })
+}
+
+// Test-only: clear the per-agent dedupe state.
+export function __resetSessionWriteCacheForTests(): void {
+  lastSessionWrite.clear()
 }
 
 export async function updateWarmupTier(agentId: string, tier: number): Promise<void> {
@@ -137,22 +192,31 @@ export interface HistorySyncStatus {
   alreadySynced: boolean
 }
 
+// Cached: this is called every startSession() (~once per Baileys reconnect)
+// and almost never changes between calls. Burned ~1,600 queries/day in prod
+// before the cache. 5min TTL; invalidated on markSessionHistorySynced (the
+// only field-changing operation that affects the result).
+const HISTORY_SYNC_CACHE_TTL_MS = 5 * 60_000
+const historySyncCacheKey = (agentId: string) => `historySyncStatus:${agentId}`
+
 export async function getHistorySyncStatus(agentId: string): Promise<HistorySyncStatus> {
-  const rows = await sql<{ userEnabled: boolean; historySyncedAt: string | null }[]>`
-    SELECT u."historySyncEnabled" as "userEnabled",
-           s."historySyncedAt"
-    FROM "Agent" a
-    JOIN "User" u ON u."id" = a."userId"
-    LEFT JOIN "BaileysSession" s ON s."agentId" = a."id"
-    WHERE a."id" = ${agentId}
-    LIMIT 1
-  `
-  const r = rows[0]
-  if (!r) return { userEnabled: false, alreadySynced: false }
-  return {
-    userEnabled: Boolean(r.userEnabled),
-    alreadySynced: r.historySyncedAt !== null,
-  }
+  return cachedTtl(historySyncCacheKey(agentId), HISTORY_SYNC_CACHE_TTL_MS, async () => {
+    const rows = await sql<{ userEnabled: boolean; historySyncedAt: string | null }[]>`
+      SELECT u."historySyncEnabled" as "userEnabled",
+             s."historySyncedAt"
+      FROM "Agent" a
+      JOIN "User" u ON u."id" = a."userId"
+      LEFT JOIN "BaileysSession" s ON s."agentId" = a."id"
+      WHERE a."id" = ${agentId}
+      LIMIT 1
+    `
+    const r = rows[0]
+    if (!r) return { userEnabled: false, alreadySynced: false }
+    return {
+      userEnabled: Boolean(r.userEnabled),
+      alreadySynced: r.historySyncedAt !== null,
+    }
+  })
 }
 
 export async function markSessionHistorySynced(agentId: string): Promise<void> {
@@ -161,6 +225,8 @@ export async function markSessionHistorySynced(agentId: string): Promise<void> {
     SET "historySyncedAt" = NOW(), "updatedAt" = NOW()
     WHERE "agentId" = ${agentId}
   `
+  // Drop the cache so the next getHistorySyncStatus call sees alreadySynced=true.
+  invalidateTtl(historySyncCacheKey(agentId))
 }
 
 // Upsert a Conversation by (agentId, phoneNumber) and return its id.

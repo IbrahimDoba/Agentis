@@ -27,6 +27,9 @@ const logger = rootLogger.child({ module: "session-manager" })
 
 const RECONNECT_BASE_DELAY_MS = 5_000
 const MAX_RECONNECT_DELAY_MS = 120_000
+// Reconnect cap lives in reconnect-policy.ts so it can be unit-tested without
+// importing Baileys (which pulls in native libsignal).
+import { MAX_RECONNECT_ATTEMPTS, shouldRetryReconnect } from "./reconnect-policy.js"
 
 export const sessionManager = {
   async create(agentId: string, initialTier?: number): Promise<{ agentId: string; status: string }> {
@@ -220,6 +223,19 @@ async function startSession(agentId: string, reconnectAttempt = 0): Promise<void
       if (!shouldReconnect) {
         // Purge stale auth files so the next connect starts fresh
         await purgeAuthFiles(agentId)
+        sessions.delete(agentId)
+        return
+      }
+      if (!shouldRetryReconnect(reconnectAttempt)) {
+        // Cap reached — stop the retry loop. The session row keeps DISCONNECTED
+        // status with a clear reason; the dashboard can manually restart.
+        await updateSessionStatus(agentId, "DISCONNECTED", {
+          lastDisconnectReason: "max_reconnect_attempts_exceeded",
+        })
+        logger.warn(
+          { agentId, reconnectAttempt, max: MAX_RECONNECT_ATTEMPTS, lastReason: reason },
+          "Hit reconnect-attempt cap — giving up. Restart manually from dashboard."
+        )
         sessions.delete(agentId)
         return
       }
