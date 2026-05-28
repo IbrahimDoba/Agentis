@@ -175,7 +175,7 @@
     refs.panel.style.display = "flex"
     refs.launcher.style.display = "none"
     if (!state.booted) boot()
-    else startPolling()
+    else { startPolling(); connectSse() }
     setTimeout(function () { refs.input && refs.input.focus() }, 50)
   }
 
@@ -184,6 +184,7 @@
     if (refs.panel) refs.panel.style.display = "none"
     if (refs.launcher) refs.launcher.style.display = "flex"
     stopPolling()
+    closeSse()
   }
 
   // ── API calls ──────────────────────────────────────────────────────────────
@@ -218,7 +219,11 @@
         }
         // Pull any existing history (e.g. repeat visitor).
         fetchMessages(null)
+        // Start polling as a fallback. The moment the SSE connection opens it
+        // calls stopPolling(); if SSE never opens (older browser, blocked by a
+        // corporate proxy, etc.), polling continues uninterrupted.
         startPolling()
+        connectSse()
       })
       .catch(function (err) {
         state.bootError = String(err && err.message ? err.message : err)
@@ -281,6 +286,52 @@
     state.pollHandle = null
     if (state.fastPollTimeout) clearTimeout(state.fastPollTimeout)
     state.fastPollTimeout = null
+  }
+
+  // ── Real-time via SSE (preferred; polling is fallback) ────────────────────
+  // Open an EventSource to /api/embed/stream. When it connects, kill the
+  // poll loop (the server pushes a "message" event whenever a new message
+  // is persisted for this conversation). On error/disconnect, fall back to
+  // polling and retry SSE after a backoff — graceful degradation when the
+  // browser or network blocks event streams.
+  function connectSse() {
+    if (state.sse || !state.booted || !state.conversationId) return
+    if (typeof EventSource === "undefined") return // very old browser — polling only
+    var qs = new URLSearchParams({
+      publicKey: state.publicKey,
+      visitorId: state.visitorId,
+      conversationId: state.conversationId,
+    })
+    var es
+    try { es = new EventSource(apiUrl("/api/embed/stream?" + qs.toString())) }
+    catch (_) { return }
+    state.sse = es
+    es.onopen = function () {
+      // Server reachable — stop the poll loop. Any new messages will arrive
+      // via this stream until it errors out.
+      stopPolling()
+    }
+    es.addEventListener("message", function () {
+      // Server pushed an update — pull the new rows. The endpoint pushes
+      // when a message lands; the actual content is fetched via the existing
+      // since-cursor endpoint to keep the SSE payload tiny + dedupable.
+      fetchMessages(state.lastCreatedAt)
+    })
+    es.onerror = function () {
+      // Stream dropped. Close it, resume polling, and schedule a reconnect.
+      closeSse()
+      if (state.open) startPolling()
+      if (!state.sseRetryTimer) {
+        state.sseRetryTimer = setTimeout(function () {
+          state.sseRetryTimer = null
+          if (state.open && state.booted) connectSse()
+        }, 5000)
+      }
+    }
+  }
+  function closeSse() {
+    if (state.sse) { try { state.sse.close() } catch (_) {} state.sse = null }
+    if (state.sseRetryTimer) { clearTimeout(state.sseRetryTimer); state.sseRetryTimer = null }
   }
 
   function onSubmit(e) {

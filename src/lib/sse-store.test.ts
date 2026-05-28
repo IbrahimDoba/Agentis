@@ -1,5 +1,11 @@
 import { describe, it, expect, afterAll, vi } from "vitest"
-import { subscribe, publish, __resetForTests } from "./sse-store"
+import {
+  subscribe,
+  subscribeByConversation,
+  publish,
+  __resetForTests,
+  __waitForSubscriberReadyForTests,
+} from "./sse-store"
 
 // Fake SSE controller capturing enqueued bytes as decoded strings.
 function fakeController() {
@@ -32,6 +38,9 @@ describe("sse-store pub/sub (real Redis)", () => {
     const agentId = `vitest-agent-${Date.now()}`
     const { events, ctrl } = fakeController()
     const unsub = subscribe(agentId, ctrl)
+    // First subscribe in the process — wait for the Redis SUBSCRIBE handshake
+    // before the first publish, otherwise the message is lost to the race.
+    await __waitForSubscriberReadyForTests()
 
     await publish(agentId, "message", { conversationId: "c1" })
     await waitFor(() => events.length > 0)
@@ -83,6 +92,47 @@ describe("sse-store pub/sub (real Redis)", () => {
 
     expect(c1.events.length).toBe(1)
     expect(c2.events.length).toBe(1)
+    u1()
+    u2()
+  })
+
+  it("delivers to a per-conversation subscriber when data.conversationId matches", async () => {
+    const agentId = `vitest-conv-agent-${Date.now()}`
+    const conversationId = `vitest-conv-${Date.now()}`
+    const { events, ctrl } = fakeController()
+    const unsub = subscribeByConversation(conversationId, ctrl)
+
+    await publish(agentId, "message", { conversationId, body: "hi" })
+    await waitFor(() => events.length > 0)
+    expect(events[0]).toContain('"body":"hi"')
+    unsub()
+  })
+
+  it("does NOT deliver to a per-conversation subscriber when conversationId differs", async () => {
+    const agentId = `vitest-conv-iso-${Date.now()}`
+    const subscribed = `subscribed-${Date.now()}`
+    const other = `other-${Date.now()}`
+    const { events, ctrl } = fakeController()
+    const unsub = subscribeByConversation(subscribed, ctrl)
+
+    await publish(agentId, "message", { conversationId: other })
+    await new Promise((r) => setTimeout(r, 150))
+    expect(events.length).toBe(0)
+    unsub()
+  })
+
+  it("delivers a matching event to BOTH the agent and conversation subscribers, exactly once each", async () => {
+    const agentId = `vitest-both-${Date.now()}`
+    const conversationId = `vitest-both-c-${Date.now()}`
+    const agentSub = fakeController()
+    const convSub = fakeController()
+    const u1 = subscribe(agentId, agentSub.ctrl)
+    const u2 = subscribeByConversation(conversationId, convSub.ctrl)
+
+    await publish(agentId, "message", { conversationId, n: 1 })
+    await waitFor(() => agentSub.events.length > 0 && convSub.events.length > 0)
+    expect(agentSub.events.length).toBe(1)
+    expect(convSub.events.length).toBe(1)
     u1()
     u2()
   })
