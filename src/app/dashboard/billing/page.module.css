@@ -58,6 +58,13 @@
   gap: 1rem;
 }
 
+.planCardActions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  align-items: flex-end;
+}
+
 .planBadge {
   display: inline-block;
   font-size: 10px;

@@ -77,9 +77,14 @@ export default function BillingPage() {
                 {price > 0 ? `${formatNaira(price)}/mo` : "Free"}
               </div>
             </div>
-            <Link href="/dashboard/subscription" className={styles.upgradeBtn}>
-              {plan === "free" ? "Upgrade" : "View plans"} →
-            </Link>
+            <div className={styles.planCardActions}>
+              <Link href="/dashboard/credits" className={styles.upgradeBtn}>
+                Buy credits →
+              </Link>
+              <Link href="/dashboard/subscription" className={styles.upgradeBtn}>
+                {plan === "free" ? "Upgrade" : "View plans"} →
+              </Link>
+            </div>
           </div>
 
           <div className={styles.planDetails}>

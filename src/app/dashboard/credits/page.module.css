@@ -1,0 +1,213 @@
+.page {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+.subtitle {
+  margin: 0;
+  color: var(--text-muted, #6b7280);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  max-width: 64ch;
+}
+
+/* ── Balance card ──────────────────────────────────────────────────────── */
+.balanceCard {
+  background: linear-gradient(135deg, #00dc82 0%, #00a865 100%);
+  color: white;
+  border-radius: 16px;
+  padding: 1.5rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  box-shadow: 0 6px 20px rgba(0, 220, 130, 0.15);
+}
+.balanceLabel {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.72rem;
+  opacity: 0.85;
+  font-weight: 600;
+}
+.balanceValue {
+  font-size: 2.5rem;
+  font-weight: 800;
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  letter-spacing: -0.02em;
+}
+.balanceUnit {
+  font-size: 1rem;
+  font-weight: 500;
+  opacity: 0.85;
+}
+.balanceExpiry {
+  font-size: 0.85rem;
+  opacity: 0.9;
+}
+
+/* ── Tier section ──────────────────────────────────────────────────────── */
+.tierSection {
+  background: var(--bg-secondary, #fff);
+  border: 1px solid var(--border-subtle, #e5e7eb);
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.sectionTitle {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 0;
+}
+.tierGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 0.75rem;
+}
+.tier {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  background: var(--bg-primary, #fff);
+  border: 1.5px solid var(--border-subtle, #e5e7eb);
+  border-radius: 12px;
+  padding: 1rem 1rem 0.875rem;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: border-color 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+}
+.tier:hover {
+  border-color: #00dc82;
+  transform: translateY(-1px);
+}
+.tierPicked {
+  border-color: #00dc82;
+  box-shadow: 0 0 0 3px rgba(0, 220, 130, 0.18);
+}
+.tierAmount {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary, #111);
+}
+.tierCredits {
+  font-size: 0.85rem;
+  color: var(--text-muted, #6b7280);
+}
+.tierRate {
+  font-size: 0.72rem;
+  color: var(--text-muted, #9ca3af);
+  margin-top: 0.15rem;
+}
+
+.buyBtn {
+  background: #00dc82;
+  color: #001a0f;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 0.95rem 1.5rem;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+.buyBtn:hover:not(:disabled) {
+  background: #00c574;
+}
+.buyBtn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+.buyBtn:disabled {
+  background: #cbd5e1;
+  color: #6b7280;
+  cursor: not-allowed;
+}
+.payNote {
+  font-size: 0.8rem;
+  color: var(--text-muted, #6b7280);
+  margin: 0;
+  text-align: center;
+}
+
+/* ── History ────────────────────────────────────────────────────────────── */
+.historySection {
+  background: var(--bg-secondary, #fff);
+  border: 1px solid var(--border-subtle, #e5e7eb);
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.empty {
+  color: var(--text-muted, #6b7280);
+  font-size: 0.9rem;
+  margin: 0;
+}
+.historyTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+.historyTable thead th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-muted, #6b7280);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.65rem 0.75rem;
+  border-bottom: 1px solid var(--border-subtle, #e5e7eb);
+}
+.historyTable tbody td {
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--border-subtle, #f1f5f9);
+}
+.historyTable tbody tr:last-child td {
+  border-bottom: none;
+}
+.refCell {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.78rem;
+  color: var(--text-muted, #6b7280);
+}
+
+.statusPill {
+  display: inline-block;
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.status_PAID {
+  background: #d1fae5;
+  color: #065f46;
+}
+.status_PENDING {
+  background: #fef3c7;
+  color: #92400e;
+}
+.status_CANCELLED {
+  background: #fee2e2;
+  color: #991b1b;
+}
