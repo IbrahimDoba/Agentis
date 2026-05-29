@@ -567,7 +567,7 @@ model CreditPurchase {
   amountNaira  Int                                      // gross price paid by the user
   netNaira     Int                                      // after Paystack fees
   creditsAdded Int                                      // credits granted on completion
-  unitRateNGN  Decimal       @db.Decimal(6, 3)         // for audit (NGN per credit at purchase time)
+  unitRateNGN  Decimal       @db.Decimal(6, 3)         // for audit (NGN per credit at purchase time; 6 digits total, 3 after the point)
   reference    String        @unique                    // Paystack transaction ref
   status       PaymentStatus @default(PENDING)
   createdAt    DateTime      @default(now())

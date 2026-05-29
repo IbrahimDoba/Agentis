@@ -700,3 +700,52 @@ export async function sendSubscriptionExpiredEmail(data: {
     `),
   })
 }
+
+// ---------------------------------------------------------------------------
+// Credit-purchase receipt — sent after a successful Paystack PAYG top-up
+// ---------------------------------------------------------------------------
+
+export async function sendCreditPurchaseReceipt(data: {
+  name: string
+  email: string
+  amountNaira: number
+  credits: number
+  reference: string
+  expiresAt: Date
+}) {
+  const naira = `₦${data.amountNaira.toLocaleString("en-NG")}`
+  const credits = data.credits.toLocaleString("en-NG")
+  const expires = data.expiresAt.toLocaleDateString("en-NG", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  })
+
+  await resend().emails.send({
+    from: FROM,
+    to: data.email,
+    subject: `Receipt — ${credits} credits added`,
+    html: baseTemplate(`
+      <h2 style="margin:0 0 8px;font-size:22px;color:#111111;">Credits added 🎉</h2>
+      <p style="margin:0 0 20px;color:#4b5563;">
+        Hi ${data.name}, your payment was received and your credits are ready to use.
+      </p>
+      <div style="background:#f4f4f5;border-radius:12px;padding:20px 24px;margin:0 0 24px;">
+        ${infoRow("Amount paid", naira)}
+        ${infoRow("Credits added", credits)}
+        ${infoRow("Reference", data.reference)}
+        ${infoRow("Use by", expires)}
+      </div>
+      <p style="margin:0 0 20px;color:#6b7280;font-size:13px;">
+        Credits don't expire as long as you keep using D-Zero — every top-up
+        extends your wallet's expiry by 12 months.
+      </p>
+      ${btn("Go to dashboard", `${APP_URL}/dashboard`)}
+      ${divider()}
+      <p style="margin:0;color:#6b7280;font-size:13px;">
+        Questions? Reply to this email or reach
+        <a href="mailto:support@dailzero.com" style="color:#00dc82;text-decoration:none;font-weight:600;">support@dailzero.com</a>.
+      </p>
+    `),
+  })
+}
