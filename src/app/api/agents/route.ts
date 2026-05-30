@@ -17,9 +17,36 @@ export async function GET(req: NextRequest) {
 
     const { ownerId } = await getWorkspaceContext(session.user.id)
 
+    // Sort by most-recent conversation activity (with createdAt as the
+    // fallback for brand-new agents). Dashboard home auto-selects [0] and
+    // we want "the agent the user is actually using" to win — not the
+    // newest one they happened to create. Single raw SQL is the cleanest
+    // way to do this in Prisma 7 without ordering on a related _max field.
+    const rows = await db.$queryRaw<
+      Array<{ id: string; latestActivity: Date | null; createdAt: Date }>
+    >`
+      SELECT a."id",
+             (SELECT MAX(c."lastActivityAt")
+                FROM "Conversation" c
+                WHERE c."agentId" = a."id") AS "latestActivity",
+             a."createdAt"
+      FROM "Agent" a
+      WHERE a."userId" = ${ownerId}
+      ORDER BY COALESCE(
+                 (SELECT MAX(c."lastActivityAt")
+                    FROM "Conversation" c
+                    WHERE c."agentId" = a."id"),
+                 a."createdAt"
+               ) DESC
+    `
+    const orderedIds = rows.map((r) => r.id)
+
+    if (orderedIds.length === 0) {
+      return NextResponse.json([])
+    }
+
     const agents = await db.agent.findMany({
-      where: { userId: ownerId },
-      orderBy: { createdAt: "desc" },
+      where: { id: { in: orderedIds } },
       include: {
         user: {
           select: {
@@ -31,6 +58,10 @@ export async function GET(req: NextRequest) {
         },
       },
     })
+    // Re-sort by the activity-aware order from the raw query (Prisma's
+    // findMany with `in` doesn't preserve input order).
+    const indexById = new Map(orderedIds.map((id, i) => [id, i]))
+    agents.sort((a, b) => (indexById.get(a.id) ?? 0) - (indexById.get(b.id) ?? 0))
 
     return NextResponse.json(
       (agents as any[]).map((a: any) => ({
