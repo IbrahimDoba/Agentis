@@ -436,6 +436,19 @@
     if (!/^https?:\/\//i.test(u)) return null
     return u
   }
+  // Detect URLs that are too ugly to render as inline text — typically
+  // storefront cart-prepare deeplinks where the entire cart payload is
+  // base64-encoded into a `?cart=…` query string. We replace them with a
+  // styled "Open cart" CTA button instead. Generic length-based fallback
+  // catches similar long action-bearing URLs from other vendors.
+  function isCartActionUrl(url) {
+    if (!url) return false
+    if (/\/cart\?cart=/i.test(url)) return true
+    return false
+  }
+  function cartCta(url) {
+    return '<a href="' + url + '" target="_blank" rel="noopener noreferrer" class="dz-cart-cta">🛒 Open Cart →</a>'
+  }
   function renderMarkdown(src) {
     var text = escapeHtml(src)
     // Strip markdown images FIRST — otherwise the [text](url) link regex
@@ -446,6 +459,7 @@
     text = text.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, function (_, label, url) {
       var safe = safeUrl(url)
       if (!safe) return label
+      if (isCartActionUrl(safe)) return cartCta(safe)
       return '<a href="' + safe + '" target="_blank" rel="noopener noreferrer">' + label + "</a>"
     })
     // **bold**
@@ -454,8 +468,10 @@
     text = text.replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, "$1<em>$2</em>")
     // `code`
     text = text.replace(/`([^`]+)`/g, "<code>$1</code>")
-    // Bare URLs not already wrapped in an <a>.
+    // Bare URLs not already wrapped in an <a>. Cart-action URLs become a
+    // styled CTA button; everything else gets the default inline link.
     text = text.replace(/(^|[\s(])(https?:\/\/[^\s)]+)/g, function (_, pre, url) {
+      if (isCartActionUrl(url)) return pre + cartCta(url)
       return pre + '<a href="' + url + '" target="_blank" rel="noopener noreferrer">' + url + "</a>"
     })
     // Newlines → <br>
@@ -592,6 +608,11 @@
     ".dz-card-badge { display: inline-block; font-size: 10.5px; font-weight: 600; padding: 2px 7px; border-radius: 999px; align-self: flex-start; margin-top: 2px; }",
     ".dz-card-low { background: #fff3cd; color: #8a5a00; }",
     ".dz-card-oos { background: #f1f3f5; color: #6b7280; }",
+    // Cart-action CTA: replaces ugly long deeplink URLs (e.g. AVMall's
+    // base64-encoded cart-prepare links) with a clean green button.
+    ".dz-cart-cta { display: inline-block; background: #00DC82; color: #001a0f !important; padding: 9px 16px; border-radius: 10px; font-weight: 600; font-size: 14px; text-decoration: none !important; margin: 6px 0 2px; box-shadow: 0 2px 6px rgba(0,220,130,0.25); transition: transform 0.1s ease, box-shadow 0.15s ease; }",
+    ".dz-cart-cta:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,220,130,0.32); }",
+    ".dz-cart-cta:active { transform: translateY(0); }",
     "#dz-typing { display: none; gap: 4px; padding: 8px 12px; }",
     "#dz-typing span { width: 6px; height: 6px; border-radius: 50%; background: #aaa; animation: dzBounce 1.2s infinite; }",
     "#dz-typing span:nth-child(2) { animation-delay: 0.15s; }",
