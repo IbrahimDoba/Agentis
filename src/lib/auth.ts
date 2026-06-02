@@ -5,6 +5,19 @@ import bcrypt from "bcryptjs"
 import { db } from "@/lib/db"
 import { loginSchema } from "@/lib/validations"
 import { authConfig } from "@/lib/auth.config"
+import { sendVerificationCode } from "@/lib/email"
+
+type AppAuthUser = {
+  id: string
+  role?: string
+  status?: string
+  businessName?: string
+  emailVerified?: boolean
+}
+
+function generateCode(): string {
+  return Math.floor(1000 + Math.random() * 9000).toString()
+}
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
@@ -56,34 +69,52 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       const existing = await db.user.findUnique({ where: { email } })
 
       if (existing) {
-        // Account exists (credentials or previous Google) — allow sign in
         if (existing.status === "REJECTED") return "/login?error=rejected"
+        if (!existing.emailVerified) {
+          const code = generateCode()
+          const expiry = new Date(Date.now() + 10 * 60 * 1000)
+          await db.user.update({
+            where: { email },
+            data: { verificationCode: code, verificationCodeExpiry: expiry },
+          })
+          sendVerificationCode({ name: existing.name, email, code }).catch(
+            (err) => console.error("[GOOGLE SIGNIN] resend code error:", err)
+          )
+          return `/verify-email?email=${encodeURIComponent(email)}&provider=google`
+        }
 
         // Inject DB fields into the user object so JWT callback can read them
-        user.id = existing.id
-        ;(user as any).role = existing.role
-        ;(user as any).status = existing.status
-        ;(user as any).businessName = existing.businessName
+        const appUser = user as typeof user & AppAuthUser
+        appUser.id = existing.id
+        appUser.role = existing.role
+        appUser.status = existing.status
+        appUser.businessName = existing.businessName
+        appUser.emailVerified = existing.emailVerified
         return true
       }
 
-      // New user — create account with PENDING status
+      const code = generateCode()
+      const expiry = new Date(Date.now() + 10 * 60 * 1000)
+
+      // New Google user still goes through our OTP verification step.
       const newUser = await db.user.create({
         data: {
           name: user.name ?? email.split("@")[0],
           email,
           businessName: user.name ?? email.split("@")[0],
-          emailVerified: true,  // Google already verified it
+          emailVerified: false,
+          verificationCode: code,
+          verificationCodeExpiry: expiry,
           status: "PENDING",
           passwordHash: null,
         },
       })
 
-      user.id = newUser.id
-      ;(user as any).role = newUser.role
-      ;(user as any).status = newUser.status
-      ;(user as any).businessName = newUser.businessName
-      return true
+      sendVerificationCode({ name: newUser.name, email, code }).catch(
+        (err) => console.error("[GOOGLE SIGNIN] send code error:", err)
+      )
+
+      return `/verify-email?email=${encodeURIComponent(email)}&provider=google`
     },
   },
 })

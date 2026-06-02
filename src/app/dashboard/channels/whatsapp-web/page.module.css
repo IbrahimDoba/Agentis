@@ -296,7 +296,49 @@
 
 /* Pairing code */
 .pairingWrap { margin-bottom: 1rem; }
-.pairingInput { display: flex; gap: 8px; }
+.pairingInput {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.9fr) minmax(280px, 1.1fr);
+  gap: 12px;
+}
+.pairingField {
+  display: flex;
+  flex-direction: column;
+}
+.pairingLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+.countrySelect {
+  width: 100%;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--text-primary);
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.countrySelect:focus { border-color: var(--accent); }
+.phoneInputRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.countryCodeBadge {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
 .phoneInput {
   flex: 1;
   background: var(--bg-secondary);
@@ -386,7 +428,8 @@
 .btnDanger:disabled { opacity: 0.5; cursor: not-allowed; }
 
 @media (max-width: 768px) {
-  .methodToggle, .pairingInput, .actionGroup { flex-direction: column; }
+  .methodToggle, .actionGroup { flex-direction: column; }
+  .pairingInput { grid-template-columns: 1fr; }
   .methodBtn, .btnSecondary, .btnDanger { width: 100%; }
 }
 

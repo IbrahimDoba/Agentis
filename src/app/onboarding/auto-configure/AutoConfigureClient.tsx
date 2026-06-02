@@ -6,7 +6,7 @@ import Link from "next/link"
 import styles from "./page.module.css"
 import { useVisibleInterval } from "@/lib/useVisibleInterval"
 
-type Status = "pending" | "analyzing" | "ready_for_review" | "activated" | "failed"
+type Status = "pending" | "analyzing" | "ready_for_review" | "activated" | "failed" | "skipped"
 
 interface DraftProduct { name: string; priceRange: string; notes: string }
 interface DraftFaq { question: string; answer: string }
@@ -34,6 +34,7 @@ export function AutoConfigureClient({ agentId }: { agentId: string }) {
   const [payload, setPayload] = useState<AutoConfigPayload | null>(null)
   const [editingDraft, setEditingDraft] = useState<AutoConfigDraft | null>(null)
   const [activating, setActivating] = useState(false)
+  const [skipping, setSkipping] = useState(false)
   const [triggered, setTriggered] = useState(false)
 
   const poll = useCallback(async () => {
@@ -57,7 +58,8 @@ export function AutoConfigureClient({ agentId }: { agentId: string }) {
   const isTerminal =
     payload?.status === "ready_for_review" ||
     payload?.status === "failed" ||
-    payload?.status === "activated"
+    payload?.status === "activated" ||
+    payload?.status === "skipped"
   useVisibleInterval(poll, POLL_INTERVAL_MS, !isTerminal)
 
   // Auto-trigger the LLM step once inputs are ready and we haven't kicked
@@ -93,6 +95,15 @@ export function AutoConfigureClient({ agentId }: { agentId: string }) {
       setActivating(false)
     }
   }, [agentId, editingDraft, router])
+
+  const skipToManual = useCallback(async () => {
+    setSkipping(true)
+    try {
+      await fetch(`/api/agents/${agentId}/auto-configure/skip`, { method: "POST" })
+    } finally {
+      router.push(`/dashboard/agent/${agentId}`)
+    }
+  }, [agentId, router])
 
   // ─── Render branches ───────────────────────────────────────────────
   if (!payload) {
@@ -141,8 +152,20 @@ export function AutoConfigureClient({ agentId }: { agentId: string }) {
     )
   }
 
+  if (payload.status === "skipped") {
+    return (
+      <Frame>
+        <h1 className={styles.title}>Auto-configure skipped</h1>
+        <p className={styles.subtitle}>You can finish setting up the agent manually from the dashboard.</p>
+        <div className={styles.actions}>
+          <Link href={`/dashboard/agent/${agentId}`} className={styles.primaryBtn}>Open manual setup</Link>
+        </div>
+      </Frame>
+    )
+  }
+
   if (payload.status !== "ready_for_review") {
-    return <ConfiguringView payload={payload} />
+    return <ConfiguringView payload={payload} onSkip={skipToManual} skipping={skipping} />
   }
 
   // ── Review screen ──
@@ -170,7 +193,15 @@ function Frame({ children }: { children: React.ReactNode }) {
   )
 }
 
-function ConfiguringView({ payload }: { payload: AutoConfigPayload }) {
+function ConfiguringView({
+  payload,
+  onSkip,
+  skipping,
+}: {
+  payload: AutoConfigPayload
+  onSkip: () => void
+  skipping: boolean
+}) {
   const stages = useMemo(() => {
     return [
       { key: "connect", label: "Connected to WhatsApp", done: true },
@@ -192,6 +223,12 @@ function ConfiguringView({ payload }: { payload: AutoConfigPayload }) {
           </li>
         ))}
       </ul>
+      <div className={styles.actions}>
+        <Link href="/dashboard" className={styles.secondaryBtn}>Keep this for later</Link>
+        <button type="button" className={styles.secondaryBtn} onClick={onSkip} disabled={skipping}>
+          {skipping ? "Skipping…" : "Skip and set up manually"}
+        </button>
+      </div>
     </Frame>
   )
 }

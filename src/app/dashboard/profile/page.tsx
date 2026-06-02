@@ -34,6 +34,7 @@ export default function ProfilePage() {
   const queryClient = useQueryClient()
   const { data, isLoading } = useDashboardData()
   const { theme, toggle } = useTheme()
+  const hasPassword = data?.user?.hasPassword ?? false
 
   const [referralsEnabled, setReferralsEnabled] = useState(false)
   const [togglingReferrals, setTogglingReferrals] = useState(false)
@@ -55,18 +56,25 @@ export default function ProfilePage() {
   const { showToast } = useToast()
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  })
+  const [passwordErrors, setPasswordErrors] = useState<Record<string, string>>({})
+  const [passwordLoading, setPasswordLoading] = useState(false)
 
   useEffect(() => {
     if (data?.user) {
       setReferralsEnabled(data.user.referralsEnabled ?? false)
     }
-  }, [data?.user?.referralsEnabled])
+  }, [data?.user])
 
   useEffect(() => {
     if (data?.agent) {
       setMessagingEnabled(data.agent.messagingEnabled ?? true)
     }
-  }, [data?.agent?.messagingEnabled])
+  }, [data?.agent])
 
   useEffect(() => {
     if (data?.user) {
@@ -88,6 +96,12 @@ export default function ProfilePage() {
     const { name, value } = e.target
     setForm((f) => ({ ...f, [name]: value }))
     setErrors((prev) => ({ ...prev, [name]: "" }))
+  }
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setPasswordForm((f) => ({ ...f, [name]: value }))
+    setPasswordErrors((prev) => ({ ...prev, [name]: "" }))
   }
 
   const handleToggleMessaging = async (enabled: boolean) => {
@@ -160,6 +174,67 @@ export default function ProfilePage() {
     }
   }
 
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    const fieldErrors: Record<string, string> = {}
+    if (hasPassword && !passwordForm.currentPassword) {
+      fieldErrors.currentPassword = "Current password is required"
+    }
+    if (!passwordForm.newPassword) {
+      fieldErrors.newPassword = "New password is required"
+    } else if (passwordForm.newPassword.length < 8) {
+      fieldErrors.newPassword = "Password must be at least 8 characters"
+    }
+    if (!passwordForm.confirmPassword) {
+      fieldErrors.confirmPassword = "Please confirm your new password"
+    } else if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      fieldErrors.confirmPassword = "Passwords do not match"
+    }
+
+    if (Object.keys(fieldErrors).length > 0) {
+      setPasswordErrors(fieldErrors)
+      return
+    }
+
+    setPasswordLoading(true)
+    setPasswordErrors({})
+
+    try {
+      const res = await fetch("/api/me/password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          currentPassword: passwordForm.currentPassword || undefined,
+          newPassword: passwordForm.newPassword,
+        }),
+      })
+
+      const payload = await res.json()
+
+      if (!res.ok) {
+        if (payload.errors) {
+          setPasswordErrors(payload.errors)
+        } else {
+          showToast(payload.error || "Failed to update password", "error")
+        }
+        return
+      }
+
+      setPasswordForm({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      })
+      queryClient.invalidateQueries({ queryKey: ["me"] })
+      showToast(hasPassword ? "Password changed successfully!" : "Password created successfully!")
+    } catch {
+      showToast("Something went wrong. Please try again.", "error")
+    } finally {
+      setPasswordLoading(false)
+    }
+  }
+
   if (isLoading) {
     return (
       <div className={styles.page}>
@@ -217,6 +292,68 @@ export default function ProfilePage() {
               <p className={styles.emailNote}>Email address cannot be changed.</p>
             </div>
           </div>
+        </div>
+
+        <div className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <div className={styles.sectionTitle}>Account Security</div>
+            <div className={styles.sectionDesc}>
+              {hasPassword
+                ? "Change the password you use for email login. Google sign-in will keep working too."
+                : "Create a password for this account so you can sign in with either Google or email and password."}
+            </div>
+          </div>
+          <div className={styles.securityIntro}>
+            <div className={styles.securityBadge}>
+              {hasPassword ? "Password login enabled" : "Google-only login right now"}
+            </div>
+            <p className={styles.securityNote}>
+              {hasPassword
+                ? "Use the same email address with either Google sign-in or your password."
+                : "Once you create a password here, the same email address will work for both Google sign-in and manual login."}
+            </p>
+          </div>
+          <form className={styles.securityForm} onSubmit={handlePasswordSubmit}>
+            {hasPassword && (
+              <Input
+                label="Current Password"
+                name="currentPassword"
+                type="password"
+                placeholder="Enter your current password"
+                value={passwordForm.currentPassword}
+                onChange={handlePasswordChange}
+                error={passwordErrors.currentPassword}
+                autoComplete="current-password"
+              />
+            )}
+            <div className={styles.row}>
+              <Input
+                label={hasPassword ? "New Password" : "Create Password"}
+                name="newPassword"
+                type="password"
+                placeholder="At least 8 characters"
+                value={passwordForm.newPassword}
+                onChange={handlePasswordChange}
+                error={passwordErrors.newPassword}
+                autoComplete="new-password"
+              />
+              <Input
+                label="Confirm Password"
+                name="confirmPassword"
+                type="password"
+                placeholder="Re-enter your password"
+                value={passwordForm.confirmPassword}
+                onChange={handlePasswordChange}
+                error={passwordErrors.confirmPassword}
+                autoComplete="new-password"
+              />
+            </div>
+            <div className={styles.securityActions}>
+              <Button type="submit" loading={passwordLoading}>
+                {hasPassword ? "Change Password" : "Create Password"}
+              </Button>
+            </div>
+          </form>
         </div>
 
         {/* Business Information */}

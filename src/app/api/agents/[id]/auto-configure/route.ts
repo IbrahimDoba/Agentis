@@ -8,6 +8,15 @@ interface Params {
   params: Promise<{ id: string }>
 }
 
+async function isAutoConfigSkipped(agentId: string): Promise<boolean> {
+  const agent = await db.agent.findUnique({
+    where: { id: agentId },
+    select: { autoConfigStatus: true },
+  })
+
+  return agent?.autoConfigStatus === "skipped"
+}
+
 // GET — return the current auto-configure status + draft (if ready).
 // The onboarding/configuring page polls this; the onboarding/review page
 // reads it once to render the editable form.
@@ -72,6 +81,7 @@ export async function POST(_req: NextRequest, { params }: Params) {
   // polls GET above to track progress.
   ;(async () => {
     const setFailed = async (message: string) => {
+      if (await isAutoConfigSkipped(id)) return
       console.warn("[auto-configure]", message)
       await db.$executeRawUnsafe(
         `UPDATE "Agent" SET "autoConfigStatus" = 'failed', "autoConfigDraft" = jsonb_build_object('error', $1::text) WHERE "id" = $2`,
@@ -115,6 +125,7 @@ export async function POST(_req: NextRequest, { params }: Params) {
       }
 
       // 3. Run the LLM on the fresh inputs.
+      if (await isAutoConfigSkipped(id)) return
       await generateAutoConfigDraft(id)
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err)

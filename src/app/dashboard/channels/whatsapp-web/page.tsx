@@ -10,6 +10,24 @@ import { Modal } from "@/components/ui/Modal"
 import Button from "@/components/ui/Button"
 import styles from "./page.module.css"
 
+const PAIRING_COUNTRIES = [
+  { code: "NG", name: "Nigeria", dialCode: "234" },
+  { code: "GH", name: "Ghana", dialCode: "233" },
+  { code: "KE", name: "Kenya", dialCode: "254" },
+  { code: "ZA", name: "South Africa", dialCode: "27" },
+  { code: "UG", name: "Uganda", dialCode: "256" },
+  { code: "TZ", name: "Tanzania", dialCode: "255" },
+  { code: "RW", name: "Rwanda", dialCode: "250" },
+  { code: "GB", name: "United Kingdom", dialCode: "44" },
+  { code: "US", name: "United States", dialCode: "1" },
+  { code: "CA", name: "Canada", dialCode: "1" },
+  { code: "AE", name: "United Arab Emirates", dialCode: "971" },
+  { code: "IN", name: "India", dialCode: "91" },
+] as const
+
+const DEFAULT_PAIRING_COUNTRY = "NG"
+const PAIRING_COUNTRY_STORAGE_KEY = "dzero.pairing-country"
+
 interface Agent {
   id: string
   businessName: string
@@ -92,11 +110,22 @@ export default function WhatsAppWebPage() {
   const [sseStatus, setSseStatus] = useState<string | null>(null)
   const sseRef = useRef<EventSource | null>(null)
   const [connectMethod, setConnectMethod] = useState<"qr" | "code">("qr")
+  const [pairingCountryCode, setPairingCountryCode] = useState<string>(DEFAULT_PAIRING_COUNTRY)
   const [pairingPhone, setPairingPhone] = useState("")
   const [pairingCode, setPairingCode] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
   const [selectedTier, setSelectedTier] = useState<number>(1)
   const [confirmRemove, setConfirmRemove] = useState(false)
+
+  const selectedPairingCountry = PAIRING_COUNTRIES.find((country) => country.code === pairingCountryCode) ?? PAIRING_COUNTRIES[0]
+
+  function normalizeLocalPhone(value: string) {
+    return value.replace(/\D/g, "").replace(/^0+/, "")
+  }
+
+  function buildPairingNumber() {
+    return `${selectedPairingCountry.dialCode}${normalizeLocalPhone(pairingPhone)}`
+  }
 
   const { data: agents = [] } = useQuery({ queryKey: ["agents"], queryFn: fetchAgents })
   const { data: session, refetch: refetchSession } = useQuery({
@@ -255,6 +284,19 @@ export default function WhatsAppWebPage() {
 
   useEffect(() => () => stopQrStream(), [])
 
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const savedCountry = window.localStorage.getItem(PAIRING_COUNTRY_STORAGE_KEY)
+    if (savedCountry && PAIRING_COUNTRIES.some((country) => country.code === savedCountry)) {
+      setPairingCountryCode(savedCountry)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    window.localStorage.setItem(PAIRING_COUNTRY_STORAGE_KEY, pairingCountryCode)
+  }, [pairingCountryCode])
+
   // Clear pairing code only when agent changes or session connects successfully
   useEffect(() => {
     if (!selectedAgentId) setPairingCode(null)
@@ -312,7 +354,7 @@ export default function WhatsAppWebPage() {
           </div>
           <div className={styles.agentList}>
             {agents.length === 0 && (
-              <p className={styles.empty}>No agents found. <a href="/dashboard/agent/create">Create one first.</a></p>
+              <p className={styles.empty}>No agents found. <Link href="/dashboard/agent/create">Create one first.</Link></p>
             )}
             {agents.map((agent) => (
               <button
@@ -441,13 +483,40 @@ export default function WhatsAppWebPage() {
                     </div>
                   ) : (!session || session.status === "DISCONNECTED" || session.status === "LOGGED_OUT") ? (
                     <div className={styles.pairingInput}>
-                      <input
-                        className={styles.phoneInput}
-                        type="tel"
-                        placeholder="e.g. 2348012345678"
-                        value={pairingPhone}
-                        onChange={(e) => setPairingPhone(e.target.value)}
-                      />
+                      <div className={styles.pairingField}>
+                        <label className={styles.pairingLabel} htmlFor="pairing-country">
+                          Country
+                        </label>
+                        <select
+                          id="pairing-country"
+                          className={styles.countrySelect}
+                          value={pairingCountryCode}
+                          onChange={(e) => setPairingCountryCode(e.target.value)}
+                        >
+                          {PAIRING_COUNTRIES.map((country) => (
+                            <option key={country.code} value={country.code}>
+                              {country.name} (+{country.dialCode})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className={styles.pairingField}>
+                        <label className={styles.pairingLabel} htmlFor="pairing-phone">
+                          Phone number
+                        </label>
+                        <div className={styles.phoneInputRow}>
+                          <span className={styles.countryCodeBadge}>+{selectedPairingCountry.dialCode}</span>
+                          <input
+                            id="pairing-phone"
+                            className={styles.phoneInput}
+                            type="tel"
+                            inputMode="numeric"
+                            placeholder="8012345678"
+                            value={pairingPhone}
+                            onChange={(e) => setPairingPhone(normalizeLocalPhone(e.target.value))}
+                          />
+                        </div>
+                      </div>
                     </div>
                   ) : null}
                 </div>
@@ -500,12 +569,12 @@ export default function WhatsAppWebPage() {
                         try {
                           const needsCreate = !session || session.status === "DISCONNECTED" || session.status === "LOGGED_OUT"
                           if (needsCreate) await connect.mutateAsync({ agentId: selectedAgentId!, initialTier: selectedTier })
-                          requestPairingCode.mutate({ agentId: selectedAgentId!, phoneNumber: pairingPhone })
+                          requestPairingCode.mutate({ agentId: selectedAgentId!, phoneNumber: buildPairingNumber() })
                         } catch {
                           // connect.onError already sets actionError
                         }
                       }}
-                      disabled={connect.isPending || requestPairingCode.isPending || !pairingPhone}
+                      disabled={connect.isPending || requestPairingCode.isPending || !normalizeLocalPhone(pairingPhone)}
                     >
                       {connect.isPending || requestPairingCode.isPending ? "Getting code…" : "Get Pairing Code"}
                     </button>

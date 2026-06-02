@@ -40,6 +40,7 @@ export async function GET() {
       subscriptionExpiresAt: user.subscriptionExpiresAt ? user.subscriptionExpiresAt.toISOString() : null,
       onboardingCompleted: user.onboardingCompleted,
       referralsEnabled: user.referralsEnabled,
+      hasPassword: Boolean(user.passwordHash),
     },
     agent: agent ? {
       id: agent.id,

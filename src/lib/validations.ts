@@ -24,6 +24,11 @@ export const loginSchema = z.object({
   password: z.string().min(1, "Password required"),
 })
 
+export const accountPasswordSchema = z.object({
+  currentPassword: z.string().optional(),
+  newPassword: z.string().min(8, "Password must be at least 8 characters"),
+})
+
 export const agentSchema = z.object({
   businessName: z.string().min(2, "Business name must be at least 2 characters").optional(),
   businessDescription: z.string().optional(),
@@ -77,6 +82,7 @@ export const demoSchema = z.object({
 
 export type SignupInput = z.infer<typeof signupSchema>
 export type LoginInput = z.infer<typeof loginSchema>
+export type AccountPasswordInput = z.infer<typeof accountPasswordSchema>
 export type AgentInput = z.infer<typeof agentSchema>
 export type AdminAgentUpdateInput = z.infer<typeof adminAgentUpdateSchema>
 export type DemoInput = z.infer<typeof demoSchema>

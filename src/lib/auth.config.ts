@@ -1,5 +1,12 @@
 import type { NextAuthConfig } from "next-auth"
 
+type AppCallbackUser = {
+  id?: string
+  role?: string
+  status?: string
+  businessName?: string
+}
+
 // Edge-compatible auth config (no DB imports)
 export const authConfig: NextAuthConfig = {
   providers: [], // Credentials provider added in auth.ts (Node.js only)
@@ -15,6 +22,9 @@ export const authConfig: NextAuthConfig = {
         if (status === "SUSPENDED" && pathname !== "/dashboard/suspended") {
           return Response.redirect(new URL("/dashboard/suspended", nextUrl))
         }
+        if (status === "PENDING" && pathname !== "/dashboard/pending") {
+          return Response.redirect(new URL("/dashboard/pending", nextUrl))
+        }
         return true
       }
 
@@ -28,10 +38,11 @@ export const authConfig: NextAuthConfig = {
     },
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id
-        token.role = (user as any).role
-        token.status = (user as any).status
-        token.businessName = (user as any).businessName
+        const appUser = user as typeof user & AppCallbackUser
+        token.id = appUser.id
+        token.role = appUser.role
+        token.status = appUser.status
+        token.businessName = appUser.businessName
       }
       return token
     },

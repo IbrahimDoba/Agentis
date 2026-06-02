@@ -121,9 +121,13 @@ export async function generateAutoConfigDraft(agentId: string): Promise<AutoConf
       contactEmail: true,
       websiteLinks: true,
       autoConfigInputs: true,
+      autoConfigStatus: true,
     },
   })
   if (!rows) throw new Error("Agent not found")
+  if (rows.autoConfigStatus === "skipped") {
+    throw new Error("Auto-configure was skipped")
+  }
   if (!rows.autoConfigInputs) {
     throw new Error("No autoConfigInputs on this agent — run chat extraction first")
   }
@@ -177,6 +181,14 @@ export async function generateAutoConfigDraft(agentId: string): Promise<AutoConf
     draft = JSON.parse(text) as AutoConfigDraft
   } catch {
     throw new Error("LLM returned invalid JSON")
+  }
+
+  const latest = await db.agent.findUnique({
+    where: { id: agentId },
+    select: { autoConfigStatus: true },
+  })
+  if (latest?.autoConfigStatus === "skipped") {
+    throw new Error("Auto-configure was skipped")
   }
 
   // Persist the draft + flip status to ready_for_review so the
