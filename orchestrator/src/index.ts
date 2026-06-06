@@ -7,6 +7,7 @@ import { logger } from "./lib/logger.js"
 import { getRedis, closeRedis } from "./queue/redis.js"
 import { healthRoutes } from "./routes/health.js"
 import { inboundRoutes } from "./routes/inbound.js"
+import { chatRoutes } from "./routes/chat.js"
 import { documentsRoutes } from "./routes/documents.js"
 import { mediaRoutes } from "./routes/media.js"
 import { startInboundWorker } from "./queue/workers/inbound-worker.js"
@@ -40,6 +41,7 @@ app.addHook("onRequest", async (req, reply) => {
 
 await app.register(healthRoutes, { prefix: "/v1" })
 await app.register(inboundRoutes, { prefix: "/v1" })
+await app.register(chatRoutes, { prefix: "/v1" })
 await app.register(documentsRoutes, { prefix: "/v1" })
 await app.register(mediaRoutes, { prefix: "/v1" })
 

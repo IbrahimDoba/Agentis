@@ -19,7 +19,7 @@ export interface Conversation {
   mode: "ai" | "human"
   lastActivityAt: string | null
   adContext: AdContext | null
-  channel: "whatsapp" | "embed"
+  channel: "whatsapp" | "embed" | "api"
   visitorId: string | null
 }
 
@@ -41,7 +41,7 @@ export interface Message {
 export interface CreateConversationOptions {
   contactName?: string
   defaultMode?: "ai" | "human"
-  channel?: "whatsapp" | "embed"
+  channel?: "whatsapp" | "embed" | "api"
   visitorId?: string
 }
 
