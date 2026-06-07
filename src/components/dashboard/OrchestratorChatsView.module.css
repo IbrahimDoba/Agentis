@@ -139,19 +139,8 @@
   background: rgba(34, 197, 94, 0.08);
 }
 
-/* AI flagged this conversation for human takeover — red tint on the card
- * so it's distinct from active/unread states. Pairs with the "Needs human"
- * pill in the right cluster. */
-.itemHandoff {
-  background: rgba(239, 68, 68, 0.05);
-  border-color: rgba(239, 68, 68, 0.32);
-}
-
-.itemHandoff.itemActive {
-  border-color: #ef4444;
-  background: rgba(239, 68, 68, 0.09);
-}
-
+/* AI flagged this conversation for human takeover. The card itself stays
+ * neutral — the "Needs human" badge in the right cluster is the only signal. */
 .handoffBadge {
   display: inline-block;
   font-size: 10px;

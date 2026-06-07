@@ -427,13 +427,11 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
         ? searchFiltered.filter((c) => needsHumanNow(c))
         : searchFiltered
 
-  // Sort: conversations needing a human bubble to the top, then anything
-  // unread by the operator, then most-recent activity. We sort a shallow
-  // copy so we don't mutate the React-Query cache.
+  // Sort: unread by the operator first, then most-recent activity. We sort a
+  // shallow copy so we don't mutate the React-Query cache. Needs-human
+  // conversations are flagged with a badge (not pinned to the top), so they
+  // stay in their natural activity order with everything else.
   filtered = [...filtered].sort((a, b) => {
-    const aHandoff = needsHumanNow(a) ? 1 : 0
-    const bHandoff = needsHumanNow(b) ? 1 : 0
-    if (aHandoff !== bHandoff) return bHandoff - aHandoff
     const aUnread = isUnread(a) ? 1 : 0
     const bUnread = isUnread(b) ? 1 : 0
     if (aUnread !== bUnread) return bUnread - aUnread
@@ -541,7 +539,7 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
           return (
             <button
               key={conv.id}
-              className={`${styles.item} ${selectedId === conv.id ? styles.itemActive : ""} ${unread ? styles.itemUnread : ""} ${needsHuman ? styles.itemHandoff : ""}`}
+              className={`${styles.item} ${selectedId === conv.id ? styles.itemActive : ""} ${unread ? styles.itemUnread : ""}`}
               onClick={() => handleSelect(conv.id)}
             >
               <div className={styles.avatar}>
