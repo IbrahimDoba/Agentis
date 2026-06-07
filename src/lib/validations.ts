@@ -1,5 +1,36 @@
 import { z } from "zod"
 
+// External Developer API key creation. scopes must be a non-empty subset of the
+// allowed scopes; the daily cap is optional (null/omitted = no cap).
+export const createApiKeySchema = z.object({
+  name: z.string().min(1, "Name is required").max(60, "Max 60 characters"),
+  scopes: z.array(z.enum(["chat", "manage"])).min(1, "Select at least one scope"),
+  dailySpendingCapCredits: z.number().int().positive("Must be a positive number").nullable().optional(),
+})
+
+// Surface B: replace an agent's webhook tools via the developer API.
+const apiToolParameterSchema = z.object({
+  name: z.string().min(1, "Parameter name is required"),
+  type: z.enum(["string", "integer", "boolean", "number"]),
+  description: z.string().default(""),
+  required: z.boolean().default(false),
+  enum: z.array(z.string()).optional(),
+})
+
+const apiAgentToolSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().min(1, "Tool name is required"),
+  displayName: z.string().optional(),
+  description: z.string().default(""),
+  url: z.string().url("Tool url must be a valid URL"),
+  method: z.enum(["GET", "POST"]),
+  parameters: z.array(apiToolParameterSchema).default([]),
+})
+
+export const apiSetToolsSchema = z.object({
+  tools: z.array(apiAgentToolSchema).max(50, "Max 50 tools"),
+})
+
 export const signupSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Invalid email address"),

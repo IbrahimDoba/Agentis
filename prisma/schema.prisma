@@ -54,6 +54,37 @@ model User {
   referredBy         Referral?  @relation("ReferredBy")
   paymentRequests    PaymentRequest[]
   creditPurchases    CreditPurchase[]
+  apiKeys            ApiKey[]
+}
+
+// External Developer API keys. One user → many keys. The raw key is shown
+// ONCE at creation and never stored — only its bcrypt hash. `prefix` is the
+// public, indexed lookup id (also shown masked in the dashboard); verify
+// narrows by prefix then bcrypt-compares. `scopes` gate capability: "chat"
+// (run agents — safe to embed client-side) and/or "manage" (configure agents
+// — server-side only), so a leaked chat key can't reconfigure agents.
+model ApiKey {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name      String                       // operator-visible label
+  prefix    String   @unique             // public lookup id, e.g. "dz_live_a1b2c3d4"
+  hashedKey String                       // bcrypt(full raw key) — raw never persisted
+
+  scopes    String[] @default([])        // "chat" | "manage"
+
+  // Per-key safety rail: optional rolling 24h spend cap (in credits).
+  dailySpendingCapCredits Int?
+  dailySpentCredits       Int       @default(0)
+  spendingResetAt         DateTime?
+
+  status     String    @default("active") // "active" | "revoked"
+  lastUsedAt DateTime?
+  createdAt  DateTime  @default(now())
+  revokedAt  DateTime?
+
+  @@index([userId, status])
 }
 
 model Agent {
