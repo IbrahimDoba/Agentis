@@ -111,6 +111,9 @@ model Agent {
   autoPauseOnHumanReply Boolean    @default(true)
   pauseOnAiHandoff     Boolean     @default(true)
   pauseOnQualifiedLead Boolean     @default(true)
+  // Minutes of inactivity after which a human-mode conversation auto-switches
+  // back to AI. null = off (the AI stays paused until a human resumes it).
+  autoResumeAiAfterMinutes Int?
   isVerified           Boolean     @default(false)
   autoConfigStatus     String?
   autoConfigInputs     Json?

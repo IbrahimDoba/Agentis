@@ -11,6 +11,7 @@ import { sessionRoutes } from "./routes/sessions.js"
 import { messageRoutes } from "./routes/messages.js"
 import { broadcastRoutes } from "./routes/broadcasts.js"
 import { closeBroadcastQueue } from "./queue/broadcast-queue.js"
+import { startAutoResumeSweep, stopAutoResumeSweep } from "./jobs/auto-resume-ai.js"
 import { followUpRoutes } from "./routes/followup.js"
 import { closeFollowUpQueue } from "./queue/followup-queue.js"
 
@@ -45,6 +46,7 @@ await app.register(followUpRoutes, { prefix: "/v1" })
 // Graceful shutdown
 const shutdown = async () => {
   logger.info("Shutting down...")
+  stopAutoResumeSweep()
   await closeBroadcastQueue()
   await closeFollowUpQueue()
   await app.close()
@@ -65,6 +67,10 @@ process.on("unhandledRejection", (reason) => {
 try {
   await app.listen({ port: config.PORT, host: "0.0.0.0" })
   logger.info({ port: config.PORT }, "Worker started")
+
+  // Periodic sweep: resume AI on human-mode conversations idle past their
+  // agent's auto-resume threshold.
+  startAutoResumeSweep()
 
   // Auto-reconnect sessions that were CONNECTED before restart
   const { sql } = await import("./db/client.js")

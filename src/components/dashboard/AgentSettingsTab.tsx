@@ -20,15 +20,18 @@ export function AgentSettingsTab({ agent, onDirtyChange }: AgentSettingsTabProps
   const initialAutoPause = agent.autoPauseOnHumanReply ?? true
   const initialPauseOnHandoff = agent.pauseOnAiHandoff ?? true
   const initialPauseOnLead = agent.pauseOnQualifiedLead ?? true
+  const initialAutoResume = agent.autoResumeAiAfterMinutes ?? 0 // 0 = off in the UI
   const [autoPauseOnHumanReply, setAutoPauseOnHumanReply] = useState(initialAutoPause)
   const [pauseOnAiHandoff, setPauseOnAiHandoff] = useState(initialPauseOnHandoff)
   const [pauseOnQualifiedLead, setPauseOnQualifiedLead] = useState(initialPauseOnLead)
+  const [autoResumeAiAfterMinutes, setAutoResumeAiAfterMinutes] = useState(initialAutoResume)
   const [saving, setSaving] = useState(false)
 
   const isDirty =
     autoPauseOnHumanReply !== initialAutoPause ||
     pauseOnAiHandoff !== initialPauseOnHandoff ||
-    pauseOnQualifiedLead !== initialPauseOnLead
+    pauseOnQualifiedLead !== initialPauseOnLead ||
+    autoResumeAiAfterMinutes !== initialAutoResume
 
   useEffect(() => {
     onDirtyChange?.(isDirty)
@@ -41,7 +44,12 @@ export function AgentSettingsTab({ agent, onDirtyChange }: AgentSettingsTabProps
       const res = await fetch(`/api/agents/${agent.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ autoPauseOnHumanReply, pauseOnAiHandoff, pauseOnQualifiedLead }),
+        body: JSON.stringify({
+          autoPauseOnHumanReply,
+          pauseOnAiHandoff,
+          pauseOnQualifiedLead,
+          autoResumeAiAfterMinutes: autoResumeAiAfterMinutes || null,
+        }),
       })
       if (!res.ok) {
         showToast("Failed to save settings.", "error")
@@ -116,6 +124,29 @@ export function AgentSettingsTab({ agent, onDirtyChange }: AgentSettingsTabProps
             <p className={styles.rowDesc}>
               When the AI detects a customer has confirmed clear buying intent (specific product, quantity, budget, or timeline), it marks a lead and — with this on — pauses so a salesperson can close the deal personally. Turn it off if you want the AI to continue nurturing leads itself.
             </p>
+          </div>
+        </div>
+
+        <div className={styles.row}>
+          <div className={styles.rowText}>
+            <label className={styles.rowTitle} htmlFor="autoResume">Switch back to AI automatically</label>
+            <p className={styles.rowDesc}>
+              When a conversation is being handled by a human, hand it back to the AI after this much
+              inactivity — so the AI keeps responding if the customer messages again later. Choose
+              {" "}<strong>Off</strong> to keep it paused until you resume it yourself.
+            </p>
+            <select
+              id="autoResume"
+              className={styles.select}
+              value={autoResumeAiAfterMinutes}
+              onChange={(e) => setAutoResumeAiAfterMinutes(Number(e.target.value))}
+            >
+              <option value={0}>Off</option>
+              <option value={30}>After 30 minutes</option>
+              <option value={60}>After 1 hour</option>
+              <option value={120}>After 2 hours</option>
+              <option value={240}>After 4 hours</option>
+            </select>
           </div>
         </div>
       </div>
