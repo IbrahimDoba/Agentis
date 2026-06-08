@@ -409,7 +409,7 @@ export async function insertCreditUsage(entry: {
   agentId: string
   conversationId?: string
   messageType: "text" | "image"
-  source?: "ai" | "human"
+  source?: "ai" | "human" | "api"
   creditsUsed: number
   // PAYG audit (added in 20260525000000_add_payg_credits):
   tokensInput?: number | null

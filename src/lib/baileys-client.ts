@@ -141,12 +141,22 @@ export const baileysClient = {
     to: string
     text: string
     conversationId?: string
-    source?: "ai" | "human"
+    source?: "ai" | "human" | "api"
   }): Promise<{ jobId: string; status: string }> {
     const res = await fetch(`${WORKER_URL}/v1/messages/send`, {
       method: "POST",
       headers: jsonHeaders(),
       body: JSON.stringify(payload),
+    })
+    if (!res.ok) throw new Error(`Worker error: ${res.status}`)
+    return res.json()
+  },
+
+  async checkContact(agentId: string, phone: string): Promise<{ exists: boolean; jid: string | null }> {
+    const res = await fetch(`${WORKER_URL}/v1/contacts/check`, {
+      method: "POST",
+      headers: jsonHeaders(),
+      body: JSON.stringify({ agentId, phone }),
     })
     if (!res.ok) throw new Error(`Worker error: ${res.status}`)
     return res.json()

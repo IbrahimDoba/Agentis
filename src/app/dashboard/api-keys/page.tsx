@@ -14,7 +14,7 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline"
 
-type Scope = "chat" | "manage"
+type Scope = "chat" | "manage" | "messages"
 
 interface ApiKeyRow {
   id: string
@@ -32,6 +32,7 @@ interface ApiKeyRow {
 const SCOPE_INFO: Record<Scope, { label: string; hint: string }> = {
   chat: { label: "Chat", hint: "Run agents (POST /v1/chat/completions). Safe to embed client-side." },
   manage: { label: "Manage", hint: "Create & configure agents (/v1/agents). Keep server-side only." },
+  messages: { label: "Messages", hint: "Send outbound WhatsApp messages (POST /v1/messages). Server-side only." },
 }
 
 function formatDate(iso: string | null): string {
