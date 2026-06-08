@@ -10,7 +10,7 @@ const sendSchema = z.object({
   mediaUrl: z.string().url().optional(),
   type: z.enum(["text", "image"]).default("text"),
   conversationId: z.string().optional(),
-  source: z.enum(["ai", "human"]).default("ai"),
+  source: z.enum(["ai", "human", "api"]).default("ai"),
   // PAYG: orchestrator passes real OpenAI token counts so the worker bills
   // by actual cost instead of the flat per-type rate. Only the FIRST part of
   // a split reply carries non-zero tokens — subsequent parts pass 0/0 to

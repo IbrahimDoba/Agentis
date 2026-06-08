@@ -23,7 +23,7 @@ const SPEND_WINDOW_MS = 24 * 60 * 60 * 1000 // rolling 24h daily-spend window
 
 // Capabilities a key can carry. "chat" runs agents (safe to embed client-side);
 // "manage" configures agents (server-side only).
-export const API_KEY_SCOPES = ["chat", "manage"] as const
+export const API_KEY_SCOPES = ["chat", "manage", "messages"] as const
 export type ApiKeyScope = (typeof API_KEY_SCOPES)[number]
 
 export function isApiKeyScope(value: string): value is ApiKeyScope {

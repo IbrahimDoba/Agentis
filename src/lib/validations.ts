@@ -4,7 +4,7 @@ import { z } from "zod"
 // allowed scopes; the daily cap is optional (null/omitted = no cap).
 export const createApiKeySchema = z.object({
   name: z.string().min(1, "Name is required").max(60, "Max 60 characters"),
-  scopes: z.array(z.enum(["chat", "manage"])).min(1, "Select at least one scope"),
+  scopes: z.array(z.enum(["chat", "manage", "messages"])).min(1, "Select at least one scope"),
   dailySpendingCapCredits: z.number().int().positive("Must be a positive number").nullable().optional(),
 })
 

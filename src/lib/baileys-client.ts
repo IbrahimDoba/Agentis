@@ -141,7 +141,7 @@ export const baileysClient = {
     to: string
     text: string
     conversationId?: string
-    source?: "ai" | "human"
+    source?: "ai" | "human" | "api"
   }): Promise<{ jobId: string; status: string }> {
     const res = await fetch(`${WORKER_URL}/v1/messages/send`, {
       method: "POST",

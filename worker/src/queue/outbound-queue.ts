@@ -37,7 +37,9 @@ export interface OutboundJob {
   mediaUrl?: string
   type?: "text" | "image"
   conversationId?: string
-  source: "ai" | "human"
+  // "api" = developer-initiated outbound via the public API. Billed like "ai"
+  // (flat per-message), counts toward warmup/anti-ban like any non-human send.
+  source: "ai" | "human" | "api"
   // PAYG: real OpenAI token counts from the orchestrator's chat completion.
   // Only carried on the FIRST part of a split reply; subsequent parts pass 0
   // so we don't double-charge the same LLM turn. When absent (broadcasts,
@@ -103,7 +105,7 @@ const worker = new Worker<OutboundJob>(
       ? creditsForTokens(tokensInput!, tokensOutput!)
       : creditsForMessageType(messageType)
     let billedTo: "plan" | "wallet" = "plan"
-    if (source === "ai") {
+    if (source === "ai" || source === "api") {
       const billing = await getAgentBillingInfo(agentId)
       if (!billing) throw new RateLimitError("Billing profile not found")
 
@@ -161,7 +163,7 @@ const worker = new Worker<OutboundJob>(
       // value is "AI handles customer conversations"; charging when they take
       // over to rescue a tricky conversation discourages exactly the behavior
       // we want them to do.
-      if (source === "ai") {
+      if (source === "ai" || source === "api") {
         await insertCreditUsage({
           agentId,
           conversationId,
