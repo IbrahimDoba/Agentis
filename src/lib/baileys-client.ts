@@ -152,6 +152,16 @@ export const baileysClient = {
     return res.json()
   },
 
+  async checkContact(agentId: string, phone: string): Promise<{ exists: boolean; jid: string | null }> {
+    const res = await fetch(`${WORKER_URL}/v1/contacts/check`, {
+      method: "POST",
+      headers: jsonHeaders(),
+      body: JSON.stringify({ agentId, phone }),
+    })
+    if (!res.ok) throw new Error(`Worker error: ${res.status}`)
+    return res.json()
+  },
+
   async createBroadcast(payload: {
     agentId: string
     message: string

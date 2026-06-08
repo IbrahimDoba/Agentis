@@ -1,6 +1,7 @@
 import type { FastifyPluginAsync } from "fastify"
 import { z } from "zod"
 import { outboundQueue } from "../queue/outbound-queue.js"
+import { sessionManager } from "../baileys/session-manager.js"
 import { RateLimitError } from "../lib/errors.js"
 
 const sendSchema = z.object({
@@ -40,5 +41,24 @@ export const messageRoutes: FastifyPluginAsync = async (app) => {
     if (!job) throw new RateLimitError("Daily or hourly cap reached")
 
     reply.code(202).send({ jobId: job.id, status: "queued" })
+  })
+
+  // Verify a phone number is reachable on WhatsApp via the agent's live socket.
+  const checkSchema = z.object({ agentId: z.string(), phone: z.string().min(5) })
+  app.post("/contacts/check", async (req, reply) => {
+    const { agentId, phone } = checkSchema.parse(req.body)
+    const sock = sessionManager.get(agentId)
+    if (!sock) return reply.code(409).send({ error: "WhatsApp session is not connected" })
+
+    const digits = phone.replace(/\D/g, "")
+    if (!digits) return reply.code(400).send({ error: "Invalid phone number" })
+
+    try {
+      const checks = (await sock.onWhatsApp(`${digits}@s.whatsapp.net`)) ?? []
+      const match = checks.find((c) => c?.exists)
+      return reply.code(200).send({ exists: !!match?.exists, jid: match?.jid ?? null })
+    } catch {
+      return reply.code(200).send({ exists: false, jid: null })
+    }
   })
 }
