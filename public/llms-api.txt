@@ -1,0 +1,197 @@
+# Agentis / D-Zero AI — Developer API
+
+> Agentis lets businesses run AI agents on WhatsApp. The Developer API exposes
+> those agents over HTTP so you can run them, configure them, and send outbound
+> WhatsApp messages from your own code. Usage is billed against the same credit
+> pool as the dashboard/WhatsApp. This file is a complete reference for LLMs and
+> coding agents. Human-friendly docs with cURL/JavaScript/Python examples:
+> https://www.dailzero.com/developers
+
+## Base URL
+
+```
+https://app.dailzero.com
+```
+
+All endpoints are under `/api/v1`.
+
+## Authentication
+
+Every request needs a bearer API key, created at
+https://app.dailzero.com/dashboard/api-keys. The raw key (prefix `dz_live_`) is
+shown once at creation and never again.
+
+```
+Authorization: Bearer dz_live_xxxxxxxxxxxxxxxx
+Content-Type: application/json
+```
+
+### Scopes
+
+A key carries one or more scopes. A request to an endpoint whose scope the key
+lacks returns `403 FORBIDDEN_SCOPE`.
+
+- `chat` — run agents (`POST /v1/chat/completions`). Safe to embed client-side.
+- `manage` — configure agents (`/v1/agents/*`). Server-side only.
+- `messages` — send outbound + verify contacts (`/v1/messages`, `/v1/contacts/check`). Server-side only.
+
+## Billing
+
+- `POST /v1/chat/completions` — billed by token-weighted credits.
+- `POST /v1/messages` — billed per message (flat text rate), recorded with `source = 'api'`.
+- `POST /v1/contacts/check` and all `/v1/agents/*` reads/writes — free (rate-limited).
+- Pre-flight check returns `402 INSUFFICIENT_CREDITS` if the balance can't cover a paid call.
+- Optional per-key daily spending cap (`402 DAILY_CAP_HIT`) and a per-key rate limit
+  (default 60 req/min → `429 RATE_LIMITED` with a `Retry-After` header).
+- Paid endpoints accept an `Idempotency-Key` header so retries don't double-charge.
+
+## Endpoints
+
+### POST /api/v1/chat/completions  (scope: chat)
+
+Run an agent and get a reply with its full persona, RAG knowledge base, and
+configured tools. You cannot override the system prompt or pass inline tools.
+
+Request:
+```json
+{
+  "agentId": "<your-agent-id>",
+  "messages": [{ "role": "user", "content": "do you sell ferrari caps?" }]
+}
+```
+Response:
+```json
+{
+  "message": { "role": "assistant", "content": "Yes — Ferrari F1 White Cap (NGN 23,000)..." },
+  "usage": { "input_tokens": 1240, "output_tokens": 142, "credits": 2 },
+  "remaining_credits": 11218
+}
+```
+
+### POST /api/v1/messages  (scope: messages)
+
+Send an outbound WhatsApp message from a connected agent. The agent's WhatsApp
+must be CONNECTED (else `409 AGENT_NOT_CONNECTED`). Sends go through anti-ban
+pacing + per-number warmup-tier caps; you cannot bypass these by hammering the
+endpoint. Billed per message.
+
+Request:
+```json
+{
+  "agentId": "<your-agent-id>",
+  "to": "2348012345678",
+  "text": "Hi! Your order #1234 has shipped"
+}
+```
+Fields: `agentId` (required), `to` (required — E.164 digits without `+`, or a full
+JID), `text` (required, 1–4096 chars).
+
+Response:
+```json
+{
+  "message_id": "a1b2c3",
+  "status": "queued",
+  "usage": { "credits": 5 },
+  "remaining_credits": 11195
+}
+```
+`status: "queued"` = accepted into the send pipeline; pacing may delay actual
+delivery by seconds (longer on lower warmup tiers).
+
+Tip: for pure outbound with no AI auto-replies, turn the agent's "AI replies"
+master switch off (Agent → Settings).
+
+### POST /api/v1/contacts/check  (scope: messages)
+
+Verify a phone number is reachable on WhatsApp before sending. Free.
+
+Request:
+```json
+{ "agentId": "<your-agent-id>", "phone": "2348012345678" }
+```
+Response:
+```json
+{ "exists": true, "jid": "2348012345678@s.whatsapp.net" }
+```
+
+### GET /api/v1/agents  (scope: manage)
+
+List the agents owned by the key's user. Use this to find an `agentId`.
+Response: `{ "agents": [ { "id": "...", "businessName": "...", ... } ] }`.
+
+### GET /api/v1/agents/{id}  (scope: manage)
+
+Fetch a single agent's public config.
+
+### GET /api/v1/agents/{id}/tools  (scope: manage)
+
+List the agent's configured webhook tools.
+
+### PUT /api/v1/agents/{id}/tools  (scope: manage)
+
+Replace the agent's webhook tools (the same tools it uses on WhatsApp). Max 50.
+
+Request:
+```json
+{
+  "tools": [
+    {
+      "name": "check_stock",
+      "description": "Check stock for a product",
+      "url": "https://your-api.com/stock",
+      "method": "GET",
+      "parameters": [
+        { "name": "sku", "type": "string", "description": "Product SKU", "required": true }
+      ]
+    }
+  ]
+}
+```
+Parameter `type` is one of `string | integer | boolean | number`. Tool `method`
+is `GET | POST`.
+
+## Errors
+
+Every error returns:
+```json
+{ "error": { "code": "<CODE>", "message": "<human readable>", "request_id": "req_..." } }
+```
+Branch on `code`:
+
+| Code | HTTP | Meaning |
+|------|------|---------|
+| BAD_REQUEST | 400 | Malformed request (bad JSON, missing/oversized fields). |
+| UNAUTHORIZED | 401 | Missing, malformed, unknown, or revoked key. |
+| INSUFFICIENT_CREDITS | 402 | Account balance can't cover the call. |
+| DAILY_CAP_HIT | 402 | The key's daily spending cap is exhausted. |
+| FORBIDDEN_SCOPE | 403 | The key lacks the scope this endpoint requires. |
+| AGENT_NOT_FOUND | 404 | The agent doesn't exist or isn't owned by the key. |
+| AGENT_NOT_CONNECTED | 409 | The agent's WhatsApp isn't connected — connect it first. |
+| RATE_LIMITED | 429 | Too many requests — retry after the Retry-After header. |
+| INTERNAL | 500 | Server-side error. |
+
+## Minimal examples
+
+JavaScript (fetch):
+```js
+const res = await fetch("https://app.dailzero.com/api/v1/messages", {
+  method: "POST",
+  headers: { Authorization: "Bearer dz_live_...", "Content-Type": "application/json" },
+  body: JSON.stringify({ agentId: "<id>", to: "2348012345678", text: "Hello" }),
+})
+console.log(await res.json())
+```
+
+Python (requests):
+```python
+import requests
+res = requests.post(
+    "https://app.dailzero.com/api/v1/messages",
+    headers={"Authorization": "Bearer dz_live_..."},
+    json={"agentId": "<id>", "to": "2348012345678", "text": "Hello"},
+)
+print(res.json())
+```
+
+Full cURL / JavaScript / Python examples for every endpoint:
+https://www.dailzero.com/developers

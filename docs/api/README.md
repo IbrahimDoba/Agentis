@@ -3,14 +3,15 @@
 The External Developer API lets developers use their Agentis agents directly from
 their own apps and channels — billed against the same credit pool as WhatsApp.
 
-There are **two surfaces**:
+There are **three surfaces**:
 
 | Surface | What it does | Base path | Burns credits? |
 |---|---|---|---|
 | **A — Run** | Talk to an agent, get a reply | `POST /v1/chat/completions` | ✅ Yes |
-| **B — Manage** | Create & configure agents (persona, knowledge/products, tools) | `/v1/agents/*` | ❌ No (rate-limited) |
+| **B — Manage** | Configure agents (persona, knowledge/products, tools) | `/v1/agents/*` | ❌ No (rate-limited) |
+| **C — Messaging** | Send outbound WhatsApp + verify contacts | `POST /v1/messages`, `/v1/contacts/check` | ✅ Send / ❌ verify |
 
-Both surfaces are powered by the **same engine** the dashboard and WhatsApp use —
+These surfaces are powered by the **same engine** the dashboard and WhatsApp use —
 the orchestrator's chat loop, RAG knowledge base, configured tools, and the
 shared credit ledger. The API is just a new, API-key-authenticated front door to
 that engine.
@@ -41,11 +42,12 @@ that engine.
 | API-key auth + agent-ownership checks | ✅ Live (foundation) |
 | Standard error envelope | ✅ Live (foundation) |
 | Dashboard API-key management UI (create / list / revoke) | ✅ Live (`/dashboard/api-keys`) |
-| `POST /v1/chat/completions` (Surface A) | ✅ Built (pending live end-to-end test) |
-| Rate limit / output cap / idempotency / daily-cap enforcement | ✅ Built (rate limit + idempotency need Redis live) |
-| `/v1/agents/*` — list/get + webhook-tools management (Surface B) | ✅ Built (pending live test) |
+| `POST /v1/chat/completions` (Surface A) | ✅ Live |
+| Rate limit / output cap / idempotency / daily-cap enforcement | ✅ Live |
+| `/v1/agents/*` — list/get + webhook-tools management (Surface B) | ✅ Live |
+| `POST /v1/messages` + `POST /v1/contacts/check` (Surface C) | ✅ Live |
 | `/v1/agents` create + knowledge/products upload | 🚧 Deferred (provisioning + RAG-heavy) |
-| Public `/developers` docs page | ✅ Built |
+| Public `/developers` docs page | ✅ Live |
 
 See [`../../API_SESSION.md`](../../API_SESSION.md) for the full phased plan.
 
@@ -54,3 +56,4 @@ See [`../../API_SESSION.md`](../../API_SESSION.md) for the full phased plan.
 - [Authentication & API keys](./authentication.md)
 - [Chat completions (Surface A)](./chat-completions.md)
 - [Agent management (Surface B)](./management.md)
+- [Messaging (Surface C)](./messaging.md)
