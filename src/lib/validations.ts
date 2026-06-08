@@ -74,6 +74,7 @@ export const agentSchema = z.object({
   whatsappBusinessName: z.string().optional(),
   category: z.string().optional(),
   address: z.string().optional(),
+  aiRepliesEnabled: z.boolean().optional(),
   autoPauseOnHumanReply: z.boolean().optional(),
   pauseOnAiHandoff: z.boolean().optional(),
   pauseOnQualifiedLead: z.boolean().optional(),

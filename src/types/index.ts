@@ -72,6 +72,7 @@ export interface AgentPublic {
   elevenlabsAgentId?: string
   agentRuntime?: string
   messagingEnabled?: boolean
+  aiRepliesEnabled?: boolean
   autoPauseOnHumanReply?: boolean
   pauseOnAiHandoff?: boolean
   pauseOnQualifiedLead?: boolean

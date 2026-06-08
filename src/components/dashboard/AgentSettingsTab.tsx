@@ -21,6 +21,8 @@ export function AgentSettingsTab({ agent, onDirtyChange }: AgentSettingsTabProps
   const initialPauseOnHandoff = agent.pauseOnAiHandoff ?? true
   const initialPauseOnLead = agent.pauseOnQualifiedLead ?? true
   const initialAutoResume = agent.autoResumeAiAfterMinutes ?? 0 // 0 = off in the UI
+  const initialAiReplies = agent.aiRepliesEnabled ?? true
+  const [aiRepliesEnabled, setAiRepliesEnabled] = useState(initialAiReplies)
   const [autoPauseOnHumanReply, setAutoPauseOnHumanReply] = useState(initialAutoPause)
   const [pauseOnAiHandoff, setPauseOnAiHandoff] = useState(initialPauseOnHandoff)
   const [pauseOnQualifiedLead, setPauseOnQualifiedLead] = useState(initialPauseOnLead)
@@ -28,6 +30,7 @@ export function AgentSettingsTab({ agent, onDirtyChange }: AgentSettingsTabProps
   const [saving, setSaving] = useState(false)
 
   const isDirty =
+    aiRepliesEnabled !== initialAiReplies ||
     autoPauseOnHumanReply !== initialAutoPause ||
     pauseOnAiHandoff !== initialPauseOnHandoff ||
     pauseOnQualifiedLead !== initialPauseOnLead ||
@@ -45,6 +48,7 @@ export function AgentSettingsTab({ agent, onDirtyChange }: AgentSettingsTabProps
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          aiRepliesEnabled,
           autoPauseOnHumanReply,
           pauseOnAiHandoff,
           pauseOnQualifiedLead,
@@ -70,6 +74,24 @@ export function AgentSettingsTab({ agent, onDirtyChange }: AgentSettingsTabProps
       <div className={styles.section}>
         <h2 className={styles.sectionTitle}>Conversation behaviour</h2>
         <p className={styles.sectionDesc}>Control how this agent behaves during live customer conversations.</p>
+
+        <div className={styles.row}>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={aiRepliesEnabled}
+            className={`${styles.switch} ${aiRepliesEnabled ? styles.switchOn : ""}`}
+            onClick={() => setAiRepliesEnabled((v) => !v)}
+          >
+            <span className={styles.switchKnob} />
+          </button>
+          <div className={styles.rowText}>
+            <label className={styles.rowTitle}>AI replies</label>
+            <p className={styles.rowDesc}>
+              Master switch for this agent. When <strong>on</strong>, the AI answers customers (per-conversation Human/AI toggles still apply). Turn it <strong>off</strong> to route <strong>every</strong> message to you — the AI won&apos;t reply to any conversation until you switch it back on.
+            </p>
+          </div>
+        </div>
 
         <div className={styles.row}>
           <button

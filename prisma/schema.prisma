@@ -108,6 +108,10 @@ model Agent {
   elevenlabsAgentId    String?
   whatsappPhoneNumberId String?
   messagingEnabled     Boolean     @default(true)
+  // Global master switch for AI replies. When false, the orchestrator skips the
+  // AI for ALL of this agent's conversations (every message goes to a human),
+  // regardless of per-conversation mode. Default true.
+  aiRepliesEnabled     Boolean     @default(true)
   autoPauseOnHumanReply Boolean    @default(true)
   pauseOnAiHandoff     Boolean     @default(true)
   pauseOnQualifiedLead Boolean     @default(true)

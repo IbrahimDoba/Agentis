@@ -1,4 +1,4 @@
-import { getOrchestratorAgent } from "../db/queries/agents.js"
+import { getOrchestratorAgent, isAiRepliesPaused } from "../db/queries/agents.js"
 import {
   getOrCreateConversation,
   insertMessage,
@@ -95,6 +95,13 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
   // 4. Check mode — skip AI reply if human is handling this conversation
   if (conversation.mode === "human") {
     logger.info({ agentId, conversationId: conversation.id }, "Conversation in human handoff mode — skipping AI reply")
+    return
+  }
+
+  // 4b. Global master switch — skip the AI for ALL conversations when the agent
+  // has "AI replies" turned off (the inbound message is still saved above).
+  if (await isAiRepliesPaused(agentId)) {
+    logger.info({ agentId, conversationId: conversation.id }, "AI replies disabled for agent — skipping AI reply")
     return
   }
 
