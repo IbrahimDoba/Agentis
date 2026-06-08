@@ -28,9 +28,18 @@ export function AgentForm({ initialData, agentId, onDirtyChange }: AgentFormProp
   const [promptLoading, setPromptLoading] = useState(false)
   const [products, setProducts] = useState<Product[]>(initialProducts)
 
+  // Baselines for dirty-tracking. They start at the initial values, then reset
+  // to (a) the prompt we asynchronously load from ElevenLabs on mount and
+  // (b) the values we just saved — so neither loading nor saving falsely marks
+  // the form dirty. (Previously isDirty compared against the original props
+  // forever, so the "unsaved changes" warning fired even with no edits, and
+  // again right after saving.)
+  const [savedPrompt, setSavedPrompt] = useState(initialPrompt)
+  const [savedProducts, setSavedProducts] = useState<Product[]>(initialProducts)
+
   const isDirty =
-    systemPrompt !== initialPrompt ||
-    JSON.stringify(products) !== JSON.stringify(initialProducts)
+    systemPrompt !== savedPrompt ||
+    JSON.stringify(products) !== JSON.stringify(savedProducts)
 
   useEffect(() => {
     onDirtyChange?.(isDirty)
@@ -50,6 +59,9 @@ export function AgentForm({ initialData, agentId, onDirtyChange }: AgentFormProp
       const data = await res.json()
       if (data.connected && data.systemPrompt) {
         setSystemPrompt(data.systemPrompt)
+        // Loading the live prompt isn't a user edit — move the baseline with it
+        // so the form doesn't read as dirty on open.
+        setSavedPrompt(data.systemPrompt)
       }
     } catch {
       // silently fall back to local value
@@ -115,9 +127,12 @@ export function AgentForm({ initialData, agentId, onDirtyChange }: AgentFormProp
       }
 
       showToast(agentId ? "Agent updated successfully!" : "Agent created! Our team will review and set it up.")
-      if (Array.isArray(data.productsData)) {
-        setProducts(data.productsData as Product[])
-      }
+      const nextProducts = Array.isArray(data.productsData) ? (data.productsData as Product[]) : products
+      setProducts(nextProducts)
+      // Reset the dirty baseline to what we just saved, so switching tabs right
+      // after a save no longer warns about unsaved changes.
+      setSavedPrompt(systemPrompt)
+      setSavedProducts(nextProducts)
       queryClient.invalidateQueries({ queryKey: ["me"] })
       if (!agentId) {
         router.push(`/dashboard/agent/${data.id}`)
