@@ -305,6 +305,24 @@ export default function DevelopersPage() {
         </section>
 
         <section className={styles.section}>
+          <h2>Find your agent ID</h2>
+          <p className={styles.body}>
+            Every call takes an <code>agentId</code>. Two ways to get it:
+          </p>
+          <ul className={styles.list}>
+            <li>
+              <strong>Dashboard</strong> — open the agent; its ID is in the URL:{" "}
+              <code>app.dailzero.com/dashboard/agent/&lt;AGENT_ID&gt;</code>
+            </li>
+            <li>
+              <strong>API</strong> — call <code>GET /v1/agents</code> with a <code>manage</code>-scoped key
+              (see <Link href="#list-agents">List your agents</Link> below); each item&apos;s <code>id</code>{" "}
+              is the agent ID.
+            </li>
+          </ul>
+        </section>
+
+        <section className={styles.section}>
           <h2>Run an agent — chat completions</h2>
           <p className={styles.body}>
             Send the conversation so far, get the agent&apos;s reply with its persona, knowledge base, and
@@ -335,7 +353,7 @@ export default function DevelopersPage() {
           <CodeTabs samples={VERIFY} />
         </section>
 
-        <section className={styles.section}>
+        <section className={styles.section} id="list-agents">
           <h2>List your agents</h2>
           <p className={styles.body}>Find an agent&apos;s id to use in the calls above.</p>
           <CodeTabs samples={LIST_AGENTS} />

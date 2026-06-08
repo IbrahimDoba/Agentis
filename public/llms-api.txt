@@ -45,6 +45,12 @@ lacks returns `403 FORBIDDEN_SCOPE`.
   (default 60 req/min → `429 RATE_LIMITED` with a `Retry-After` header).
 - Paid endpoints accept an `Idempotency-Key` header so retries don't double-charge.
 
+## Finding your agent ID
+
+Every call takes an `agentId`. Two ways to get it:
+- Dashboard: open the agent — its ID is in the URL `https://app.dailzero.com/dashboard/agent/<AGENT_ID>`.
+- API: `GET /api/v1/agents` with a `manage`-scoped key returns each agent's `id`.
+
 ## Endpoints
 
 ### POST /api/v1/chat/completions  (scope: chat)
