@@ -71,6 +71,15 @@ export async function getOrchestratorAgent(agentId: string): Promise<Orchestrato
   return rows[0] ?? null
 }
 
+// True when the agent's global "AI replies" master switch is OFF — the
+// orchestrator should skip the AI for every conversation of this agent.
+export async function isAiRepliesPaused(agentId: string): Promise<boolean> {
+  const rows = await sql<{ aiRepliesEnabled: boolean }[]>`
+    SELECT "aiRepliesEnabled" FROM "Agent" WHERE "id" = ${agentId} LIMIT 1
+  `
+  return rows[0]?.aiRepliesEnabled === false
+}
+
 export async function getAgentTools(agentId: string): Promise<AgentTool[]> {
   const rows = await sql<{ toolsData: unknown }[]>`
     SELECT "toolsData"

@@ -61,6 +61,24 @@
   line-height: 1.55;
 }
 
+.select {
+  margin-top: 10px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 13px;
+  padding: 8px 10px;
+  min-width: 200px;
+  cursor: pointer;
+}
+
+.select:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
 .rowDesc strong {
   color: var(--text-primary);
   font-weight: 600;

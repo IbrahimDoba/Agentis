@@ -74,9 +74,12 @@ export const agentSchema = z.object({
   whatsappBusinessName: z.string().optional(),
   category: z.string().optional(),
   address: z.string().optional(),
+  aiRepliesEnabled: z.boolean().optional(),
   autoPauseOnHumanReply: z.boolean().optional(),
   pauseOnAiHandoff: z.boolean().optional(),
   pauseOnQualifiedLead: z.boolean().optional(),
+  // Minutes of inactivity before a human-mode chat auto-resumes to AI. null = off.
+  autoResumeAiAfterMinutes: z.coerce.number().int().min(0).max(1440).nullable().optional(),
   agentRuntime: z.enum(["elevenlabs", "orchestrator"]).optional(),
   productsData: z.array(z.object({
     id: z.string(),
