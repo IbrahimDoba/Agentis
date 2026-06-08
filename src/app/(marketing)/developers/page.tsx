@@ -2,23 +2,60 @@ import Link from "next/link"
 import type { Metadata } from "next"
 import { Navbar } from "@/components/landing/Navbar"
 import { Footer } from "@/components/landing/Footer"
+import { CodeTabs, type CodeSample } from "./CodeTabs"
 import styles from "./page.module.css"
 
 export const metadata: Metadata = {
   title: "Developer API — Agentis",
   description:
-    "Run and manage your Agentis AI agents from your own apps. Chat completions + agent management, billed against your existing credits.",
+    "Run, manage, and message your Agentis AI agents from your own apps. Chat completions, agent management, and outbound WhatsApp — billed against your existing credits. cURL, JavaScript & Python examples.",
 }
 
-const CHAT_CURL = `curl https://app.dailzero.com/api/v1/chat/completions \\
+const BASE = "https://app.dailzero.com"
+
+// --- Chat completions ---
+const CHAT: CodeSample[] = [
+  {
+    label: "cURL",
+    code: `curl ${BASE}/api/v1/chat/completions \\
   -H "Authorization: Bearer dz_live_..." \\
   -H "Content-Type: application/json" \\
   -d '{
     "agentId": "<your-agent-id>",
-    "messages": [
-      { "role": "user", "content": "do you sell ferrari caps?" }
-    ]
-  }'`
+    "messages": [{ "role": "user", "content": "do you sell ferrari caps?" }]
+  }'`,
+  },
+  {
+    label: "JavaScript",
+    code: `const res = await fetch("${BASE}/api/v1/chat/completions", {
+  method: "POST",
+  headers: {
+    Authorization: "Bearer dz_live_...",
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    agentId: "<your-agent-id>",
+    messages: [{ role: "user", content: "do you sell ferrari caps?" }],
+  }),
+})
+const data = await res.json()
+console.log(data.message.content)`,
+  },
+  {
+    label: "Python",
+    code: `import requests
+
+res = requests.post(
+    "${BASE}/api/v1/chat/completions",
+    headers={"Authorization": "Bearer dz_live_..."},
+    json={
+        "agentId": "<your-agent-id>",
+        "messages": [{"role": "user", "content": "do you sell ferrari caps?"}],
+    },
+)
+print(res.json()["message"]["content"])`,
+  },
+]
 
 const CHAT_RESPONSE = `{
   "message": { "role": "assistant", "content": "Yes — Ferrari F1 White Cap (₦23,000)..." },
@@ -26,7 +63,124 @@ const CHAT_RESPONSE = `{
   "remaining_credits": 11218
 }`
 
-const TOOLS_CURL = `curl -X PUT https://app.dailzero.com/api/v1/agents/<id>/tools \\
+// --- Send a WhatsApp message ---
+const SEND: CodeSample[] = [
+  {
+    label: "cURL",
+    code: `curl ${BASE}/api/v1/messages \\
+  -H "Authorization: Bearer dz_live_..." \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "agentId": "<your-agent-id>",
+    "to": "2348012345678",
+    "text": "Hi! Your order #1234 has shipped"
+  }'`,
+  },
+  {
+    label: "JavaScript",
+    code: `const res = await fetch("${BASE}/api/v1/messages", {
+  method: "POST",
+  headers: {
+    Authorization: "Bearer dz_live_...",
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    agentId: "<your-agent-id>",
+    to: "2348012345678",
+    text: "Hi! Your order #1234 has shipped",
+  }),
+})
+console.log(await res.json())`,
+  },
+  {
+    label: "Python",
+    code: `import requests
+
+res = requests.post(
+    "${BASE}/api/v1/messages",
+    headers={"Authorization": "Bearer dz_live_..."},
+    json={
+        "agentId": "<your-agent-id>",
+        "to": "2348012345678",
+        "text": "Hi! Your order #1234 has shipped",
+    },
+)
+print(res.json())`,
+  },
+]
+
+const SEND_RESPONSE = `{
+  "message_id": "a1b2c3",
+  "status": "queued",
+  "usage": { "credits": 5 },
+  "remaining_credits": 11195
+}`
+
+// --- Verify a contact ---
+const VERIFY: CodeSample[] = [
+  {
+    label: "cURL",
+    code: `curl ${BASE}/api/v1/contacts/check \\
+  -H "Authorization: Bearer dz_live_..." \\
+  -H "Content-Type: application/json" \\
+  -d '{ "agentId": "<your-agent-id>", "phone": "2348012345678" }'`,
+  },
+  {
+    label: "JavaScript",
+    code: `const res = await fetch("${BASE}/api/v1/contacts/check", {
+  method: "POST",
+  headers: {
+    Authorization: "Bearer dz_live_...",
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({ agentId: "<your-agent-id>", phone: "2348012345678" }),
+})
+const { exists, jid } = await res.json()`,
+  },
+  {
+    label: "Python",
+    code: `import requests
+
+res = requests.post(
+    "${BASE}/api/v1/contacts/check",
+    headers={"Authorization": "Bearer dz_live_..."},
+    json={"agentId": "<your-agent-id>", "phone": "2348012345678"},
+)
+print(res.json())  # {"exists": True, "jid": "...@s.whatsapp.net"}`,
+  },
+]
+
+// --- List agents ---
+const LIST_AGENTS: CodeSample[] = [
+  {
+    label: "cURL",
+    code: `curl ${BASE}/api/v1/agents \\
+  -H "Authorization: Bearer dz_live_..."`,
+  },
+  {
+    label: "JavaScript",
+    code: `const res = await fetch("${BASE}/api/v1/agents", {
+  headers: { Authorization: "Bearer dz_live_..." },
+})
+const { agents } = await res.json()`,
+  },
+  {
+    label: "Python",
+    code: `import requests
+
+res = requests.get(
+    "${BASE}/api/v1/agents",
+    headers={"Authorization": "Bearer dz_live_..."},
+)
+print(res.json()["agents"])`,
+  },
+]
+
+// --- Manage webhook tools ---
+const TOOLS: CodeSample[] = [
+  {
+    label: "cURL",
+    code: `curl -X PUT ${BASE}/api/v1/agents/<id>/tools \\
   -H "Authorization: Bearer dz_live_..." \\
   -H "Content-Type: application/json" \\
   -d '{ "tools": [
@@ -35,23 +189,54 @@ const TOOLS_CURL = `curl -X PUT https://app.dailzero.com/api/v1/agents/<id>/tool
       "parameters": [
         { "name": "sku", "type": "string", "description": "Product SKU", "required": true }
       ] }
-  ] }'`
+  ] }'`,
+  },
+  {
+    label: "JavaScript",
+    code: `const res = await fetch("${BASE}/api/v1/agents/<id>/tools", {
+  method: "PUT",
+  headers: {
+    Authorization: "Bearer dz_live_...",
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    tools: [
+      {
+        name: "check_stock",
+        description: "Check stock for a product",
+        url: "https://your-api.com/stock",
+        method: "GET",
+        parameters: [
+          { name: "sku", type: "string", description: "Product SKU", required: true },
+        ],
+      },
+    ],
+  }),
+})`,
+  },
+  {
+    label: "Python",
+    code: `import requests
 
-const SEND_CURL = `curl https://app.dailzero.com/api/v1/messages \\
-  -H "Authorization: Bearer dz_live_..." \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "agentId": "<your-agent-id>",
-    "to": "2348012345678",
-    "text": "Hi! Your order #1234 has shipped 🚚"
-  }'`
-
-const SEND_RESPONSE = `{
-  "message_id": "a1b2c3",
-  "status": "queued",
-  "usage": { "credits": 5 },
-  "remaining_credits": 11195
-}`
+requests.put(
+    "${BASE}/api/v1/agents/<id>/tools",
+    headers={"Authorization": "Bearer dz_live_..."},
+    json={
+        "tools": [
+            {
+                "name": "check_stock",
+                "description": "Check stock for a product",
+                "url": "https://your-api.com/stock",
+                "method": "GET",
+                "parameters": [
+                    {"name": "sku", "type": "string", "description": "Product SKU", "required": True},
+                ],
+            },
+        ],
+    },
+)`,
+  },
+]
 
 const ERRORS: [string, string, string][] = [
   ["BAD_REQUEST", "400", "Malformed request (bad JSON, missing or oversized fields)."],
@@ -75,12 +260,15 @@ export default function DevelopersPage() {
           <h1 className={styles.title}>Run your AI agents from your own code</h1>
           <p className={styles.lead}>
             Call an Agentis agent over HTTP and get a reply with its full brain — system prompt, knowledge
-            base, and tools — or manage the agent itself programmatically. Billed against the same credits as
-            WhatsApp.
+            base, and tools — manage the agent programmatically, or send outbound WhatsApp messages. Billed
+            against the same credits as WhatsApp. Examples in cURL, JavaScript &amp; Python.
           </p>
-          <Link href="/dashboard/api-keys" className={styles.cta}>
-            Get an API key →
-          </Link>
+          <div className={styles.heroLinks}>
+            <Link href="/dashboard/api-keys" className={styles.cta}>
+              Get an API key →
+            </Link>
+            <a href="/llms-api.txt" className={styles.ctaGhost}>llms-api.txt (for AI tools)</a>
+          </div>
         </header>
 
         <section className={styles.section}>
@@ -117,18 +305,14 @@ export default function DevelopersPage() {
         </section>
 
         <section className={styles.section}>
-          <h2>Quick start — run an agent</h2>
-          <pre className={styles.code}>{CHAT_CURL}</pre>
+          <h2>Run an agent — chat completions</h2>
+          <p className={styles.body}>
+            Send the conversation so far, get the agent&apos;s reply with its persona, knowledge base, and
+            tools. Billed by token-weighted credits.
+          </p>
+          <CodeTabs samples={CHAT} />
           <p className={styles.caption}>Response</p>
           <pre className={styles.code}>{CHAT_RESPONSE}</pre>
-        </section>
-
-        <section className={styles.section}>
-          <h2>Manage an agent&apos;s tools</h2>
-          <p className={styles.body}>
-            Define the webhook tools your agent can call — the same tools it uses on WhatsApp.
-          </p>
-          <pre className={styles.code}>{TOOLS_CURL}</pre>
         </section>
 
         <section className={styles.section}>
@@ -138,9 +322,31 @@ export default function DevelopersPage() {
             through the same anti-ban pacing as the dashboard and are billed per message. Want pure outbound
             with no AI auto-replies? Turn <strong>AI replies</strong> off for the agent in its settings.
           </p>
-          <pre className={styles.code}>{SEND_CURL}</pre>
+          <CodeTabs samples={SEND} />
           <p className={styles.caption}>Response</p>
           <pre className={styles.code}>{SEND_RESPONSE}</pre>
+        </section>
+
+        <section className={styles.section}>
+          <h2>Verify a contact</h2>
+          <p className={styles.body}>
+            Check a number is reachable on WhatsApp before sending. Free (no credits).
+          </p>
+          <CodeTabs samples={VERIFY} />
+        </section>
+
+        <section className={styles.section}>
+          <h2>List your agents</h2>
+          <p className={styles.body}>Find an agent&apos;s id to use in the calls above.</p>
+          <CodeTabs samples={LIST_AGENTS} />
+        </section>
+
+        <section className={styles.section}>
+          <h2>Manage an agent&apos;s tools</h2>
+          <p className={styles.body}>
+            Define the webhook tools your agent can call — the same tools it uses on WhatsApp.
+          </p>
+          <CodeTabs samples={TOOLS} />
         </section>
 
         <section className={styles.section}>

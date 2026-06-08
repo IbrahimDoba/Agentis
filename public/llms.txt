@@ -58,6 +58,14 @@ Credits cover both AI-generated replies and human operator messages. Per-message
 - Credit-based pricing covers both AI and human operator messages — predictable cost scaling
 - Encrypted at rest for WhatsApp auth state with Supabase Storage backup
 
+## Developer API
+
+Run, manage, and message your AI agents over HTTP (chat completions, agent
+management, outbound WhatsApp). Billed against the same credits.
+
+- [Developer API docs](https://www.dailzero.com/developers): cURL / JavaScript / Python examples for every endpoint
+- [Developer API reference for LLMs](https://www.dailzero.com/llms-api.txt): complete machine-readable API spec
+
 ## Pages
 
 - [Homepage](https://dailzero.com/): Product overview, hero, feature highlights
