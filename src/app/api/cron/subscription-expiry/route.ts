@@ -11,7 +11,7 @@ import { runSubscriptionExpiryScan } from "@/lib/subscription-expiry-job"
 //
 // Example cron command:
 //   curl -sS -H "Authorization: Bearer $CRON_SECRET" \
-//        https://app.dailzero.com/api/cron/subscription-expiry
+//        https://www.dailzero.com/api/cron/subscription-expiry
 
 function authorized(req: NextRequest): boolean {
   const expected = process.env.CRON_SECRET
