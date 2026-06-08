@@ -40,6 +40,7 @@ export async function GET() {
       subscriptionExpiresAt: user.subscriptionExpiresAt ? user.subscriptionExpiresAt.toISOString() : null,
       onboardingCompleted: user.onboardingCompleted,
       referralsEnabled: user.referralsEnabled,
+      developerModeEnabled: user.developerModeEnabled,
       hasPassword: Boolean(user.passwordHash),
     },
     agent: agent ? {
@@ -78,6 +79,15 @@ export async function PATCH(req: NextRequest) {
       data: { referralsEnabled: body.referralsEnabled },
     })
     return NextResponse.json({ referralsEnabled: user.referralsEnabled })
+  }
+
+  // Developer mode toggle — same simple single-boolean patch shape.
+  if (typeof body.developerModeEnabled === "boolean" && Object.keys(body).length === 1) {
+    const user = await db.user.update({
+      where: { id: session.user.id },
+      data: { developerModeEnabled: body.developerModeEnabled },
+    })
+    return NextResponse.json({ developerModeEnabled: user.developerModeEnabled })
   }
 
   const parsed = profileUpdateSchema.safeParse(body)

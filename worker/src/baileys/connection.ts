@@ -2,7 +2,7 @@ import {
   makeWASocket,
   DisconnectReason,
   makeCacheableSignalKeyStore,
-  fetchLatestBaileysVersion,
+  Browsers,
   type WASocket,
   type AuthenticationState,
 } from "@whiskeysockets/baileys"
@@ -31,17 +31,19 @@ export async function createConnection(opts: ConnectionOptions): Promise<WASocke
   // Use a WARN-only child so its internal logs don't flood the output
   const baileysLog = rootLogger.child({ agentId: opts.agentId, level: "warn" })
 
-  const { version } = await fetchLatestBaileysVersion()
-  log.info({ version }, "Using WhatsApp version")
-
+  // Per Baileys docs: do NOT pin/fetch the WhatsApp version per connection —
+  // "avoid setting latest version each connection to prevent incompatibility".
+  // Letting Baileys use the version it bundles (and was tested against) is more
+  // stable than fetchLatestBaileysVersion(), which can return a web version the
+  // installed Baileys protocol can't actually handle — a common cause of
+  // "scan succeeds but the device never links."
   const sock = makeWASocket({
     auth: {
       creds: opts.authState.creds,
       keys: makeCacheableSignalKeyStore(opts.authState.keys, baileysLog as never),
     },
     logger: baileysLog as never,
-    version,
-    browser: ["Mac OS", "Chrome", "131.0.0"] as [string, string, string],
+    browser: Browsers.macOS("Chrome"),
     connectTimeoutMs: 30_000,
     retryRequestDelayMs: 2_000,
     markOnlineOnConnect: false,

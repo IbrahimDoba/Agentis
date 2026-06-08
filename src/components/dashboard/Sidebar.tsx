@@ -18,7 +18,7 @@ import {
   DevicePhoneMobileIcon,
   MegaphoneIcon,
   BookOpenIcon,
-  KeyIcon,
+  CodeBracketIcon,
 } from "@heroicons/react/24/outline"
 import { cn } from "@/lib/utils"
 import { useDashboardData } from "@/hooks/useDashboardData"
@@ -191,19 +191,21 @@ export function Sidebar({ userName, businessName, currentUserId, currentWorkspac
           {collapsed && <span className={styles.tooltip}>Guide</span>}
         </div>
 
-        <div className={styles.navItemWrap}>
-          <Link
-            href="/dashboard/api-keys"
-            className={cn(styles.navLink, isActive("/dashboard/api-keys") ? styles.active : undefined)}
-            onClick={onClose}
-          >
-            <span className={styles.navIcon}>
-              <KeyIcon width={16} height={16} />
-            </span>
-            {!collapsed && "API keys"}
-          </Link>
-          {collapsed && <span className={styles.tooltip}>API keys</span>}
-        </div>
+        {data?.user?.developerModeEnabled && (
+          <div className={styles.navItemWrap}>
+            <Link
+              href="/dashboard/developer"
+              className={cn(styles.navLink, isActive("/dashboard/developer") ? styles.active : undefined)}
+              onClick={onClose}
+            >
+              <span className={styles.navIcon}>
+                <CodeBracketIcon width={16} height={16} />
+              </span>
+              {!collapsed && "Developer"}
+            </Link>
+            {collapsed && <span className={styles.tooltip}>Developer</span>}
+          </div>
+        )}
 
         <div className={styles.navItemWrap}>
           <Link
