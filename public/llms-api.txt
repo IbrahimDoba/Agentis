@@ -10,7 +10,7 @@
 ## Base URL
 
 ```
-https://app.dailzero.com
+https://www.dailzero.com
 ```
 
 All endpoints are under `/api/v1`.
@@ -18,7 +18,7 @@ All endpoints are under `/api/v1`.
 ## Authentication
 
 Every request needs a bearer API key, created at
-https://app.dailzero.com/dashboard/api-keys. The raw key (prefix `dz_live_`) is
+https://www.dailzero.com/dashboard/api-keys. The raw key (prefix `dz_live_`) is
 shown once at creation and never again.
 
 ```
@@ -48,7 +48,7 @@ lacks returns `403 FORBIDDEN_SCOPE`.
 ## Finding your agent ID
 
 Every call takes an `agentId`. Two ways to get it:
-- Dashboard: open the agent — its ID is in the URL `https://app.dailzero.com/dashboard/agent/<AGENT_ID>`.
+- Dashboard: open the agent — its ID is in the URL `https://www.dailzero.com/dashboard/agent/<AGENT_ID>`.
 - API: `GET /api/v1/agents` with a `manage`-scoped key returns each agent's `id`.
 
 ## Endpoints
@@ -180,7 +180,7 @@ Branch on `code`:
 
 JavaScript (fetch):
 ```js
-const res = await fetch("https://app.dailzero.com/api/v1/messages", {
+const res = await fetch("https://www.dailzero.com/api/v1/messages", {
   method: "POST",
   headers: { Authorization: "Bearer dz_live_...", "Content-Type": "application/json" },
   body: JSON.stringify({ agentId: "<id>", to: "2348012345678", text: "Hello" }),
@@ -192,7 +192,7 @@ Python (requests):
 ```python
 import requests
 res = requests.post(
-    "https://app.dailzero.com/api/v1/messages",
+    "https://www.dailzero.com/api/v1/messages",
     headers={"Authorization": "Bearer dz_live_..."},
     json={"agentId": "<id>", "to": "2348012345678", "text": "Hello"},
 )

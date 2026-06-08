@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     "Run, manage, and message your Agentis AI agents from your own apps. Chat completions, agent management, and outbound WhatsApp — billed against your existing credits. cURL, JavaScript & Python examples.",
 }
 
-const BASE = "https://app.dailzero.com"
+const BASE = "https://www.dailzero.com"
 
 // --- Chat completions ---
 const CHAT: CodeSample[] = [
@@ -312,7 +312,7 @@ export default function DevelopersPage() {
           <ul className={styles.list}>
             <li>
               <strong>Dashboard</strong> — open the agent; its ID is in the URL:{" "}
-              <code>app.dailzero.com/dashboard/agent/&lt;AGENT_ID&gt;</code>
+              <code>www.dailzero.com/dashboard/agent/&lt;AGENT_ID&gt;</code>
             </li>
             <li>
               <strong>API</strong> — call <code>GET /v1/agents</code> with a <code>manage</code>-scoped key
