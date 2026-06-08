@@ -37,6 +37,22 @@ const TOOLS_CURL = `curl -X PUT https://app.dailzero.com/api/v1/agents/<id>/tool
       ] }
   ] }'`
 
+const SEND_CURL = `curl https://app.dailzero.com/api/v1/messages \\
+  -H "Authorization: Bearer dz_live_..." \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "agentId": "<your-agent-id>",
+    "to": "2348012345678",
+    "text": "Hi! Your order #1234 has shipped 🚚"
+  }'`
+
+const SEND_RESPONSE = `{
+  "message_id": "a1b2c3",
+  "status": "queued",
+  "usage": { "credits": 5 },
+  "remaining_credits": 11195
+}`
+
 const ERRORS: [string, string, string][] = [
   ["BAD_REQUEST", "400", "Malformed request (bad JSON, missing or oversized fields)."],
   ["UNAUTHORIZED", "401", "Missing, malformed, unknown, or revoked key."],
@@ -44,6 +60,7 @@ const ERRORS: [string, string, string][] = [
   ["DAILY_CAP_HIT", "402", "The key's daily spending cap is exhausted."],
   ["FORBIDDEN_SCOPE", "403", "The key lacks the scope this endpoint requires."],
   ["AGENT_NOT_FOUND", "404", "The agent doesn't exist or isn't yours."],
+  ["AGENT_NOT_CONNECTED", "409", "The agent's WhatsApp isn't connected — connect it before sending."],
   ["RATE_LIMITED", "429", "Too many requests — retry after the Retry-After header."],
   ["INTERNAL", "500", "Something went wrong on our side."],
 ]
@@ -67,7 +84,7 @@ export default function DevelopersPage() {
         </header>
 
         <section className={styles.section}>
-          <h2>Two surfaces</h2>
+          <h2>Three surfaces</h2>
           <div className={styles.surfaces}>
             <div className={styles.surfaceCard}>
               <h3>Run</h3>
@@ -79,6 +96,11 @@ export default function DevelopersPage() {
               <code>/v1/agents/*</code>
               <p>List your agents and configure their webhook tools. Needs a key with the <strong>manage</strong> scope.</p>
             </div>
+            <div className={styles.surfaceCard}>
+              <h3>Messaging</h3>
+              <code>POST /v1/messages</code>
+              <p>Send outbound WhatsApp messages + verify contacts from a connected agent. Needs a key with the <strong>messages</strong> scope.</p>
+            </div>
           </div>
         </section>
 
@@ -88,7 +110,8 @@ export default function DevelopersPage() {
             Every request authenticates with a bearer API key created in your{" "}
             <Link href="/dashboard/api-keys">dashboard</Link>. The raw key is shown once at creation — store
             it securely. Keys carry <strong>scopes</strong>: <code>chat</code> (run agents, safe to embed
-            client-side) and/or <code>manage</code> (configure agents, keep server-side only).
+            client-side), <code>manage</code> (configure agents), and <code>messages</code> (send outbound) —
+            the last two are server-side only.
           </p>
           <pre className={styles.code}>Authorization: Bearer dz_live_a1b2c3d4...</pre>
         </section>
@@ -106,6 +129,18 @@ export default function DevelopersPage() {
             Define the webhook tools your agent can call — the same tools it uses on WhatsApp.
           </p>
           <pre className={styles.code}>{TOOLS_CURL}</pre>
+        </section>
+
+        <section className={styles.section}>
+          <h2>Send a WhatsApp message</h2>
+          <p className={styles.body}>
+            Once your agent&apos;s WhatsApp is connected, send outbound messages programmatically. Sends go
+            through the same anti-ban pacing as the dashboard and are billed per message. Want pure outbound
+            with no AI auto-replies? Turn <strong>AI replies</strong> off for the agent in its settings.
+          </p>
+          <pre className={styles.code}>{SEND_CURL}</pre>
+          <p className={styles.caption}>Response</p>
+          <pre className={styles.code}>{SEND_RESPONSE}</pre>
         </section>
 
         <section className={styles.section}>
