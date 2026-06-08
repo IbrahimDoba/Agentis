@@ -21,6 +21,7 @@ export interface UserPublic {
   subscriptionExpiresAt?: string | null
   onboardingCompleted?: boolean
   referralsEnabled?: boolean
+  developerModeEnabled?: boolean
   hasPassword?: boolean
 }
 

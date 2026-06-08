@@ -45,3 +45,33 @@ Discussed 2026-05-07. Goal: move always-on behaviours (like the auto-pause-on-hu
 - Send typing indicator toggle
 - Welcome / away messages
 - Forward unhandled messages to email or SMS
+
+---
+
+## 🔜 Onboarding (added 2026-06-07)
+
+### Bump the auto-configure time estimate: 5 min → 20 min
+- The onboarding auto-configure screen tells users it "usually takes about **5 minutes**", but it actually runs longer. Update the copy to **20 minutes** so expectations match reality.
+- File: `src/app/onboarding/auto-configure/AutoConfigureClient.tsx` (~line 217, the `subtitle` paragraph).
+- ⚠️ The marketing "live in under 5 minutes" lines on `src/app/(marketing)/solutions/*` are a **separate** claim (about WhatsApp connection speed, not auto-configure) — leave those unless we deliberately want to revisit them.
+
+### Optimize the onboarding
+- Auto-configure is slow (the reason for the bump above). Reduce real time and/or perceived wait:
+  - Profile the actual bottleneck first — WhatsApp history sync vs the LLM "learning how you reply" analysis.
+  - Parallelize the history pull and the analysis instead of running them serially.
+  - Stream/step progress (show concrete steps completing) instead of one long spinner.
+  - Let the user enter the dashboard while it finishes in the background, then notify when ready.
+  - Cap how many chats we pull on the first pass; deepen later.
+
+---
+
+## 🔜 More AI settings (added 2026-06-07)
+
+Extends the per-agent settings panel (`AgentSettingsTab`) — the "add settings to the AI" idea is to keep moving behaviours behind user-controllable toggles (see the "Future toggles" list above).
+
+### Auto-switch a conversation back to AI after a set time
+- When a conversation is in **human** mode (manual takeover or AI handoff), automatically return it to **AI** mode after a configurable period of inactivity — e.g. a dropdown: Off / 30 min / 1 hr / 2 hr / 4 hr.
+- **Why:** handed-off chats currently stay in human mode indefinitely; operators forget to hand back, so the AI stops covering. Auto-resume keeps the AI helping once the human is done.
+- **Setting:** per-agent `autoResumeAiAfterMinutes` (Int?, null = off). Add to schema + `agentSchema` validation + the Settings tab UI.
+- **Mechanism:** prefer a worker cron that periodically scans conversations where `mode = 'human'` and `lastActivityAt` (or `handoffAt`) is older than the threshold, and flips them back to `ai`. (Alternative: check-on-read, but a cron is more reliable.)
+- **Ties into PR #6 (needs-human UI):** once a conversation auto-resumes to AI, `needsHumanNow()` returns false, so the "🚨 Needs human" badge clears automatically.

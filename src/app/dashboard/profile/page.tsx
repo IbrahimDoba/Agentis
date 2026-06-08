@@ -39,6 +39,9 @@ export default function ProfilePage() {
   const [referralsEnabled, setReferralsEnabled] = useState(false)
   const [togglingReferrals, setTogglingReferrals] = useState(false)
 
+  const [developerModeEnabled, setDeveloperModeEnabled] = useState(false)
+  const [togglingDeveloper, setTogglingDeveloper] = useState(false)
+
   const [messagingEnabled, setMessagingEnabled] = useState(true)
   const [togglingMessaging, setTogglingMessaging] = useState(false)
   const [messagingError, setMessagingError] = useState("")
@@ -67,6 +70,7 @@ export default function ProfilePage() {
   useEffect(() => {
     if (data?.user) {
       setReferralsEnabled(data.user.referralsEnabled ?? false)
+      setDeveloperModeEnabled(data.user.developerModeEnabled ?? false)
     }
   }, [data?.user])
 
@@ -142,6 +146,23 @@ export default function ProfilePage() {
     }
   }
 
+  const handleToggleDeveloper = async (enabled: boolean) => {
+    setDeveloperModeEnabled(enabled)
+    setTogglingDeveloper(true)
+    try {
+      await fetch("/api/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ developerModeEnabled: enabled }),
+      })
+      queryClient.invalidateQueries({ queryKey: ["me"] })
+    } catch {
+      setDeveloperModeEnabled(!enabled) // revert on failure
+    } finally {
+      setTogglingDeveloper(false)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -174,8 +195,8 @@ export default function ProfilePage() {
     }
   }
 
-  const handlePasswordSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handlePasswordSubmit = async (e?: React.FormEvent | React.MouseEvent) => {
+    e?.preventDefault()
 
     const fieldErrors: Record<string, string> = {}
     if (hasPassword && !passwordForm.currentPassword) {
@@ -313,7 +334,10 @@ export default function ProfilePage() {
                 : "Once you create a password here, the same email address will work for both Google sign-in and manual login."}
             </p>
           </div>
-          <form className={styles.securityForm} onSubmit={handlePasswordSubmit}>
+          {/* Plain div, not a form element: this lives inside the main profile
+              form, and nested forms are invalid HTML (hydration error). Submit
+              is driven by the button's onClick instead. */}
+          <div className={styles.securityForm}>
             {hasPassword && (
               <Input
                 label="Current Password"
@@ -349,11 +373,11 @@ export default function ProfilePage() {
               />
             </div>
             <div className={styles.securityActions}>
-              <Button type="submit" loading={passwordLoading}>
+              <Button type="button" loading={passwordLoading} onClick={handlePasswordSubmit}>
                 {hasPassword ? "Change Password" : "Create Password"}
               </Button>
             </div>
-          </form>
+          </div>
         </div>
 
         {/* Business Information */}
@@ -514,6 +538,35 @@ export default function ProfilePage() {
                 checked={referralsEnabled}
                 disabled={togglingReferrals}
                 onChange={(e) => handleToggleReferrals(e.target.checked)}
+              />
+              <span className={styles.toggleTrack} />
+            </label>
+          </div>
+        </div>
+
+        {/* Developer mode */}
+        <div className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <div className={styles.sectionTitle}>Developer mode</div>
+            <div className={styles.sectionDesc}>Access integrations and the API to use your agents from your own apps.</div>
+          </div>
+          <div className={styles.toggleRow}>
+            <div className={styles.toggleInfo}>
+              <div className={styles.toggleLabel}>
+                {developerModeEnabled ? "Developer mode enabled" : "Enable developer mode"}
+              </div>
+              <div className={styles.toggleDesc}>
+                {developerModeEnabled
+                  ? "The Developer tab is visible in your sidebar — manage integrations and API keys there."
+                  : "Turn this on to show the Developer tab (integrations + API keys) in your sidebar."}
+              </div>
+            </div>
+            <label className={styles.toggle}>
+              <input
+                type="checkbox"
+                checked={developerModeEnabled}
+                disabled={togglingDeveloper}
+                onChange={(e) => handleToggleDeveloper(e.target.checked)}
               />
               <span className={styles.toggleTrack} />
             </label>
