@@ -306,15 +306,18 @@ export default function WhatsAppWebPage() {
     if (session?.status === "CONNECTED") setPairingCode(null)
   }, [session?.status])
 
-  // Onboarding bounce: once WhatsApp links successfully during onboarding,
-  // hand off to the auto-configure page where history sync + LLM analysis
-  // happen. Small delay so the "Connected" UI flashes before we navigate.
+  // Onboarding bounce: once WhatsApp links successfully during onboarding, send
+  // them to the success screen (confetti + "agent connected"). Small delay so
+  // the "Connected" UI flashes before we navigate.
+  // NOTE: the old chat-scan auto-configure step is disabled — we no longer
+  // bounce to /onboarding/auto-configure. That route + AutoConfigureClient are
+  // kept in the repo (dormant) in case we want to revive them.
   useEffect(() => {
     if (!onboardingMode) return
     if (session?.status !== "CONNECTED") return
     if (!selectedAgentId) return
     const id = setTimeout(() => {
-      router.push(`/onboarding/auto-configure?agentId=${selectedAgentId}`)
+      router.push(`/onboarding/connected?agentId=${selectedAgentId}`)
     }, 800)
     return () => clearTimeout(id)
   }, [onboardingMode, session?.status, selectedAgentId, router])
