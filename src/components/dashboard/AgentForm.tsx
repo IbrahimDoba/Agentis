@@ -37,9 +37,18 @@ export function AgentForm({ initialData, agentId, onDirtyChange }: AgentFormProp
   const [savedPrompt, setSavedPrompt] = useState(initialPrompt)
   const [savedProducts, setSavedProducts] = useState<Product[]>(initialProducts)
 
+  const initialAlbumEnabled = initialData?.productAlbumEnabled ?? false
+  const initialAlbumTitle = initialData?.productAlbumTitle ?? ""
+  const [productAlbumEnabled, setProductAlbumEnabled] = useState(initialAlbumEnabled)
+  const [productAlbumTitle, setProductAlbumTitle] = useState(initialAlbumTitle)
+  const [savedAlbumEnabled, setSavedAlbumEnabled] = useState(initialAlbumEnabled)
+  const [savedAlbumTitle, setSavedAlbumTitle] = useState(initialAlbumTitle)
+
   const isDirty =
     systemPrompt !== savedPrompt ||
-    JSON.stringify(products) !== JSON.stringify(savedProducts)
+    JSON.stringify(products) !== JSON.stringify(savedProducts) ||
+    productAlbumEnabled !== savedAlbumEnabled ||
+    productAlbumTitle !== savedAlbumTitle
 
   useEffect(() => {
     onDirtyChange?.(isDirty)
@@ -116,7 +125,7 @@ export function AgentForm({ initialData, agentId, onDirtyChange }: AgentFormProp
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ responseGuidelines: systemPrompt, productsData: products }),
+        body: JSON.stringify({ responseGuidelines: systemPrompt, productsData: products, productAlbumEnabled, productAlbumTitle }),
       })
 
       const data = await res.json()
@@ -133,6 +142,8 @@ export function AgentForm({ initialData, agentId, onDirtyChange }: AgentFormProp
       // after a save no longer warns about unsaved changes.
       setSavedPrompt(systemPrompt)
       setSavedProducts(nextProducts)
+      setSavedAlbumEnabled(productAlbumEnabled)
+      setSavedAlbumTitle(productAlbumTitle)
       queryClient.invalidateQueries({ queryKey: ["me"] })
       if (!agentId) {
         router.push(`/dashboard/agent/${data.id}`)
@@ -210,6 +221,47 @@ export function AgentForm({ initialData, agentId, onDirtyChange }: AgentFormProp
           <div className={styles.sectionDesc}>Add individual products the AI can reference when customers ask about pricing or availability.</div>
         </div>
         <ProductsEditor value={products} onChange={setProducts} />
+      </div>
+
+      {/* Product album */}
+      <div className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <div className={styles.sectionTitle}>Send catalogue as an album <span className={styles.optional}>(optional)</span></div>
+          <div className={styles.sectionDesc}>
+            When on, the AI sends all your product photos as one WhatsApp album the moment a customer asks to see what you have — e.g. &ldquo;let me see what you have&rdquo;.
+          </div>
+        </div>
+
+        <label style={{ display: "inline-flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: 14, color: "var(--text-primary)" }}>
+          <input
+            type="checkbox"
+            checked={productAlbumEnabled}
+            onChange={(e) => setProductAlbumEnabled(e.target.checked)}
+            style={{ width: 18, height: 18, accentColor: "var(--accent)", cursor: "pointer" }}
+          />
+          <span>Enable product album{products.length > 0 ? ` — ${products.length} photo${products.length === 1 ? "" : "s"}` : ""}</span>
+        </label>
+
+        {productAlbumEnabled && (
+          <div style={{ marginTop: 14 }}>
+            <label className={styles.fieldLabel} htmlFor="albumTitle">Intro message <span className={styles.optional}>(optional)</span></label>
+            <input
+              id="albumTitle"
+              type="text"
+              value={productAlbumTitle}
+              onChange={(e) => setProductAlbumTitle(e.target.value)}
+              placeholder="Here's our collection 👇"
+              maxLength={300}
+              style={{
+                width: "100%", marginTop: 6, padding: "0.6rem 0.8rem",
+                background: "var(--bg-secondary)", border: "1px solid var(--border)",
+                borderRadius: "var(--radius-md)", color: "var(--text-primary)",
+                fontFamily: "inherit", fontSize: 14, outline: "none",
+              }}
+            />
+            <div className={styles.fieldHint}>Sent as a short text just above the album. Leave blank to send only the photos.</div>
+          </div>
+        )}
       </div>
 
       <div className={styles.actions}>

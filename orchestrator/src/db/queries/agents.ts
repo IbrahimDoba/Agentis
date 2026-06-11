@@ -80,6 +80,34 @@ export async function isAiRepliesPaused(agentId: string): Promise<boolean> {
   return rows[0]?.aiRepliesEnabled === false
 }
 
+// Whether the agent has the product-album feature enabled (gates the
+// send_product_catalog tool).
+export async function isProductAlbumEnabled(agentId: string): Promise<boolean> {
+  const rows = await sql<{ productAlbumEnabled: boolean }[]>`
+    SELECT "productAlbumEnabled" FROM "Agent" WHERE "id" = ${agentId} LIMIT 1
+  `
+  return rows[0]?.productAlbumEnabled === true
+}
+
+// The agent's catalogue images + optional intro title, for the album send.
+export async function getAgentProductAlbum(agentId: string): Promise<{ images: string[]; title: string | null }> {
+  const rows = await sql<{ productsData: unknown; productAlbumTitle: string | null }[]>`
+    SELECT "productsData", "productAlbumTitle" FROM "Agent" WHERE "id" = ${agentId} LIMIT 1
+  `
+  const row = rows[0]
+  if (!row) return { images: [], title: null }
+  let products: unknown = row.productsData
+  if (typeof products === "string") {
+    try { products = JSON.parse(products) } catch { products = [] }
+  }
+  const images = Array.isArray(products)
+    ? products
+        .map((p) => (p as { imageUrl?: unknown })?.imageUrl)
+        .filter((u): u is string => typeof u === "string" && u.length > 0)
+    : []
+  return { images, title: row.productAlbumTitle }
+}
+
 export async function getAgentTools(agentId: string): Promise<AgentTool[]> {
   const rows = await sql<{ toolsData: unknown }[]>`
     SELECT "toolsData"

@@ -128,6 +128,11 @@ model Agent {
   category             String?
   address              String?
   productsData         Json?
+  // When on, the AI may send the whole product catalogue as one WhatsApp album
+  // (via the send_product_catalog tool) when a customer asks to see products.
+  // productAlbumTitle is the optional intro line sent above the album.
+  productAlbumEnabled  Boolean     @default(false)
+  productAlbumTitle    String?
   toolsData            Json?
   openaiApiKey         String?
   transportType        String      @default("waba")
