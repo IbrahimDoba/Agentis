@@ -1,6 +1,7 @@
-import { getAgentTools, type OrchestratorAgent } from "../db/queries/agents.js"
+import { getAgentTools, isProductAlbumEnabled, type OrchestratorAgent } from "../db/queries/agents.js"
 import { resolveProvider } from "../providers/registry.js"
 import { SEND_IMAGE_TOOL, executeSendImage } from "../tools/built-in/send-image.js"
+import { SEND_PRODUCT_ALBUM_TOOL, executeSendProductAlbum } from "../tools/built-in/send-product-album.js"
 import { REQUEST_HUMAN_HANDOFF_TOOL, executeRequestHumanHandoff } from "../tools/built-in/request-human-handoff.js"
 import { MARK_QUALIFIED_LEAD_TOOL, executeMarkQualifiedLead } from "../tools/built-in/mark-qualified-lead.js"
 import { buildWebhookToolDefinitions, executeWebhookTool } from "../tools/external/webhook-tools.js"
@@ -72,8 +73,10 @@ export async function runAgentTurn(
   const externalTools = await getAgentTools(agentId)
   const ownerRows = await sql<{ userId: string }[]>`SELECT "userId" FROM "Agent" WHERE "id" = ${agentId} LIMIT 1`
   const ownerUserId = ownerRows[0]?.userId ?? ""
+  const albumEnabled = await isProductAlbumEnabled(agentId)
   const tools = [
     ...(includeSendImage ? [SEND_IMAGE_TOOL] : []),
+    ...(albumEnabled ? [SEND_PRODUCT_ALBUM_TOOL] : []),
     REQUEST_HUMAN_HANDOFF_TOOL,
     MARK_QUALIFIED_LEAD_TOOL,
     ...buildWebhookToolDefinitions(externalTools),
@@ -115,6 +118,11 @@ export async function runAgentTurn(
           toolResult = await executeSendImage(tc.arguments, {
             agentId,
             conversationId,
+            toJid: senderJid,
+          })
+        } else if (tc.name === "send_product_catalog") {
+          toolResult = await executeSendProductAlbum(tc.arguments, {
+            agentId,
             toJid: senderJid,
           })
         } else if (tc.name === "request_human_handoff") {

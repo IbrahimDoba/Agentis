@@ -83,6 +83,8 @@ export interface AgentPublic {
   category?: string | null
   address?: string | null
   productsData?: Product[] | null
+  productAlbumEnabled?: boolean
+  productAlbumTitle?: string | null
   toolsData?: AgentTool[] | null
   status: AgentStatus
   createdAt: string

@@ -3,6 +3,8 @@ import { z } from "zod"
 import { outboundQueue } from "../queue/outbound-queue.js"
 import { sessionManager } from "../baileys/session-manager.js"
 import { sendAlbum } from "../anti-ban/pacing.js"
+import { chargeAiCredits } from "../billing/charge.js"
+import { creditsForMessageType } from "../billing/credits.js"
 import { RateLimitError } from "../lib/errors.js"
 
 const sendSchema = z.object({
@@ -77,10 +79,19 @@ export const messageRoutes: FastifyPluginAsync = async (app) => {
     const sock = sessionManager.get(body.agentId)
     if (!sock) return reply.code(409).send({ error: "WhatsApp session is not connected" })
 
+    // Bill up-front — each image at the image rate — so a broke account can't
+    // send for free. Refuse the send if it can't be charged.
+    const credits = body.images.length * creditsForMessageType("image")
+    try {
+      await chargeAiCredits({ agentId: body.agentId, credits, messageType: "image" })
+    } catch (err) {
+      return reply.code(402).send({ error: err instanceof Error ? err.message : "Billing failed" })
+    }
+
     const toJid = body.to.includes("@") ? body.to : `${body.to}@s.whatsapp.net`
     try {
       const result = await sendAlbum(sock, toJid, body.images, { title: body.title, caption: body.caption })
-      return reply.code(200).send({ status: "sent", ...result })
+      return reply.code(200).send({ status: "sent", credits, ...result })
     } catch (err) {
       req.log.error({ err }, "Album send failed")
       return reply.code(500).send({ error: "Album send failed" })

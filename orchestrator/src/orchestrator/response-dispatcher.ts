@@ -96,3 +96,41 @@ export async function dispatchMedia(opts: DispatchMediaOptions): Promise<void> {
     hasCaption: !!opts.caption,
   }, "Media dispatched to worker")
 }
+
+export interface DispatchAlbumOptions {
+  agentId: string
+  toJid: string
+  images: string[]
+  title?: string
+}
+
+/**
+ * Dispatch a set of product images to the worker as a single grouped album.
+ */
+export async function dispatchAlbum(opts: DispatchAlbumOptions): Promise<{ sent: number }> {
+  const url = `${config.WA_WORKER_URL}/v1/messages/album`
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${config.WORKER_API_KEY}`,
+    },
+    body: JSON.stringify({
+      agentId: opts.agentId,
+      to: opts.toJid,
+      images: opts.images,
+      title: opts.title || undefined,
+    }),
+  })
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => "")
+    logger.error({ status: res.status, body, agentId: opts.agentId }, "Failed to dispatch album to worker")
+    throw new Error(`Worker album send failed: ${res.status}`)
+  }
+
+  const json = (await res.json().catch(() => ({}))) as { sent?: number }
+  logger.info({ agentId: opts.agentId, toJid: opts.toJid, sent: json.sent }, "Album dispatched to worker")
+  return { sent: json.sent ?? opts.images.length }
+}
