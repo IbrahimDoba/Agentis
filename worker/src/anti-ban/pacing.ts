@@ -1,4 +1,4 @@
-import type { WASocket } from "@whiskeysockets/baileys"
+import type { WASocket, AnyMessageContent } from "@whiskeysockets/baileys"
 import { truncatedNormal } from "./distribution.js"
 import { getTierConfig } from "./warmup.js"
 import { markSentByUs } from "../baileys/sent-message-cache.js"
@@ -112,6 +112,57 @@ export async function sendImageWithPacing(
   await sleep(delay)
 
   return msgId
+}
+
+/**
+ * Send a set of images as a single WhatsApp **album** (grouped media), the way a
+ * human sends a gallery multi-select. Mechanism (Baileys): send a parent
+ * `album` message declaring the image count, then send each image linked to it
+ * via `albumParentKey` so they render as one grouped album on the recipient.
+ *
+ * Children go out with a SMALL randomized gap (not the full inter-message pacing)
+ * so they group within the album window — mimicking a real gallery send.
+ */
+export async function sendAlbum(
+  sock: WASocket,
+  jid: string,
+  imageUrls: string[],
+  opts: { title?: string; caption?: string } = {}
+): Promise<{ sent: number; parentId: string | null }> {
+  // Optional intro / title text before the album ("Here's our collection 👇").
+  if (opts.title) {
+    try {
+      await sock.sendPresenceUpdate("composing", jid)
+    } catch { /* non-critical */ }
+    await sleep(typingDuration(opts.title))
+    const t = await sock.sendMessage(jid, { text: opts.title })
+    if (t?.key?.id) markSentByUs(t.key.id)
+    await sleep(truncatedNormal(500, 1200))
+  }
+
+  // 1. Parent album declaration.
+  const parent = await sock.sendMessage(jid, {
+    album: { expectedImageCount: imageUrls.length, expectedVideoCount: 0 },
+  })
+  const parentKey = parent?.key
+  if (parentKey?.id) markSentByUs(parentKey.id)
+
+  // 2. Each image, linked to the parent. Caption only the first (album caption).
+  let sent = 0
+  for (let i = 0; i < imageUrls.length; i++) {
+    const content = {
+      image: { url: imageUrls[i] },
+      albumParentKey: parentKey,
+      ...(i === 0 && opts.caption ? { caption: opts.caption } : {}),
+    } as AnyMessageContent
+    const m = await sock.sendMessage(jid, content)
+    if (m?.key?.id) markSentByUs(m.key.id)
+    sent++
+    if (i < imageUrls.length - 1) await sleep(truncatedNormal(300, 1200))
+  }
+
+  logger.info({ jid, sent, expected: imageUrls.length }, "Album sent")
+  return { sent, parentId: parentKey?.id ?? null }
 }
 
 /**
