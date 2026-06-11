@@ -2,6 +2,7 @@ import type { FastifyPluginAsync } from "fastify"
 import { z } from "zod"
 import { outboundQueue } from "../queue/outbound-queue.js"
 import { sessionManager } from "../baileys/session-manager.js"
+import { sendAlbum } from "../anti-ban/pacing.js"
 import { RateLimitError } from "../lib/errors.js"
 
 const sendSchema = z.object({
@@ -59,6 +60,30 @@ export const messageRoutes: FastifyPluginAsync = async (app) => {
       return reply.code(200).send({ exists: !!match?.exists, jid: match?.jid ?? null })
     } catch {
       return reply.code(200).send({ exists: false, jid: null })
+    }
+  })
+
+  // Send a set of product images as one grouped WhatsApp album. (Step 1 of the
+  // product-album feature — the send primitive; billing/AI-trigger come later.)
+  const albumSchema = z.object({
+    agentId: z.string(),
+    to: z.string(),
+    images: z.array(z.string().url()).min(1).max(30),
+    title: z.string().max(700).optional(),   // optional intro text before the album
+    caption: z.string().max(700).optional(),  // optional caption on the first image
+  })
+  app.post("/messages/album", async (req, reply) => {
+    const body = albumSchema.parse(req.body)
+    const sock = sessionManager.get(body.agentId)
+    if (!sock) return reply.code(409).send({ error: "WhatsApp session is not connected" })
+
+    const toJid = body.to.includes("@") ? body.to : `${body.to}@s.whatsapp.net`
+    try {
+      const result = await sendAlbum(sock, toJid, body.images, { title: body.title, caption: body.caption })
+      return reply.code(200).send({ status: "sent", ...result })
+    } catch (err) {
+      req.log.error({ err }, "Album send failed")
+      return reply.code(500).send({ error: "Album send failed" })
     }
   })
 }
