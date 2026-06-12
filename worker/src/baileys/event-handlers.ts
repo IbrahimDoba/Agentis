@@ -1,4 +1,5 @@
-import type { WASocket } from "@whiskeysockets/baileys"
+import type { WASocket, WAMessage } from "@whiskeysockets/baileys"
+import { downloadMediaMessage } from "@whiskeysockets/baileys"
 import { webhookEmitter } from "../dashboard/webhook-emitter.js"
 import { config } from "../config.js"
 import { logger as rootLogger } from "../lib/logger.js"
@@ -13,6 +14,44 @@ const logger = rootLogger.child({ module: "event-handlers" })
 // §7.7 — Random delay before marking read (2–8s)
 function readDelay() {
   return 2000 + Math.random() * 6000
+}
+
+// Pull an inbound image so the (vision-capable) AI can see it — either a photo
+// the customer sent directly, or one they quote-replied to (e.g. tapping a
+// specific cap in the album we sent and asking "how much is this?"). Returns a
+// base64 data URL, or null (no image / too big / download failed → text-only).
+async function extractInboundImage(msg: WAMessage): Promise<string | null> {
+  const m = msg.message as any
+  const direct =
+    m?.imageMessage ||
+    m?.ephemeralMessage?.message?.imageMessage ||
+    m?.viewOnceMessage?.message?.imageMessage ||
+    m?.viewOnceMessageV2?.message?.imageMessage
+  const quotedCtx = m?.extendedTextMessage?.contextInfo
+  const quoted = quotedCtx?.quotedMessage?.imageMessage
+
+  let downloadable: WAMessage | null = null
+  let mimetype = "image/jpeg"
+  if (direct) {
+    downloadable = msg
+    mimetype = direct.mimetype || mimetype
+  } else if (quoted) {
+    downloadable = {
+      key: { remoteJid: msg.key.remoteJid, id: quotedCtx.stanzaId, fromMe: false, participant: quotedCtx.participant },
+      message: quotedCtx.quotedMessage,
+    } as WAMessage
+    mimetype = quoted.mimetype || mimetype
+  }
+  if (!downloadable) return null
+
+  try {
+    const buffer = (await downloadMediaMessage(downloadable, "buffer", {})) as Buffer
+    if (!buffer?.length || buffer.length > 5 * 1024 * 1024) return null
+    return `data:${mimetype};base64,${buffer.toString("base64")}`
+  } catch (err) {
+    logger.warn({ err }, "Failed to download inbound image — falling back to text-only")
+    return null
+  }
 }
 
 export function createEventHandlers(sock: WASocket, agentId: string) {
@@ -126,6 +165,14 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
         }
       }
 
+      // Vision: pull an image off the message (direct photo or a quoted/tagged
+      // one) so the AI can actually see it. An image-only message is no longer
+      // dropped — we give it placeholder text so the rest of the pipeline runs.
+      const imageDataUrl = await extractInboundImage(msg).catch(() => null)
+      if (!text && imageDataUrl) {
+        text = "[Image]"
+      }
+
       if (!text) {
         const msgTypes = Object.keys(msg.message ?? {})
         const extText = (msg.message as any)?.extendedTextMessage
@@ -177,6 +224,7 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
           pushName,
           extraCredits: voiceCredits || undefined,
           adContext: adContext ?? undefined,
+          imageDataUrl: imageDataUrl ?? undefined,
         })
       } catch (err) {
         logger.error({ err, agentId, senderJid }, "Failed to forward to orchestrator")
@@ -299,6 +347,7 @@ async function forwardToOrchestrator(payload: {
   pushName?: string
   extraCredits?: number  // e.g. voice transcription cost, billed on top of the AI reply cost
   adContext?: AdContext
+  imageDataUrl?: string  // inbound image (base64 data URL) for vision
 }): Promise<void> {
   const url = `${config.ORCHESTRATOR_URL}/v1/inbound`
 

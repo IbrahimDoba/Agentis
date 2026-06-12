@@ -103,10 +103,13 @@ export class OpenAIProvider implements LLMProvider {
   }
 
   private toOpenAIMessage(msg: ChatMessage): OpenAI.ChatCompletionMessageParam {
+    // Only user messages can be multimodal (array content for vision); coerce
+    // every other role to a plain string.
+    const asText = typeof msg.content === "string" ? msg.content : ""
     if (msg.role === "tool") {
       return {
         role: "tool",
-        content: msg.content ?? "",
+        content: asText,
         tool_call_id: msg.tool_call_id ?? "",
       }
     }
@@ -114,7 +117,7 @@ export class OpenAIProvider implements LLMProvider {
       if (msg.tool_calls && msg.tool_calls.length > 0) {
         return {
           role: "assistant",
-          content: msg.content ?? null,
+          content: typeof msg.content === "string" ? msg.content : null,
           tool_calls: msg.tool_calls.map((tc) => ({
             id: tc.id,
             type: "function" as const,
@@ -125,8 +128,13 @@ export class OpenAIProvider implements LLMProvider {
           })),
         }
       }
-      return { role: "assistant", content: msg.content ?? "" }
+      return { role: "assistant", content: asText }
     }
-    return { role: "user", content: msg.content ?? "" }
+    // User — pass the multimodal array straight through (OpenAI accepts text +
+    // image_url parts), or a plain string.
+    const userContent = Array.isArray(msg.content)
+      ? (msg.content as OpenAI.ChatCompletionContentPart[])
+      : msg.content ?? ""
+    return { role: "user", content: userContent }
   }
 }

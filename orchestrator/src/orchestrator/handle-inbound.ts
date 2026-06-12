@@ -29,6 +29,8 @@ export interface InboundPayload {
   // picks it up via polling.
   channel?: "whatsapp" | "embed"
   visitorId?: string
+  // Inbound image (data URL or https) for vision — attached to this turn only.
+  imageDataUrl?: string
 }
 
 /**
@@ -120,6 +122,7 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
     agentId,
     conversationId: conversation.id,
     senderJid,
+    imageDataUrl: payload.imageDataUrl,
   })
   const totalInputTokens = turn.inputTokens
   const totalOutputTokens = turn.outputTokens

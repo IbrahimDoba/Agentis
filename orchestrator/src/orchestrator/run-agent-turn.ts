@@ -17,6 +17,10 @@ export interface AgentTurnContext {
   agentId: string // parent Agent (business) id — tools + owner lookup key off this
   conversationId: string
   senderJid: string // WhatsApp JID for send_image dispatch; "" when not applicable
+  // When the inbound message carried an image, this is its data/https URL. It's
+  // attached to the current turn's user message so the (vision-capable) model
+  // can see it. Not persisted — only this turn sees it.
+  imageDataUrl?: string
 }
 
 export interface CollectedToolResult {
@@ -82,6 +86,25 @@ export async function runAgentTurn(
     ...buildWebhookToolDefinitions(externalTools),
   ]
   const currentMessages: ChatMessage[] = [...history]
+
+  // Vision: if the inbound message carried an image, attach it to the most
+  // recent user message so the model can actually see it this turn.
+  if (ctx.imageDataUrl) {
+    for (let i = currentMessages.length - 1; i >= 0; i--) {
+      if (currentMessages[i].role === "user") {
+        const existing = typeof currentMessages[i].content === "string" ? (currentMessages[i].content as string) : ""
+        currentMessages[i] = {
+          ...currentMessages[i],
+          content: [
+            { type: "text", text: existing || "[Image]" },
+            { type: "image_url", image_url: { url: ctx.imageDataUrl } },
+          ],
+        }
+        break
+      }
+    }
+  }
+
   let totalInputTokens = 0
   let totalOutputTokens = 0
   let finalReply: string | null = null
