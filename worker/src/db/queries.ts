@@ -55,6 +55,18 @@ export async function getSessionByAgentId(agentId: string): Promise<BaileysSessi
   return rows[0] ?? null
 }
 
+// Sessions that gave up auto-reconnecting (hit the attempt cap) and are sitting
+// DISCONNECTED. The watchdog revives these. The reason filter excludes
+// intentionally-disconnected, logged-out (401) and banned (403) sessions —
+// those need a deliberate action / fresh QR, not an auto-restart.
+export async function getStuckSessions(): Promise<{ agentId: string }[]> {
+  return sql<{ agentId: string }[]>`
+    SELECT "agentId" FROM "BaileysSession"
+    WHERE "status" = 'DISCONNECTED'
+      AND "lastDisconnectReason" = 'max_reconnect_attempts_exceeded'
+  `
+}
+
 export async function upsertSession(
   agentId: string,
   fields: Partial<Omit<BaileysSession, "id" | "agentId" | "createdAt">>
