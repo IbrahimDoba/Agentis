@@ -12,6 +12,7 @@ import { messageRoutes } from "./routes/messages.js"
 import { broadcastRoutes } from "./routes/broadcasts.js"
 import { closeBroadcastQueue } from "./queue/broadcast-queue.js"
 import { startAutoResumeSweep, stopAutoResumeSweep } from "./jobs/auto-resume-ai.js"
+import { startSessionWatchdog, stopSessionWatchdog } from "./jobs/session-watchdog.js"
 import { followUpRoutes } from "./routes/followup.js"
 import { closeFollowUpQueue } from "./queue/followup-queue.js"
 
@@ -47,6 +48,7 @@ await app.register(followUpRoutes, { prefix: "/v1" })
 const shutdown = async () => {
   logger.info("Shutting down...")
   stopAutoResumeSweep()
+  stopSessionWatchdog()
   await closeBroadcastQueue()
   await closeFollowUpQueue()
   await app.close()
@@ -71,6 +73,11 @@ try {
   // Periodic sweep: resume AI on human-mode conversations idle past their
   // agent's auto-resume threshold.
   startAutoResumeSweep()
+
+  // Watchdog: auto-revive sessions that gave up reconnecting (hit the attempt
+  // cap) so they self-heal in minutes instead of sitting dead until a human
+  // restarts them.
+  startSessionWatchdog()
 
   // Auto-reconnect sessions that were CONNECTED before restart
   const { sql } = await import("./db/client.js")

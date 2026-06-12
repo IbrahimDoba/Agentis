@@ -127,7 +127,11 @@ export async function sendAlbum(
   sock: WASocket,
   jid: string,
   imageUrls: string[],
-  opts: { title?: string; caption?: string } = {}
+  // `captions[i]` captions image i (e.g. the product name) so a customer who
+  // quote-replies to it carries that identity back — making product lookup
+  // deterministic instead of relying on vision. `caption` is a legacy single
+  // caption applied to the first image when `captions` is absent.
+  opts: { title?: string; caption?: string; captions?: string[] } = {}
 ): Promise<{ sent: number; parentId: string | null }> {
   // Optional intro / title text before the album ("Here's our collection 👇").
   if (opts.title) {
@@ -147,13 +151,15 @@ export async function sendAlbum(
   const parentKey = parent?.key
   if (parentKey?.id) markSentByUs(parentKey.id)
 
-  // 2. Each image, linked to the parent. Caption only the first (album caption).
+  // 2. Each image, linked to the parent, captioned with its product name when
+  //    provided (falls back to the legacy single caption on the first image).
   let sent = 0
   for (let i = 0; i < imageUrls.length; i++) {
+    const perCaption = opts.captions?.[i]?.trim() || (i === 0 ? opts.caption : undefined)
     const content = {
       image: { url: imageUrls[i] },
       albumParentKey: parentKey,
-      ...(i === 0 && opts.caption ? { caption: opts.caption } : {}),
+      ...(perCaption ? { caption: perCaption } : {}),
     } as AnyMessageContent
     const m = await sock.sendMessage(jid, content)
     if (m?.key?.id) markSentByUs(m.key.id)

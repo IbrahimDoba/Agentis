@@ -90,22 +90,28 @@ export async function isProductAlbumEnabled(agentId: string): Promise<boolean> {
 }
 
 // The agent's catalogue images + optional intro title, for the album send.
-export async function getAgentProductAlbum(agentId: string): Promise<{ images: string[]; title: string | null }> {
+export async function getAgentProductAlbum(
+  agentId: string
+): Promise<{ images: string[]; captions: string[]; title: string | null }> {
   const rows = await sql<{ productsData: unknown; productAlbumTitle: string | null }[]>`
     SELECT "productsData", "productAlbumTitle" FROM "Agent" WHERE "id" = ${agentId} LIMIT 1
   `
   const row = rows[0]
-  if (!row) return { images: [], title: null }
+  if (!row) return { images: [], captions: [], title: null }
   let products: unknown = row.productsData
   if (typeof products === "string") {
     try { products = JSON.parse(products) } catch { products = [] }
   }
-  const images = Array.isArray(products)
-    ? products
-        .map((p) => (p as { imageUrl?: unknown })?.imageUrl)
-        .filter((u): u is string => typeof u === "string" && u.length > 0)
+  // Keep images + captions aligned: caption each image with its product name so
+  // a quote-reply carries the product identity back (deterministic lookup).
+  const valid = Array.isArray(products)
+    ? (products as Array<{ imageUrl?: unknown; name?: unknown }>).filter(
+        (p) => typeof p?.imageUrl === "string" && (p.imageUrl as string).length > 0
+      )
     : []
-  return { images, title: row.productAlbumTitle }
+  const images = valid.map((p) => p.imageUrl as string)
+  const captions = valid.map((p) => (typeof p?.name === "string" ? (p.name as string) : ""))
+  return { images, captions, title: row.productAlbumTitle }
 }
 
 export async function getAgentTools(agentId: string): Promise<AgentTool[]> {

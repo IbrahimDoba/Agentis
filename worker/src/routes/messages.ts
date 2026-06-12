@@ -71,6 +71,7 @@ export const messageRoutes: FastifyPluginAsync = async (app) => {
     agentId: z.string(),
     to: z.string(),
     images: z.array(z.string().url()).min(1).max(30),
+    captions: z.array(z.string()).max(30).optional(), // per-image caption (e.g. product name), same order as images
     title: z.string().max(700).optional(),   // optional intro text before the album
     caption: z.string().max(700).optional(),  // optional caption on the first image
   })
@@ -90,7 +91,7 @@ export const messageRoutes: FastifyPluginAsync = async (app) => {
 
     const toJid = body.to.includes("@") ? body.to : `${body.to}@s.whatsapp.net`
     try {
-      const result = await sendAlbum(sock, toJid, body.images, { title: body.title, caption: body.caption })
+      const result = await sendAlbum(sock, toJid, body.images, { title: body.title, caption: body.caption, captions: body.captions })
       return reply.code(200).send({ status: "sent", credits, ...result })
     } catch (err) {
       req.log.error({ err }, "Album send failed")
