@@ -10,7 +10,7 @@ export const SEND_IMAGE_TOOL: ToolDefinition = {
     type: "function",
     function: {
         name: "send_image",
-        description: "Send an image from the media library to the customer. Use this proactively whenever a product is mentioned or enquired about — do not wait for the customer to explicitly ask for a picture. Match the product name or description to the 'Available media' list in your system prompt.",
+        description: "Send a SINGLE product's image from the media library. Use this whenever a customer asks about or shows interest in a SPECIFIC product (by name, type, colour, or by tagging/quoting a photo) — send just that one product's image, NOT the whole catalogue. Match the product name/description to the 'Available media' list in your system prompt. Only send a product that is actually in that list (= available); if they ask for something not in your catalogue, tell them it's unavailable instead of sending a random image.",
         parameters: {
             type: "object",
             properties: {

@@ -10,11 +10,14 @@ export const SEND_PRODUCT_ALBUM_TOOL: ToolDefinition = {
     function: {
         name: "send_product_catalog",
         description:
-            "Send the business's full product catalogue to the customer as one WhatsApp photo album. " +
-            "Call this when the customer wants to browse or see what's available — e.g. 'let me see what you have', " +
-            "'send me the pictures', 'what do you sell', 'show me your products'. Send the album ONCE per conversation " +
-            "unless they ask again. After sending, follow up with a short friendly message inviting them to ask about " +
-            "any item they like.",
+            "Send the business's ENTIRE product catalogue as one WhatsApp photo album. " +
+            "Use this ONLY when the customer wants to browse the whole range / see everything — e.g. " +
+            "'let me see what you have', 'show me all your caps', 'what do you sell', 'send me everything'. " +
+            "Do NOT use this for a SPECIFIC product or a particular type: if the customer asks about one item " +
+            "(by name, type, colour, or by tagging/quoting a photo), send just that one product's image with " +
+            "send_image instead — never dump the whole album for a single-product question. " +
+            "Send the album at most once per conversation unless they explicitly ask to see everything again. " +
+            "After sending, follow up with a short friendly message inviting them to ask about any item.",
         parameters: { type: "object", properties: {}, required: [] },
     },
 }

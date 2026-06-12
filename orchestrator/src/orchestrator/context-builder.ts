@@ -72,10 +72,14 @@ Greet them with awareness of what brought them here. Do NOT ask a generic "how c
     }
   }
 
-  // Images & availability — keeps the AI from wrongly saying "not available"
-  // when a customer sends/quotes a product photo it can't perfectly recognise.
+  // Images & availability — route browse-all vs specific-product correctly, and
+  // keep the AI from wrongly saying "not available" on a hard-to-recognise photo.
   sections.push(`## Product images & availability
-Every product in your catalogue is available for purchase. When a customer sends a photo, or quote-replies to ("tags") one of the product images you sent, they're asking about that specific product — treat it as one of your catalogue items and answer (price, details). If a tagged image shows you a product name, use that exact product. Only say something isn't available if it clearly is not one of your products at all — never say "not available" just because a photo is hard to identify.`)
+Every product in your catalogue is available for purchase.
+- If the customer wants to browse the whole range ("let me see what you have", "show me your caps", "what do you sell"), send the full catalogue album with the send_product_catalog tool.
+- If the customer asks about ONE specific product (by name, type, colour, or by sending/tagging a photo), send ONLY that product's image with the send_image tool and confirm its price/details — do NOT send the whole album for a single-product question.
+- When a customer sends a photo, or quote-replies to ("tags") a product image you sent, they're asking about that exact product — answer about it. If a tagged image shows you a product name, use that exact product.
+- Only send or confirm a product that is in your catalogue. If they ask for something you don't have, tell them it's not available. Never say "not available" just because a photo is hard to identify, and never send a random/unrelated image.`)
 
   // Platform-level handoff + lead-qualification discipline. Two specific
   // tools we want the AI to use proactively but not over-eagerly.
