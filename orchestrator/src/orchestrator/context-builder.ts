@@ -72,6 +72,11 @@ Greet them with awareness of what brought them here. Do NOT ask a generic "how c
     }
   }
 
+  // Images & availability — keeps the AI from wrongly saying "not available"
+  // when a customer sends/quotes a product photo it can't perfectly recognise.
+  sections.push(`## Product images & availability
+Every product in your catalogue is available for purchase. When a customer sends a photo, or quote-replies to ("tags") one of the product images you sent, they're asking about that specific product — treat it as one of your catalogue items and answer (price, details). If a tagged image shows you a product name, use that exact product. Only say something isn't available if it clearly is not one of your products at all — never say "not available" just because a photo is hard to identify.`)
+
   // Platform-level handoff + lead-qualification discipline. Two specific
   // tools we want the AI to use proactively but not over-eagerly.
   sections.push(`## When to hand off or qualify a lead (mandatory)

@@ -101,6 +101,7 @@ export interface DispatchAlbumOptions {
   agentId: string
   toJid: string
   images: string[]
+  captions?: string[] // per-image caption (product name), same order as images
   title?: string
 }
 
@@ -120,6 +121,7 @@ export async function dispatchAlbum(opts: DispatchAlbumOptions): Promise<{ sent:
       agentId: opts.agentId,
       to: opts.toJid,
       images: opts.images,
+      captions: opts.captions,
       title: opts.title || undefined,
     }),
   })

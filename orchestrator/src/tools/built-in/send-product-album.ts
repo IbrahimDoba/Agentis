@@ -23,7 +23,7 @@ export async function executeSendProductAlbum(
     _args: Record<string, unknown>,
     opts: { agentId: string; toJid: string }
 ): Promise<string> {
-    const { images, title } = await getAgentProductAlbum(opts.agentId)
+    const { images, captions, title } = await getAgentProductAlbum(opts.agentId)
 
     if (images.length === 0) {
         return JSON.stringify({ error: "No product images are available to send. Describe products in text instead." })
@@ -34,6 +34,7 @@ export async function executeSendProductAlbum(
             agentId: opts.agentId,
             toJid: opts.toJid,
             images,
+            captions,
             title: title || undefined,
         })
         logger.info({ agentId: opts.agentId, sent }, "send_product_catalog executed")
