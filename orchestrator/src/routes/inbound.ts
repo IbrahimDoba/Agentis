@@ -31,6 +31,9 @@ const inboundSchema = z.object({
   // the visitor's browser picks it up via polling on /api/embed/messages.
   channel: z.enum(["whatsapp", "embed"]).optional(),
   visitorId: z.string().min(1).optional(),
+  // Inbound image (data URL or https) for vision. Capped to keep the queue
+  // payload sane; the worker only forwards reasonably-sized images.
+  imageDataUrl: z.string().max(15_000_000).optional(),
 })
 
 export async function inboundRoutes(app: FastifyInstance) {
@@ -40,7 +43,7 @@ export async function inboundRoutes(app: FastifyInstance) {
       return reply.code(400).send({ error: "Invalid payload", details: parsed.error.flatten() })
     }
 
-    const { agentId, messageId, fromPhone, senderJid, text, timestamp, pushName, adContext, channel, visitorId } = parsed.data
+    const { agentId, messageId, fromPhone, senderJid, text, timestamp, pushName, adContext, channel, visitorId, imageDataUrl } = parsed.data
 
     // Dedup check
     if (await isDuplicate(messageId)) {
@@ -60,6 +63,7 @@ export async function inboundRoutes(app: FastifyInstance) {
       adContext,
       channel,
       visitorId,
+      imageDataUrl,
     })
 
     logger.info({ agentId, fromPhone, messageId }, "Inbound message enqueued")
