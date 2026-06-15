@@ -47,8 +47,19 @@ export async function createConnection(opts: ConnectionOptions): Promise<WASocke
     connectTimeoutMs: 30_000,
     retryRequestDelayMs: 2_000,
     markOnlineOnConnect: false,
-    defaultQueryTimeoutMs: undefined,
+    // v7 "deaf session" hardening:
+    // - A real 60s query timeout instead of `undefined` (= no timeout). With no
+    //   timeout, an internal query during message-decrypt can hang forever and
+    //   jam the receive pipeline so messages.upsert silently stops firing.
+    // - Tighter keepalive so a transport-dead socket is noticed sooner.
+    defaultQueryTimeoutMs: 60_000,
+    keepAliveIntervalMs: 15_000,
     syncFullHistory: opts.syncFullHistory ?? false,
+    // In v7 a missing callback defaults to `() => syncFullHistory`, so with
+    // syncFullHistory=false it blocks even the lightweight INITIAL_BOOTSTRAP/
+    // RECENT syncs — which carry LID/routing data inbound messages need. Allow
+    // those; gate only the heavy FULL sync (syncType 2) behind syncFullHistory.
+    shouldSyncHistoryMessage: (msg) => msg.syncType !== 2 || (opts.syncFullHistory ?? false),
   })
 
   // NOTE: creds.update is handled in session-manager.ts via saveCreds
