@@ -11,6 +11,8 @@ import { dispatchReply } from "./response-dispatcher.js"
 import { buildRichContent } from "./rich-content.js"
 import { publishSseEvent } from "../lib/sse-publish.js"
 import { runAgentTurn } from "./run-agent-turn.js"
+import { guardReply } from "./reply-guard.js"
+import { executeRequestHumanHandoff } from "../tools/built-in/request-human-handoff.js"
 import { logger as rootLogger } from "../lib/logger.js"
 
 const logger = rootLogger.child({ module: "handle-inbound" })
@@ -134,8 +136,26 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
     return
   }
 
-  // 7. Output shaping — split long replies into multiple messages
-  const replyParts = splitReply(finalReply)
+  // 7. Guard — review the reply before it goes out. Catches repetition, social
+  // wind-down signals (thanks/bye/👍), stuck loops, and frustration handoffs.
+  const guard = await guardReply(messages, finalReply)
+
+  if (guard.action === "suppress") {
+    logger.info({ agentId, conversationId: conversation.id }, "Reply guard suppressed outbound — not sending")
+    return
+  }
+
+  if (guard.action === "handoff") {
+    await executeRequestHumanHandoff(
+      { reason: guard.reason, urgency: guard.urgency },
+      { agentId, conversationId: conversation.id }
+    ).catch((err) => logger.error({ err, agentId }, "Guard-triggered handoff failed"))
+  }
+
+  const effectiveReply = guard.message
+
+  // 7b. Output shaping — split long replies into multiple messages
+  const replyParts = splitReply(effectiveReply)
 
   // Build structured payload (product cards etc.) from the tool results
   // captured during the LLM loop. Attaches only to the first part so the

@@ -90,7 +90,7 @@ export function resolvePhone(agentId: string, jid: string): string {
     const lid = user.split(":")[0]
     // 1. Try live socket store (most up-to-date)
     const livePN = lidMappingStore?.getPNForLID?.(lid + "@lid") ?? lidMappingStore?.getPNForLID?.(lid)
-    if (livePN) return livePN.split("@")[0].split(":")[0]
+    if (livePN && typeof livePN === "string") return livePN.split("@")[0].split(":")[0]
     // 2. Try disk cache
     const phone = loadLidMapping(agentId, lid)
     if (phone) return phone
