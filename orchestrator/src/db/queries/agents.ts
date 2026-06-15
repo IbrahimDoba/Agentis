@@ -89,6 +89,22 @@ export async function isProductAlbumEnabled(agentId: string): Promise<boolean> {
   return rows[0]?.productAlbumEnabled === true
 }
 
+// Whether the reply guard (second-pass review before sending) runs for this
+// agent. Off by default — when disabled the AI's reply is sent as-is.
+export async function isReplyGuardEnabled(agentId: string): Promise<boolean> {
+  try {
+    const rows = await sql<{ replyGuardEnabled: boolean }[]>`
+      SELECT "replyGuardEnabled" FROM "Agent" WHERE "id" = ${agentId} LIMIT 1
+    `
+    return rows[0]?.replyGuardEnabled === true
+  } catch {
+    // The column may not exist yet if the orchestrator deploys before the
+    // migration runs. Default to off (guard disabled) — the safe default —
+    // rather than throwing and blocking the reply entirely.
+    return false
+  }
+}
+
 // The agent's catalogue images + optional intro title, for the album send.
 export async function getAgentProductAlbum(
   agentId: string

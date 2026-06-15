@@ -1,4 +1,4 @@
-import { getOrchestratorAgent, isAiRepliesPaused } from "../db/queries/agents.js"
+import { getOrchestratorAgent, isAiRepliesPaused, isReplyGuardEnabled } from "../db/queries/agents.js"
 import {
   getOrCreateConversation,
   insertMessage,
@@ -136,23 +136,29 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
     return
   }
 
-  // 7. Guard — review the reply before it goes out. Catches repetition, social
-  // wind-down signals (thanks/bye/👍), stuck loops, and frustration handoffs.
-  const guard = await guardReply(messages, finalReply)
+  // 7. Guard (optional, per-agent toggle — off by default). When enabled, a
+  // second model reviews the reply before it goes out: catches repetition,
+  // social wind-down signals (thanks/bye/👍), stuck loops, and frustration
+  // handoffs. When disabled, the AI's reply is sent as-is — the guard can
+  // over-suppress and silence legitimate replies.
+  let effectiveReply = finalReply
+  if (await isReplyGuardEnabled(agentId)) {
+    const guard = await guardReply(messages, finalReply)
 
-  if (guard.action === "suppress") {
-    logger.info({ agentId, conversationId: conversation.id }, "Reply guard suppressed outbound — not sending")
-    return
+    if (guard.action === "suppress") {
+      logger.info({ agentId, conversationId: conversation.id }, "Reply guard suppressed outbound — not sending")
+      return
+    }
+
+    if (guard.action === "handoff") {
+      await executeRequestHumanHandoff(
+        { reason: guard.reason, urgency: guard.urgency },
+        { agentId, conversationId: conversation.id }
+      ).catch((err) => logger.error({ err, agentId }, "Guard-triggered handoff failed"))
+    }
+
+    effectiveReply = guard.message
   }
-
-  if (guard.action === "handoff") {
-    await executeRequestHumanHandoff(
-      { reason: guard.reason, urgency: guard.urgency },
-      { agentId, conversationId: conversation.id }
-    ).catch((err) => logger.error({ err, agentId }, "Guard-triggered handoff failed"))
-  }
-
-  const effectiveReply = guard.message
 
   // 7b. Output shaping — split long replies into multiple messages
   const replyParts = splitReply(effectiveReply)

@@ -22,7 +22,9 @@ export function AgentSettingsTab({ agent, onDirtyChange }: AgentSettingsTabProps
   const initialPauseOnLead = agent.pauseOnQualifiedLead ?? true
   const initialAutoResume = agent.autoResumeAiAfterMinutes ?? 0 // 0 = off in the UI
   const initialAiReplies = agent.aiRepliesEnabled ?? true
+  const initialReplyGuard = agent.replyGuardEnabled ?? false // off by default
   const [aiRepliesEnabled, setAiRepliesEnabled] = useState(initialAiReplies)
+  const [replyGuardEnabled, setReplyGuardEnabled] = useState(initialReplyGuard)
   const [autoPauseOnHumanReply, setAutoPauseOnHumanReply] = useState(initialAutoPause)
   const [pauseOnAiHandoff, setPauseOnAiHandoff] = useState(initialPauseOnHandoff)
   const [pauseOnQualifiedLead, setPauseOnQualifiedLead] = useState(initialPauseOnLead)
@@ -31,6 +33,7 @@ export function AgentSettingsTab({ agent, onDirtyChange }: AgentSettingsTabProps
 
   const isDirty =
     aiRepliesEnabled !== initialAiReplies ||
+    replyGuardEnabled !== initialReplyGuard ||
     autoPauseOnHumanReply !== initialAutoPause ||
     pauseOnAiHandoff !== initialPauseOnHandoff ||
     pauseOnQualifiedLead !== initialPauseOnLead ||
@@ -49,6 +52,7 @@ export function AgentSettingsTab({ agent, onDirtyChange }: AgentSettingsTabProps
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           aiRepliesEnabled,
+          replyGuardEnabled,
           autoPauseOnHumanReply,
           pauseOnAiHandoff,
           pauseOnQualifiedLead,
@@ -89,6 +93,24 @@ export function AgentSettingsTab({ agent, onDirtyChange }: AgentSettingsTabProps
             <label className={styles.rowTitle}>AI replies</label>
             <p className={styles.rowDesc}>
               Master switch for this agent. When <strong>on</strong>, the AI answers customers (per-conversation Human/AI toggles still apply). Turn it <strong>off</strong> to route <strong>every</strong> message to you — the AI won&apos;t reply to any conversation until you switch it back on.
+            </p>
+          </div>
+        </div>
+
+        <div className={styles.row}>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={replyGuardEnabled}
+            className={`${styles.switch} ${replyGuardEnabled ? styles.switchOn : ""}`}
+            onClick={() => setReplyGuardEnabled((v) => !v)}
+          >
+            <span className={styles.switchKnob} />
+          </button>
+          <div className={styles.rowText}>
+            <label className={styles.rowTitle}>Reply guard</label>
+            <p className={styles.rowDesc}>
+              When <strong>on</strong>, a second AI reviews every reply before it&apos;s sent — trimming repetitive answers, escalating to you, or holding back a reply it judges unnecessary. <strong>Off by default:</strong> the guard can be over-cautious and stay silent when a reply was actually warranted, so leave it off while testing conversations. Turn it on once you want the extra polish.
             </p>
           </div>
         </div>
