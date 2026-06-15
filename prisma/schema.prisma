@@ -133,6 +133,10 @@ model Agent {
   // productAlbumTitle is the optional intro line sent above the album.
   productAlbumEnabled  Boolean     @default(false)
   productAlbumTitle    String?
+  // When on, a second model reviews each AI reply before sending (rewrite /
+  // handoff / suppress). Off by default — the guard can over-suppress and
+  // silence legitimate replies; enable per agent once tuned/trusted.
+  replyGuardEnabled    Boolean     @default(false)
   toolsData            Json?
   openaiApiKey         String?
   transportType        String      @default("waba")

@@ -74,6 +74,7 @@ export interface AgentPublic {
   agentRuntime?: string
   messagingEnabled?: boolean
   aiRepliesEnabled?: boolean
+  replyGuardEnabled?: boolean
   autoPauseOnHumanReply?: boolean
   pauseOnAiHandoff?: boolean
   pauseOnQualifiedLead?: boolean

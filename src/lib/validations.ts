@@ -75,6 +75,7 @@ export const agentSchema = z.object({
   category: z.string().optional(),
   address: z.string().optional(),
   aiRepliesEnabled: z.boolean().optional(),
+  replyGuardEnabled: z.boolean().optional(),
   productAlbumEnabled: z.boolean().optional(),
   productAlbumTitle: z.string().max(700).optional(),
   autoPauseOnHumanReply: z.boolean().optional(),
