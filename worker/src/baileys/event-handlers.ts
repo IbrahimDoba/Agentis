@@ -8,6 +8,7 @@ import { getConversationMode, saveHumanOutboundMessage } from "../db/queries.js"
 import { transcribeVoiceNote } from "../voice/transcribe.js"
 import { creditsForVoice } from "../billing/credits.js"
 import { wasSentByUs } from "./sent-message-cache.js"
+import { markInboundActivity } from "./activity-tracker.js"
 
 const logger = rootLogger.child({ module: "event-handlers" })
 
@@ -59,6 +60,9 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
   // a replay from while we were offline — ignore it to avoid the agent
   // replying to stale messages on reconnect.
   const sessionStartedAt = Date.now()
+  // Seed liveness so a freshly-connected (and possibly quiet) session isn't
+  // immediately flagged as deaf by the watchdog.
+  markInboundActivity(agentId)
 
   sock.ev.on("messages.upsert", async ({ messages, type }) => {
     // Allow both "notify" (live) and "append" (history sync / delayed delivery)
@@ -77,6 +81,10 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
         logger.debug({ agentId, msgTimestampMs, sessionStartedAt, type }, "Skipping pre-connection message")
         continue
       }
+
+      // Liveness: we received a real message event — proof the receive pipeline
+      // is alive (used by the deaf-session watchdog).
+      markInboundActivity(agentId)
 
       const senderJid = msg.key.remoteJid
       // remoteJidAlt is the PN (real phone JID) when remoteJid is a LID — available since Baileys 6.8.0

@@ -13,6 +13,7 @@ import { broadcastRoutes } from "./routes/broadcasts.js"
 import { closeBroadcastQueue } from "./queue/broadcast-queue.js"
 import { startAutoResumeSweep, stopAutoResumeSweep } from "./jobs/auto-resume-ai.js"
 import { startSessionWatchdog, stopSessionWatchdog } from "./jobs/session-watchdog.js"
+import { startDeafSessionWatchdog, stopDeafSessionWatchdog } from "./jobs/deaf-session-watchdog.js"
 import { followUpRoutes } from "./routes/followup.js"
 import { closeFollowUpQueue } from "./queue/followup-queue.js"
 
@@ -49,6 +50,7 @@ const shutdown = async () => {
   logger.info("Shutting down...")
   stopAutoResumeSweep()
   stopSessionWatchdog()
+  stopDeafSessionWatchdog()
   await closeBroadcastQueue()
   await closeFollowUpQueue()
   await app.close()
@@ -78,6 +80,10 @@ try {
   // cap) so they self-heal in minutes instead of sitting dead until a human
   // restarts them.
   startSessionWatchdog()
+
+  // Deaf-session watchdog: detect sessions that are still CONNECTED but have
+  // silently stopped receiving (Baileys v7 bug) and force a reconnect.
+  startDeafSessionWatchdog()
 
   // Auto-reconnect sessions that were CONNECTED before restart
   const { sql } = await import("./db/client.js")
