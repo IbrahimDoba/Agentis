@@ -1,6 +1,6 @@
 import type { ToolDefinition } from "../../providers/types.js"
 import { getAgentProductAlbum } from "../../db/queries/agents.js"
-import { getLastProductAlbumSentAt, markProductAlbumSent } from "../../db/queries/conversations.js"
+import { claimProductAlbumSend, releaseProductAlbumClaim, markProductAlbumSent } from "../../db/queries/conversations.js"
 import { dispatchAlbum } from "../../orchestrator/response-dispatcher.js"
 import { logger as rootLogger } from "../../lib/logger.js"
 
@@ -42,27 +42,30 @@ export async function executeSendProductAlbum(
     args: Record<string, unknown>,
     opts: { agentId: string; conversationId: string; toJid: string }
 ): Promise<string> {
-    // Hard dedup: once the album has been sent to this conversation, only resend
-    // it when the customer explicitly asked to see everything again. Stops the
-    // model re-dumping the whole catalogue on follow-up messages and burning
-    // credits — single-item questions are answered with send_image instead.
-    const alreadySent = (await getLastProductAlbumSentAt(opts.conversationId)) !== null
-    const explicitlyAskedAgain = args.customerExplicitlyAskedAgain === true
-    if (alreadySent && !explicitlyAskedAgain) {
-        logger.info({ agentId: opts.agentId, conversationId: opts.conversationId }, "send_product_catalog skipped — already sent")
-        return JSON.stringify({
-            skipped: true,
-            message:
-                "The full catalogue was already sent to this customer earlier in this conversation. Do NOT resend it. " +
-                "Reply briefly pointing them to it (e.g. 'I shared the full collection above 👆') and offer to show or " +
-                "give details on a specific item — use send_image for a single product they name.",
-        })
-    }
-
     const { images, captions, title } = await getAgentProductAlbum(opts.agentId)
 
     if (images.length === 0) {
         return JSON.stringify({ error: "No product images are available to send. Describe products in text instead." })
+    }
+
+    const explicitlyAskedAgain = args.customerExplicitlyAskedAgain === true
+
+    // Hard dedup. Atomically claim the one album send for this conversation —
+    // only the first call wins, so concurrent turns (a customer firing several
+    // messages at once) can't each send the whole 17-image album and burn
+    // credits. An explicit "show me everything again" request bypasses the claim.
+    if (!explicitlyAskedAgain) {
+        const claimed = await claimProductAlbumSend(opts.conversationId)
+        if (!claimed) {
+            logger.info({ agentId: opts.agentId, conversationId: opts.conversationId }, "send_product_catalog skipped — already sent")
+            return JSON.stringify({
+                skipped: true,
+                message:
+                    "The full catalogue was already sent to this customer in this conversation. Do NOT resend it. " +
+                    "Reply briefly pointing them to it (e.g. 'I shared the full collection above 👆') and offer to show or " +
+                    "give details on a specific item — use send_image for a single product they name.",
+            })
+        }
     }
 
     try {
@@ -73,13 +76,18 @@ export async function executeSendProductAlbum(
             captions,
             title: title || undefined,
         })
-        await markProductAlbumSent(opts.conversationId)
+        // Explicit-resend path bypassed the claim, so stamp the timestamp here to
+        // keep future automatic sends blocked.
+        if (explicitlyAskedAgain) await markProductAlbumSent(opts.conversationId)
         logger.info({ agentId: opts.agentId, conversationId: opts.conversationId, sent }, "send_product_catalog executed")
         return JSON.stringify({
             success: true,
             message: `Sent ${sent} product photos as an album. Follow up with a short friendly message inviting them to ask about any item.`,
         })
     } catch (err) {
+        // The send failed — release the claim so a retry / later real send isn't
+        // permanently blocked by a claim that produced no album.
+        if (!explicitlyAskedAgain) await releaseProductAlbumClaim(opts.conversationId)
         const message = err instanceof Error ? err.message : String(err)
         logger.error({ agentId: opts.agentId, err: message }, "send_product_catalog failed")
         return JSON.stringify({ error: `Failed to send the catalogue: ${message}` })

@@ -114,19 +114,33 @@ export async function setConversationAdContextIfEmpty(
   return rows.length > 0
 }
 
-// Whether the full product album has already been sent to this conversation.
-// Returns the timestamp (or null if never sent) so the catalogue tool can stop
-// re-dumping the whole album on every follow-up message.
-export async function getLastProductAlbumSentAt(
-  conversationId: string
-): Promise<Date | null> {
-  const rows = await sql<{ lastProductAlbumSentAt: Date | null }[]>`
-    SELECT "lastProductAlbumSentAt" FROM "Conversation" WHERE "id" = ${conversationId} LIMIT 1
+// Atomically CLAIM the one-and-only album send for this conversation. Returns
+// true only if the album had not been sent yet (this call won the claim). The
+// guard lives in the WHERE clause so concurrent turns — a customer firing several
+// messages at once, each processed in parallel — can't all pass a read-then-write
+// check and send the album multiple times. The DB serialises the competing
+// UPDATEs on the row lock, so exactly one wins.
+export async function claimProductAlbumSend(conversationId: string): Promise<boolean> {
+  const rows = await sql<{ id: string }[]>`
+    UPDATE "Conversation"
+    SET "lastProductAlbumSentAt" = now()
+    WHERE "id" = ${conversationId} AND "lastProductAlbumSentAt" IS NULL
+    RETURNING "id"
   `
-  return rows[0]?.lastProductAlbumSentAt ?? null
+  return rows.length > 0
 }
 
-// Record that the full product album was just sent to this conversation.
+// Release a claim made by claimProductAlbumSend when the send itself failed, so a
+// retry / later genuine send isn't permanently blocked by a claim that never
+// resulted in an album going out.
+export async function releaseProductAlbumClaim(conversationId: string): Promise<void> {
+  await sql`
+    UPDATE "Conversation" SET "lastProductAlbumSentAt" = NULL WHERE "id" = ${conversationId}
+  `
+}
+
+// Record that the full product album was just sent to this conversation. Used on
+// the explicit-resend path (which bypasses the claim) to keep the timestamp set.
 export async function markProductAlbumSent(conversationId: string): Promise<void> {
   await sql`
     UPDATE "Conversation" SET "lastProductAlbumSentAt" = now() WHERE "id" = ${conversationId}
