@@ -155,8 +155,10 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
     effectiveReply = guard.message
   }
 
-  // 7b. Output shaping — split long replies into multiple messages
-  const replyParts = splitReply(effectiveReply)
+  // 7b. Output shaping — convert any markdown links the model wrote into plain
+  // URLs (WhatsApp can't render [text](url), so they show up broken), then split
+  // long replies into multiple messages.
+  const replyParts = splitReply(sanitizeWhatsAppLinks(effectiveReply))
 
   // Build structured payload (product cards etc.) from the tool results
   // captured during the LLM loop. Attaches only to the first part so the
@@ -210,6 +212,22 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
     outputTokens: totalOutputTokens,
     replyParts: replyParts.length,
   }, "Inbound message processed")
+}
+
+/**
+ * WhatsApp renders plain URLs as clickable but does NOT support markdown links.
+ * Models often emit [label](url) — or a botched [label(url) that drops the
+ * closing bracket — which a customer sees as broken, unclickable text. Replace
+ * any such link with just the plain URL so it actually works (on WhatsApp and
+ * every other channel). The label is dropped because the surrounding sentence
+ * already provides the context.
+ */
+function sanitizeWhatsAppLinks(text: string): string {
+  // [label](url) | [label(url) | [label] (url) — label optional, closing ] and
+  // whitespace optional. Only rewrites when the parenthetical is a real URL, so
+  // ordinary "[note](see above)" text is left untouched.
+  const MD_LINK = /\[[^\]\n(]*\]?\s*\((https?:\/\/[^\s)]+|www\.[^\s)]+)\)/gi
+  return text.replace(MD_LINK, (_match, url) => url)
 }
 
 /**
