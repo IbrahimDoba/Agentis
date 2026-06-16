@@ -1,5 +1,6 @@
 import type { ToolDefinition } from "../../providers/types.js"
 import { getAgentProductAlbum } from "../../db/queries/agents.js"
+import { getLastProductAlbumSentAt, markProductAlbumSent } from "../../db/queries/conversations.js"
 import { dispatchAlbum } from "../../orchestrator/response-dispatcher.js"
 import { logger as rootLogger } from "../../lib/logger.js"
 
@@ -16,16 +17,48 @@ export const SEND_PRODUCT_ALBUM_TOOL: ToolDefinition = {
             "Do NOT use this for a SPECIFIC product or a particular type: if the customer asks about one item " +
             "(by name, type, colour, or by tagging/quoting a photo), send just that one product's image with " +
             "send_image instead — never dump the whole album for a single-product question. " +
-            "Send the album at most once per conversation unless they explicitly ask to see everything again. " +
-            "After sending, follow up with a short friendly message inviting them to ask about any item.",
-        parameters: { type: "object", properties: {}, required: [] },
+            "The album costs many credits, so it is sent AT MOST ONCE per conversation. After it has been sent, " +
+            "do NOT call this again unless the customer EXPLICITLY asks to see the whole catalogue/everything a " +
+            "second time (e.g. 'can you resend all of them', 'show me everything again') — and in that case set " +
+            "customerExplicitlyAskedAgain to true. After sending, follow up with a short friendly message inviting " +
+            "them to ask about any item.",
+        parameters: {
+            type: "object",
+            properties: {
+                customerExplicitlyAskedAgain: {
+                    type: "boolean",
+                    description:
+                        "Set true ONLY if the album was already sent earlier in this conversation AND the customer " +
+                        "is now explicitly asking to see the entire catalogue again. Leave false/omit for the first " +
+                        "send or any proactive/automatic send.",
+                },
+            },
+            required: [],
+        },
     },
 }
 
 export async function executeSendProductAlbum(
-    _args: Record<string, unknown>,
-    opts: { agentId: string; toJid: string }
+    args: Record<string, unknown>,
+    opts: { agentId: string; conversationId: string; toJid: string }
 ): Promise<string> {
+    // Hard dedup: once the album has been sent to this conversation, only resend
+    // it when the customer explicitly asked to see everything again. Stops the
+    // model re-dumping the whole catalogue on follow-up messages and burning
+    // credits — single-item questions are answered with send_image instead.
+    const alreadySent = (await getLastProductAlbumSentAt(opts.conversationId)) !== null
+    const explicitlyAskedAgain = args.customerExplicitlyAskedAgain === true
+    if (alreadySent && !explicitlyAskedAgain) {
+        logger.info({ agentId: opts.agentId, conversationId: opts.conversationId }, "send_product_catalog skipped — already sent")
+        return JSON.stringify({
+            skipped: true,
+            message:
+                "The full catalogue was already sent to this customer earlier in this conversation. Do NOT resend it. " +
+                "Reply briefly pointing them to it (e.g. 'I shared the full collection above 👆') and offer to show or " +
+                "give details on a specific item — use send_image for a single product they name.",
+        })
+    }
+
     const { images, captions, title } = await getAgentProductAlbum(opts.agentId)
 
     if (images.length === 0) {
@@ -40,7 +73,8 @@ export async function executeSendProductAlbum(
             captions,
             title: title || undefined,
         })
-        logger.info({ agentId: opts.agentId, sent }, "send_product_catalog executed")
+        await markProductAlbumSent(opts.conversationId)
+        logger.info({ agentId: opts.agentId, conversationId: opts.conversationId, sent }, "send_product_catalog executed")
         return JSON.stringify({
             success: true,
             message: `Sent ${sent} product photos as an album. Follow up with a short friendly message inviting them to ask about any item.`,

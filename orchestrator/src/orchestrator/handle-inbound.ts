@@ -137,18 +137,13 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
   }
 
   // 7. Guard (optional, per-agent toggle — off by default). When enabled, a
-  // second model reviews the reply before it goes out: catches repetition,
-  // social wind-down signals (thanks/bye/👍), stuck loops, and frustration
-  // handoffs. When disabled, the AI's reply is sent as-is — the guard can
-  // over-suppress and silence legitimate replies.
+  // second model oversees the reply before it goes out: it keeps a good reply,
+  // rewrites a repetitive/rambling/awkward one into the right short reply, or
+  // hands off to a human. It NEVER suppresses — the customer always gets a
+  // reply. When disabled, the AI's reply is sent exactly as written.
   let effectiveReply = finalReply
   if (await isReplyGuardEnabled(agentId)) {
     const guard = await guardReply(messages, finalReply)
-
-    if (guard.action === "suppress") {
-      logger.info({ agentId, conversationId: conversation.id }, "Reply guard suppressed outbound — not sending")
-      return
-    }
 
     if (guard.action === "handoff") {
       await executeRequestHumanHandoff(
