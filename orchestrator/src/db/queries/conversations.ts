@@ -114,6 +114,25 @@ export async function setConversationAdContextIfEmpty(
   return rows.length > 0
 }
 
+// Whether the full product album has already been sent to this conversation.
+// Returns the timestamp (or null if never sent) so the catalogue tool can stop
+// re-dumping the whole album on every follow-up message.
+export async function getLastProductAlbumSentAt(
+  conversationId: string
+): Promise<Date | null> {
+  const rows = await sql<{ lastProductAlbumSentAt: Date | null }[]>`
+    SELECT "lastProductAlbumSentAt" FROM "Conversation" WHERE "id" = ${conversationId} LIMIT 1
+  `
+  return rows[0]?.lastProductAlbumSentAt ?? null
+}
+
+// Record that the full product album was just sent to this conversation.
+export async function markProductAlbumSent(conversationId: string): Promise<void> {
+  await sql`
+    UPDATE "Conversation" SET "lastProductAlbumSentAt" = now() WHERE "id" = ${conversationId}
+  `
+}
+
 export async function insertMessage(msg: {
   conversationId: string
   direction: "inbound" | "outbound"

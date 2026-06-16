@@ -321,6 +321,10 @@ model Conversation {
   handoffUrgency       String?
   leadQualifiedAt      DateTime?
   leadIntent           String?
+  // Set when the full product album was last sent to this conversation. Used to
+  // stop the AI re-dumping the whole catalogue (a credit drain) — once sent, the
+  // album only resends when the customer explicitly asks to see everything again.
+  lastProductAlbumSentAt DateTime?
   createdAt            DateTime            @default(now())
   messages             Message[]
   summary              ConversationSummary?

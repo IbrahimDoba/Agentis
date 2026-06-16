@@ -146,6 +146,7 @@ export async function runAgentTurn(
         } else if (tc.name === "send_product_catalog") {
           toolResult = await executeSendProductAlbum(tc.arguments, {
             agentId,
+            conversationId,
             toJid: senderJid,
           })
         } else if (tc.name === "request_human_handoff") {
