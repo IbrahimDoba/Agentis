@@ -1,5 +1,5 @@
 import type { ChatMessage } from "../providers/types.js"
-import type { OrchestratorAgent } from "../db/queries/agents.js"
+import { isProductAlbumEnabled, type OrchestratorAgent } from "../db/queries/agents.js"
 import type { AdContext, Message } from "../db/queries/conversations.js"
 import { getRecentMessages } from "../db/queries/conversations.js"
 import { retrieveRelevantChunks } from "../rag/indexer.js"
@@ -74,9 +74,22 @@ Greet them with awareness of what brought them here. Do NOT ask a generic "how c
 
   // Images & availability — route browse-all vs specific-product correctly, and
   // keep the AI from wrongly saying "not available" on a hard-to-recognise photo.
+  // The browse-all instruction depends on whether the album feature is enabled:
+  // when off, the AI shares the catalogue link instead of trying to bulk-send
+  // images (which hits WhatsApp upload throttling on large albums).
+  let albumEnabled = false
+  try {
+    albumEnabled = await isProductAlbumEnabled(agent.agentId)
+  } catch (err: any) {
+    // Default to the link path on error — never bulk-send images we can't confirm are enabled.
+    logger.warn({ agentId: agent.agentId, err: err?.message }, "Failed to read product-album setting — defaulting to share-link")
+  }
+  const browseAllLine = albumEnabled
+    ? `- If the customer wants to browse the whole range ("let me see what you have", "show me your caps", "what do you sell"), send the full catalogue album with the send_product_catalog tool.`
+    : `- If the customer wants to browse the whole range ("let me see what you have", "show me your caps", "what do you sell"), share your product catalogue / website link (from your business info above) so they can see everything there. Do NOT try to send product images in bulk, and never claim you are sending an album.`
   sections.push(`## Product images & availability
 Every product in your catalogue is available for purchase.
-- If the customer wants to browse the whole range ("let me see what you have", "show me your caps", "what do you sell"), send the full catalogue album with the send_product_catalog tool.
+${browseAllLine}
 - If the customer asks about ONE specific product (by name, type, colour, or by sending/tagging a photo), send ONLY that product's image with the send_image tool and confirm its price/details — do NOT send the whole album for a single-product question.
 - When a customer sends a photo, or quote-replies to ("tags") a product image you sent, they're asking about that exact product — answer about it. If a tagged image shows you a product name, use that exact product.
 - Only send or confirm a product that is in your catalogue. If they ask for something you don't have, tell them it's not available. Never say "not available" just because a photo is hard to identify, and never send a random/unrelated image.`)
