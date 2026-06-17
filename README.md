@@ -128,8 +128,9 @@ Dashboard → Chats → View live conversation list and transcripts from ElevenL
 
 | Plan | Price |
 |---|---|
-| Starter | ₦50,000 / month |
-| Pro | ₦100,000 / month |
+| Basic | ₦15,000 / month |
+| Starter | ₦35,000 / month |
+| Pro | ₦70,000 / month |
 
 Pro includes voice calls, image sending, follow-up messages, and higher conversation limits.
 

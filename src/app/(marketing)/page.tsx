@@ -6,6 +6,7 @@ import { Features } from "@/components/landing/Features"
 import { HowItWorks } from "@/components/landing/HowItWorks"
 import { Footer } from "@/components/landing/Footer"
 import { PLAN_PRICES, formatNaira } from "@/lib/plans"
+import { PAYG_DEFAULT_NGN_PER_CREDIT } from "@/lib/credits"
 
 const testimonials = [
   {
@@ -146,6 +147,9 @@ export default function LandingPage() {
           </div>
 
           <div className={styles.pricingCta}>
+            <p className={styles.sectionSubtitle}>
+              No monthly commitment? Pay as you go from ₦{PAYG_DEFAULT_NGN_PER_CREDIT.toFixed(2)}/credit — credits valid 12 months.
+            </p>
             <Link href="/pricing" className={styles.pricingCtaLink}>
               Compare plans in full detail →{" "}
               <span>See full pricing</span>

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import styles from "./ReferralDashboard.module.css"
 import { formatDate } from "@/lib/utils"
-import { formatNaira } from "@/lib/plans"
+import { formatNaira, calcCommission } from "@/lib/plans"
 
 const STATUS_LABELS: Record<string, string> = {
   PENDING: "Pending",
@@ -120,8 +120,8 @@ export function ReferralDashboard({ referralCode, referrals, stats }: Props) {
       <div className={styles.ratesCard}>
         <p className={styles.ratesTitle}>Commission rates</p>
         <div className={styles.ratesGrid}>
-          <div className={styles.rateItem}><span className={styles.ratePlan}>Starter</span><span className={styles.rateAmount}>₦7,500 / referral</span></div>
-          <div className={styles.rateItem}><span className={styles.ratePlan}>Pro</span><span className={styles.rateAmount}>₦12,750 / referral</span></div>
+          <div className={styles.rateItem}><span className={styles.ratePlan}>Starter</span><span className={styles.rateAmount}>{formatNaira(calcCommission("starter") ?? 0)} / referral</span></div>
+          <div className={styles.rateItem}><span className={styles.ratePlan}>Pro</span><span className={styles.rateAmount}>{formatNaira(calcCommission("pro") ?? 0)} / referral</span></div>
           <div className={styles.rateItem}><span className={styles.ratePlan}>Enterprise</span><span className={styles.rateAmount}>Custom</span></div>
         </div>
       </div>

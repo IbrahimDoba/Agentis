@@ -216,8 +216,8 @@ export function AdminReferralTable({ referrals: initial, users }: Props) {
               </div>
               <div className={styles.field}>
                 <label className={styles.label}>Commission amount (₦) — optional</label>
-                <input className={styles.input} type="number" placeholder="e.g. 7500" value={assignCommission} onChange={(e) => setAssignCommission(e.target.value)} />
-                <p className={styles.fieldHint}>Leave blank to auto-calculate when plan is set. Starter = ₦7,500 · Pro = ₦12,750</p>
+                <input className={styles.input} type="number" placeholder="e.g. 5250" value={assignCommission} onChange={(e) => setAssignCommission(e.target.value)} />
+                <p className={styles.fieldHint}>Leave blank to auto-calculate when plan is set. Starter = {formatNaira(calcCommission("starter") ?? 0)} · Pro = {formatNaira(calcCommission("pro") ?? 0)}</p>
               </div>
               {assignError && <p className={styles.error}>{assignError}</p>}
               <button className={styles.confirmBtn} onClick={handleAssign} disabled={assigning}>
@@ -239,8 +239,8 @@ export function AdminReferralTable({ referrals: initial, users }: Props) {
             <div className={styles.modalBody}>
               <div className={styles.field}>
                 <label className={styles.label}>Commission (₦)</label>
-                <input className={styles.input} type="number" placeholder="e.g. 12750" value={editCommission} onChange={(e) => setEditCommission(e.target.value)} />
-                <p className={styles.fieldHint}>Starter = ₦7,500 · Pro = ₦12,750 · Enterprise = custom</p>
+                <input className={styles.input} type="number" placeholder="e.g. 10500" value={editCommission} onChange={(e) => setEditCommission(e.target.value)} />
+                <p className={styles.fieldHint}>Starter = {formatNaira(calcCommission("starter") ?? 0)} · Pro = {formatNaira(calcCommission("pro") ?? 0)} · Enterprise = custom</p>
               </div>
               <button className={styles.confirmBtn} onClick={saveCommission} disabled={saving || !editCommission}>
                 {saving ? "Saving…" : "Save"}

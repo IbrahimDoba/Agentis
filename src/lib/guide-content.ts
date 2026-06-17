@@ -310,9 +310,9 @@ Manual replies you send (from the dashboard or your phone directly) are **free**
 | Plan | Price | Credits/month |
 |---|---|---|
 | Free | — | 2,000 |
-| Basic | ₦30,000 | 25,000 |
-| Starter | ₦50,000 | 60,000 |
-| Pro | ₦85,000 | 100,000 |
+| Basic | ₦15,000 | 25,000 |
+| Starter | ₦35,000 | 60,000 |
+| Pro | ₦70,000 | 100,000 |
 | Enterprise | Custom | Unlimited |
 
 A typical text-only conversation uses ~10–30 credits. So 60,000 credits ≈ 2,000–6,000 conversations per month.
