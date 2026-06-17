@@ -4,7 +4,11 @@ import Link from "next/link"
 import { Navbar } from "@/components/landing/Navbar"
 import { Footer } from "@/components/landing/Footer"
 import { PLAN_PRICES, PLAN_CREDIT_LIMITS, PLAN_OVERAGE_RATE_PER_1K, formatNaira } from "@/lib/plans"
+import { PAYG_DEFAULT_NGN_PER_CREDIT } from "@/lib/credits"
 import styles from "./page.module.css"
+
+// Pay-as-you-go retail rate (₦/credit), shown as an alternative to subscriptions.
+const PAYG_RATE_FMT = `₦${PAYG_DEFAULT_NGN_PER_CREDIT.toFixed(2)}`
 
 // Annual billing = 20% off the monthly rate. Single source of truth for
 // prices is src/lib/plans.ts; this file just formats them.
@@ -91,6 +95,10 @@ const faqs = [
   {
     q: "What happens if I exceed my credit limit?",
     a: `Basic does not include overage credits. On Starter, additional credits beyond ${STARTER_CREDITS_FMT}/month are charged at ${STARTER_OVERAGE_FMT}. On Pro, overage is ${PRO_OVERAGE_FMT}.`,
+  },
+  {
+    q: "Do I have to subscribe to a monthly plan?",
+    a: `No — you can pay as you go. Buy a credit pack from ₦1,000 (${PAYG_RATE_FMT}/credit, cheaper in bulk) and spend it whenever you like; credits stay valid for 12 months and work across all your agents. Monthly plans give you more credits at a lower per-credit rate if you have steady volume.`,
   },
   {
     q: "Do you offer custom plans?",
@@ -228,6 +236,22 @@ export default function PricingPage() {
                 ))}
               </ul>
             </div>
+          </div>
+
+          {/* Pay-as-you-go */}
+          <div className={styles.enterpriseCard}>
+            <div className={styles.enterpriseLeft}>
+              <div className={styles.enterpriseTitle}>Prefer no commitment? Pay as you go.</div>
+              <div className={styles.enterpriseDesc}>
+                Skip the subscription and buy credits whenever you need them — from {PAYG_RATE_FMT}/credit (cheaper in bulk), starting at ₦1,000. Credits stay valid for 12 months and work across all your agents.
+              </div>
+            </div>
+            <Link href="/signup" className={styles.enterpriseBtn}>
+              Buy Credits
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </Link>
           </div>
 
           {/* Enterprise nudge */}

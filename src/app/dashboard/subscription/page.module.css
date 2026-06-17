@@ -418,6 +418,53 @@
 .successBack:hover { color: var(--text-primary); }
 
 /* Footer note */
+.paygCard {
+  margin-top: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1.25rem 1.5rem;
+  background: rgba(0, 220, 130, 0.05);
+  border: 1px solid rgba(0, 220, 130, 0.22);
+  border-radius: var(--radius-md);
+}
+
+.paygText {
+  flex: 1;
+  min-width: 240px;
+}
+
+.paygTitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.paygDesc {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.paygBtn {
+  flex-shrink: 0;
+  padding: 0.6rem 1.25rem;
+  background: var(--accent);
+  color: #062013;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.paygBtn:hover {
+  opacity: 0.9;
+}
+
 .footer {
   margin-top: 2rem;
   font-size: 12px;

@@ -1,11 +1,13 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Link from "next/link"
 import { usePlanStats } from "@/hooks/usePlanStats"
 import {
   PLAN_LABELS, PLAN_PRICES, PLAN_CREDIT_LIMITS,
   PLAN_FEATURES, PLAN_ORDER, PLAN_OVERAGE_RATE_PER_1K, formatNaira
 } from "@/lib/plans"
+import { PAYG_DEFAULT_NGN_PER_CREDIT } from "@/lib/credits"
 import styles from "./page.module.css"
 
 interface PaymentRequest {
@@ -218,6 +220,16 @@ export default function SubscriptionPage() {
             </div>
           )
         })}
+      </div>
+
+      <div className={styles.paygCard}>
+        <div className={styles.paygText}>
+          <div className={styles.paygTitle}>Pay as you go</div>
+          <div className={styles.paygDesc}>
+            No subscription needed — top up your credit wallet from ₦{PAYG_DEFAULT_NGN_PER_CREDIT.toFixed(2)}/credit (cheaper in bulk), valid 12 months. Wallet credits are used only after your plan&apos;s monthly allowance runs out.
+          </div>
+        </div>
+        <Link href="/dashboard/credits" className={styles.paygBtn}>Buy Credits</Link>
       </div>
 
       <div className={styles.footer}>
