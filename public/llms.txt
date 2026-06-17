@@ -7,9 +7,9 @@ D-Zero AI is built specifically for the Nigerian market: pricing in Naira, suppo
 ## Plans (NGN)
 
 - **Free** — 2,000 credits/month, 1 agent — for evaluation
-- **Basic** — ₦30,000/month, 25,000 credits, 1 agent — small businesses getting started
-- **Starter** — ₦50,000/month, 60,000 credits, 1 agent + lead detection + customer memory + ₦1,000/1k credit overage
-- **Pro** — ₦85,000/month, 100,000 credits, 2 agents, priority support, automated follow-ups, ₦800/1k credit overage
+- **Basic** — ₦15,000/month, 25,000 credits, 1 agent — small businesses getting started
+- **Starter** — ₦35,000/month, 60,000 credits, 1 agent + lead detection + customer memory + ₦1,000/1k credit overage
+- **Pro** — ₦70,000/month, 100,000 credits, 2 agents, priority support, automated follow-ups, ₦800/1k credit overage
 - **Enterprise** — custom pricing, unlimited credits, multiple agents
 
 Credits cover both AI-generated replies and human operator messages. Per-message cost: text replies = 5 credits, images = 8 credits, voice = 3 credits/second.

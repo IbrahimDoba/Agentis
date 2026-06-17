@@ -1,8 +1,8 @@
 export const PLAN_PRICES: Record<string, number> = {
   free: 0,
-  basic: 30000,
-  starter: 50000,
-  pro: 85000,
+  basic: 15000,
+  starter: 35000,
+  pro: 70000,
   enterprise: 0, // custom — commission set manually by admin
 }
 
