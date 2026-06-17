@@ -8,34 +8,22 @@ const logger = rootLogger.child({ module: "reply-guard" })
 const GUARD_MODEL = "gpt-4o-mini"
 const HISTORY_WINDOW = 10
 
-const SYSTEM_PROMPT = `You are the overseer of a WhatsApp AI customer service agent. Before every reply goes out, you make sure it is the RIGHT thing to say. You NEVER block a reply — the customer must always get a response. You return one of two decisions: SEND a message (the proposed reply as-is, or an improved version you write), or HAND OFF to a human.
+const SYSTEM_PROMPT = `You are the overseer of a WhatsApp AI customer service agent. Before every reply goes out, you make sure it is the RIGHT thing to say. You NEVER block a reply, and you NEVER hand off or escalate to a human — the customer always gets a reply from you. Your only job is to return the best version of the message to send.
 
 Analyse the recent conversation and the AI's proposed reply, then return a JSON decision — no other text.
 
 SEND the proposed reply UNCHANGED when it is already natural, correct, and adds value. This is the default — keep the AI's own wording unless there is a clear reason to change it.
 
 SEND an IMPROVED (rewritten) message when the reply is on the right track but the wording is off. Always write a better, SHORT reply — never empty:
-- Customer is just acknowledging or winding down ("ok", "thanks", "great", "got it", "sure", "cool", "noted", "👍", "🙏") → reply with a brief, warm acknowledgment that fits ("Anytime! 😊", "Glad I could help — just shout if you need anything else!"). NEVER leave them on silence, and do NOT over-explain.
+- The customer is just acknowledging or winding down ("ok", "thanks", "great", "got it", "sure", "cool", "noted", "👍", "🙏") → reply with a brief, warm acknowledgment that fits ("Anytime! 😊", "Glad I could help — just shout if you need anything else!"). NEVER leave them on silence, and do NOT over-explain.
 - The reply repeats information already given in the last 1–2 turns → replace it with a short, fresh line that moves the conversation forward instead of restating.
 - The reply is too long, rambling, or robotic → tighten it.
 - The tone is off (too upbeat while the customer is upset) → acknowledge the feeling first.
-- The reply is low-value filler at a natural close → swap it for a warm, brief sign-off.
 
-HAND OFF when:
-- Customer explicitly asks for a human ("can I speak to someone?", "I need a real person", "let me talk to your team")
-- Customer is clearly frustrated — repeating the same complaint, saying "you're not helping", "this is useless", "I already told you"
-- The AI has given the same answer 2+ times and the customer is still unsatisfied (stuck loop)
-- The issue involves a complaint, refund, dispute, or requires real human judgment
-- Set urgency "high" when the customer is visibly angry or threatening
-- Write a short, warm handoff message for the customer (e.g. "Let me get one of our team members on this for you right away!")
+A routine question — including a customer asking the price or details of a product they sent or tagged in a photo — is NOT a reason to change much; let the AI's answer through. Do NOT try to escalate, hand off, or flag for a human: that is handled separately by the main agent. Your output is ALWAYS a message to send to the customer.
 
 Return ONLY valid JSON. No explanation, no markdown, no labels.
-- Send:    {"action":"send","message":"<the reply text to send>"}
-- Handoff: {"action":"handoff","reason":"<why — operators read this>","urgency":"normal"|"high","message":"<what to send the customer>"}`
-
-export type GuardDecision =
-  | { action: "send"; message: string }
-  | { action: "handoff"; reason: string; urgency: "normal" | "high"; message: string }
+{"message":"<the reply text to send>"}`
 
 function formatHistory(messages: ChatMessage[]): string {
   return messages
@@ -61,34 +49,33 @@ function formatHistory(messages: ChatMessage[]): string {
     .join("\n")
 }
 
-function parseDecision(raw: string, fallback: string): GuardDecision {
+// Parse the guard's JSON and return the message to send. Falls open to the
+// original reply on any malformed/empty output — the guard must never drop a
+// legitimate reply.
+function parseGuardedMessage(raw: string, fallback: string): string {
   try {
     // Strip any accidental markdown fences the model might emit
     const cleaned = raw.replace(/^```[a-z]*\n?/i, "").replace(/\n?```$/i, "").trim()
     const parsed = JSON.parse(cleaned)
-
-    if (parsed.action === "handoff") {
-      const reason = typeof parsed.reason === "string" ? parsed.reason : "Guard-detected handoff signal"
-      const urgency = parsed.urgency === "high" ? "high" : "normal"
-      const message = typeof parsed.message === "string" ? parsed.message : "Let me get someone from our team to help you right away!"
-      return { action: "handoff", reason, urgency, message }
-    }
-
-    if (parsed.action === "send" && typeof parsed.message === "string" && parsed.message.trim()) {
-      return { action: "send", message: parsed.message.trim() }
+    if (typeof parsed.message === "string" && parsed.message.trim()) {
+      return parsed.message.trim()
     }
   } catch {
     // Fall through to fail-open
   }
 
   logger.warn({ raw }, "Reply guard returned unparseable output — passing through original reply")
-  return { action: "send", message: fallback }
+  return fallback
 }
 
+// Review the proposed reply and return the message to actually send — either the
+// AI's reply unchanged, or a tightened/rewritten version. Never suppresses and
+// never hands off (handoffs are owned by the main agent's request_human_handoff
+// tool, which has the full context including any image the customer sent).
 export async function guardReply(
   history: ChatMessage[],
   proposedReply: string
-): Promise<GuardDecision> {
+): Promise<string> {
   const formattedHistory = formatHistory(history)
   const userContent = `Recent conversation:\n${formattedHistory || "(no prior history)"}\n\nAI's proposed reply:\n${proposedReply}`
 
@@ -105,21 +92,19 @@ export async function guardReply(
     })
 
     const raw = response.choices[0]?.message?.content ?? ""
-    const decision = parseDecision(raw, proposedReply)
+    const message = parseGuardedMessage(raw, proposedReply)
 
-    if (decision.action === "handoff") {
-      logger.info({ reason: decision.reason, urgency: decision.urgency }, "Reply guard: triggered handoff")
-    } else if (decision.message !== proposedReply) {
+    if (message !== proposedReply) {
       logger.info(
-        { originalLength: proposedReply.length, rewrittenLength: decision.message.length },
+        { originalLength: proposedReply.length, rewrittenLength: message.length },
         "Reply guard: rewrote reply"
       )
     }
 
-    return decision
+    return message
   } catch (err) {
     // Fail-open: a guard error must never silence a legitimate reply
     logger.warn({ err }, "Reply guard failed — passing through original reply")
-    return { action: "send", message: proposedReply }
+    return proposedReply
   }
 }

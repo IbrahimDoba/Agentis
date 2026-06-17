@@ -17,7 +17,7 @@ export const REQUEST_HUMAN_HANDOFF_TOOL: ToolDefinition = {
       "- The customer is frustrated or repeating the same question more than twice without progress\n" +
       "- The question is outside what you can answer reliably (refunds, complaints, legal, custom quotes, partnerships, or anything sensitive that requires judgement)\n" +
       "- You've answered the same question more than twice without progress\n" +
-      "DO NOT call this for routine questions you can answer from your system prompt, products, or knowledge base. Try those first. After calling this tool, send a single short message letting the customer know a human will follow up.",
+      "DO NOT call this for routine questions you can answer from your system prompt, products, or knowledge base — including a customer asking the price, availability, or details of a product, even one they send or tag/quote-reply to in a photo. Those are normal questions: answer them, never hand off. Try answering first. After calling this tool, send a single short message letting the customer know a human will follow up.",
     parameters: {
       type: "object",
       properties: {
