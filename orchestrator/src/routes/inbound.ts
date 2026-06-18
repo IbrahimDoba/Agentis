@@ -1,6 +1,6 @@
 import type { FastifyInstance } from "fastify"
 import { z } from "zod"
-import { isDuplicate } from "../orchestrator/dedup.js"
+import { isDuplicate, isDuplicateContent } from "../orchestrator/dedup.js"
 import { inboundQueue } from "../queue/queues.js"
 import { logger as rootLogger } from "../lib/logger.js"
 
@@ -48,6 +48,15 @@ export async function inboundRoutes(app: FastifyInstance) {
     // Dedup check
     if (await isDuplicate(messageId)) {
       logger.debug({ messageId }, "Duplicate message — skipping")
+      return reply.code(200).send({ status: "duplicate" })
+    }
+
+    // Replay guard — a reconnect can redeliver the same WhatsApp message under a
+    // different/derived id, which the messageId dedup above won't catch. Dedup
+    // on the (agent, sender, text) tuple within a short window so a redelivered
+    // message can't trigger a second AI reply. Embed has its own delivery model.
+    if (channel !== "embed" && (await isDuplicateContent(agentId, senderJid, text))) {
+      logger.info({ agentId, fromPhone, messageId }, "Duplicate content within replay window — skipping")
       return reply.code(200).send({ status: "duplicate" })
     }
 
