@@ -9,6 +9,7 @@ import { transcribeVoiceNote } from "../voice/transcribe.js"
 import { creditsForVoice } from "../billing/credits.js"
 import { wasSentByUs } from "./sent-message-cache.js"
 import { markInboundActivity } from "./activity-tracker.js"
+import { claimInboundForForward, releaseInboundClaim } from "./inbound-dedup.js"
 import { createHash } from "crypto"
 
 const logger = rootLogger.child({ module: "event-handlers" })
@@ -223,6 +224,21 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
         }, readDelay())
       }
 
+      // Replay/duplicate guard at the SOURCE. A flapping session redelivers the
+      // same customer message (live "notify" + reconnect "append"/history), and
+      // those copies can carry different/derived ids that slip past the
+      // orchestrator's id-based dedup — which is how justfits got two AI replies
+      // to one message. Claim the message here, at the single socket, so it's
+      // forwarded exactly once regardless of how many times WhatsApp redelivers
+      // it. Belt-and-suspenders with deriveStableMsgId above (stable id) and the
+      // orchestrator dedup: this one is id-independent, so it holds even when the
+      // redelivered copy carries a different id. Skip everything downstream
+      // (dashboard emit + forward) for a replay.
+      if (!(await claimInboundForForward(agentId, senderJid, text))) {
+        logger.info({ agentId, senderJid, preview: text.slice(0, 40) }, "Duplicate inbound (replay/append) — already forwarded, skipping")
+        continue
+      }
+
       // Emit to dashboard
       webhookEmitter.emit("message.inbound", {
         agentId,
@@ -256,6 +272,9 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
           imageDataUrl: imageDataUrl ?? undefined,
         })
       } catch (err) {
+        // Forward failed — release the claim so a later redelivery can retry,
+        // otherwise a transient orchestrator blip would swallow this message.
+        await releaseInboundClaim(agentId, senderJid, text)
         logger.error({ err, agentId, senderJid }, "Failed to forward to orchestrator")
       }
     }
