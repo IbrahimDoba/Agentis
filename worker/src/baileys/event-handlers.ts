@@ -9,12 +9,33 @@ import { transcribeVoiceNote } from "../voice/transcribe.js"
 import { creditsForVoice } from "../billing/credits.js"
 import { wasSentByUs } from "./sent-message-cache.js"
 import { markInboundActivity } from "./activity-tracker.js"
+import { createHash } from "crypto"
 
 const logger = rootLogger.child({ module: "event-handlers" })
 
 // §7.7 — Random delay before marking read (2–8s)
 function readDelay() {
   return 2000 + Math.random() * 6000
+}
+
+// Stable id for an inbound message when WhatsApp doesn't give us a key.id.
+//
+// This used to be `${Date.now()}`, which was a latent duplicate-reply bug:
+// when the session reconnects (and ours flaps — see error.md), WhatsApp
+// REDELIVERS the recent messages. A fresh Date.now() on each redelivery
+// produced a brand-new messageId every time, so the orchestrator's
+// messageId-based dedup never recognised the replay — and the customer got a
+// second (separately-generated, differently-worded) AI reply. Deriving the id
+// from the message's own immutable fields makes it identical across
+// redeliveries, so the dedup catches the replay. Real key.id is always
+// preferred; this only kicks in when it's missing.
+function deriveStableMsgId(agentId: string, senderJid: string, text: string, ts: unknown): string {
+  const tsNum = typeof ts === "number" ? ts : 0
+  const hash = createHash("sha1")
+    .update(`${agentId}|${senderJid}|${tsNum}|${text}`)
+    .digest("hex")
+    .slice(0, 24)
+  return `wa-derived:${hash}`
 }
 
 // Pull an inbound image so the (vision-capable) AI can see it — either a photo
@@ -224,7 +245,7 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
       try {
         await forwardToOrchestrator({
           agentId,
-          messageId: msg.key.id ?? `${Date.now()}`,
+          messageId: msg.key.id ?? deriveStableMsgId(agentId, senderJid, text, msg.messageTimestamp),
           fromPhone: phoneNumber,
           senderJid,
           text,
