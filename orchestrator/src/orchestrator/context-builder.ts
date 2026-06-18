@@ -86,7 +86,7 @@ Greet them with awareness of what brought them here. Do NOT ask a generic "how c
   }
   const browseAllLine = albumEnabled
     ? `- If the customer wants to browse the whole range ("let me see what you have", "show me your caps", "what do you sell"), send the full catalogue album with the send_product_catalog tool.`
-    : `- If the customer wants to browse the whole range ("let me see what you have", "show me your caps", "what do you sell"), share your product catalogue / website link (from your business info above) so they can see everything there. Do NOT try to send product images in bulk, and never claim you are sending an album.`
+    : `- If the customer wants to browse the whole range ("let me see what you have", "show me your caps", "what do you sell"): ONLY if a real product catalogue or website link is written in your business info above, share that EXACT link, character for character. If there is NO such link in your business info, do NOT send a link at all — NEVER invent, guess, shorten, or build one (in particular, never produce a "wa.me/c/..." link or any made-up URL). When you have no real link, instead name a few of your products and offer to send a photo of any specific item with the send_image tool. Either way, do NOT bulk-send images and never claim you are sending an album.`
   sections.push(`## Product images & availability
 Every product in your catalogue is available for purchase.
 ${browseAllLine}
