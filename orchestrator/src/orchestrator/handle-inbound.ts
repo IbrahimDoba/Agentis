@@ -148,10 +148,10 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
     effectiveReply = await guardReply(messages, finalReply)
   }
 
-  // 7b. Output shaping — convert any markdown links the model wrote into plain
-  // URLs (WhatsApp can't render [text](url), so they show up broken), then split
-  // long replies into multiple messages.
-  const replyParts = splitReply(sanitizeWhatsAppLinks(effectiveReply))
+  // 7b. Output shaping — rewrite any markdown the model emitted into WhatsApp's
+  // own formatting (**bold** → *bold*, headings, etc.), convert markdown links to
+  // plain URLs, then split long replies into multiple messages.
+  const replyParts = splitReply(sanitizeWhatsAppLinks(sanitizeWhatsAppFormatting(effectiveReply)))
 
   // Build structured payload (product cards etc.) from the tool results
   // captured during the LLM loop. Attaches only to the first part so the
@@ -205,6 +205,28 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
     outputTokens: totalOutputTokens,
     replyParts: replyParts.length,
   }, "Inbound message processed")
+}
+
+/**
+ * WhatsApp has its own formatting, NOT markdown. The model (gpt-4o-mini) defaults
+ * to markdown — most visibly **bold** (two asterisks), which WhatsApp renders as
+ * the literal characters "**bold**". Rewrite the common markdown the model emits
+ * into WhatsApp's markup so output is always correct regardless of what it wrote.
+ *
+ * WhatsApp markup: *bold* (one asterisk) · _italic_ · ~strike~ · ```mono``` ·
+ * "- " / "1. " lists · "> " quote. It does NOT support ** , #/## headings,
+ * [text](url) links (handled separately), tables, or underline.
+ */
+function sanitizeWhatsAppFormatting(text: string): string {
+  return text
+    // ***bold italic*** → WhatsApp *_bold italic_*  (do before ** so it isn't half-matched)
+    .replace(/\*\*\*([^*\n]+)\*\*\*/g, "*_$1_*")
+    // **bold** → *bold*  (markdown double asterisk → WhatsApp single)
+    .replace(/\*\*([^*\n]+)\*\*/g, "*$1*")
+    // __bold__ → _italic_  (markdown double underscore; WhatsApp has no bold-underscore)
+    .replace(/__([^_\n]+)__/g, "_$1_")
+    // # / ## / … headings → a bold line (strip the leading #s and any stray edge markers)
+    .replace(/^[ \t]*#{1,6}[ \t]+(.+?)[ \t]*$/gm, (_m, h) => `*${h.replace(/^[*_~\s]+|[*_~\s]+$/g, "")}*`)
 }
 
 /**

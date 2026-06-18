@@ -127,11 +127,20 @@ When tools or knowledge base sections are available in this conversation, they a
 4. NEVER invent: account numbers, references, transaction IDs, confirmation codes, prices, stock levels, policies, shipping dates, or any data that should come from a tool.
 5. If a tool returns an error, empty result, or unexpected data, tell the customer truthfully — do not fabricate a recovery.`)
 
-  // Formatting discipline. WhatsApp (and most chat channels) auto-link plain
-  // URLs but do NOT render markdown links — [text](url) shows up as broken,
-  // unclickable text. This is the #1 cause of "the link doesn't work".
-  sections.push(`## Message formatting
-You are chatting on WhatsApp. When you share a link, write the COMPLETE plain URL on its own (e.g. https://dailzero.com/signup). NEVER use markdown link formatting like [text](url), and never wrap a URL in brackets or parentheses — plain URLs are automatically clickable, markdown links are not and will appear broken to the customer. For emphasis use only WhatsApp styles: *bold*, _italic_. Do not use markdown headings (#) or tables.`)
+  // Formatting discipline. WhatsApp uses its OWN markup, not markdown — the most
+  // common failure is the model writing **bold** (markdown) which WhatsApp shows
+  // as literal "**bold**". A deterministic sanitizer in handle-inbound also
+  // rewrites any markdown that slips through, but instruct the model first.
+  sections.push(`## Message formatting (WhatsApp — NOT markdown)
+WhatsApp has its own formatting, not markdown. Use ONLY these:
+- *bold* — exactly ONE asterisk on each side. NEVER write **bold** with two asterisks; WhatsApp shows it as literal "**bold**".
+- _italic_ — one underscore on each side.
+- ~strikethrough~ — one tilde on each side.
+- Bulleted list — start each line with "- " (a hyphen and a space).
+- Numbered list — start each line with "1. ", "2. ", and so on.
+- Links — write the COMPLETE plain URL on its own (e.g. https://dailzero.com/signup); plain URLs are automatically clickable.
+
+NEVER use any of these — WhatsApp cannot render them and they appear as broken literal characters: **double asterisks**, # or ## headings, [text](url) markdown links, tables, or underline.`)
 
   // §7: Summaries, facts — added in later PRs
   sections.push(`## Conversation memory\nYou have access to the full conversation history with this contact shown in the messages below. You CAN and DO remember everything said in this conversation. Reference previous messages naturally when relevant. Never claim you cannot remember the conversation.`)
