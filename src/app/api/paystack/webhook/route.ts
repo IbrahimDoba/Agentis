@@ -23,6 +23,16 @@ interface PaystackWebhookData {
   metadata?: { purpose?: string } & Record<string, unknown>
 }
 
+/**
+ * Route a charge.success to the right handler. Subscription charges carry
+ * metadata.purpose === "subscription" AND a "DZ_SUB_" reference; credit top-ups
+ * use a plain "DZ_" reference with no purpose. Either signal alone is enough, so
+ * an old subscription charge missing metadata still routes correctly by prefix.
+ */
+export function isSubscriptionCharge(reference: string, purpose?: string | null): boolean {
+  return purpose === "subscription" || reference.startsWith("DZ_SUB_")
+}
+
 export async function POST(req: Request) {
   const rawBody = await req.text()
   const signature = req.headers.get("x-paystack-signature")
@@ -49,8 +59,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ received: true })
   }
 
-  const isSubscription =
-    data?.metadata?.purpose === "subscription" || reference.startsWith("DZ_SUB_")
+  const isSubscription = isSubscriptionCharge(reference, data?.metadata?.purpose)
 
   const feeNaira = typeof data?.fees === "number" ? data.fees / 100 : undefined
 
