@@ -749,3 +749,114 @@ export async function sendCreditPurchaseReceipt(data: {
     `),
   })
 }
+
+// ---------------------------------------------------------------------------
+// Subscription billing (Paystack recurring) — activation / renewal / failure / cancel
+// ---------------------------------------------------------------------------
+
+export async function sendSubscriptionActivatedEmail(data: {
+  name: string
+  email: string
+  planLabel: string
+  amountNaira: number
+  reference: string
+  nextChargeAt: Date
+}) {
+  const naira = `₦${data.amountNaira.toLocaleString("en-NG")}`
+  const next = data.nextChargeAt.toLocaleDateString("en-NG", { year: "numeric", month: "long", day: "numeric" })
+  await resend().emails.send({
+    from: FROM,
+    to: data.email,
+    subject: `Your D-Zero AI ${data.planLabel} plan is active`,
+    html: baseTemplate(`
+      <h2 style="margin:0 0 8px;font-size:22px;color:#111111;">You're on ${data.planLabel} 🎉</h2>
+      <p style="margin:0 0 20px;color:#4b5563;">Hi ${data.name}, your subscription is active and your AI agents are live.</p>
+      <div style="background:#f4f4f5;border-radius:12px;padding:20px 24px;margin:0 0 24px;">
+        ${infoRow("Plan", data.planLabel)}
+        ${infoRow("Amount paid", naira)}
+        ${infoRow("Reference", data.reference)}
+        ${infoRow("Auto-renews on", next)}
+      </div>
+      <p style="margin:0 0 20px;color:#6b7280;font-size:13px;">We'll automatically renew with your saved card each month. You can turn off auto-renew or change your card anytime in billing.</p>
+      ${btn("Manage subscription", `${APP_URL}/dashboard/subscription`)}
+    `),
+  })
+}
+
+export async function sendSubscriptionRenewedEmail(data: {
+  name: string
+  email: string
+  planLabel: string
+  amountNaira: number
+  reference: string
+  nextChargeAt: Date
+}) {
+  const naira = `₦${data.amountNaira.toLocaleString("en-NG")}`
+  const next = data.nextChargeAt.toLocaleDateString("en-NG", { year: "numeric", month: "long", day: "numeric" })
+  await resend().emails.send({
+    from: FROM,
+    to: data.email,
+    subject: `Receipt — D-Zero AI ${data.planLabel} renewed`,
+    html: baseTemplate(`
+      <h2 style="margin:0 0 8px;font-size:22px;color:#111111;">Subscription renewed</h2>
+      <p style="margin:0 0 20px;color:#4b5563;">Hi ${data.name}, your ${data.planLabel} plan renewed successfully.</p>
+      <div style="background:#f4f4f5;border-radius:12px;padding:20px 24px;margin:0 0 24px;">
+        ${infoRow("Plan", data.planLabel)}
+        ${infoRow("Amount charged", naira)}
+        ${infoRow("Reference", data.reference)}
+        ${infoRow("Next renewal", next)}
+      </div>
+      ${btn("View billing", `${APP_URL}/dashboard/subscription`)}
+    `),
+  })
+}
+
+export async function sendSubscriptionPaymentFailedEmail(data: {
+  name: string
+  email: string
+  planLabel: string
+  attempt: number
+  maxAttempts: number
+  graceEndsAt: Date
+}) {
+  const graceStr = data.graceEndsAt.toLocaleDateString("en-NG", { year: "numeric", month: "long", day: "numeric" })
+  await resend().emails.send({
+    from: FROM,
+    to: data.email,
+    subject: `Action needed — your D-Zero AI ${data.planLabel} payment failed`,
+    html: baseTemplate(`
+      <h2 style="margin:0 0 8px;font-size:22px;color:#111111;">We couldn't renew your subscription</h2>
+      <p style="margin:0 0 16px;color:#4b5563;">
+        Hi ${data.name}, we tried to charge your saved card for your <strong>${data.planLabel}</strong> plan but it didn't go through (attempt ${data.attempt} of ${data.maxAttempts}).
+      </p>
+      <p style="margin:0 0 16px;color:#4b5563;">
+        We'll keep trying, but if it isn't sorted by <strong>${graceStr}</strong> your plan will move to Free and your AI agents will pause. Update your card to keep things running.
+      </p>
+      ${btn("Update payment method", `${APP_URL}/dashboard/subscription`)}
+      ${divider()}
+      <p style="margin:0;color:#6b7280;font-size:13px;">Already fixed it? You can ignore this — we update automatically once a charge succeeds.</p>
+    `),
+  })
+}
+
+export async function sendSubscriptionCancelledEmail(data: {
+  name: string
+  email: string
+  planLabel: string
+  accessUntil: Date
+}) {
+  const untilStr = data.accessUntil.toLocaleDateString("en-NG", { year: "numeric", month: "long", day: "numeric" })
+  await resend().emails.send({
+    from: FROM,
+    to: data.email,
+    subject: `Your D-Zero AI subscription is cancelled`,
+    html: baseTemplate(`
+      <h2 style="margin:0 0 8px;font-size:22px;color:#111111;">Auto-renew turned off</h2>
+      <p style="margin:0 0 16px;color:#4b5563;">
+        Hi ${data.name}, your <strong>${data.planLabel}</strong> plan won't renew. You keep full access until <strong>${untilStr}</strong>, after which your account moves to the Free plan.
+      </p>
+      <p style="margin:0 0 16px;color:#4b5563;">Changed your mind? You can re-enable auto-renew anytime before then.</p>
+      ${btn("Manage subscription", `${APP_URL}/dashboard/subscription`)}
+    `),
+  })
+}
