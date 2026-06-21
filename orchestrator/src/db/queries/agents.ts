@@ -130,6 +130,67 @@ export async function getAgentProductAlbum(
   return { images, captions, title: row.productAlbumTitle }
 }
 
+interface CatalogueProduct {
+  id?: string
+  name?: string
+  price?: string
+  imageUrl?: string
+  images?: unknown
+}
+
+// Parse the agent's productsData JSON into an array. Handles the JSONB-as-string
+// driver quirk (some adapter paths return the column as a string). Returns []
+// on any problem so callers degrade to "no products" rather than throwing.
+async function loadProducts(agentId: string): Promise<CatalogueProduct[]> {
+  const rows = await sql<{ productsData: unknown }[]>`
+    SELECT "productsData" FROM "Agent" WHERE "id" = ${agentId} LIMIT 1
+  `
+  let products: unknown = rows[0]?.productsData
+  if (typeof products === "string") {
+    try { products = JSON.parse(products) } catch { products = [] }
+  }
+  return Array.isArray(products) ? (products as CatalogueProduct[]) : []
+}
+
+// All photos for ONE product (its different angles). Prefers the images[] array;
+// falls back to the single imageUrl (cover) for products saved before multi-photo
+// support. Returns null when the product isn't in the catalogue.
+export async function getProductImages(
+  agentId: string,
+  productId: string
+): Promise<{ name: string; images: string[] } | null> {
+  const products = await loadProducts(agentId)
+  const p = products.find((x) => x?.id === productId)
+  if (!p) return null
+  const images = productPhotos(p)
+  return { name: typeof p.name === "string" ? p.name : "", images }
+}
+
+// Compact catalogue listing for the system prompt so the AI can map a product
+// the customer names to its id (for send_product_photos). Only products that
+// have at least one photo are listed — those are the ones the AI can show.
+export async function listProductsForPrompt(
+  agentId: string
+): Promise<Array<{ id: string; name: string; price: string | null; photoCount: number }>> {
+  const products = await loadProducts(agentId)
+  return products
+    .map((p) => ({
+      id: typeof p.id === "string" ? p.id : "",
+      name: typeof p.name === "string" ? p.name : "",
+      price: typeof p.price === "string" && p.price.length > 0 ? p.price : null,
+      photoCount: productPhotos(p).length,
+    }))
+    .filter((p) => p.id && p.name && p.photoCount > 0)
+}
+
+// images[] (multi-photo) preferred; fall back to the single imageUrl cover.
+function productPhotos(p: CatalogueProduct): string[] {
+  if (Array.isArray(p.images) && p.images.length > 0) {
+    return p.images.filter((u): u is string => typeof u === "string" && u.length > 0)
+  }
+  return typeof p.imageUrl === "string" && p.imageUrl.length > 0 ? [p.imageUrl] : []
+}
+
 export async function getAgentTools(agentId: string): Promise<AgentTool[]> {
   const rows = await sql<{ toolsData: unknown }[]>`
     SELECT "toolsData"

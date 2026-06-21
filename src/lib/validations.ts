@@ -91,6 +91,7 @@ export const agentSchema = z.object({
     price: z.string().optional(),
     link: z.string().optional(),
     imageUrl: z.string().optional(),
+    images: z.array(z.string()).optional(),
     mediaId: z.string().optional(),
   })).optional(),
   // Orchestrator-specific fields

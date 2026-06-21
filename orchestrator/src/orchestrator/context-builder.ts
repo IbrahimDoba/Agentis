@@ -1,5 +1,5 @@
 import type { ChatMessage } from "../providers/types.js"
-import { isProductAlbumEnabled, type OrchestratorAgent } from "../db/queries/agents.js"
+import { isProductAlbumEnabled, listProductsForPrompt, type OrchestratorAgent } from "../db/queries/agents.js"
 import type { AdContext, Message } from "../db/queries/conversations.js"
 import { getRecentMessages } from "../db/queries/conversations.js"
 import { retrieveRelevantChunks } from "../rag/indexer.js"
@@ -42,17 +42,45 @@ ${lines.join("\n")}
 Greet them with awareness of what brought them here. Do NOT ask a generic "how can I help" — they came for a specific thing. Reference the product or offer from the ad and move them toward the next step (confirming price, sending an image, taking an order, booking, etc.). After the first few messages, treat the conversation normally and stop bringing up the ad explicitly.`)
   }
 
-  // Media Library: tell the AI what images are available to send
+  // Whether the product-album feature is on for this agent. Computed once here
+  // and reused below — it decides BOTH which "what can I show" list goes in the
+  // prompt and which send tools the AI is told to use. Default to off (link /
+  // single-image path) on error — never bulk-send images we can't confirm.
+  let albumEnabled = false
   try {
-    const media = await listMediaItems(agent.agentId)
-    if (media.length > 0) {
-      const mediaList = media
-        .map((m) => `- ID: ${m.id} | Description: "${m.description}"`)
-        .join("\n")
-      sections.push(`## Available media\nYou have access to the following product images. Whenever a customer asks about or shows interest in a product, proactively send its image using the 'send_image' tool — do not wait for them to ask for a picture. Match by product name or description.\n\n${mediaList}`)
-    }
+    albumEnabled = await isProductAlbumEnabled(agent.agentId)
   } catch (err: any) {
-    logger.warn({ agentId: agent.agentId, err: err.message }, "Failed to fetch media library")
+    logger.warn({ agentId: agent.agentId, err: err?.message }, "Failed to read product-album setting — defaulting to share-link")
+  }
+
+  if (albumEnabled) {
+    // Album feature ON: the AI shows products from the catalogue (productsData),
+    // sending ALL of a product's photos as an album via send_product_photos.
+    try {
+      const products = await listProductsForPrompt(agent.agentId)
+      if (products.length > 0) {
+        const list = products
+          .map((p) => `- id: ${p.id} | ${p.name}${p.price ? ` (${p.price})` : ""} | ${p.photoCount} photo${p.photoCount === 1 ? "" : "s"}`)
+          .join("\n")
+        sections.push(`## Product catalogue\nThese are the products you can show. When a customer asks about or shows interest in a specific one, proactively send its photos with the 'send_product_photos' tool — pass the matching id below (a product with several photos is sent as one album of all its angles). Match by name/description; only send a product that is in this list.\n\n${list}`)
+      }
+    } catch (err: any) {
+      logger.warn({ agentId: agent.agentId, err: err.message }, "Failed to fetch product catalogue")
+    }
+  } else {
+    // Album feature OFF: unchanged behaviour — the AI sends a single image from
+    // the media library via send_image.
+    try {
+      const media = await listMediaItems(agent.agentId)
+      if (media.length > 0) {
+        const mediaList = media
+          .map((m) => `- ID: ${m.id} | Description: "${m.description}"`)
+          .join("\n")
+        sections.push(`## Available media\nYou have access to the following product images. Whenever a customer asks about or shows interest in a product, proactively send its image using the 'send_image' tool — do not wait for them to ask for a picture. Match by product name or description.\n\n${mediaList}`)
+      }
+    } catch (err: any) {
+      logger.warn({ agentId: agent.agentId, err: err.message }, "Failed to fetch media library")
+    }
   }
 
   // RAG: inject top-5 relevant chunks from the document knowledge base
@@ -74,23 +102,19 @@ Greet them with awareness of what brought them here. Do NOT ask a generic "how c
 
   // Images & availability — route browse-all vs specific-product correctly, and
   // keep the AI from wrongly saying "not available" on a hard-to-recognise photo.
-  // The browse-all instruction depends on whether the album feature is enabled:
-  // when off, the AI shares the catalogue link instead of trying to bulk-send
-  // images (which hits WhatsApp upload throttling on large albums).
-  let albumEnabled = false
-  try {
-    albumEnabled = await isProductAlbumEnabled(agent.agentId)
-  } catch (err: any) {
-    // Default to the link path on error — never bulk-send images we can't confirm are enabled.
-    logger.warn({ agentId: agent.agentId, err: err?.message }, "Failed to read product-album setting — defaulting to share-link")
-  }
+  // albumEnabled was computed above and decides which send tools the AI uses:
+  // when off, the AI shares the catalogue link / single image instead of trying
+  // to bulk-send images (which hits WhatsApp upload throttling on large albums).
   const browseAllLine = albumEnabled
     ? `- If the customer wants to browse the whole range ("let me see what you have", "show me your caps", "what do you sell"), send the full catalogue album with the send_product_catalog tool.`
     : `- If the customer wants to browse the whole range ("let me see what you have", "show me your caps", "what do you sell"): ONLY if a real product catalogue or website link is written in your business info above, share that EXACT link, character for character. If there is NO such link in your business info, do NOT send a link at all — NEVER invent, guess, shorten, or build one (in particular, never produce a "wa.me/c/..." link or any made-up URL). When you have no real link, instead name a few of your products and offer to send a photo of any specific item with the send_image tool. Either way, do NOT bulk-send images and never claim you are sending an album.`
+  const specificProductLine = albumEnabled
+    ? `- If the customer asks about ONE specific product (by name, type, colour, or by sending/tagging a photo), send THAT product's photos with the send_product_photos tool — pass its id from the Product catalogue list above — and confirm its price/details. Do NOT send the whole catalogue for a single-product question.`
+    : `- If the customer asks about ONE specific product (by name, type, colour, or by sending/tagging a photo), send ONLY that product's image with the send_image tool and confirm its price/details — do NOT send the whole album for a single-product question.`
   sections.push(`## Product images & availability
 Every product in your catalogue is available for purchase.
 ${browseAllLine}
-- If the customer asks about ONE specific product (by name, type, colour, or by sending/tagging a photo), send ONLY that product's image with the send_image tool and confirm its price/details — do NOT send the whole album for a single-product question.
+${specificProductLine}
 - When a customer sends a photo, or quote-replies to ("tags") a product image you sent, they're asking about that exact product — answer about it. If a tagged image shows you a product name, use that exact product.
 - Only send or confirm a product that is in your catalogue. If they ask for something you don't have, tell them it's not available. Never say "not available" just because a photo is hard to identify, and never send a random/unrelated image.`)
 
