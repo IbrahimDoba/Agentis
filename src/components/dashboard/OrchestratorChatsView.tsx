@@ -17,6 +17,25 @@ interface AdContext {
   capturedAt: string
 }
 
+// Approximate WhatsApp label colour palette (index = WhatsApp colour id 0–19).
+const WA_LABEL_COLORS = [
+  "#5C6BC0", "#26A69A", "#EF5350", "#FFA726", "#66BB6A",
+  "#42A5F5", "#AB47BC", "#EC407A", "#8D6E63", "#78909C",
+  "#7E57C2", "#29B6F6", "#FF7043", "#9CCC65", "#FBC02D",
+  "#26C6DA", "#D4E157", "#FF8A65", "#7986CB", "#A1887F",
+]
+function labelColor(i: number): string {
+  const n = WA_LABEL_COLORS.length
+  return WA_LABEL_COLORS[((i % n) + n) % n]
+}
+
+interface OrchestratorLabel {
+  waLabelId: string
+  name: string
+  color: number
+  isStage: boolean
+}
+
 interface OrchestratorConversation {
   id: string
   phoneNumber: string
@@ -35,6 +54,7 @@ interface OrchestratorConversation {
   handoffUrgency?: string | null
   leadQualifiedAt?: string | null
   leadIntent?: string | null
+  labels?: OrchestratorLabel[]
   lastMessage: {
     content: string
     direction: string
@@ -154,6 +174,7 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
   const [search, setSearch] = useState("")
   const [draftText, setDraftText] = useState("")
   const [leadFilter, setLeadFilter] = useState<"all" | "leads" | "handoff">("all")
+  const [labelFilter, setLabelFilter] = useState<string>("all")
   const drawerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
@@ -427,6 +448,10 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
         ? searchFiltered.filter((c) => needsHumanNow(c))
         : searchFiltered
 
+  if (labelFilter !== "all") {
+    filtered = filtered.filter((c) => (c.labels ?? []).some((l) => l.waLabelId === labelFilter))
+  }
+
   // Sort: unread by the operator first, then most-recent activity. We sort a
   // shallow copy so we don't mutate the React-Query cache. Needs-human
   // conversations are flagged with a badge (not pinned to the top), so they
@@ -439,6 +464,11 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
   })
 
   const handoffCount = conversations.filter(needsHumanNow).length
+  const availableLabels = useMemo(() => {
+    const m = new Map<string, OrchestratorLabel>()
+    for (const c of conversations) for (const l of c.labels ?? []) if (!m.has(l.waLabelId)) m.set(l.waLabelId, l)
+    return [...m.values()].sort((a, b) => a.name.localeCompare(b.name))
+  }, [conversations])
   const selectedConv = conversations.find((c) => c.id === selectedId)
   const convMode = selectedConv?.mode ?? "ai"
 
@@ -497,6 +527,19 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
           >
             🚨 Needs human ({handoffCount})
           </button>
+        )}
+        {availableLabels.length > 0 && (
+          <select
+            className={styles.metaFilterBtn}
+            value={labelFilter}
+            onChange={(e) => setLabelFilter(e.target.value)}
+            title="Filter by label"
+          >
+            <option value="all">All labels</option>
+            {availableLabels.map((l) => (
+              <option key={l.waLabelId} value={l.waLabelId}>🏷 {l.name}</option>
+            ))}
+          </select>
         )}
       </div>
 
@@ -580,6 +623,22 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
                     ? `${conv.lastMessage.direction === "outbound" ? (conv.lastMessage.senderRole === "human" ? "You: " : "AI: ") : ""}${conv.lastMessage.content.slice(0, 80)}${conv.lastMessage.content.length > 80 ? "…" : ""}`
                     : "No messages yet"}
                 </div>
+                {(conv.labels ?? []).length > 0 && (
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 4 }}>
+                    {conv.labels!.map((l) => (
+                      <span
+                        key={l.waLabelId}
+                        title={l.isStage ? `${l.name} (stage)` : l.name}
+                        style={{
+                          fontSize: 10, fontWeight: 600, lineHeight: "16px", padding: "0 7px",
+                          borderRadius: 999, color: "#fff", background: labelColor(l.color), whiteSpace: "nowrap",
+                        }}
+                      >
+                        {l.name}
+                      </span>
+                    ))}
+                  </div>
+                )}
                 <div className={styles.meta}>
                   <span className={styles.msgCount}>{conv.messageCount} messages</span>
                   {conv.mode === "human" && <span className={styles.humanBadge}>Human</span>}

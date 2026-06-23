@@ -80,6 +80,25 @@ export async function GET(
       }
     }
 
+    // Attach synced WhatsApp labels to each conversation, matched by phone.
+    const [chatLabels, labelDefs] = await Promise.all([
+      db.chatLabel.findMany({ where: { agentId }, select: { phoneNumber: true, waLabelId: true } }),
+      db.whatsAppLabel.findMany({
+        where: { agentId, deleted: false },
+        select: { waLabelId: true, name: true, color: true, isStage: true },
+      }),
+    ])
+    const defById = new Map(labelDefs.map((l) => [l.waLabelId, l]))
+    const labelsByPhone = new Map<string, typeof labelDefs>()
+    for (const cl of chatLabels) {
+      if (!cl.phoneNumber) continue
+      const def = defById.get(cl.waLabelId)
+      if (!def) continue
+      const list = labelsByPhone.get(cl.phoneNumber) ?? []
+      list.push(def)
+      labelsByPhone.set(cl.phoneNumber, list)
+    }
+
     return NextResponse.json({
       conversations: conversations.map((c) => ({
         ...resolveDisplayPhone(c, phonesByName, workerResolvedMap),
@@ -97,6 +116,7 @@ export async function GET(
         handoffUrgency: c.handoffUrgency,
         leadQualifiedAt: c.leadQualifiedAt ? c.leadQualifiedAt.toISOString() : null,
         leadIntent: c.leadIntent,
+        labels: labelsByPhone.get(c.phoneNumber) ?? [],
         messageCount: c._count.messages,
         lastMessage: c.messages[0]
           ? {
