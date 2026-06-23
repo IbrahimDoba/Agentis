@@ -137,6 +137,9 @@ model Agent {
   // handoff / suppress). Off by default — the guard can over-suppress and
   // silence legitimate replies; enable per agent once tuned/trusted.
   replyGuardEnabled    Boolean     @default(false)
+  // When on, the AI may tag/categorise chats with the business's WhatsApp
+  // labels (the tag_conversation tool). Off by default.
+  chatTaggingEnabled   Boolean     @default(false)
   toolsData            Json?
   openaiApiKey         String?
   transportType        String      @default("waba")
@@ -154,6 +157,49 @@ model Agent {
   broadcasts           BroadcastCampaign[]
   followUpCampaigns    FollowUpCampaign[]
   embedSite            EmbedSite?
+  whatsappLabels       WhatsAppLabel[]
+  chatLabels           ChatLabel[]
+}
+
+// A WhatsApp Business label synced from the connected phone (read-only mirror of
+// WhatsApp — labels are created/edited there). The "mix" config lives here:
+// isStage/stageOrder mark a label as part of an ordered funnel (one active per
+// chat, AI swaps it); the rest are additive tags. applyRule is the optional
+// per-label criteria override (empty = AI infers from the name).
+model WhatsAppLabel {
+  id           String   @id @default(cuid())
+  agentId      String
+  agent        Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  waLabelId    String                       // WhatsApp's label id
+  name         String
+  color        Int      @default(0)
+  predefinedId String?                      // set for WhatsApp's 5 built-ins
+  deleted      Boolean  @default(false)
+  isStage      Boolean  @default(false)     // part of the stage funnel vs additive tag
+  stageOrder   Int?                         // funnel position (lower = earlier)
+  applyRule    String?                      // optional "when to apply" criteria
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([agentId, waLabelId])
+}
+
+// Which labels are on which chat. Keyed on the WhatsApp chat id (not a
+// Conversation) so it works for any chat, including ones the AI hasn't handled
+// yet; phoneNumber is the resolved number for joining to Conversation in the UI.
+model ChatLabel {
+  id          String   @id @default(cuid())
+  agentId     String
+  agent       Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  chatJid     String                        // WhatsApp chat remoteJid
+  phoneNumber String?                       // resolved, for joining to Conversation
+  waLabelId   String
+  appliedBy   String   @default("whatsapp") // whatsapp(synced) | ai | operator
+  createdAt   DateTime @default(now())
+
+  @@unique([agentId, chatJid, waLabelId])
+  @@index([agentId, phoneNumber])
+  @@index([agentId, waLabelId])
 }
 
 model EmbedSite {
