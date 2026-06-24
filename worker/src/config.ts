@@ -22,6 +22,11 @@ const schema = z.object({
 
   AUTH_ENCRYPTION_KEY: z.string().min(32),
   AUTH_STORAGE_BUCKET: z.string().default("baileys-auth-backups"),
+  // Where Baileys auth sessions live on disk. Point this at a PERSISTENT
+  // Railway volume (e.g. /data/auth_sessions) so the folder survives restarts —
+  // then the worker stops re-downloading every agent's auth backup from
+  // Supabase on each boot (the main source of Supabase egress).
+  AUTH_STORAGE_DIR: z.string().default("auth_sessions"),
 
   ALERT_WEBHOOK_URL: z.string().url().optional().or(z.literal("").transform(() => undefined)),
   LOG_LEVEL: z.enum(["trace", "debug", "info", "warn", "error", "fatal"]).default("info"),
