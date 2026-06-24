@@ -16,6 +16,7 @@ import { startSessionWatchdog, stopSessionWatchdog } from "./jobs/session-watchd
 import { startDeafSessionWatchdog, stopDeafSessionWatchdog } from "./jobs/deaf-session-watchdog.js"
 import { followUpRoutes } from "./routes/followup.js"
 import { closeFollowUpQueue } from "./queue/followup-queue.js"
+import { labelRoutes } from "./routes/labels.js"
 
 const app = Fastify({ logger: false }) // we use pino directly
 
@@ -44,6 +45,7 @@ await app.register(sessionRoutes, { prefix: "/v1" })
 await app.register(messageRoutes, { prefix: "/v1" })
 await app.register(broadcastRoutes, { prefix: "/v1" })
 await app.register(followUpRoutes, { prefix: "/v1" })
+await app.register(labelRoutes, { prefix: "/v1" })
 
 // Graceful shutdown
 const shutdown = async () => {

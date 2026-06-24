@@ -6,6 +6,7 @@ import { useQueryClient } from "@tanstack/react-query"
 import Button from "@/components/ui/Button"
 import { useToast } from "@/context/ToastContext"
 import type { AgentPublic } from "@/types"
+import { LabelSettings } from "./LabelSettings"
 import styles from "./AgentSettingsTab.module.css"
 
 interface AgentSettingsTabProps {
@@ -200,6 +201,8 @@ export function AgentSettingsTab({ agent, onDirtyChange }: AgentSettingsTabProps
           Save Settings
         </Button>
       </div>
+
+      <LabelSettings agentId={agent.id} />
 
       <DangerZone agent={agent} />
     </form>

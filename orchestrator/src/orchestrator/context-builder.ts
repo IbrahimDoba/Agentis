@@ -4,6 +4,7 @@ import type { AdContext, Message } from "../db/queries/conversations.js"
 import { getRecentMessages } from "../db/queries/conversations.js"
 import { retrieveRelevantChunks } from "../rag/indexer.js"
 import { listMediaItems } from "../db/queries/media.js"
+import { isChatTaggingEnabled, listAgentLabels } from "../db/queries/labels.js"
 import { logger as rootLogger } from "../lib/logger.js"
 
 const logger = rootLogger.child({ module: "context-builder" })
@@ -117,6 +118,32 @@ ${browseAllLine}
 ${specificProductLine}
 - When a customer sends a photo, or quote-replies to ("tags") a product image you sent, they're asking about that exact product — answer about it. If a tagged image shows you a product name, use that exact product.
 - Only send or confirm a product that is in your catalogue. If they ask for something you don't have, tell them it's not available. Never say "not available" just because a photo is hard to identify, and never send a random/unrelated image.`)
+
+  // Chat tagging — list the business's WhatsApp labels and how to use them, so
+  // the AI can categorise the chat with the tag_conversation tool. Stage labels
+  // form a funnel (one active at a time, swapped automatically); tags stack.
+  try {
+    if (await isChatTaggingEnabled(agent.agentId)) {
+      const labels = await listAgentLabels(agent.agentId)
+      if (labels.length > 0) {
+        const fmt = (l: { waLabelId: string; name: string; applyRule: string | null }, kind: "stage" | "tag") =>
+          `- id: ${l.waLabelId} | ${l.name} — ${l.applyRule && l.applyRule.trim()
+            ? l.applyRule.trim()
+            : (kind === "stage" ? "apply when the chat reaches this stage" : "apply when this describes the chat")}`
+        const stages = labels.filter((l) => l.isStage)
+        const tags = labels.filter((l) => !l.isStage)
+        const parts: string[] = []
+        if (stages.length) parts.push(`Stages (a funnel — only ONE applies at a time; tagging a new stage replaces the current one):\n${stages.map((l) => fmt(l, "stage")).join("\n")}`)
+        if (tags.length) parts.push(`Tags (additive — these stack):\n${tags.map((l) => fmt(l, "tag")).join("\n")}`)
+        sections.push(`## Available labels
+Use the tag_conversation tool to categorise THIS chat with one of the labels below when the conversation clearly matches it. Only tag on a clear change in the customer's situation, and don't re-apply a label the chat already has.
+
+${parts.join("\n\n")}`)
+      }
+    }
+  } catch (err: any) {
+    logger.warn({ agentId: agent.agentId, err: err?.message }, "Failed to build labels section")
+  }
 
   // Platform-level handoff + lead-qualification discipline. Two specific
   // tools we want the AI to use proactively but not over-eagerly.

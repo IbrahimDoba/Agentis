@@ -3,6 +3,7 @@ import { getEncryptedAuthState, purgeAuthFiles } from "./auth-store.js"
 import { createConnection } from "./connection.js"
 import { createEventHandlers } from "./event-handlers.js"
 import { attachHistorySyncHandler } from "./history-sync.js"
+import { attachLabelHandlers } from "./labels.js"
 import { importProfileFromWhatsApp } from "./profile-import.js"
 import { updateContacts, setLidMappingStore } from "./contacts-store.js"
 import { updateSessionStatus, upsertSession, deleteSession, getSessionByAgentId, getHistorySyncStatus } from "../db/queries.js"
@@ -296,4 +297,8 @@ async function startSession(agentId: string, reconnectAttempt = 0): Promise<void
   // flag above only controls whether we ASK for a full pull — we still want
   // to process the limited recent history we receive by default.
   attachHistorySyncHandler(sock, agentId)
+
+  // Mirror WhatsApp Business labels (created/applied on the phone) into our DB
+  // so the dashboard + AI can see and use them. WhatsApp Business accounts only.
+  attachLabelHandlers(sock, agentId)
 }

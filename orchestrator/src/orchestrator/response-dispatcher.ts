@@ -53,6 +53,41 @@ export async function dispatchReply(opts: DispatchOptions): Promise<void> {
   }, "Reply dispatched to worker")
 }
 
+export interface DispatchLabelOptions {
+  agentId: string
+  toJid: string
+  waLabelId: string
+  action: "add" | "remove"
+  appliedBy?: "ai" | "operator"
+}
+
+/**
+ * Apply or remove a WhatsApp label on a chat via the worker. Best-effort from
+ * the caller's perspective — throws on a non-OK response so the tool can report
+ * it, but a failure never blocks the AI's text reply.
+ */
+export async function dispatchLabel(opts: DispatchLabelOptions): Promise<void> {
+  const path = opts.action === "add" ? "assign" : "remove"
+  const res = await fetch(`${config.WA_WORKER_URL}/v1/labels/${path}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${config.WORKER_API_KEY}`,
+    },
+    body: JSON.stringify({
+      agentId: opts.agentId,
+      to: opts.toJid,
+      waLabelId: opts.waLabelId,
+      ...(opts.action === "add" ? { appliedBy: opts.appliedBy ?? "ai" } : {}),
+    }),
+  })
+  if (!res.ok) {
+    const body = await res.text().catch(() => "")
+    logger.error({ status: res.status, body, agentId: opts.agentId, action: opts.action }, "Failed to dispatch label to worker")
+    throw new Error(`Worker label ${opts.action} failed: ${res.status}`)
+  }
+}
+
 export interface DispatchMediaOptions {
   agentId: string
   conversationId: string

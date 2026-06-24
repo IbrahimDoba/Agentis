@@ -5,6 +5,8 @@ import { SEND_PRODUCT_ALBUM_TOOL, executeSendProductAlbum } from "../tools/built
 import { SEND_PRODUCT_PHOTOS_TOOL, executeSendProductPhotos } from "../tools/built-in/send-product-photos.js"
 import { REQUEST_HUMAN_HANDOFF_TOOL, executeRequestHumanHandoff } from "../tools/built-in/request-human-handoff.js"
 import { MARK_QUALIFIED_LEAD_TOOL, executeMarkQualifiedLead } from "../tools/built-in/mark-qualified-lead.js"
+import { TAG_CONVERSATION_TOOL, executeTagConversation } from "../tools/built-in/tag-conversation.js"
+import { isChatTaggingEnabled } from "../db/queries/labels.js"
 import { buildWebhookToolDefinitions, executeWebhookTool } from "../tools/external/webhook-tools.js"
 import type { ProductResponseMapping } from "./rich-content.js"
 import { sql } from "../db/client.js"
@@ -79,6 +81,9 @@ export async function runAgentTurn(
   const ownerRows = await sql<{ userId: string }[]>`SELECT "userId" FROM "Agent" WHERE "id" = ${agentId} LIMIT 1`
   const ownerUserId = ownerRows[0]?.userId ?? ""
   const albumEnabled = await isProductAlbumEnabled(agentId)
+  // Chat tagging needs a WhatsApp chat to act on (senderJid), so it's gated by
+  // includeSendImage (the dev API omits it) as well as the per-agent toggle.
+  const taggingEnabled = await isChatTaggingEnabled(agentId)
   const tools = [
     // Specific-product images: when the album feature is ON the AI shows a
     // product's full set of photos (all angles) via send_product_photos; when
@@ -86,6 +91,7 @@ export async function runAgentTurn(
     // WhatsApp JID, so they're gated by includeSendImage (the dev API omits it).
     ...(includeSendImage ? (albumEnabled ? [SEND_PRODUCT_PHOTOS_TOOL] : [SEND_IMAGE_TOOL]) : []),
     ...(albumEnabled ? [SEND_PRODUCT_ALBUM_TOOL] : []),
+    ...(includeSendImage && taggingEnabled ? [TAG_CONVERSATION_TOOL] : []),
     REQUEST_HUMAN_HANDOFF_TOOL,
     MARK_QUALIFIED_LEAD_TOOL,
     ...buildWebhookToolDefinitions(externalTools),
@@ -150,6 +156,12 @@ export async function runAgentTurn(
           })
         } else if (tc.name === "send_product_catalog") {
           toolResult = await executeSendProductAlbum(tc.arguments, {
+            agentId,
+            conversationId,
+            toJid: senderJid,
+          })
+        } else if (tc.name === "tag_conversation") {
+          toolResult = await executeTagConversation(tc.arguments, {
             agentId,
             conversationId,
             toJid: senderJid,
