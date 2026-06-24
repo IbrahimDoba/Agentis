@@ -76,6 +76,142 @@ export async function initializeTransaction(args: InitializeArgs): Promise<Initi
   }
 }
 
+// ── Saved-card authorization (recurring charges) ───────────────────────────
+
+/**
+ * A Paystack card authorization. Captured from the first successful charge
+ * (verify / webhook) and reused to charge the same card again. ONLY charge
+ * authorizations where `reusable` is true.
+ */
+export interface PaystackAuthorization {
+  authorization_code: string
+  last4?: string
+  exp_month?: string
+  exp_year?: string
+  card_type?: string
+  bank?: string
+  brand?: string
+  reusable?: boolean
+}
+
+export interface ChargeAuthorizationArgs {
+  /** Reusable card token from a prior successful transaction. */
+  authorizationCode: string
+  email: string
+  /** Amount in KOBO. Can differ each cycle (plan + overage). */
+  amountKobo: number
+  /** Our deterministic per-cycle reference — the idempotency anchor. */
+  reference: string
+  metadata?: Record<string, unknown>
+}
+
+export interface ChargeAuthorizationResult {
+  /** Transaction outcome: "success" | "failed" | "abandoned" | ... */
+  status: string
+  reference: string
+  /** Paystack fee in kobo, when present. */
+  feesKobo?: number
+  gatewayResponse?: string
+}
+
+/**
+ * Charge a saved (reusable) card. Used for subscription renewals and immediate
+ * upgrade charges — WE control the timing (our cron) and the amount.
+ * Throws only on transport / non-2xx; a declined card returns status "failed".
+ */
+export async function chargeAuthorization(args: ChargeAuthorizationArgs): Promise<ChargeAuthorizationResult> {
+  const res = await fetch(`${PAYSTACK_BASE}/transaction/charge_authorization`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${getSecretKey()}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      authorization_code: args.authorizationCode,
+      email: args.email,
+      amount: args.amountKobo,
+      reference: args.reference,
+      metadata: args.metadata,
+    }),
+  })
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => "")
+    throw new Error(`Paystack charge_authorization failed: HTTP ${res.status} ${body.slice(0, 300)}`)
+  }
+  const json = (await res.json()) as {
+    status: boolean
+    message?: string
+    data?: { status?: string; reference?: string; fees?: number; gateway_response?: string }
+  }
+  // `status:false` at the API level means the request itself was rejected
+  // (e.g. authorization not reusable) — treat as a failed charge, not a throw,
+  // so the caller's dunning path handles it uniformly.
+  if (!json.status || !json.data) {
+    return { status: "failed", reference: args.reference, gatewayResponse: json.message }
+  }
+  return {
+    status: json.data.status ?? "failed",
+    reference: json.data.reference ?? args.reference,
+    feesKobo: typeof json.data.fees === "number" ? json.data.fees : undefined,
+    gatewayResponse: json.data.gateway_response,
+  }
+}
+
+// ── Transaction verify (reconcile + capture authorization) ─────────────────
+
+export interface VerifyResult {
+  status: string // transaction status: "success" | "failed" | ...
+  reference: string
+  amountKobo: number
+  feesKobo?: number
+  customerCode?: string
+  email?: string
+  authorization?: PaystackAuthorization
+  metadata?: Record<string, unknown>
+}
+
+/**
+ * Verify a transaction by reference (GET /transaction/verify/:ref). Used to
+ * (a) reconcile after the checkout redirect in case the webhook is delayed and
+ * (b) capture the reusable card authorization from the first payment.
+ */
+export async function verifyTransaction(reference: string): Promise<VerifyResult> {
+  const res = await fetch(`${PAYSTACK_BASE}/transaction/verify/${encodeURIComponent(reference)}`, {
+    headers: { Authorization: `Bearer ${getSecretKey()}` },
+  })
+  if (!res.ok) {
+    const body = await res.text().catch(() => "")
+    throw new Error(`Paystack verify failed: HTTP ${res.status} ${body.slice(0, 300)}`)
+  }
+  const json = (await res.json()) as {
+    status: boolean
+    message?: string
+    data?: {
+      status?: string
+      reference?: string
+      amount?: number
+      fees?: number
+      customer?: { customer_code?: string; email?: string }
+      authorization?: PaystackAuthorization
+      metadata?: Record<string, unknown>
+    }
+  }
+  if (!json.status || !json.data) {
+    throw new Error(`Paystack verify failed: ${json.message ?? "unknown error"}`)
+  }
+  return {
+    status: json.data.status ?? "failed",
+    reference: json.data.reference ?? reference,
+    amountKobo: typeof json.data.amount === "number" ? json.data.amount : 0,
+    feesKobo: typeof json.data.fees === "number" ? json.data.fees : undefined,
+    customerCode: json.data.customer?.customer_code,
+    email: json.data.customer?.email,
+    authorization: json.data.authorization,
+    metadata: json.data.metadata,
+  }
+}
+
 // ── Webhook signature verification ─────────────────────────────────────────
 
 /**
@@ -130,4 +266,16 @@ export function newPaystackReference(): string {
   const random = Math.random().toString(36).slice(2, 10)
   const ts = Date.now().toString(36)
   return `DZ_${ts}_${random}`
+}
+
+/**
+ * Reference for a subscription's FIRST charge / ad-hoc upgrade (DZ_SUB_ prefix
+ * so subscription charges are distinguishable from credit top-ups in the
+ * dashboard and in our unified webhook router). Recurring renewals use a
+ * deterministic per-cycle reference built in the billing lib instead.
+ */
+export function newSubscriptionReference(): string {
+  const random = Math.random().toString(36).slice(2, 10)
+  const ts = Date.now().toString(36)
+  return `DZ_SUB_${ts}_${random}`
 }

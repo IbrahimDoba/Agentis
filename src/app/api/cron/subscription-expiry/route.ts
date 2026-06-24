@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { runSubscriptionExpiryScan } from "@/lib/subscription-expiry-job"
+import { runSubscriptionRenewalScan } from "@/lib/subscription-renewal-job"
 
 // Daily scheduled scan for the subscription-expiry email cycle. Should be
 // hit once per day by an external scheduler (Railway cron, Vercel cron,
@@ -26,11 +27,16 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
   const startedAt = Date.now()
-  const summary = await runSubscriptionExpiryScan()
+  // Charge due/auto-renewing subscriptions first (renewals, dunning, lapse →
+  // Free), THEN send expiry-warning / expired emails to whoever still needs
+  // them (e.g. cancelled or card-less subscriptions winding down).
+  const renewal = await runSubscriptionRenewalScan()
+  const expiry = await runSubscriptionExpiryScan()
   return NextResponse.json({
     ok: true,
     durationMs: Date.now() - startedAt,
-    ...summary,
+    renewal,
+    expiry,
   })
 }
 
