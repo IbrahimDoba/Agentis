@@ -21,9 +21,13 @@ RUN pnpm install --frozen-lockfile
 WORKDIR /app/worker
 RUN pnpm build
 
-# Auth sessions stored in a named volume — never baked into the image
-# Auth sessions should be mapped to a Railway Volume via the Railway Dashboard
+# Auth sessions persist on a Railway Volume — never baked into the image.
+# AUTH_STORAGE_DIR MUST equal the volume's mount path. whatsapp-worker-volume is
+# mounted at /app/auth_sessions; without this the worker would write auth to
+# /app/worker/auth_sessions (runtime cwd is /app/worker) — ephemeral disk — and
+# re-download every backup from Supabase on each restart (Supabase egress).
 ENV NODE_ENV=production
+ENV AUTH_STORAGE_DIR=/app/auth_sessions
 EXPOSE 4000
 
 CMD ["pm2-runtime", "ecosystem.config.cjs"]
