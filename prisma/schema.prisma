@@ -157,6 +157,10 @@ model Agent {
   // When on, the AI may tag/categorise chats with the business's WhatsApp
   // labels (the tag_conversation tool). Off by default.
   chatTaggingEnabled   Boolean     @default(false)
+  // When on, the AI also keeps tagging while a HUMAN is handling the chat — a
+  // cheap, throttled classify-only pass (no reply). Off by default; only matters
+  // when chatTaggingEnabled is also on.
+  backgroundTaggingEnabled Boolean @default(false)
   toolsData            Json?
   openaiApiKey         String?
   transportType        String      @default("waba")

@@ -16,7 +16,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
 
   const agent = await db.agent.findFirst({
     where: { id, userId: session.user.id },
-    select: { id: true, chatTaggingEnabled: true },
+    select: { id: true, chatTaggingEnabled: true, backgroundTaggingEnabled: true },
   })
   if (!agent) return NextResponse.json({ error: "Not found" }, { status: 404 })
 
@@ -26,11 +26,16 @@ export async function GET(_req: NextRequest, { params }: Params) {
     select: { waLabelId: true, name: true, color: true, isStage: true, stageOrder: true, applyRule: true },
   })
 
-  return NextResponse.json({ chatTaggingEnabled: agent.chatTaggingEnabled, labels })
+  return NextResponse.json({
+    chatTaggingEnabled: agent.chatTaggingEnabled,
+    backgroundTaggingEnabled: agent.backgroundTaggingEnabled,
+    labels,
+  })
 }
 
 const patchSchema = z.object({
   chatTaggingEnabled: z.boolean().optional(),
+  backgroundTaggingEnabled: z.boolean().optional(),
   labels: z.array(z.object({
     waLabelId: z.string().min(1),
     isStage: z.boolean().optional(),
@@ -51,8 +56,11 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   if (!parsed.success) return NextResponse.json({ error: "Invalid body" }, { status: 400 })
   const body = parsed.data
 
-  if (typeof body.chatTaggingEnabled === "boolean") {
-    await db.agent.update({ where: { id }, data: { chatTaggingEnabled: body.chatTaggingEnabled } })
+  const agentData: { chatTaggingEnabled?: boolean; backgroundTaggingEnabled?: boolean } = {}
+  if (typeof body.chatTaggingEnabled === "boolean") agentData.chatTaggingEnabled = body.chatTaggingEnabled
+  if (typeof body.backgroundTaggingEnabled === "boolean") agentData.backgroundTaggingEnabled = body.backgroundTaggingEnabled
+  if (Object.keys(agentData).length > 0) {
+    await db.agent.update({ where: { id }, data: agentData })
   }
 
   if (body.labels?.length) {

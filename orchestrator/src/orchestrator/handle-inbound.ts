@@ -12,6 +12,8 @@ import { buildRichContent } from "./rich-content.js"
 import { publishSseEvent } from "../lib/sse-publish.js"
 import { runAgentTurn } from "./run-agent-turn.js"
 import { guardReply } from "./reply-guard.js"
+import { getChatTaggingFlags } from "../db/queries/labels.js"
+import { classifyAndTagInBackground } from "./background-tagger.js"
 import { logger as rootLogger } from "../lib/logger.js"
 
 const logger = rootLogger.child({ module: "handle-inbound" })
@@ -95,8 +97,30 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
     direction: "inbound",
   })
 
+  // When the AI won't reply (human handling, or AI globally paused), still keep
+  // the chat's labels current — a cheap, throttled classify-only pass (no reply,
+  // no credit charge). WhatsApp only; gated by both per-agent tagging toggles.
+  const maybeBackgroundTag = async () => {
+    if (channel !== "whatsapp") return
+    try {
+      const flags = await getChatTaggingFlags(agentId)
+      if (flags.tagging && flags.background) {
+        await classifyAndTagInBackground({
+          agentId,
+          model: agent.model,
+          conversationId: conversation.id,
+          senderJid,
+          latestText: text,
+        })
+      }
+    } catch (err) {
+      logger.warn({ agentId, conversationId: conversation.id, err: String(err) }, "background tag attempt failed")
+    }
+  }
+
   // 4. Check mode — skip AI reply if human is handling this conversation
   if (conversation.mode === "human") {
+    await maybeBackgroundTag()
     logger.info({ agentId, conversationId: conversation.id }, "Conversation in human handoff mode — skipping AI reply")
     return
   }
@@ -104,6 +128,7 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
   // 4b. Global master switch — skip the AI for ALL conversations when the agent
   // has "AI replies" turned off (the inbound message is still saved above).
   if (await isAiRepliesPaused(agentId)) {
+    await maybeBackgroundTag()
     logger.info({ agentId, conversationId: conversation.id }, "AI replies disabled for agent — skipping AI reply")
     return
   }

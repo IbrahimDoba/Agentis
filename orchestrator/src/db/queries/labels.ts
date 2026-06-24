@@ -44,3 +44,21 @@ export async function isChatTaggingEnabled(agentId: string): Promise<boolean> {
     return false
   }
 }
+
+// Both tagging flags in one query (used on the human-mode / paused path so we
+// don't do two round-trips). Defaults off if the columns aren't present yet.
+export async function getChatTaggingFlags(
+  agentId: string
+): Promise<{ tagging: boolean; background: boolean }> {
+  try {
+    const rows = await sql<{ chatTaggingEnabled: boolean; backgroundTaggingEnabled: boolean }[]>`
+      SELECT "chatTaggingEnabled", "backgroundTaggingEnabled" FROM "Agent" WHERE "id" = ${agentId} LIMIT 1
+    `
+    return {
+      tagging: rows[0]?.chatTaggingEnabled === true,
+      background: rows[0]?.backgroundTaggingEnabled === true,
+    }
+  } catch {
+    return { tagging: false, background: false }
+  }
+}
