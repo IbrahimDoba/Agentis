@@ -2,6 +2,7 @@ import { getAgentTools, isProductAlbumEnabled, type OrchestratorAgent } from "..
 import { resolveProvider } from "../providers/registry.js"
 import { SEND_IMAGE_TOOL, executeSendImage } from "../tools/built-in/send-image.js"
 import { SEND_PRODUCT_ALBUM_TOOL, executeSendProductAlbum } from "../tools/built-in/send-product-album.js"
+import { SEND_PRODUCT_PHOTOS_TOOL, executeSendProductPhotos } from "../tools/built-in/send-product-photos.js"
 import { REQUEST_HUMAN_HANDOFF_TOOL, executeRequestHumanHandoff } from "../tools/built-in/request-human-handoff.js"
 import { MARK_QUALIFIED_LEAD_TOOL, executeMarkQualifiedLead } from "../tools/built-in/mark-qualified-lead.js"
 import { TAG_CONVERSATION_TOOL, executeTagConversation } from "../tools/built-in/tag-conversation.js"
@@ -84,7 +85,11 @@ export async function runAgentTurn(
   // includeSendImage (the dev API omits it) as well as the per-agent toggle.
   const taggingEnabled = await isChatTaggingEnabled(agentId)
   const tools = [
-    ...(includeSendImage ? [SEND_IMAGE_TOOL] : []),
+    // Specific-product images: when the album feature is ON the AI shows a
+    // product's full set of photos (all angles) via send_product_photos; when
+    // OFF it falls back to a single image via send_image. Both send to a
+    // WhatsApp JID, so they're gated by includeSendImage (the dev API omits it).
+    ...(includeSendImage ? (albumEnabled ? [SEND_PRODUCT_PHOTOS_TOOL] : [SEND_IMAGE_TOOL]) : []),
     ...(albumEnabled ? [SEND_PRODUCT_ALBUM_TOOL] : []),
     ...(includeSendImage && taggingEnabled ? [TAG_CONVERSATION_TOOL] : []),
     REQUEST_HUMAN_HANDOFF_TOOL,
@@ -157,6 +162,12 @@ export async function runAgentTurn(
           })
         } else if (tc.name === "tag_conversation") {
           toolResult = await executeTagConversation(tc.arguments, {
+            agentId,
+            conversationId,
+            toJid: senderJid,
+          })
+        } else if (tc.name === "send_product_photos") {
+          toolResult = await executeSendProductPhotos(tc.arguments, {
             agentId,
             conversationId,
             toJid: senderJid,

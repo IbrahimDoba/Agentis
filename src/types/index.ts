@@ -49,7 +49,12 @@ export interface Product {
   description?: string
   price?: string
   link?: string
+  // Cover photo — kept in sync with images[0]. Retained for backward
+  // compatibility (catalogue album, text sync, single-image send all read it).
   imageUrl?: string
+  // All photos of this product (different angles). images[0] is the cover.
+  // The AI sends these as a per-product album when a customer asks about it.
+  images?: string[]
   mediaId?: string
 }
 

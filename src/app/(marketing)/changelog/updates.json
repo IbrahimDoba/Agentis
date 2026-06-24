@@ -1,5 +1,123 @@
 [
   {
+    "date": "18 June 2026",
+    "tag": "Improvement",
+    "tagColor": "blue",
+    "title": "More Reliable WhatsApp Connections",
+    "description": "A wave of stability work so your agent stays online and never double-replies. Sessions that used to drop now recover on their own, and a few subtle messaging bugs are gone.",
+    "bullets": [
+      "Upgraded our WhatsApp engine to restore reliable QR pairing and device linking",
+      "An auto-reviving watchdog brings a stuck session back online within minutes — no manual restart",
+      "Detects 'deaf' sessions that look connected but stopped receiving, and reconnects them",
+      "Fixed duplicate AI replies that could happen right after a reconnect",
+      "Links and bold text now render correctly in WhatsApp (plain URLs, single-asterisk bold)"
+    ]
+  },
+  {
+    "date": "17 June 2026",
+    "tag": "New",
+    "tagColor": "green",
+    "title": "Pay As You Go Credits",
+    "description": "Run out of monthly credits mid-cycle? Top up a credit wallet instantly instead of waiting for your plan to reset. Wallet credits are only used after your plan's monthly allowance is exhausted, so there are no surprises.",
+    "bullets": [
+      "Buy credit packs from the Credits page — pay securely with Paystack",
+      "Cheaper per credit the more you buy",
+      "Wallet credits stay valid for 12 months, and every top-up extends that window",
+      "Used automatically only after your plan allowance runs out",
+      "Available on every plan, including Free"
+    ]
+  },
+  {
+    "date": "17 June 2026",
+    "tag": "Improvement",
+    "tagColor": "blue",
+    "title": "Lower Monthly Prices",
+    "description": "We've cut the price of our monthly plans to make getting started easier — same credits, same features, less per month.",
+    "bullets": [
+      "Every paid monthly plan is now ₦15,000 cheaper",
+      "No change to your credit allowance or features",
+      "Existing subscribers move to the new pricing on their next renewal"
+    ]
+  },
+  {
+    "date": "16 June 2026",
+    "tag": "New",
+    "tagColor": "green",
+    "title": "Reply Guard — A Second Pair of Eyes on Every Reply",
+    "description": "An optional overseer that reviews your AI's reply before it sends and rewrites anything repetitive, rambling, or awkward into a clean, on-brand message. It never suppresses a reply — your customer always gets an answer.",
+    "bullets": [
+      "Catches and fixes repeated phrasing or over-long replies",
+      "Keeps good replies exactly as written — only steps in when needed",
+      "Per-agent toggle in Settings, off by default",
+      "Handoffs stay with the main agent, so routine questions don't get over-escalated"
+    ]
+  },
+  {
+    "date": "12 June 2026",
+    "tag": "New",
+    "tagColor": "green",
+    "title": "The AI Can Now See Images",
+    "description": "Customers can send a photo and your AI understands it. Whether they snap a picture or tap one of your product images to ask about it, the AI sees what they see and replies accordingly.",
+    "bullets": [
+      "Reads photos a customer sends directly",
+      "Understands a photo they quote-reply to (e.g. tapping a specific product you sent)",
+      "Works automatically — no setup needed",
+      "Billed through your normal credits, with no new charge type"
+    ]
+  },
+  {
+    "date": "12 June 2026",
+    "tag": "New",
+    "tagColor": "green",
+    "title": "Send Your Whole Catalogue as a Photo Album",
+    "description": "When a customer wants to browse, your AI can send your entire product range as one tidy WhatsApp album instead of a wall of separate images. Ask about a single item and it sends just that one.",
+    "bullets": [
+      "AI sends the full catalogue as a single grouped album on 'show me everything'",
+      "Asks about one product → sends just that product's image",
+      "Each photo is captioned with its product name",
+      "Per-agent toggle, with an optional intro line above the album",
+      "Sent at most once per conversation to protect your credits"
+    ]
+  },
+  {
+    "date": "8 June 2026",
+    "tag": "New",
+    "tagColor": "green",
+    "title": "Developer API",
+    "description": "Build D-Zero into your own tools. Send WhatsApp messages, verify numbers, and manage your agents programmatically with API keys you control.",
+    "bullets": [
+      "Send outbound messages with POST /v1/messages",
+      "Check whether a number is on WhatsApp with POST /v1/contacts/check",
+      "Create and scope API keys, with an optional daily spend cap",
+      "Developer mode unlocks an integrations hub and copyable agent IDs",
+      "Full docs at /developers with cURL, JavaScript, and Python examples"
+    ]
+  },
+  {
+    "date": "8 June 2026",
+    "tag": "New",
+    "tagColor": "green",
+    "title": "AI On/Off Switch & Auto-Resume",
+    "description": "More control over when your AI is active. Flip a single switch to pause the AI across every conversation, and have it automatically come back after a quiet period when you've taken over a chat.",
+    "bullets": [
+      "Global 'AI replies' master switch per agent — pause or resume every conversation at once",
+      "Auto-resume brings the AI back after a chat has sat idle in human mode (Off / 30m / 1h / 2h / 4h)",
+      "Set it once per agent and forget it"
+    ]
+  },
+  {
+    "date": "8 June 2026",
+    "tag": "Improvement",
+    "tagColor": "blue",
+    "title": "Simpler 3-Step Onboarding",
+    "description": "Getting your agent live is faster — onboarding is now three focused steps: personality, knowledge, and connect.",
+    "bullets": [
+      "Streamlined from five steps down to three",
+      "Removed the goals and platform-tour steps — explore the dashboard at your own pace",
+      "A single Connect WhatsApp call-to-action takes you straight to the QR scan"
+    ]
+  },
+  {
     "date": "17 May 2026",
     "tag": "New",
     "tagColor": "green",

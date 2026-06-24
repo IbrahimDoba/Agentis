@@ -36,6 +36,22 @@ model User {
   subscriptionExpiresAt   DateTime?
   expiryWarningEmailSentAt DateTime?
   expiredEmailSentAt       DateTime?
+  // Paystack recurring billing. Captured on the first successful subscription
+  // charge (a hosted-checkout payment) and reused by the renewal cron via
+  // charge_authorization. Auto-renew only runs when authorizationReusable.
+  paystackAuthorizationCode String?
+  paystackCustomerCode      String?
+  cardLast4                 String?
+  cardBrand                 String?
+  cardExpiry                String?   // "MM/YY", for the "update card" UI
+  authorizationReusable     Boolean   @default(false)
+  autoRenew                 Boolean   @default(false)
+  subscriptionStatus        String    @default("none") // none | active | past_due | cancelled
+  cancelAtPeriodEnd         Boolean   @default(false)
+  pendingPlan               String?   // scheduled downgrade, applied at next renewal
+  renewalRetryCount         Int       @default(0)
+  lastRenewalAttemptAt      DateTime?
+  paymentFailedEmailSentAt  DateTime?
   // Pay-as-you-go wallet. Spent only after the user's plan allowance is
   // exhausted for the cycle. `creditsExpireAt` is set to (now + 12mo) on
   // every top-up — rolling expiry, so active users never lose credits.
@@ -55,6 +71,7 @@ model User {
   referredBy         Referral?  @relation("ReferredBy")
   paymentRequests    PaymentRequest[]
   creditPurchases    CreditPurchase[]
+  subscriptionCharges SubscriptionCharge[]
   apiKeys            ApiKey[]
 }
 
@@ -514,6 +531,7 @@ enum PaymentStatus {
   PENDING
   PAID
   CANCELLED
+  FAILED
 }
 
 model NewsletterSubscriber {
@@ -671,6 +689,32 @@ model CreditPurchase {
   createdAt    DateTime      @default(now())
   completedAt  DateTime?
   expiresAt    DateTime                                 // = completedAt + 12 months (when known)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([status, createdAt])
+}
+
+// Ledger + idempotency anchor for every monthly-plan charge through Paystack
+// (initial subscribe, auto-renewal, mid-cycle upgrade). Mirrors CreditPurchase.
+// The unique `reference` makes webhook/cron replays safe; renewals use a
+// deterministic per-cycle reference so a double charge is impossible.
+model SubscriptionCharge {
+  id            String        @id @default(cuid())
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan          String                                   // plan being paid for
+  amountNaira   Int                                      // total charged (planNaira + overageNaira)
+  planNaira     Int                                      // plan-price portion
+  overageNaira  Int           @default(0)                // prior-cycle overage portion (starter/pro)
+  netNaira      Int                                      // after Paystack fees
+  reference     String        @unique                    // idempotency anchor (deterministic per cycle)
+  status        PaymentStatus @default(PENDING)
+  kind          String        @default("renewal")        // initial | renewal | upgrade
+  periodStart   DateTime
+  periodEnd     DateTime
+  failureReason String?
+  createdAt     DateTime      @default(now())
+  completedAt   DateTime?
 
   @@index([userId, createdAt(sort: Desc)])
   @@index([status, createdAt])

@@ -7,7 +7,10 @@ import { supabase } from "../db/supabase.js"
 import { config } from "../config.js"
 import { logger } from "../lib/logger.js"
 
-const AUTH_BASE = path.resolve("auth_sessions")
+// Configurable so it can point at a PERSISTENT Railway volume — when the auth
+// folder survives restarts, the worker stops re-downloading every agent's
+// backup from Supabase on each boot (the main Supabase egress source).
+const AUTH_BASE = path.resolve(config.AUTH_STORAGE_DIR)
 
 function sessionDir(agentId: string) {
   return path.join(AUTH_BASE, agentId)
@@ -58,6 +61,17 @@ async function encryptLocalFiles(dir: string) {
       logger.warn({ err, file }, "Failed to encrypt auth file")
     }
   }
+
+  // Prune orphaned .enc backups whose plaintext file Baileys has since deleted
+  // (used pre-keys, rotated sessions). Without this the backup set grows forever
+  // and every restore download gets bigger — a major Supabase egress driver.
+  const plainSet = new Set(files.filter((f) => !f.endsWith(".enc")))
+  for (const file of files) {
+    if (!file.endsWith(".enc")) continue
+    if (!plainSet.has(file.slice(0, -4))) {
+      try { await rm(path.join(dir, file), { force: true }) } catch { /* ignore */ }
+    }
+  }
 }
 
 let bucketExists: boolean | null = null
@@ -88,6 +102,23 @@ async function backupToStorage(agentId: string, dir: string) {
     } catch (err) {
       logger.warn({ err, file }, "Failed to backup auth file")
     }
+  }
+
+  // Prune backups in storage that no longer exist locally. uploads are
+  // upsert-only and never deleted, so without this the bucket keeps every
+  // rotated key/session forever — bloating each restore download (egress).
+  try {
+    const localSet = new Set(files)
+    const { data: remote } = await supabase.storage.from(config.AUTH_STORAGE_BUCKET).list(agentId)
+    const stale = (remote ?? [])
+      .filter((f) => !localSet.has(f.name))
+      .map((f) => `${agentId}/${f.name}`)
+    if (stale.length > 0) {
+      await supabase.storage.from(config.AUTH_STORAGE_BUCKET).remove(stale)
+      logger.info({ agentId, pruned: stale.length }, "Pruned stale auth backups from storage")
+    }
+  } catch (err) {
+    logger.warn({ err, agentId }, "Failed to prune stale auth backups")
   }
 }
 

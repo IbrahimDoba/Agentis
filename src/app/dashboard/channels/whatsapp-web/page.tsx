@@ -620,6 +620,35 @@ export default function WhatsAppWebPage() {
                 )}
               </div>
 
+              {!isConnected && (
+                <div
+                  style={{
+                    marginTop: 16,
+                    padding: "12px 14px",
+                    borderRadius: 10,
+                    background: "rgba(0, 220, 130, 0.06)",
+                    border: "1px solid rgba(0, 220, 130, 0.25)",
+                    fontSize: 13,
+                    lineHeight: 1.55,
+                    color: "var(--text-secondary, #6b7280)",
+                  }}
+                >
+                  🔒 <strong style={{ color: "var(--text, #111111)" }}>Your data is safe.</strong> We connect to your
+                  WhatsApp over an encrypted connection and use your conversations <em>only</em> to run your AI agent —
+                  never to advertise, never sold, never shared with other businesses. Access is tightly restricted and
+                  protected under our{" "}
+                  <a
+                    href="/privacy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: "#00dc82", fontWeight: 600, textDecoration: "none" }}
+                  >
+                    Privacy Policy
+                  </a>
+                  .
+                </div>
+              )}
+
               {session && isConnected && (() => {
                 const maxPerDay = TIER_MAX_PER_DAY[Number(session.warmupTier)] ?? 40
                 const used = session.dailyMessageCount

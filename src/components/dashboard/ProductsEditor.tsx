@@ -5,7 +5,7 @@ import Image from "next/image"
 import {
   PlusIcon, PencilIcon, TrashIcon,
   ArrowPathIcon, CubeIcon, XMarkIcon,
-  PhotoIcon,
+  PhotoIcon, StarIcon,
 } from "@heroicons/react/24/outline"
 import { Input } from "@/components/ui/Input"
 import type { Product } from "@/types"
@@ -15,7 +15,22 @@ function nanoid() {
   return Math.random().toString(36).slice(2, 10)
 }
 
-const EMPTY_FORM = { name: "", description: "", price: "", link: "", imageUrl: "" }
+interface FormState {
+  name: string
+  description: string
+  price: string
+  link: string
+  images: string[]
+}
+
+const EMPTY_FORM: FormState = { name: "", description: "", price: "", link: "", images: [] }
+
+// Back-compat: older products only carry a single `imageUrl`. Treat it as the
+// sole (cover) photo so editing an old product doesn't lose its image.
+function productImages(product: Product): string[] {
+  if (product.images && product.images.length > 0) return product.images
+  return product.imageUrl ? [product.imageUrl] : []
+}
 
 interface ProductsEditorProps {
   value: Product[]
@@ -25,7 +40,7 @@ interface ProductsEditorProps {
 export function ProductsEditor({ value, onChange }: ProductsEditorProps) {
   const [modalOpen, setModalOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [form, setForm] = useState(EMPTY_FORM)
+  const [form, setForm] = useState<FormState>(EMPTY_FORM)
   const [isUploading, setIsUploading] = useState(false)
   const [uploadError, setUploadError] = useState("")
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -44,7 +59,7 @@ export function ProductsEditor({ value, onChange }: ProductsEditorProps) {
       description: product.description ?? "",
       price: product.price ?? "",
       link: product.link ?? "",
-      imageUrl: product.imageUrl ?? "",
+      images: productImages(product),
     })
     setUploadError("")
     setModalOpen(true)
@@ -62,31 +77,66 @@ export function ProductsEditor({ value, onChange }: ProductsEditorProps) {
     setForm((f) => ({ ...f, [name]: value }))
   }
 
+  // Upload one or more photos. Each file is sent to /api/upload and the returned
+  // URL is appended to the product's image list. images[0] is the cover (used
+  // for the catalogue overview + card preview); the rest are extra angles the AI
+  // sends as a per-product album.
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const files = Array.from(e.target.files ?? [])
+    if (files.length === 0) return
     setIsUploading(true)
     setUploadError("")
     try {
-      const formData = new FormData()
-      formData.append("file", file)
-      const res = await fetch("/api/upload", { method: "POST", body: formData })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? "Upload failed")
-      setForm((f) => ({ ...f, imageUrl: data.url }))
+      const uploaded: string[] = []
+      for (const file of files) {
+        const formData = new FormData()
+        formData.append("file", file)
+        const res = await fetch("/api/upload", { method: "POST", body: formData })
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error ?? "Upload failed")
+        uploaded.push(data.url)
+      }
+      setForm((f) => ({ ...f, images: [...f.images, ...uploaded] }))
     } catch {
-      setUploadError("Image upload failed. Try again.")
+      setUploadError("One or more photos failed to upload. Try again.")
     } finally {
       setIsUploading(false)
+      // Reset so selecting the same file again still fires onChange.
+      if (fileInputRef.current) fileInputRef.current.value = ""
     }
+  }
+
+  const removeImage = (index: number) => {
+    setForm((f) => ({ ...f, images: f.images.filter((_, i) => i !== index) }))
+  }
+
+  // Promote a photo to cover by moving it to the front of the list.
+  const makeCover = (index: number) => {
+    setForm((f) => {
+      if (index <= 0) return f
+      const next = [...f.images]
+      const [pick] = next.splice(index, 1)
+      next.unshift(pick)
+      return { ...f, images: next }
+    })
   }
 
   const handleSave = () => {
     if (!form.name.trim()) return
+    // Keep imageUrl in sync with the cover (images[0]) so the catalogue album,
+    // ElevenLabs text sync, and single-image send keep working unchanged.
+    const patch = {
+      name: form.name,
+      description: form.description,
+      price: form.price,
+      link: form.link,
+      images: form.images,
+      imageUrl: form.images[0] ?? "",
+    }
     if (editingId) {
-      onChange(value.map((p) => p.id === editingId ? { ...p, ...form } : p))
+      onChange(value.map((p) => p.id === editingId ? { ...p, ...patch } : p))
     } else {
-      onChange([...value, { id: nanoid(), ...form }])
+      onChange([...value, { id: nanoid(), ...patch }])
     }
     closeModal()
   }
@@ -105,18 +155,22 @@ export function ProductsEditor({ value, onChange }: ProductsEditorProps) {
         </div>
         <p className={styles.sectionHint}>
           The AI agent uses these to answer product questions and send images to customers.
+          Add several photos to a product and the AI sends them all as an album when a customer asks about it.
         </p>
       </div>
 
       {/* Grid */}
       <div className={styles.grid}>
-        {value.map((product) => (
+        {value.map((product) => {
+          const imgs = productImages(product)
+          const cover = imgs[0]
+          return (
           <div key={product.id} className={styles.card}>
             {/* Image */}
             <div className={styles.cardImage}>
-              {product.imageUrl ? (
+              {cover ? (
                 <Image
-                  src={product.imageUrl}
+                  src={cover}
                   alt={product.name}
                   fill
                   className={styles.cardImg}
@@ -125,6 +179,19 @@ export function ProductsEditor({ value, onChange }: ProductsEditorProps) {
                 <div className={styles.cardImgFallback}>
                   <CubeIcon width={28} height={28} />
                 </div>
+              )}
+              {/* Photo-count badge (only when more than one) */}
+              {imgs.length > 1 && (
+                <span
+                  style={{
+                    position: "absolute", top: 6, left: 6, zIndex: 1,
+                    display: "inline-flex", alignItems: "center", gap: 3,
+                    padding: "2px 6px", borderRadius: 999, fontSize: 11, fontWeight: 600,
+                    background: "rgba(0,0,0,0.6)", color: "#fff",
+                  }}
+                >
+                  <PhotoIcon width={11} height={11} /> {imgs.length}
+                </span>
               )}
               {/* Hover actions */}
               <div className={styles.cardOverlay}>
@@ -156,7 +223,8 @@ export function ProductsEditor({ value, onChange }: ProductsEditorProps) {
               )}
             </div>
           </div>
-        ))}
+          )
+        })}
 
         {/* Add card */}
         <button type="button" className={styles.addCard} onClick={openAdd}>
@@ -181,23 +249,23 @@ export function ProductsEditor({ value, onChange }: ProductsEditorProps) {
             </div>
 
             <div className={styles.modalBody}>
-              {/* Image upload — big, prominent */}
+              {/* Cover / add-photos dropzone */}
               <div
                 className={styles.modalImageUpload}
                 onClick={() => !isUploading && fileInputRef.current?.click()}
               >
-                {form.imageUrl ? (
+                {form.images[0] ? (
                   <Image
-                    src={form.imageUrl}
-                    alt="Product"
+                    src={form.images[0]}
+                    alt="Product cover"
                     fill
                     className={styles.modalImg}
                   />
                 ) : (
                   <div className={styles.modalImgPlaceholder}>
                     <PhotoIcon width={32} height={32} />
-                    <span>Click to upload product photo</span>
-                    <span className={styles.modalImgHint}>JPG, PNG, WebP · Max 4MB</span>
+                    <span>Click to upload product photos</span>
+                    <span className={styles.modalImgHint}>You can select several · JPG, PNG, WebP · Max 4MB each</span>
                   </div>
                 )}
                 {isUploading && (
@@ -205,10 +273,10 @@ export function ProductsEditor({ value, onChange }: ProductsEditorProps) {
                     <ArrowPathIcon width={22} height={22} className={styles.spin} />
                   </div>
                 )}
-                {form.imageUrl && !isUploading && (
+                {form.images[0] && !isUploading && (
                   <div className={styles.modalImgChangeOverlay}>
                     <PhotoIcon width={16} height={16} />
-                    <span>Change photo</span>
+                    <span>Add more photos</span>
                   </div>
                 )}
               </div>
@@ -216,10 +284,66 @@ export function ProductsEditor({ value, onChange }: ProductsEditorProps) {
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
+                multiple
                 className={styles.hiddenInput}
                 onChange={handleImageUpload}
               />
               {uploadError && <p className={styles.uploadErr}>{uploadError}</p>}
+
+              {/* Thumbnail strip — all photos for this product (first = cover) */}
+              {form.images.length > 0 && (
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
+                  {form.images.map((url, i) => (
+                    <div
+                      key={`${url}-${i}`}
+                      style={{
+                        position: "relative", width: 64, height: 64, borderRadius: 8,
+                        overflow: "hidden", flexShrink: 0,
+                        border: i === 0 ? "2px solid var(--accent, #16a34a)" : "1px solid var(--border, #d4d4d8)",
+                      }}
+                    >
+                      <Image src={url} alt={`Photo ${i + 1}`} fill style={{ objectFit: "cover" }} />
+                      {i === 0 && (
+                        <span style={{
+                          position: "absolute", bottom: 0, left: 0, right: 0,
+                          fontSize: 9, lineHeight: "13px", textAlign: "center",
+                          background: "rgba(0,0,0,0.65)", color: "#fff",
+                        }}>Cover</span>
+                      )}
+                      {i !== 0 && (
+                        <button
+                          type="button"
+                          onClick={() => makeCover(i)}
+                          aria-label="Make cover photo"
+                          title="Make cover"
+                          style={{
+                            position: "absolute", bottom: 2, left: 2,
+                            width: 18, height: 18, padding: 0, borderRadius: 4, border: "none",
+                            background: "rgba(0,0,0,0.6)", color: "#fff", cursor: "pointer",
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                          }}
+                        >
+                          <StarIcon width={11} height={11} />
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => removeImage(i)}
+                        aria-label="Remove photo"
+                        title="Remove"
+                        style={{
+                          position: "absolute", top: 2, right: 2,
+                          width: 18, height: 18, padding: 0, borderRadius: 4, border: "none",
+                          background: "rgba(0,0,0,0.6)", color: "#fff", cursor: "pointer",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                        }}
+                      >
+                        <XMarkIcon width={11} height={11} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {/* Fields */}
               <div className={styles.modalFields}>
