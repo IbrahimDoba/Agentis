@@ -1,6 +1,6 @@
 import type { ToolDefinition } from "../../providers/types.js"
-import { listAgentLabels, getChatStageLabelIds } from "../../db/queries/labels.js"
-import { dispatchLabel } from "../../orchestrator/response-dispatcher.js"
+import { listAgentLabels } from "../../db/queries/labels.js"
+import { applyLabelWithMix } from "../../orchestrator/label-apply.js"
 import { logger as rootLogger } from "../../lib/logger.js"
 
 const logger = rootLogger.child({ module: "tool:tag_conversation" })
@@ -46,18 +46,7 @@ export async function executeTagConversation(
   }
 
   try {
-    // MIX rule: a stage label replaces the chat's other stage labels (one active
-    // at a time); an additive tag just gets added alongside.
-    if (label.isStage) {
-      const current = await getChatStageLabelIds(opts.agentId, opts.toJid)
-      for (const other of current) {
-        if (other === labelId) continue
-        await dispatchLabel({ agentId: opts.agentId, toJid: opts.toJid, waLabelId: other, action: "remove" })
-          .catch((err) => logger.warn({ err, other }, "stage label swap — remove failed (continuing)"))
-      }
-    }
-
-    await dispatchLabel({ agentId: opts.agentId, toJid: opts.toJid, waLabelId: labelId, action: "add", appliedBy: "ai" })
+    await applyLabelWithMix(opts.agentId, opts.toJid, label, "ai")
     logger.info({ agentId: opts.agentId, conversationId: opts.conversationId, labelId, isStage: label.isStage }, "tag_conversation applied")
     return JSON.stringify({ success: true, message: `Tagged this chat as "${label.name}".` })
   } catch (err) {

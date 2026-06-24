@@ -79,6 +79,7 @@ export const agentSchema = z.object({
   productAlbumEnabled: z.boolean().optional(),
   productAlbumTitle: z.string().max(700).optional(),
   chatTaggingEnabled: z.boolean().optional(),
+  backgroundTaggingEnabled: z.boolean().optional(),
   autoPauseOnHumanReply: z.boolean().optional(),
   pauseOnAiHandoff: z.boolean().optional(),
   pauseOnQualifiedLead: z.boolean().optional(),

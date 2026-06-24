@@ -17,6 +17,7 @@ interface LabelRow {
 // type="button" since it renders inside the settings <form>.
 export function LabelSettings({ agentId }: { agentId: string }) {
   const [enabled, setEnabled] = useState(false)
+  const [bgEnabled, setBgEnabled] = useState(false)
   const [labels, setLabels] = useState<LabelRow[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -28,6 +29,7 @@ export function LabelSettings({ agentId }: { agentId: string }) {
       .then((d) => {
         if (Array.isArray(d.labels)) {
           setEnabled(!!d.chatTaggingEnabled)
+          setBgEnabled(!!d.backgroundTaggingEnabled)
           setLabels(d.labels)
         }
       })
@@ -49,6 +51,7 @@ export function LabelSettings({ agentId }: { agentId: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           chatTaggingEnabled: enabled,
+          backgroundTaggingEnabled: bgEnabled,
           labels: labels.map((l) => ({
             waLabelId: l.waLabelId,
             isStage: l.isStage,
@@ -78,10 +81,23 @@ export function LabelSettings({ agentId }: { agentId: string }) {
       </p>
 
       {/* Master toggle */}
-      <label style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18, cursor: "pointer" }}>
+      <label style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14, cursor: "pointer" }}>
         <input type="checkbox" checked={enabled} onChange={(e) => { setEnabled(e.target.checked); setSaved(false) }} />
         <span style={{ fontSize: 14, fontWeight: 600 }}>Enable AI chat tagging</span>
       </label>
+
+      {/* Background tagging — only meaningful when tagging is on */}
+      {enabled && (
+        <label style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 18, cursor: "pointer", paddingLeft: 26 }}>
+          <input type="checkbox" checked={bgEnabled} onChange={(e) => { setBgEnabled(e.target.checked); setSaved(false) }} style={{ marginTop: 3 }} />
+          <span>
+            <span style={{ fontSize: 14, fontWeight: 600 }}>Keep tagging during human takeover</span>
+            <span style={{ display: "block", fontSize: 12, color: "var(--text-secondary, #6b7280)", marginTop: 2 }}>
+              When a teammate handles a chat, the AI still updates its labels in the background — a cheap, throttled check (no replies sent, no extra credits charged).
+            </span>
+          </span>
+        </label>
+      )}
 
       {loading ? (
         <p style={labelStyle}>Loading labels…</p>
