@@ -1,4 +1,6 @@
 import Link from "next/link"
+import { redirect } from "next/navigation"
+import { getTenant } from "@/lib/tenant"
 import styles from "./page.module.css"
 import { Navbar } from "@/components/landing/Navbar"
 import { Hero } from "@/components/landing/Hero"
@@ -32,7 +34,12 @@ const testimonials = [
   },
 ]
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  // White-label: a reseller's domain has no Dailzero marketing — send visitors
+  // straight to her branded signup. The platform tenant keeps the landing page.
+  const tenant = await getTenant()
+  if (tenant.id !== "platform") redirect("/signup")
+
   return (
     <>
       <Navbar />
