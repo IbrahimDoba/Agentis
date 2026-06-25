@@ -20,7 +20,13 @@ export default function TeamPage() {
             : "View the team members of this workspace."}
         </p>
       </div>
-      <TeamTab plan={planStats?.plan ?? "free"} isOwner={isOwner} />
+      <TeamTab
+        plan={planStats?.plan ?? "free"}
+        isOwner={isOwner}
+        role={data?.user?.role}
+        resellerId={data?.user?.resellerId}
+        subscriptionExpiresAt={planStats?.subscriptionExpiresAt ?? data?.user?.subscriptionExpiresAt ?? null}
+      />
     </div>
   )
 }

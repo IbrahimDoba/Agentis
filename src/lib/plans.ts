@@ -105,7 +105,27 @@ export const PLAN_SEAT_LIMITS: Record<string, number> = {
   starter: 2,
   pro: 5,
   enterprise: -1, // unlimited
-  reseller: 0, // team seats not offered to reseller-tenant users in the MVP
+  reseller: 0, // overridden by seatLimitFor() for reseller tenants — see below
+}
+
+// How many team seats a user gets. Reseller-tenant logic overrides the plan map:
+//   - A reseller admin always has teams (unlimited).
+//   - A reseller's client gets teams once she's activated a plan for them
+//     (i.e. they have an active subscription); before that, none.
+//   - Platform (Dailzero) users go by PLAN_SEAT_LIMITS.
+// Returns -1 for unlimited, 0 for "team disabled".
+export function seatLimitFor(u: {
+  role?: string | null
+  resellerId?: string | null
+  plan?: string | null
+  subscriptionExpiresAt?: string | Date | null
+}): number {
+  if (u.role === "RESELLER_ADMIN") return -1
+  if (u.resellerId && u.resellerId !== "platform") {
+    const active = u.subscriptionExpiresAt ? new Date(u.subscriptionExpiresAt) > new Date() : false
+    return active ? -1 : 0
+  }
+  return PLAN_SEAT_LIMITS[u.plan ?? "free"] ?? 0
 }
 
 export const COMMISSION_RATE = 0.15
