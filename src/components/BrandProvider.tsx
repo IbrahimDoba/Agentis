@@ -38,14 +38,3 @@ export function BrandWordmark({ size = 32 }: { size?: number }) {
     </>
   )
 }
-
-/** "Powered by Dailzero" — only shown on reseller tenants. */
-export function PoweredByDailzero() {
-  const brand = useBrand()
-  if (brand.isPlatform) return null
-  return (
-    <div style={{ marginTop: 18, fontSize: 12, color: "var(--text-secondary, #71717a)", textAlign: "center" }}>
-      Powered by Dailzero
-    </div>
-  )
-}
