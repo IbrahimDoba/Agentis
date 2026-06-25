@@ -19,6 +19,7 @@ export type Branding = {
   logoUrl: string | null
   primaryColor: string | null
   supportEmail: string
+  supportWhatsapp: string | null
 }
 
 const PLATFORM_APP_NAME = "D-Zero AI"
@@ -66,6 +67,7 @@ export async function getPlatformReseller(): Promise<Reseller> {
     logoUrl: null,
     primaryColor: null,
     supportEmail: PLATFORM_SUPPORT_EMAIL,
+    supportWhatsapp: null,
     status: "active",
     creditPool: 0,
     creditPoolTotal: 0,
@@ -93,6 +95,7 @@ export function getBranding(reseller: Reseller): Branding {
     logoUrl: reseller.logoUrl,
     primaryColor: reseller.primaryColor,
     supportEmail: reseller.supportEmail || PLATFORM_SUPPORT_EMAIL,
+    supportWhatsapp: reseller.supportWhatsapp ?? null,
   }
 }
 

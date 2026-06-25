@@ -22,6 +22,7 @@ import {
 } from "@heroicons/react/24/outline"
 import { cn } from "@/lib/utils"
 import { useDashboardData } from "@/hooks/useDashboardData"
+import { useBrand } from "@/components/BrandProvider"
 import { usePlanStats } from "@/hooks/usePlanStats"
 import { PLAN_LABELS } from "@/lib/plans"
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher"
@@ -98,6 +99,7 @@ const referralNavItem: NavItem = { href: "/dashboard/referrals", label: "Referra
 export function Sidebar({ userName, businessName, currentUserId, currentWorkspaceId, isOpen, onClose, collapsed, onToggleCollapse }: SidebarProps) {
   const pathname = usePathname()
   const { data } = useDashboardData()
+  const brand = useBrand()
   const { data: stats } = usePlanStats()
   // Reseller-tenant users keep the Billing entry — but it's a read-only
   // plan/credits view (the page + the payment APIs block self-pay).
@@ -343,6 +345,20 @@ export function Sidebar({ userName, businessName, currentUserId, currentWorkspac
             </Link>
           )
         })()}
+
+        {!collapsed && brand.supportWhatsapp && (
+          <div className={styles.navItemWrap}>
+            <a
+              href={`https://wa.me/${brand.supportWhatsapp.replace(/\D/g, "")}?text=${encodeURIComponent("Hi, I need help with my account.")}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.navLink}
+            >
+              <span className={styles.navIcon}><ChatBubbleLeftRightIcon width={16} height={16} /></span>
+              Contact support
+            </a>
+          </div>
+        )}
 
         {!collapsed && (
           <WorkspaceSwitcher

@@ -13,7 +13,7 @@ export async function GET() {
     where: { id: ctx.resellerId },
     select: {
       name: true, appName: true, logoUrl: true, primaryColor: true,
-      supportEmail: true, domain: true, domainAliases: true,
+      supportEmail: true, supportWhatsapp: true, domain: true, domainAliases: true,
     },
   })
   if (!reseller) return NextResponse.json({ error: "Not found" }, { status: 404 })
@@ -25,7 +25,7 @@ export async function PATCH(req: NextRequest) {
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const b = await req.json().catch(() => ({}))
-  const data: { name?: string; appName?: string; logoUrl?: string | null; primaryColor?: string | null; supportEmail?: string | null } = {}
+  const data: { name?: string; appName?: string; logoUrl?: string | null; primaryColor?: string | null; supportEmail?: string | null; supportWhatsapp?: string | null } = {}
 
   if (b?.name !== undefined) {
     const v = String(b.name).trim()
@@ -50,6 +50,10 @@ export async function PATCH(req: NextRequest) {
     const v = String(b.supportEmail).trim()
     if (v && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return NextResponse.json({ error: "Invalid support email" }, { status: 400 })
     data.supportEmail = v || null
+  }
+  if (b?.supportWhatsapp !== undefined) {
+    const v = String(b.supportWhatsapp).trim()
+    data.supportWhatsapp = v || null
   }
 
   if (Object.keys(data).length === 0) return NextResponse.json({ error: "Nothing to update" }, { status: 400 })

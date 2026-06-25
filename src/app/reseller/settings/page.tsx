@@ -8,6 +8,7 @@ type Settings = {
   logoUrl: string | null
   primaryColor: string | null
   supportEmail: string | null
+  supportWhatsapp: string | null
   domain: string
   domainAliases: string[]
 }
@@ -16,7 +17,7 @@ export default function ResellerSettingsPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null)
-  const [form, setForm] = useState({ name: "", appName: "", logoUrl: "", primaryColor: "#7c3aed", supportEmail: "" })
+  const [form, setForm] = useState({ name: "", appName: "", logoUrl: "", primaryColor: "#7c3aed", supportEmail: "", supportWhatsapp: "" })
   const [meta, setMeta] = useState<{ domain: string; aliases: string[] }>({ domain: "", aliases: [] })
   const [uploading, setUploading] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -54,6 +55,7 @@ export default function ResellerSettingsPage() {
             logoUrl: r.logoUrl ?? "",
             primaryColor: r.primaryColor ?? "#7c3aed",
             supportEmail: r.supportEmail ?? "",
+            supportWhatsapp: r.supportWhatsapp ?? "",
           })
           setMeta({ domain: r.domain, aliases: r.domainAliases ?? [] })
         }
@@ -142,6 +144,10 @@ export default function ResellerSettingsPage() {
         <div style={field}>
           <label style={label}>Support email <span style={{ fontWeight: 400, color: "var(--text-secondary, #71717a)" }}>(shown to your customers)</span></label>
           <input style={input} value={form.supportEmail} onChange={(e) => setForm((f) => ({ ...f, supportEmail: e.target.value }))} placeholder="support@yourbrand.com" />
+        </div>
+        <div style={field}>
+          <label style={label}>Support WhatsApp <span style={{ fontWeight: 400, color: "var(--text-secondary, #71717a)" }}>(your customers get a &quot;Contact support&quot; button to this number)</span></label>
+          <input style={input} value={form.supportWhatsapp} onChange={(e) => setForm((f) => ({ ...f, supportWhatsapp: e.target.value }))} placeholder="+234 800 000 0000" />
         </div>
 
         <button type="submit" disabled={saving} style={{ border: "none", background: "var(--accent, #16a34a)", color: "#fff", borderRadius: 8, padding: "10px 18px", fontSize: 14, fontWeight: 700, cursor: "pointer", opacity: saving ? 0.7 : 1 }}>

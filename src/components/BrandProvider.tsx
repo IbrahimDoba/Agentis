@@ -14,6 +14,7 @@ const PLATFORM_FALLBACK: Branding = {
   logoUrl: null,
   primaryColor: null,
   supportEmail: "support@dailzero.com",
+  supportWhatsapp: null,
 }
 
 const BrandContext = createContext<Branding>(PLATFORM_FALLBACK)

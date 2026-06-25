@@ -97,6 +97,7 @@ model Reseller {
   logoUrl         String?
   primaryColor    String? // hex accent
   supportEmail    String?
+  supportWhatsapp String? // support number; users get a "Contact support" wa.me link
   status          String   @default("active") // active | suspended
   // Wholesale credit pool you allocate her. Her users' AI sends draw from this;
   // when it hits zero her tenant pauses until you top it up. `creditPool` is the
