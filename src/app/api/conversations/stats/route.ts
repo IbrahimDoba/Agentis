@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
 
   const user = await db.user.findUnique({
     where: { id: ownerId },
-    select: { plan: true, subscriptionExpiresAt: true },
+    select: { plan: true, subscriptionExpiresAt: true, creditBalance: true, creditsExpireAt: true, resellerId: true },
   })
 
   const { start: monthStart, end: monthEnd } = getBillingPeriod(user?.subscriptionExpiresAt)
@@ -174,5 +174,10 @@ export async function GET(req: NextRequest) {
     creditLimit,
     plan,
     subscriptionExpiresAt: user?.subscriptionExpiresAt?.toISOString() ?? null,
+    // Reseller-tenant users run on a pool-granted wallet (not a plan allowance),
+    // so surface the wallet balance + a reseller flag for their read-only plan UI.
+    creditBalance: user?.creditBalance ?? 0,
+    creditsExpireAt: user?.creditsExpireAt?.toISOString() ?? null,
+    isReseller: (user?.resellerId ?? "platform") !== "platform",
   })
 }
