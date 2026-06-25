@@ -16,7 +16,7 @@ export default function ResellerSettingsPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null)
-  const [form, setForm] = useState({ appName: "", logoUrl: "", primaryColor: "#7c3aed", supportEmail: "" })
+  const [form, setForm] = useState({ name: "", appName: "", logoUrl: "", primaryColor: "#7c3aed", supportEmail: "" })
   const [meta, setMeta] = useState<{ domain: string; aliases: string[] }>({ domain: "", aliases: [] })
   const [uploading, setUploading] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -49,6 +49,7 @@ export default function ResellerSettingsPage() {
         const r: Settings | undefined = d.reseller
         if (r) {
           setForm({
+            name: r.name ?? "",
             appName: r.appName ?? "",
             logoUrl: r.logoUrl ?? "",
             primaryColor: r.primaryColor ?? "#7c3aed",
@@ -101,8 +102,12 @@ export default function ResellerSettingsPage() {
 
       <form onSubmit={save} style={{ border: "1px solid var(--border, #e4e4e7)", borderRadius: 14, padding: 20, background: "var(--bg-secondary, #fff)" }}>
         <div style={field}>
-          <label style={label}>App name</label>
-          <input style={input} value={form.appName} onChange={(e) => setForm((f) => ({ ...f, appName: e.target.value }))} placeholder="Fast Deals" />
+          <label style={label}>Business name</label>
+          <input style={input} value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} placeholder="Auxi Sherpa" />
+        </div>
+        <div style={field}>
+          <label style={label}>App name <span style={{ fontWeight: 400, color: "var(--text-secondary, #71717a)" }}>(the brand your customers see)</span></label>
+          <input style={input} value={form.appName} onChange={(e) => setForm((f) => ({ ...f, appName: e.target.value }))} placeholder="Auxi Sherpa" />
         </div>
         <div style={field}>
           <label style={label}>Logo <span style={{ fontWeight: 400, color: "var(--text-secondary, #71717a)" }}>(optional — shown on login/signup)</span></label>
