@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import styles from "./page.module.css"
 import { useVisibleInterval } from "@/lib/useVisibleInterval"
+import { useBrand } from "@/components/BrandProvider"
 
 type Status = "pending" | "analyzing" | "ready_for_review" | "activated" | "failed" | "skipped"
 
@@ -185,9 +186,10 @@ export function AutoConfigureClient({ agentId }: { agentId: string }) {
 }
 
 function Frame({ children }: { children: React.ReactNode }) {
+  const brand = useBrand()
   return (
     <div className={styles.root}>
-      <div className={styles.brand}><span className={styles.brandDot} /> D-Zero AI</div>
+      <div className={styles.brand}><span className={styles.brandDot} /> {brand.appName}</div>
       <div className={styles.card}>{children}</div>
     </div>
   )
@@ -242,9 +244,10 @@ interface ReviewViewProps {
 }
 
 function ReviewView({ draft, onChange, onActivate, activating, agentId }: ReviewViewProps) {
+  const brand = useBrand()
   return (
     <div className={styles.root}>
-      <div className={styles.brand}><span className={styles.brandDot} /> D-Zero AI</div>
+      <div className={styles.brand}><span className={styles.brandDot} /> {brand.appName}</div>
       <div className={styles.reviewWrap}>
         <header className={styles.reviewHeader}>
           <h1 className={styles.title}>Review your AI agent</h1>

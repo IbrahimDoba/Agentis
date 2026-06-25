@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 type Settings = {
   name: string
@@ -18,6 +18,29 @@ export default function ResellerSettingsPage() {
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null)
   const [form, setForm] = useState({ appName: "", logoUrl: "", primaryColor: "#7c3aed", supportEmail: "" })
   const [meta, setMeta] = useState<{ domain: string; aliases: string[] }>({ domain: "", aliases: [] })
+  const [uploading, setUploading] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  const handleLogo = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    setMsg(null)
+    try {
+      const fd = new FormData()
+      fd.append("file", file)
+      fd.append("kind", "logo")
+      const res = await fetch("/api/upload", { method: "POST", body: fd })
+      const data = await res.json()
+      if (res.ok && data.url) setForm((f) => ({ ...f, logoUrl: data.url }))
+      else setMsg({ text: data.error || "Upload failed", ok: false })
+    } catch {
+      setMsg({ text: "Upload failed", ok: false })
+    } finally {
+      setUploading(false)
+      if (fileRef.current) fileRef.current.value = ""
+    }
+  }
 
   useEffect(() => {
     fetch("/api/reseller/settings")
@@ -82,8 +105,24 @@ export default function ResellerSettingsPage() {
           <input style={input} value={form.appName} onChange={(e) => setForm((f) => ({ ...f, appName: e.target.value }))} placeholder="Fast Deals" />
         </div>
         <div style={field}>
-          <label style={label}>Logo URL <span style={{ fontWeight: 400, color: "var(--text-secondary, #71717a)" }}>(optional — shown on login/signup)</span></label>
-          <input style={input} value={form.logoUrl} onChange={(e) => setForm((f) => ({ ...f, logoUrl: e.target.value }))} placeholder="https://…/logo.png" />
+          <label style={label}>Logo <span style={{ fontWeight: 400, color: "var(--text-secondary, #71717a)" }}>(optional — shown on login/signup)</span></label>
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <div style={{ width: 64, height: 64, borderRadius: 12, border: "1px solid var(--border, #d4d4d8)", background: "var(--bg-primary, #fafafa)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 }}>
+              {form.logoUrl
+                ? <img src={form.logoUrl} alt="logo" style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} />
+                : <span style={{ fontSize: 11, color: "var(--text-secondary, #9ca3af)" }}>No logo</span>}
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "flex-start" }}>
+              <input ref={fileRef} type="file" accept="image/*" onChange={handleLogo} style={{ display: "none" }} />
+              <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading} style={{ border: "1px solid var(--border, #d4d4d8)", background: "var(--bg-secondary, #fff)", borderRadius: 8, padding: "7px 14px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+                {uploading ? "Uploading…" : (form.logoUrl ? "Replace logo" : "Upload logo")}
+              </button>
+              {form.logoUrl && (
+                <button type="button" onClick={() => setForm((f) => ({ ...f, logoUrl: "" }))} style={{ border: "none", background: "none", color: "#dc2626", fontSize: 12, fontWeight: 600, cursor: "pointer", padding: 0 }}>Remove</button>
+              )}
+              <span style={{ fontSize: 11, color: "var(--text-secondary, #9ca3af)" }}>PNG, JPG or SVG · keeps its shape</span>
+            </div>
+          </div>
         </div>
         <div style={{ ...field, display: "flex", gap: 14, alignItems: "center" }}>
           <div>

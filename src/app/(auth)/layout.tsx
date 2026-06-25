@@ -3,11 +3,15 @@ import { getTenantBranding } from "@/lib/tenant"
 import { BrandProvider } from "@/components/BrandProvider"
 
 // Auth pages are served on the tenant's own domain, so they carry the tenant's
-// brand: app name in the title, logo/name in the form, accent colour, and a
-// "powered by Dailzero" line (reseller tenants only).
+// brand: app name in the title, logo/name in the form, accent colour, and
+// branded social-share tags (so a shared reseller link doesn't preview "D-Zero AI").
 export async function generateMetadata(): Promise<Metadata> {
   const brand = await getTenantBranding()
-  return { title: `Sign in · ${brand.appName}` }
+  return {
+    title: `Sign in · ${brand.appName}`,
+    openGraph: { title: brand.appName, siteName: brand.appName },
+    twitter: { title: brand.appName },
+  }
 }
 
 export default async function AuthLayout({ children }: { children: React.ReactNode }) {

@@ -8,6 +8,7 @@ import {
   PLAN_FEATURES, PLAN_ORDER, PLAN_OVERAGE_RATE_PER_1K, formatNaira
 } from "@/lib/plans"
 import { PAYG_DEFAULT_NGN_PER_CREDIT } from "@/lib/credits"
+import { useBrand } from "@/components/BrandProvider"
 import styles from "./page.module.css"
 
 interface SubStatus {
@@ -28,6 +29,7 @@ function fmtDate(iso: string | null): string {
 }
 
 export default function SubscriptionPage() {
+  const brand = useBrand()
   const { data: stats, isLoading, refetch: refetchStats } = usePlanStats()
   const [sub, setSub] = useState<SubStatus | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
@@ -240,7 +242,7 @@ export default function SubscriptionPage() {
       </div>
 
       <div className={styles.footer}>
-        All plans include the Dailzero WhatsApp AI agent, conversation logs, and lead detection.
+        All plans include the {brand.appName} WhatsApp AI agent, conversation logs, and lead detection.
         Credits are consumed on successful AI sends: 5 credits per AI text and 8 credits per AI image.
       </div>
     </div>

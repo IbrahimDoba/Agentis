@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { Cog6ToothIcon, MegaphoneIcon } from "@heroicons/react/24/outline"
 import styles from "./OrchestratorChatsView.module.css"
 import { useAgentEventStream } from "@/lib/useAgentEventStream"
+import { useBrand } from "@/components/BrandProvider"
 
 interface AdContext {
   title: string | null
@@ -169,6 +170,7 @@ function displayPhone(conv: OrchestratorConversation) {
 }
 
 export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
+  const brand = useBrand()
   const qc = useQueryClient()
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [search, setSearch] = useState("")
@@ -642,7 +644,7 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
                 <div className={styles.meta}>
                   <span className={styles.msgCount}>{conv.messageCount} messages</span>
                   {conv.mode === "human" && <span className={styles.humanBadge}>Human</span>}
-                  <span className={styles.badge}>DZero AI</span>
+                  <span className={styles.badge}>{brand.appName}</span>
                 </div>
               </div>
             </button>

@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { getTenantBranding } from "@/lib/tenant"
 import styles from "./page.module.css"
 
 export const metadata = { title: "WhatsApp Web — Guide" }
@@ -10,10 +11,10 @@ const TIERS = [
   { tier: 4, label: "Full",    days: null, maxDay: 1500, maxHour: 200, delay: "5–15s" },
 ]
 
-const FAQS = [
+const buildFaqs = (appName: string) => [
   {
     q: "Will my number get banned?",
-    a: "WhatsApp's automated systems flag unusual activity — high volume, short delays, or mass-contacting unknown numbers. D-Zero AI applies warmup pacing and jitter delays to mimic human-like patterns. The risk is low for normal customer-support use cases but cannot be fully eliminated. Business numbers (not personal) are recommended.",
+    a: `WhatsApp's automated systems flag unusual activity — high volume, short delays, or mass-contacting unknown numbers. ${appName} applies warmup pacing and jitter delays to mimic human-like patterns. The risk is low for normal customer-support use cases but cannot be fully eliminated. Business numbers (not personal) are recommended.`,
   },
   {
     q: "What happens if I get disconnected?",
@@ -41,7 +42,9 @@ const FAQS = [
   },
 ]
 
-export default function WhatsAppGuide() {
+export default async function WhatsAppGuide() {
+  const branding = await getTenantBranding()
+  const FAQS = buildFaqs(branding.appName)
   return (
     <div className={styles.page}>
       <div className={styles.topbar}>

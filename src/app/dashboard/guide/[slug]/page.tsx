@@ -7,6 +7,7 @@ import {
   getGuideBySlug,
   type GuideTopic,
 } from "@/lib/guide-content"
+import { getTenantBranding } from "@/lib/tenant"
 import styles from "../guide.module.css"
 import { renderGuideMarkdown } from "./renderer"
 
@@ -20,16 +21,20 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
+  const branding = await getTenantBranding()
   const topic = getGuideBySlug(slug)
-  if (!topic) return { title: "Guide — D-Zero AI" }
+  if (!topic) return { title: `Guide — ${branding.appName}` }
   return {
-    title: `${topic.title} — D-Zero AI Guide`,
+    title: `${topic.title} — ${branding.appName} Guide`,
     description: topic.intro,
   }
 }
 
 export default async function GuideTopicPage({ params }: PageProps) {
   const { slug } = await params
+  const branding = await getTenantBranding()
+  const brandify = (s: string) =>
+    s.replaceAll("D-Zero AI", branding.appName).replaceAll("Dailzero", branding.appName).replaceAll("D-Zero", branding.appName)
   const topic = getGuideBySlug(slug)
   if (!topic) notFound()
 
@@ -45,12 +50,12 @@ export default async function GuideTopicPage({ params }: PageProps) {
 
       <header className={styles.detailHeader}>
         <div className={styles.detailEmoji}>{topic.emoji}</div>
-        <h1 className={styles.detailTitle}>{topic.title}</h1>
-        <p className={styles.detailIntro}>{topic.intro}</p>
+        <h1 className={styles.detailTitle}>{brandify(topic.title)}</h1>
+        <p className={styles.detailIntro}>{brandify(topic.intro)}</p>
       </header>
 
       <article className={styles.body}>
-        {renderGuideMarkdown(topic.body)}
+        {renderGuideMarkdown(brandify(topic.body))}
       </article>
 
       {related.length > 0 && (
@@ -64,7 +69,7 @@ export default async function GuideTopicPage({ params }: PageProps) {
                 className={styles.relatedCard}
               >
                 <span className={styles.relatedEmoji}>{t.emoji}</span>
-                <span className={styles.relatedTitleText}>{t.title}</span>
+                <span className={styles.relatedTitleText}>{brandify(t.title)}</span>
               </Link>
             ))}
           </div>
