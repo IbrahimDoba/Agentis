@@ -4,7 +4,7 @@ import { useState, Suspense } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { signIn } from "next-auth/react"
-import { BrandWordmark, PoweredByDailzero, useBrand } from "@/components/BrandProvider"
+import { BrandWordmark, useBrand } from "@/components/BrandProvider"
 import styles from "./page.module.css"
 import { Input } from "@/components/ui/Input"
 import Button from "@/components/ui/Button"
@@ -153,8 +153,6 @@ function LoginForm() {
           </Link>
         </div>
       </div>
-
-      <PoweredByDailzero />
     </div>
   )
 }
