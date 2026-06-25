@@ -3,6 +3,8 @@ import { db } from "@/lib/db"
 import { redirect } from "next/navigation"
 import { cookies } from "next/headers"
 import { DashboardShell } from "@/components/dashboard/DashboardShell"
+import { getTenantBranding } from "@/lib/tenant"
+import { BrandProvider } from "@/components/BrandProvider"
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await auth()
@@ -40,14 +42,25 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const cookieStore = await cookies()
   const currentWorkspaceId = cookieStore.get("dzero_workspace")?.value ?? null
 
+  // Tenant brand for the whole dashboard (so client components can useBrand()).
+  // The accent is applied via a display:contents wrapper so the layout is
+  // unaffected but the CSS variable still cascades.
+  const branding = await getTenantBranding()
+  const accentStyle: React.CSSProperties = { display: "contents" }
+  if (branding.primaryColor) (accentStyle as Record<string, string>)["--accent"] = branding.primaryColor
+
   return (
-    <DashboardShell
-      userName={session.user.name ?? "User"}
-      businessName={session.user.businessName ?? ""}
-      currentUserId={session.user.id}
-      currentWorkspaceId={currentWorkspaceId}
-    >
-      {children}
-    </DashboardShell>
+    <BrandProvider branding={branding}>
+      <div style={accentStyle}>
+        <DashboardShell
+          userName={session.user.name ?? "User"}
+          businessName={session.user.businessName ?? ""}
+          currentUserId={session.user.id}
+          currentWorkspaceId={currentWorkspaceId}
+        >
+          {children}
+        </DashboardShell>
+      </div>
+    </BrandProvider>
   )
 }

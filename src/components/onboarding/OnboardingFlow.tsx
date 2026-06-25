@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { SparklesIcon } from "@heroicons/react/24/outline"
 import { KnowledgeBaseTab } from "@/components/dashboard/KnowledgeBaseTab"
+import { useBrand } from "@/components/BrandProvider"
 import styles from "./OnboardingFlow.module.css"
 
 const TOTAL_STEPS = 3
@@ -40,6 +41,7 @@ function buildPrompt(p: Personality, businessName: string, description: string):
 }
 
 export function OnboardingFlow({ businessName }: Props) {
+  const brand = useBrand()
   const router = useRouter()
   const [step, setStep] = useState(1)
   const [error, setError] = useState("")
@@ -162,7 +164,7 @@ export function OnboardingFlow({ businessName }: Props) {
     <div className={styles.root}>
       <div className={styles.brand}>
         <span className={styles.brandDot} />
-        D-Zero AI
+        {brand.appName}
       </div>
 
       <div className={styles.progressBar}>

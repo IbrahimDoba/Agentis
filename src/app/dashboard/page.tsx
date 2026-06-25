@@ -13,6 +13,7 @@ import { useDashboardData } from "@/hooks/useDashboardData"
 import { usePlanStats } from "@/hooks/usePlanStats"
 import { PLAN_LABELS, PLAN_OVERAGE_RATE_PER_1K, formatNaira } from "@/lib/plans"
 import { useRuntimePreference, type RuntimePreference } from "@/hooks/useRuntimePreference"
+import { useBrand } from "@/components/BrandProvider"
 import type { AgentPublic } from "@/types"
 
 async function fetchAgents(): Promise<AgentPublic[]> {
@@ -23,6 +24,7 @@ async function fetchAgents(): Promise<AgentPublic[]> {
 }
 
 export default function DashboardPage() {
+  const brand = useBrand()
   const { data } = useDashboardData()
   const { data: stats } = usePlanStats()
   const { runtime, setRuntime } = useRuntimePreference("orchestrator")
@@ -84,7 +86,7 @@ export default function DashboardPage() {
           )}
         </div>
         <p className={styles.subtitle}>
-          Here&apos;s an overview of your D-Zero AI account — {formatDate(new Date().toISOString())}
+          Here&apos;s an overview of your {brand.appName} account — {formatDate(new Date().toISOString())}
         </p>
         {overageActive && (
           <Link href="/dashboard/billing" className={styles.overageBadge}>
@@ -114,7 +116,7 @@ export default function DashboardPage() {
                 fontFamily: "inherit",
               }}
             >
-              DZero AI
+              {brand.appName}
             </button>
             <button
               onClick={() => setRuntime("elevenlabs")}

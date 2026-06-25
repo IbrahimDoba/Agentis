@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation"
 import { useToast } from "@/context/ToastContext"
 import { PAYG_TIERS } from "@/lib/credits"
 import { formatNaira } from "@/lib/plans"
+import { useBrand } from "@/components/BrandProvider"
 import styles from "./page.module.css"
 
 interface BalanceResp {
@@ -34,6 +35,7 @@ function formatExpiry(iso: string | null): string {
 }
 
 function CreditsPageInner() {
+  const brand = useBrand()
   const params = useSearchParams()
   const router = useRouter()
   const { showToast } = useToast()
@@ -122,7 +124,7 @@ function CreditsPageInner() {
         <h1 className={styles.title}>Credits</h1>
         <p className={styles.subtitle}>
           Top up your wallet for AI usage. Credits drain only after your monthly plan allowance is exhausted —
-          and never expire as long as you keep using D-Zero (top-up extends the wallet by 12 months).
+          and never expire as long as you keep using {brand.appName} (top-up extends the wallet by 12 months).
         </p>
       </header>
 

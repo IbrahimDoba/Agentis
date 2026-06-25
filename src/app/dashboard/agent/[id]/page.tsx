@@ -18,6 +18,7 @@ import { TestAgentWidget } from "@/components/dashboard/TestAgentWidget"
 import { Modal } from "@/components/ui/Modal"
 import Button from "@/components/ui/Button"
 import { useAgent } from "@/hooks/useAgent"
+import { useBrand } from "@/components/BrandProvider"
 import { cn } from "@/lib/utils"
 
 const TABS = (agentRuntime: string) => [
@@ -62,6 +63,7 @@ function AgentAvatar({ src, name, size = 48 }: { src?: string | null; name: stri
 }
 
 export default function AgentDetailPage() {
+  const brand = useBrand()
   const params = useParams()
   const searchParams = useSearchParams()
   const id = params.id as string
@@ -160,7 +162,7 @@ export default function AgentDetailPage() {
             color: agent.agentRuntime === "orchestrator" ? "var(--accent)" : "#6366f1",
             border: `1px solid ${agent.agentRuntime === "orchestrator" ? "rgba(34, 197, 94, 0.25)" : "rgba(99, 102, 241, 0.25)"}`,
           }}>
-            {agent.agentRuntime === "orchestrator" ? "DZero AI" : "ElevenLabs"}
+            {agent.agentRuntime === "orchestrator" ? brand.appName : "ElevenLabs"}
           </span>
           {agent.status === "ACTIVE" && agent.agentRuntime === "elevenlabs" && agent.elevenlabsAgentId && (
             <TestAgentWidget agentId={agent.elevenlabsAgentId} />

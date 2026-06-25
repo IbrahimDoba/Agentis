@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { Confetti } from "@/components/onboarding/Confetti"
+import { useBrand } from "@/components/BrandProvider"
 import styles from "@/components/onboarding/OnboardingFlow.module.css"
 
 // Shown after WhatsApp links successfully during onboarding — confetti + a
@@ -9,6 +10,7 @@ import styles from "@/components/onboarding/OnboardingFlow.module.css"
 // step the channels page used to bounce to.
 export default function OnboardingConnectedPage() {
   const router = useRouter()
+  const brand = useBrand()
 
   return (
     <div className={styles.root}>
@@ -16,7 +18,7 @@ export default function OnboardingConnectedPage() {
 
       <div className={styles.brand}>
         <span className={styles.brandDot} />
-        D-Zero AI
+        {brand.appName}
       </div>
 
       <div className={styles.card} style={{ textAlign: "center" }}>
