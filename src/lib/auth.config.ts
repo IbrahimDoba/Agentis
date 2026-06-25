@@ -76,4 +76,9 @@ export const authConfig: NextAuthConfig = {
     error: "/login",
   },
   session: { strategy: "jwt" },
+  // Required for multi-domain: trust the incoming Host header so auth works on
+  // each reseller's own domain (not just NEXTAUTH_URL). Safe behind Vercel,
+  // which sets the host. Without this, login on a reseller domain can throw
+  // UntrustedHost in production.
+  trustHost: true,
 }

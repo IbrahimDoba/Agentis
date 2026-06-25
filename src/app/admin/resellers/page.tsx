@@ -18,7 +18,7 @@ type Reseller = {
 }
 
 const emptyCreate = {
-  name: "", appName: "", domain: "", supportEmail: "", primaryColor: "#7c3aed",
+  name: "", appName: "", domain: "", domainAliases: "", supportEmail: "", primaryColor: "#7c3aed",
   poolCredits: "200000", adminName: "", adminEmail: "", adminPassword: "",
 }
 
@@ -58,7 +58,11 @@ export default function AdminResellersPage() {
     try {
       const res = await fetch("/api/admin/resellers", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, poolCredits: Number(form.poolCredits || 0) }),
+        body: JSON.stringify({
+          ...form,
+          poolCredits: Number(form.poolCredits || 0),
+          domainAliases: form.domainAliases.split(",").map((s) => s.trim()).filter(Boolean),
+        }),
       })
       const data = await res.json()
       if (res.ok) { setMsg({ text: `Created "${data.reseller.appName}" — admin ${data.adminEmail}`, ok: true }); setForm(emptyCreate); setShowCreate(false); await load() }
@@ -92,6 +96,7 @@ export default function AdminResellersPage() {
             <label style={{ fontSize: 12, fontWeight: 600 }}>Internal name<input style={input} value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} placeholder="Acme Reseller" /></label>
             <label style={{ fontSize: 12, fontWeight: 600 }}>App name (brand)<input style={input} value={form.appName} onChange={(e) => setForm((f) => ({ ...f, appName: e.target.value }))} placeholder="Acme WA" /></label>
             <label style={{ fontSize: 12, fontWeight: 600 }}>Domain<input style={input} value={form.domain} onChange={(e) => setForm((f) => ({ ...f, domain: e.target.value }))} placeholder="acme.com" /></label>
+            <label style={{ fontSize: 12, fontWeight: 600 }}>Domain aliases (comma-sep)<input style={input} value={form.domainAliases} onChange={(e) => setForm((f) => ({ ...f, domainAliases: e.target.value }))} placeholder="www.acme.com" /></label>
             <label style={{ fontSize: 12, fontWeight: 600 }}>Support email<input style={input} value={form.supportEmail} onChange={(e) => setForm((f) => ({ ...f, supportEmail: e.target.value }))} placeholder="support@acme.com" /></label>
             <label style={{ fontSize: 12, fontWeight: 600 }}>Accent colour<input style={input} type="color" value={form.primaryColor} onChange={(e) => setForm((f) => ({ ...f, primaryColor: e.target.value }))} /></label>
             <label style={{ fontSize: 12, fontWeight: 600 }}>Initial pool credits<input style={input} type="number" min={0} value={form.poolCredits} onChange={(e) => setForm((f) => ({ ...f, poolCredits: e.target.value }))} /></label>
