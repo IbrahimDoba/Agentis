@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
-import { PLAN_SEAT_LIMITS } from "@/lib/plans"
+import { seatLimitFor } from "@/lib/plans"
 import { sendWorkspaceInviteEmail } from "@/lib/email"
 import crypto from "crypto"
 
@@ -15,14 +15,14 @@ export async function POST(req: NextRequest) {
 
   const owner = await db.user.findUnique({
     where: { id: session.user.id },
-    select: { id: true, name: true, businessName: true, plan: true, status: true },
+    select: { id: true, name: true, businessName: true, plan: true, status: true, role: true, resellerId: true, subscriptionExpiresAt: true },
   })
   if (!owner || owner.status !== "APPROVED") {
     return NextResponse.json({ error: "Account not approved" }, { status: 403 })
   }
 
-  // Seat limit check
-  const seatLimit = PLAN_SEAT_LIMITS[owner.plan] ?? 0
+  // Seat limit check (reseller-aware: reseller admins always, clients once a plan is active)
+  const seatLimit = seatLimitFor(owner)
   if (seatLimit === 0) {
     return NextResponse.json({ error: "Team members are not available on your current plan. Upgrade to Starter or Pro." }, { status: 403 })
   }

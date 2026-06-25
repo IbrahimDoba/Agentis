@@ -10,6 +10,7 @@ import { useTheme } from "@/components/ThemeProvider"
 import { SunIcon, MoonIcon, ArrowRightStartOnRectangleIcon } from "@heroicons/react/24/outline"
 import { signOut } from "next-auth/react"
 import { useToast } from "@/context/ToastContext"
+import { AdminSupportNumber } from "@/components/dashboard/AdminSupportNumber"
 
 const BUSINESS_CATEGORIES = [
   { value: "Non-Online Gambling & Gaming (E.g. Brick and mortar)", label: "Non-Online Gambling & Gaming (E.g. Brick and mortar)" },
@@ -578,6 +579,14 @@ export default function ProfilePage() {
             Save Changes
           </Button>
         </div>
+
+        {/* Support number — admins only (Dailzero admin sets platform's; a
+            reseller admin sets her tenant's) */}
+        {(data?.user?.role === "ADMIN" || data?.user?.role === "RESELLER_ADMIN") && (
+          <div className={styles.section}>
+            <AdminSupportNumber />
+          </div>
+        )}
 
         {/* Sign Out */}
         <div className={styles.section}>

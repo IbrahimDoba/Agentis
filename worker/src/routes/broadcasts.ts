@@ -9,6 +9,7 @@ import {
   listBroadcastRecipients,
   resolveBroadcastRecipients,
   updateBroadcastStatus,
+  resetSkippedToPending,
 } from "../db/queries/broadcasts.js"
 import { broadcastQueue } from "../queue/broadcast-queue.js"
 import { sessionManager } from "../baileys/session-manager.js"
@@ -189,25 +190,30 @@ export const broadcastRoutes: FastifyPluginAsync = async (app) => {
 
   /**
    * POST /v1/broadcasts/:id/resume
-   * Resume a paused broadcast (re-enqueues pending recipients).
+   * Resume a paused OR silently-stalled ("running" but not progressing)
+   * broadcast. Recovers any parked recipients and re-enqueues all that haven't
+   * sent. Sends are idempotent, so this never double-sends ones already done.
    */
   app.post("/broadcasts/:id/resume", async (req, reply) => {
     const { id } = req.params as { id: string }
     const broadcast = await getBroadcast(id)
     if (!broadcast) return reply.status(404).send({ error: "Broadcast not found" })
 
-    if (broadcast.status !== "paused") {
-      return reply.status(400).send({ error: "Only paused broadcasts can be resumed" })
+    if (broadcast.status === "completed" || broadcast.status === "cancelled") {
+      return reply.status(400).send({ error: `Can't resume a ${broadcast.status} broadcast` })
     }
 
-    // Clear consecutive failure counter
+    // Clear consecutive failure counter + recover any recipients that were
+    // parked as 'skipped' while the broadcast was stalled/paused.
     const redis = getRedis()
     await redis.del(`bc:failures:${id}`)
+    const recovered = await resetSkippedToPending(id)
 
     broadcastQueue.enqueueBroadcast(id).catch((err) => {
       logger.error({ broadcastId: id, err: err.message }, "Failed to resume broadcast")
     })
 
-    return reply.send({ success: true })
+    logger.info({ broadcastId: id, recovered }, "Broadcast resume requested")
+    return reply.send({ success: true, recovered })
   })
 }

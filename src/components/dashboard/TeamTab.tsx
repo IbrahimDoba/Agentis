@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { TrashIcon, PencilIcon, CheckIcon, XMarkIcon, EnvelopeIcon } from "@heroicons/react/24/outline"
-import { PLAN_SEAT_LIMITS } from "@/lib/plans"
+import { seatLimitFor } from "@/lib/plans"
 import styles from "./TeamTab.module.css"
 
 interface Member {
@@ -20,6 +20,9 @@ interface Member {
 interface Props {
   plan: string
   isOwner?: boolean
+  role?: string
+  resellerId?: string
+  subscriptionExpiresAt?: string | null
 }
 
 async function fetchMembers(): Promise<{ members: Member[] }> {
@@ -40,9 +43,9 @@ const ROLE_LABELS: Record<string, string> = {
   MEMBER: "Member",
 }
 
-export function TeamTab({ plan, isOwner = true }: Props) {
+export function TeamTab({ plan, isOwner = true, role, resellerId, subscriptionExpiresAt }: Props) {
   const qc = useQueryClient()
-  const seatLimit = PLAN_SEAT_LIMITS[plan] ?? 0
+  const seatLimit = seatLimitFor({ role, resellerId, plan, subscriptionExpiresAt })
   const isTeamEnabled = seatLimit !== 0
 
   const [inviteEmail, setInviteEmail] = useState("")

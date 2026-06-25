@@ -196,6 +196,25 @@ export async function getPendingRecipients(broadcastId: string): Promise<Broadca
   `
 }
 
+export async function getRecipient(id: string): Promise<BroadcastRecipient | null> {
+  const rows = await sql<BroadcastRecipient[]>`
+    SELECT * FROM "BroadcastRecipient" WHERE "id" = ${id} LIMIT 1
+  `
+  return rows[0] ?? null
+}
+
+// On resume, recover recipients that got parked while the broadcast was
+// stalled/paused so they re-enqueue (getPendingRecipients only sees 'pending').
+export async function resetSkippedToPending(broadcastId: string): Promise<number> {
+  const rows = await sql<{ id: string }[]>`
+    UPDATE "BroadcastRecipient"
+    SET "status" = 'pending', "error" = NULL
+    WHERE "broadcastId" = ${broadcastId} AND "status" = 'skipped'
+    RETURNING "id"
+  `
+  return rows.length
+}
+
 export async function updateRecipientStatus(
   id: string,
   status: RecipientStatus,
