@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
+import Link from "next/link"
 
 type ResUser = {
   id: string
@@ -34,6 +35,21 @@ export default function ResellerUsersPage() {
   const [busyId, setBusyId] = useState<string | null>(null)
   const [picked, setPicked] = useState<Record<string, string>>({})
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null)
+  const [confirmId, setConfirmId] = useState<string | null>(null)
+
+  const del = async (userId: string) => {
+    setBusyId(userId)
+    setMsg(null)
+    try {
+      const res = await fetch(`/api/reseller/users/${userId}`, { method: "DELETE" })
+      const data = await res.json()
+      if (res.ok) { setMsg({ text: "Customer deleted.", ok: true }); await load() }
+      else setMsg({ text: data.error || "Delete failed", ok: false })
+    } finally {
+      setBusyId(null)
+      setConfirmId(null)
+    }
+  }
 
   const load = useCallback(async () => {
     const [u, p] = await Promise.all([
@@ -135,7 +151,7 @@ export default function ResellerUsersPage() {
               {users.map((u) => (
                 <tr key={u.id}>
                   <td style={cell}>
-                    <div style={{ fontWeight: 700 }}>{u.businessName || u.name}</div>
+                    <Link href={`/reseller/users/${u.id}`} style={{ fontWeight: 700, color: "var(--accent, #16a34a)", textDecoration: "none" }}>{u.businessName || u.name}</Link>
                     <div style={{ color: "var(--text-secondary, #71717a)" }}>{u.email}</div>
                     {u.role === "RESELLER_ADMIN" && <div style={{ fontSize: 11, color: "#2563eb", fontWeight: 700, marginTop: 2 }}>YOU (admin)</div>}
                   </td>
@@ -176,6 +192,16 @@ export default function ResellerUsersPage() {
                       )}
                       {u.status !== "SUSPENDED" && u.role !== "RESELLER_ADMIN" && (
                         <button type="button" style={{ ...btn, color: "#dc2626" }} disabled={busyId === u.id} onClick={() => setStatus(u.id, "SUSPENDED")}>Suspend</button>
+                      )}
+                      {u.role !== "RESELLER_ADMIN" && (
+                        confirmId === u.id ? (
+                          <>
+                            <button type="button" style={{ ...btn, background: "#dc2626", color: "#fff", borderColor: "transparent" }} disabled={busyId === u.id} onClick={() => del(u.id)}>{busyId === u.id ? "…" : "Confirm delete"}</button>
+                            <button type="button" style={btn} onClick={() => setConfirmId(null)}>Cancel</button>
+                          </>
+                        ) : (
+                          <button type="button" style={{ ...btn, color: "#991b1b" }} disabled={busyId === u.id} onClick={() => setConfirmId(u.id)}>Delete</button>
+                        )
                       )}
                     </div>
                   </td>

@@ -29,3 +29,26 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
   return NextResponse.json({ ok: true })
 }
+
+// Permanently delete one of the reseller's customers (cascades their agents,
+// conversations, leads, etc. via FK). Scoped to the tenant; can't delete
+// yourself or another admin account.
+export async function DELETE(_req: NextRequest, { params }: Params) {
+  const ctx = await getResellerAdminContext()
+  if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
+  const { id } = await params
+  if (id === ctx.userId) return NextResponse.json({ error: "You can't delete your own account" }, { status: 400 })
+
+  const target = await db.user.findFirst({
+    where: { id, resellerId: ctx.resellerId },
+    select: { id: true, role: true },
+  })
+  if (!target) return NextResponse.json({ error: "User not found" }, { status: 404 })
+  if (target.role === "RESELLER_ADMIN") {
+    return NextResponse.json({ error: "Admin accounts can't be deleted here" }, { status: 400 })
+  }
+
+  await db.user.delete({ where: { id } })
+  return NextResponse.json({ ok: true })
+}
