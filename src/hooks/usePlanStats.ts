@@ -11,6 +11,9 @@ export interface PlanStats {
   creditLimit: number
   plan: string
   subscriptionExpiresAt: string | null
+  creditBalance?: number
+  creditsExpireAt?: string | null
+  isReseller?: boolean
 }
 
 export function usePlanStats() {

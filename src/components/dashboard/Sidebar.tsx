@@ -99,12 +99,12 @@ export function Sidebar({ userName, businessName, currentUserId, currentWorkspac
   const pathname = usePathname()
   const { data } = useDashboardData()
   const { data: stats } = usePlanStats()
-  // Reseller-tenant users don't self-pay — their plan/credits are managed by
-  // their provider's admin — so hide the Billing page for them.
-  const isReseller = (data?.user?.resellerId ?? "platform") !== "platform"
+  // Reseller-tenant users keep the Billing entry — but it's a read-only
+  // plan/credits view (the page + the payment APIs block self-pay).
   const isResellerAdmin = data?.user?.role === "RESELLER_ADMIN"
-  const navItems = baseNavItems.filter((item) => !(isReseller && item.href === "/dashboard/billing"))
-  if (data?.user?.referralsEnabled) navItems.push(referralNavItem)
+  const navItems = data?.user?.referralsEnabled
+    ? [...baseNavItems, referralNavItem]
+    : [...baseNavItems]
 
   const isActive = (href: string) => {
     if (href === "/dashboard") return pathname === "/dashboard"
@@ -241,6 +241,30 @@ export function Sidebar({ userName, businessName, currentUserId, currentWorkspac
         </div>
 
         {!collapsed && stats && (() => {
+          // Reseller-tenant users run on a pool-granted wallet — show that
+          // balance + validity instead of plan-allowance usage.
+          if (stats.isReseller) {
+            const credits = stats.creditBalance ?? 0
+            const exp = stats.creditsExpireAt ?? stats.subscriptionExpiresAt
+            const expDate = exp ? new Date(exp) : null
+            const resellerExpired = expDate ? expDate.getTime() <= Date.now() : false
+            return (
+              <Link href="/dashboard/billing" className={styles.usageMini} onClick={onClose}>
+                <div className={styles.usageMiniHeader}>
+                  <span className={`${styles.usageMiniPlanDot} ${resellerExpired ? styles.dotDanger : styles.dotOk}`} />
+                  <span className={styles.usageMiniPlan}>My plan</span>
+                  <span className={`${styles.usageMiniPct} ${resellerExpired ? styles.textDanger : ""}`}>{credits.toLocaleString()} cr</span>
+                </div>
+                {expDate && (
+                  <div className={styles.expiringHint}>
+                    {resellerExpired
+                      ? "Plan expired — contact your provider"
+                      : `Valid until ${expDate.toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}`}
+                  </div>
+                )}
+              </Link>
+            )
+          }
           const plan = stats.plan ?? "free"
           const planLabel = PLAN_LABELS[plan] ?? plan
           const used = stats.monthlyCreditsUsed ?? 0

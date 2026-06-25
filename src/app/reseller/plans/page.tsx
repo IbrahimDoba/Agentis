@@ -13,6 +13,8 @@ export default function ResellerPlansPage() {
   const [saving, setSaving] = useState(false)
   const [busyId, setBusyId] = useState<string | null>(null)
   const [err, setErr] = useState("")
+  const [editId, setEditId] = useState<string | null>(null)
+  const [editForm, setEditForm] = useState({ name: "", priceNaira: "", credits: "", durationDays: "" })
 
   const load = useCallback(async () => {
     const p = await fetch("/api/reseller/plans").then((r) => r.json())
@@ -52,6 +54,21 @@ export default function ResellerPlansPage() {
       })
       if (res.ok) await load()
     } finally { setBusyId(null) }
+  }
+
+  const startEdit = (p: ResPlan) => {
+    setEditId(p.id)
+    setEditForm({ name: p.name, priceNaira: String(p.priceNaira), credits: String(p.credits), durationDays: String(p.durationDays) })
+  }
+
+  const saveEdit = async (id: string) => {
+    await patch(id, {
+      name: editForm.name.trim(),
+      priceNaira: Number(editForm.priceNaira || 0),
+      credits: Number(editForm.credits || 0),
+      durationDays: Number(editForm.durationDays || 0),
+    })
+    setEditId(null)
   }
 
   const remove = async (id: string) => {
@@ -123,23 +140,55 @@ export default function ResellerPlansPage() {
               </tr>
             </thead>
             <tbody>
-              {plans.map((p) => (
-                <tr key={p.id} style={{ opacity: p.active ? 1 : 0.55 }}>
-                  <td style={{ ...cell, fontWeight: 700 }}>{p.name}</td>
-                  <td style={cell}>₦{p.priceNaira.toLocaleString()}</td>
-                  <td style={cell}>{p.credits.toLocaleString()}</td>
-                  <td style={cell}>{p.durationDays}d</td>
-                  <td style={cell}>{p.active ? <span style={{ color: "#16a34a", fontWeight: 700 }}>Active</span> : <span style={{ color: "#71717a" }}>Inactive</span>}</td>
-                  <td style={cell}>
-                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                      <button type="button" style={btn} disabled={busyId === p.id} onClick={() => patch(p.id, { active: !p.active })}>
-                        {p.active ? "Deactivate" : "Activate"}
-                      </button>
-                      <button type="button" style={{ ...btn, color: "#dc2626" }} disabled={busyId === p.id} onClick={() => remove(p.id)}>Delete</button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {plans.map((p) => {
+                const editing = editId === p.id
+                const ei: React.CSSProperties = { ...input, padding: "5px 8px", maxWidth: 110 }
+                return (
+                  <tr key={p.id} style={{ opacity: p.active ? 1 : 0.55 }}>
+                    <td style={{ ...cell, fontWeight: 700 }}>
+                      {editing
+                        ? <input style={ei} value={editForm.name} onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))} />
+                        : p.name}
+                    </td>
+                    <td style={cell}>
+                      {editing
+                        ? <input style={ei} type="number" min={0} value={editForm.priceNaira} onChange={(e) => setEditForm((f) => ({ ...f, priceNaira: e.target.value }))} />
+                        : `₦${p.priceNaira.toLocaleString()}`}
+                    </td>
+                    <td style={cell}>
+                      {editing
+                        ? <input style={ei} type="number" min={1} value={editForm.credits} onChange={(e) => setEditForm((f) => ({ ...f, credits: e.target.value }))} />
+                        : p.credits.toLocaleString()}
+                    </td>
+                    <td style={cell}>
+                      {editing
+                        ? <input style={ei} type="number" min={1} value={editForm.durationDays} onChange={(e) => setEditForm((f) => ({ ...f, durationDays: e.target.value }))} />
+                        : `${p.durationDays}d`}
+                    </td>
+                    <td style={cell}>{p.active ? <span style={{ color: "#16a34a", fontWeight: 700 }}>Active</span> : <span style={{ color: "#71717a" }}>Inactive</span>}</td>
+                    <td style={cell}>
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                        {editing ? (
+                          <>
+                            <button type="button" style={{ ...btn, background: "var(--accent, #16a34a)", color: "#fff", borderColor: "transparent" }} disabled={busyId === p.id} onClick={() => saveEdit(p.id)}>
+                              {busyId === p.id ? "…" : "Save"}
+                            </button>
+                            <button type="button" style={btn} disabled={busyId === p.id} onClick={() => setEditId(null)}>Cancel</button>
+                          </>
+                        ) : (
+                          <>
+                            <button type="button" style={btn} disabled={busyId === p.id} onClick={() => startEdit(p)}>Edit</button>
+                            <button type="button" style={btn} disabled={busyId === p.id} onClick={() => patch(p.id, { active: !p.active })}>
+                              {p.active ? "Deactivate" : "Activate"}
+                            </button>
+                            <button type="button" style={{ ...btn, color: "#dc2626" }} disabled={busyId === p.id} onClick={() => remove(p.id)}>Delete</button>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>

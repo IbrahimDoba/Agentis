@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { usePlanStats } from "@/hooks/usePlanStats"
+import { usePlanStats, type PlanStats } from "@/hooks/usePlanStats"
 import { PLAN_LABELS, PLAN_PRICES, PLAN_CREDIT_LIMITS, PLAN_OVERAGE_RATE_PER_1K, formatNaira } from "@/lib/plans"
 import { formatDate } from "@/lib/utils"
 import styles from "./page.module.css"
@@ -12,6 +12,46 @@ function StatRow({ label, value, sub }: { label: string; value: React.ReactNode;
       <span className={styles.statLabel}>{label}</span>
       <span className={styles.statValue}>{value}</span>
       {sub && <span className={styles.statSub}>{sub}</span>}
+    </div>
+  )
+}
+
+// Reseller-tenant users don't self-pay. They run on credits their provider
+// granted from her pool (the PAYG wallet), so they get a read-only view of
+// their plan: credits remaining + validity, with no buy/upgrade controls.
+function ResellerBilling({ stats }: { stats: PlanStats }) {
+  const credits = stats.creditBalance ?? 0
+  const exp = stats.creditsExpireAt ?? stats.subscriptionExpiresAt
+  const expired = exp ? new Date() > new Date(exp) : false
+  return (
+    <div className={styles.page}>
+      <div className={styles.header}>
+        <h1 className={styles.title}>My plan</h1>
+        <p className={styles.subtitle}>Your credits and plan validity.</p>
+      </div>
+      <div className={styles.grid}>
+        <div className={styles.planCard}>
+          <div className={styles.planCardTop}>
+            <div>
+              <div className={styles.planBadge}>Active plan</div>
+              <div className={styles.planPrice}>{credits.toLocaleString()} credits left</div>
+            </div>
+          </div>
+          <div className={styles.planDetails}>
+            <StatRow label="Credits remaining" value={`${credits.toLocaleString()} cr`} />
+            {exp && (
+              <StatRow
+                label={expired ? "Expired on" : "Valid until"}
+                value={<span className={expired ? styles.expiredText : styles.renewText}>{formatDate(new Date(exp).toISOString())}</span>}
+              />
+            )}
+          </div>
+        </div>
+      </div>
+      <p style={{ fontSize: 13, color: "var(--text-secondary, #6b7280)", marginTop: 16 }}>
+        Your plan is managed by your provider. To top up credits or renew, please contact them.
+        {expired && " Your AI agent has paused until your plan is renewed."}
+      </p>
     </div>
   )
 }
@@ -30,6 +70,10 @@ export default function BillingPage() {
         <div className={styles.skeleton} style={{ height: 180 }} />
       </div>
     )
+  }
+
+  if (stats?.isReseller) {
+    return <ResellerBilling stats={stats} />
   }
 
   const plan = stats?.plan ?? "free"
