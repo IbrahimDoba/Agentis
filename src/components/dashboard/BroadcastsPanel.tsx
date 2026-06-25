@@ -375,7 +375,19 @@ export function BroadcastsPanel({ agentId, isConnected, warmupTier }: Broadcasts
                   </div>
 
                   <div className={styles.actions}>
-                    {broadcast.status === "running" && (
+                    {(broadcast.status === "running" || broadcast.status === "paused") && (
+                      <button
+                        type="button"
+                        className={styles.secondaryBtn}
+                        onClick={() => resumeBroadcast.mutate(broadcast.id)}
+                        disabled={resumeBroadcast.isPending}
+                        title="Re-send any recipients that haven't gone out yet"
+                      >
+                        <PlayCircleIcon width={16} height={16} />
+                        Resume
+                      </button>
+                    )}
+                    {(broadcast.status === "running" || broadcast.status === "paused") && (
                       <button
                         type="button"
                         className={styles.secondaryBtn}
@@ -383,18 +395,7 @@ export function BroadcastsPanel({ agentId, isConnected, warmupTier }: Broadcasts
                         disabled={cancelBroadcast.isPending}
                       >
                         <PauseCircleIcon width={16} height={16} />
-                        Pause
-                      </button>
-                    )}
-                    {broadcast.status === "paused" && (
-                      <button
-                        type="button"
-                        className={styles.secondaryBtn}
-                        onClick={() => resumeBroadcast.mutate(broadcast.id)}
-                        disabled={resumeBroadcast.isPending}
-                      >
-                        <PlayCircleIcon width={16} height={16} />
-                        Resume
+                        Cancel
                       </button>
                     )}
                   </div>

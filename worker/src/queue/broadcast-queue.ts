@@ -11,7 +11,9 @@ import {
   incrementBroadcastSent,
   incrementBroadcastFailed,
   getPendingRecipients,
+  getRecipient,
 } from "../db/queries/broadcasts.js"
+import { RateLimitError } from "../lib/errors.js"
 import { truncatedNormal } from "../anti-ban/distribution.js"
 import { logger as rootLogger } from "../lib/logger.js"
 
@@ -57,31 +59,62 @@ const worker = new Worker<BroadcastJob>(
   async (job: Job<BroadcastJob>) => {
     const { broadcastId, recipientId, agentId, toJid, message, contactName, batchIndex } = job.data
 
-    // Check broadcast is still running before doing anything
+    // Cancelled → terminal skip. Paused → leave the recipient PENDING so a
+    // resume re-sends it (don't mark it skipped, or it'd be lost to resume).
     const broadcast = await getBroadcast(broadcastId)
-    if (!broadcast || broadcast.status === "cancelled" || broadcast.status === "paused") {
-      logger.info({ broadcastId, recipientId }, "Broadcast stopped — skipping recipient")
+    if (!broadcast || broadcast.status === "cancelled") {
       await updateRecipientStatus(recipientId, "skipped")
       return
     }
+    if (broadcast.status === "paused") {
+      logger.info({ broadcastId, recipientId }, "Broadcast paused — leaving recipient pending for resume")
+      return
+    }
 
-    // Check session
+    // Idempotency: never double-send. Guards against resume re-enqueues, stale
+    // delayed jobs, and BullMQ retries all hitting the same recipient.
+    const recipient = await getRecipient(recipientId)
+    if (recipient?.status === "sent") {
+      logger.info({ broadcastId, recipientId }, "Recipient already sent — skipping duplicate")
+      return
+    }
+    const alreadyFailed = recipient?.status === "failed"
+
+    // Session gone (e.g. WhatsApp reconnecting mid-broadcast). PAUSE the
+    // broadcast — visible + resumable — instead of throwing the recipient into
+    // a silent 'pending' limbo it never recovers from.
     const sock = sessionManager.get(agentId)
-    if (!sock) throw new Error(`No active session for agent ${agentId}`)
+    if (!sock) {
+      logger.warn({ broadcastId, agentId }, "No active session — pausing broadcast (recipients stay pending)")
+      await updateBroadcastStatus(broadcastId, "paused")
+      return
+    }
 
     const session = await getSessionByAgentId(agentId)
-    if (!session) throw new Error(`Session record not found for agent ${agentId}`)
+    if (!session) {
+      await updateBroadcastStatus(broadcastId, "paused")
+      return
+    }
 
     const deliverable = await isDeliverable(sock, toJid)
     if (!deliverable) {
       await updateRecipientStatus(recipientId, "failed", "Recipient is not currently deliverable on WhatsApp")
-      await incrementBroadcastFailed(broadcastId)
-      logger.warn({ broadcastId, recipientId, toJid }, "Recipient is not deliverable — skipping send")
+      if (!alreadyFailed) await incrementBroadcastFailed(broadcastId)
+      logger.warn({ broadcastId, recipientId, toJid }, "Recipient is not deliverable — marking failed")
       return
     }
 
-    // Check daily/hourly rate limit — throws RateLimitError if exceeded
-    await checkAndIncrement(agentId, session.warmupTier)
+    // Daily rate limit — pause (resumable) instead of dropping the recipient.
+    try {
+      await checkAndIncrement(agentId, session.warmupTier)
+    } catch (err) {
+      if (err instanceof RateLimitError) {
+        logger.warn({ broadcastId, agentId, err: err.message }, "Daily limit reached — pausing broadcast (recipients stay pending)")
+        await updateBroadcastStatus(broadcastId, "paused")
+        return
+      }
+      throw err
+    }
 
     // Personalize message — replace {name} with contact name if available
     const personalizedMessage = contactName
@@ -100,7 +133,7 @@ const worker = new Worker<BroadcastJob>(
       logger.info({ broadcastId, recipientId, toJid, batchIndex }, "Broadcast message sent")
     } catch (err: any) {
       await updateRecipientStatus(recipientId, "failed", err.message)
-      await incrementBroadcastFailed(broadcastId)
+      if (!alreadyFailed) await incrementBroadcastFailed(broadcastId)
 
       // Track consecutive failures — auto-pause after threshold
       const redis = getRedis()
