@@ -95,7 +95,7 @@ export function UserMetricsTable({ users }: Props) {
                 {dzeroOnly ? "DZero Agents" : "Agents"} <SortIcon col={dzeroOnly ? "dzeroAgentCount" : "agents"} />
               </th>
               <th className={styles.th} onClick={() => toggleSort(dzeroOnly ? "dzeroConversations" : "conversations")} style={{ cursor: "pointer" }}>
-                {dzeroOnly ? "DZero Convos" : "Conversations"} <SortIcon col={dzeroOnly ? "dzeroConversations" : "conversations"} />
+                AI Sent <SortIcon col={dzeroOnly ? "dzeroConversations" : "conversations"} />
               </th>
               <th className={styles.th} onClick={() => toggleSort(dzeroOnly ? "dzeroContacts" : "contacts")} style={{ cursor: "pointer" }}>
                 {dzeroOnly ? "DZero Contacts" : "Contacts"} <SortIcon col={dzeroOnly ? "dzeroContacts" : "contacts"} />

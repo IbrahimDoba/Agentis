@@ -3,7 +3,7 @@
 import { useState, Suspense } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { LogoIcon } from "@/components/landing/Logo"
+import { BrandWordmark } from "@/components/BrandProvider"
 import styles from "./page.module.css"
 import { Input } from "@/components/ui/Input"
 import Button from "@/components/ui/Button"
@@ -122,8 +122,7 @@ export default function ResetPasswordPage() {
   return (
     <div className={styles.container}>
       <Link href="/" className={styles.logo}>
-        <LogoIcon size={32} />
-        D-Zero AI
+        <BrandWordmark size={32} />
       </Link>
       <Suspense fallback={<div />}>
         <ResetPasswordForm />

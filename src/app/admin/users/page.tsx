@@ -23,6 +23,7 @@ export default async function AdminUsersPage() {
     businessName: u.businessName,
     role: u.role as any,
     status: u.status as any,
+    resellerId: u.resellerId,
     createdAt: u.createdAt.toISOString(),
     businessCategory: u.businessCategory ?? null,
     businessDescription: u.businessDescription ?? null,

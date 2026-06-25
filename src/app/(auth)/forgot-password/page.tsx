@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { LogoIcon } from "@/components/landing/Logo"
+import { BrandWordmark } from "@/components/BrandProvider"
 import styles from "./page.module.css"
 import { Input } from "@/components/ui/Input"
 import Button from "@/components/ui/Button"
@@ -42,8 +42,7 @@ export default function ForgotPasswordPage() {
   return (
     <div className={styles.container}>
       <Link href="/" className={styles.logo}>
-        <LogoIcon size={32} />
-        D-Zero AI
+        <BrandWordmark size={32} />
       </Link>
 
       <div className={styles.card}>

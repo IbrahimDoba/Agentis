@@ -11,6 +11,9 @@ import { addOneMonth } from "@/lib/subscriptionBilling"
 export async function POST() {
   const session = await auth()
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  if (session.user.resellerId !== "platform") {
+    return NextResponse.json({ error: "Billing is managed by your provider." }, { status: 403 })
+  }
 
   const user = await db.user.findUnique({
     where: { id: session.user.id },

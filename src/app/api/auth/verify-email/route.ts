@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { sendWelcomeEmail, sendNewSignupNotification } from "@/lib/email"
+import { findResellerByHost, emailBrandOf, PLATFORM_RESELLER_ID } from "@/lib/tenant"
 
 export async function POST(req: NextRequest) {
   try {
@@ -10,7 +11,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing email or code" }, { status: 400 })
     }
 
-    const user = await db.user.findUnique({ where: { email } })
+    // Same email can exist on multiple tenants — scope by the request's host.
+    const reseller = await findResellerByHost(req.headers.get("host"))
+    const resellerId = reseller?.id ?? PLATFORM_RESELLER_ID
+    const user = await db.user.findUnique({
+      where: { resellerId_email: { resellerId, email } },
+    })
 
     if (!user) {
       return NextResponse.json({ error: "Invalid verification code" }, { status: 400 })
@@ -29,7 +35,7 @@ export async function POST(req: NextRequest) {
     }
 
     await db.user.update({
-      where: { email },
+      where: { resellerId_email: { resellerId, email } },
       data: {
         emailVerified: true,
         status: "APPROVED",
@@ -40,7 +46,7 @@ export async function POST(req: NextRequest) {
 
     // Fire welcome emails after verified
     Promise.all([
-      sendWelcomeEmail({ name: user.name, email: user.email }),
+      sendWelcomeEmail({ name: user.name, email: user.email }, emailBrandOf(reseller)),
       sendNewSignupNotification({ name: user.name, email: user.email, businessName: user.businessName }),
     ]).catch((err) => console.error("[VERIFY] email error:", err))
 
@@ -57,7 +63,11 @@ export async function PUT(req: NextRequest) {
     const { email } = await req.json()
     if (!email) return NextResponse.json({ error: "Missing email" }, { status: 400 })
 
-    const user = await db.user.findUnique({ where: { email } })
+    const reseller = await findResellerByHost(req.headers.get("host"))
+    const resellerId = reseller?.id ?? PLATFORM_RESELLER_ID
+    const user = await db.user.findUnique({
+      where: { resellerId_email: { resellerId, email } },
+    })
     if (!user || user.emailVerified) {
       return NextResponse.json({ error: "Cannot resend code" }, { status: 400 })
     }
@@ -66,12 +76,12 @@ export async function PUT(req: NextRequest) {
     const expiry = new Date(Date.now() + 10 * 60 * 1000)
 
     await db.user.update({
-      where: { email },
+      where: { resellerId_email: { resellerId, email } },
       data: { verificationCode: code, verificationCodeExpiry: expiry },
     })
 
     const { sendVerificationCode } = await import("@/lib/email")
-    await sendVerificationCode({ name: user.name, email, code })
+    await sendVerificationCode({ name: user.name, email, code }, emailBrandOf(reseller))
 
     return NextResponse.json({ success: true })
   } catch (error) {

@@ -27,6 +27,10 @@ const bodySchema = z.object({
 export async function POST(req: NextRequest) {
   const session = await auth()
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  // Reseller-tenant users never self-pay — their credits come from their provider's pool.
+  if (session.user.resellerId !== "platform") {
+    return NextResponse.json({ error: "Billing is managed by your provider." }, { status: 403 })
+  }
 
   let parsed
   try {

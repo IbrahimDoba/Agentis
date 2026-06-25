@@ -54,8 +54,12 @@ export async function POST(req: NextRequest) {
   const inviteToken = crypto.randomBytes(32).toString("hex")
   const inviteLink = `${process.env.NEXTAUTH_URL}/invite/${inviteToken}`
 
-  // Check if invitee has an existing D-Zero account
-  const existingUser = await db.user.findUnique({ where: { email: email.toLowerCase() }, select: { id: true } })
+  // Check if invitee has an existing account ON THIS TENANT (team members
+  // belong to the same reseller tenant as the workspace owner).
+  const existingUser = await db.user.findUnique({
+    where: { resellerId_email: { resellerId: session.user.resellerId, email: email.toLowerCase() } },
+    select: { id: true },
+  })
 
   // Upsert the invite (re-invite replaces the old token)
   await db.workspaceMember.upsert({

@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs"
 import { db } from "@/lib/db"
 import { signupSchema } from "@/lib/validations"
 import { sendVerificationCode } from "@/lib/email"
+import { findResellerByHost, emailBrandOf, PLATFORM_RESELLER_ID } from "@/lib/tenant"
 
 function generateCode(): string {
   return Math.floor(1000 + Math.random() * 9000).toString()
@@ -25,17 +26,25 @@ export async function POST(req: NextRequest) {
     const { name, email, businessName, phone, password } = parsed.data
     const refCode = typeof body.refCode === "string" ? body.refCode.trim() : null
 
-    const existing = await db.user.findUnique({ where: { email } })
+    // Which tenant is this signup for? Resolved from the host the request came
+    // in on; unknown hosts (and Dailzero's own) resolve to the platform tenant.
+    const reseller = await findResellerByHost(req.headers.get("host"))
+    const resellerId = reseller?.id ?? PLATFORM_RESELLER_ID
+    const brand = emailBrandOf(reseller)
+
+    const existing = await db.user.findUnique({
+      where: { resellerId_email: { resellerId, email } },
+    })
     if (existing) {
       // If they exist but haven't verified yet, resend the code
       if (!existing.emailVerified) {
         const code = generateCode()
         const expiry = new Date(Date.now() + 10 * 60 * 1000) // 10 min
         await db.user.update({
-          where: { email },
+          where: { resellerId_email: { resellerId, email } },
           data: { verificationCode: code, verificationCodeExpiry: expiry },
         })
-        sendVerificationCode({ name: existing.name, email, code }).catch(
+        sendVerificationCode({ name: existing.name, email, code }, brand).catch(
           (err) => console.error("[SIGNUP] resend code error:", err)
         )
         return NextResponse.json({ email }, { status: 200 })
@@ -57,6 +66,11 @@ export async function POST(req: NextRequest) {
         businessName,
         phone: phone || null,
         passwordHash,
+        resellerId,
+        // Reseller-tenant signups start on the 0-allowance "reseller" plan (no
+        // free Dailzero credits) — they get credits only when their reseller
+        // admin activates a plan from her pool. Platform signups default to free.
+        plan: reseller ? "reseller" : "free",
         emailVerified: false,
         verificationCode: code,
         verificationCodeExpiry: expiry,
@@ -80,7 +94,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    sendVerificationCode({ name, email, code }).catch(
+    sendVerificationCode({ name, email, code }, brand).catch(
       (err) => console.error("[SIGNUP] send code error:", err)
     )
 

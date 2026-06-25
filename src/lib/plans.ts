@@ -4,6 +4,7 @@ export const PLAN_PRICES: Record<string, number> = {
   starter: 35000,
   pro: 70000,
   enterprise: 0, // custom — commission set manually by admin
+  reseller: 0, // white-label tenant users — billed via the reseller's pool, not self-pay
 }
 
 // Monthly Dailzero AI credit allowances per plan
@@ -13,6 +14,11 @@ export const PLAN_CREDIT_LIMITS: Record<string, number> = {
   starter: 60000,
   pro: 100000,
   enterprise: -1,   // -1 = unlimited
+  // Reseller users carry NO monthly plan allowance — their credits are granted
+  // into the PAYG wallet from the reseller's pool, so every send draws the
+  // wallet. Must be an explicit 0 (not absent) so the worker's
+  // `?? PLAN_CREDIT_LIMITS.free` fallback never hands them free credits.
+  reseller: 0,
 }
 
 // Dailzero orchestrator usage policy (80% target margin)
@@ -30,6 +36,7 @@ export const PLAN_OVERAGE_RATE_PER_1K: Record<string, number | null> = {
   starter: 1000,
   pro: 800,
   enterprise: null, // custom
+  reseller: null, // no overage — reseller users can't self-pay; they pause when the wallet empties
 }
 
 export const PLAN_LABELS: Record<string, string> = {
@@ -38,6 +45,7 @@ export const PLAN_LABELS: Record<string, string> = {
   starter: "Starter",
   pro: "Pro",
   enterprise: "Enterprise",
+  reseller: "Reseller plan",
 }
 
 export const PLAN_FEATURES: Record<string, string[]> = {
@@ -97,6 +105,7 @@ export const PLAN_SEAT_LIMITS: Record<string, number> = {
   starter: 2,
   pro: 5,
   enterprise: -1, // unlimited
+  reseller: 0, // team seats not offered to reseller-tenant users in the MVP
 }
 
 export const COMMISSION_RATE = 0.15

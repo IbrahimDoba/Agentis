@@ -99,9 +99,12 @@ export function Sidebar({ userName, businessName, currentUserId, currentWorkspac
   const pathname = usePathname()
   const { data } = useDashboardData()
   const { data: stats } = usePlanStats()
-  const navItems = data?.user?.referralsEnabled
-    ? [...baseNavItems, referralNavItem]
-    : baseNavItems
+  // Reseller-tenant users don't self-pay — their plan/credits are managed by
+  // their provider's admin — so hide the Billing page for them.
+  const isReseller = (data?.user?.resellerId ?? "platform") !== "platform"
+  const isResellerAdmin = data?.user?.role === "RESELLER_ADMIN"
+  const navItems = baseNavItems.filter((item) => !(isReseller && item.href === "/dashboard/billing"))
+  if (data?.user?.referralsEnabled) navItems.push(referralNavItem)
 
   const isActive = (href: string) => {
     if (href === "/dashboard") return pathname === "/dashboard"
@@ -190,6 +193,22 @@ export function Sidebar({ userName, businessName, currentUserId, currentWorkspac
           </Link>
           {collapsed && <span className={styles.tooltip}>Guide</span>}
         </div>
+
+        {isResellerAdmin && (
+          <div className={styles.navItemWrap}>
+            <Link
+              href="/reseller"
+              className={cn(styles.navLink, isActive("/reseller") ? styles.active : undefined)}
+              onClick={onClose}
+            >
+              <span className={styles.navIcon}>
+                <UsersIcon width={16} height={16} />
+              </span>
+              {!collapsed && "Reseller admin"}
+            </Link>
+            {collapsed && <span className={styles.tooltip}>Reseller admin</span>}
+          </div>
+        )}
 
         {data?.user?.developerModeEnabled && (
           <div className={styles.navItemWrap}>

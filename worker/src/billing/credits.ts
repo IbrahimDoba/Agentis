@@ -28,6 +28,10 @@ export const PLAN_CREDIT_LIMITS: Record<string, number> = {
   starter: 60000,
   pro: 100000,
   enterprise: -1,
+  // White-label (reseller) users carry no plan allowance — their credits live
+  // in the PAYG wallet (granted from the reseller's pool). Explicit 0 so the
+  // `?? PLAN_CREDIT_LIMITS.free` fallback below never gives them free credits.
+  reseller: 0,
 }
 
 export const PLAN_OVERAGE_RATE_PER_1K: Record<string, number | null> = {
@@ -35,6 +39,7 @@ export const PLAN_OVERAGE_RATE_PER_1K: Record<string, number | null> = {
   starter: 1000,
   pro: 800,
   enterprise: null,
+  reseller: null, // no overage — reseller users pause when their wallet empties
 }
 
 export function creditsForMessageType(type?: "text" | "image"): number {

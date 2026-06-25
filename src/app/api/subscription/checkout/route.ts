@@ -15,6 +15,10 @@ const schema = z.object({ plan: z.enum(["basic", "starter", "pro"]) })
 export async function POST(req: NextRequest) {
   const session = await auth()
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  // Reseller-tenant users never self-pay Dailzero — their provider manages their plan.
+  if (session.user.resellerId !== "platform") {
+    return NextResponse.json({ error: "Billing is managed by your provider." }, { status: 403 })
+  }
 
   const parsed = schema.safeParse(await req.json())
   if (!parsed.success) return NextResponse.json({ error: "Invalid plan" }, { status: 400 })

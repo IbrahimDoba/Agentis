@@ -1,6 +1,7 @@
 import { Resend } from "resend"
 
-const FROM = "D-Zero AI <noreply@dailzero.com>"
+const FROM_ADDRESS = "noreply@dailzero.com"
+const FROM = `D-Zero AI <${FROM_ADDRESS}>`
 const ADMIN_EMAIL = process.env.DEMO_EMAIL!
 const APP_URL = process.env.NEXTAUTH_URL?.startsWith("http://localhost")
   ? "https://www.dailzero.com"
@@ -10,17 +11,30 @@ function resend() {
   return new Resend(process.env.RESEND_API_KEY)
 }
 
+// Co-branding for white-label (reseller) tenants. Resend only sends from our
+// VERIFIED domain, so the FROM *address* is always noreply@dailzero.com — only
+// the display name, subject and email body are branded with the reseller's
+// appName + domain. Pass `undefined` (the default) for the platform brand.
+export type EmailBrand = { appName: string; appUrl?: string }
+
+function senderFrom(brand?: EmailBrand): string {
+  return brand ? `${brand.appName} <${FROM_ADDRESS}>` : FROM
+}
+
 // ---------------------------------------------------------------------------
 // Shared helpers
 // ---------------------------------------------------------------------------
 
-function baseTemplate(content: string): string {
+function baseTemplate(content: string, brand?: EmailBrand): string {
+  const appName = brand?.appName ?? "D-Zero AI"
+  const appUrl = brand?.appUrl ?? APP_URL
+  const appHost = appUrl.replace(/^https?:\/\//, "").replace(/\/+$/, "")
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>D-Zero AI</title>
+  <title>${appName}</title>
 </head>
 <body style="margin:0;padding:0;background:#f0f0f0;font-family:'Segoe UI',Arial,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f0f0;padding:40px 0;">
@@ -30,7 +44,7 @@ function baseTemplate(content: string): string {
         <!-- Header -->
         <tr>
           <td style="background:#0a0a0a;padding:28px 40px;text-align:center;">
-            <span style="color:#00dc82;font-size:22px;font-weight:700;letter-spacing:-0.5px;">D-Zero AI</span>
+            <span style="color:#00dc82;font-size:22px;font-weight:700;letter-spacing:-0.5px;">${appName}</span>
           </td>
         </tr>
 
@@ -45,11 +59,11 @@ function baseTemplate(content: string): string {
         <tr>
           <td style="background:#f4f4f5;padding:24px 40px;text-align:center;border-top:1px solid #e5e7eb;">
             <p style="margin:0;font-size:12px;color:#6b7280;">
-              © ${new Date().getFullYear()} D-Zero AI &nbsp;·&nbsp;
-              <a href="${APP_URL}" style="color:#6b7280;text-decoration:none;">dailzero.com</a>
+              © ${new Date().getFullYear()} ${appName} &nbsp;·&nbsp;
+              <a href="${appUrl}" style="color:#6b7280;text-decoration:none;">${appHost}</a>
             </p>
             <p style="margin:6px 0 0;font-size:11px;color:#9ca3af;">
-              You're receiving this because you have an account with D-Zero AI.
+              You're receiving this because you have an account with ${appName}.
             </p>
           </td>
         </tr>
@@ -82,11 +96,12 @@ function infoRow(label: string, value: string): string {
 // 0. Email verification code — sent immediately on signup
 // ---------------------------------------------------------------------------
 
-export async function sendVerificationCode(data: { name: string; email: string; code: string }) {
+export async function sendVerificationCode(data: { name: string; email: string; code: string }, brand?: EmailBrand) {
+  const appName = brand?.appName ?? "D-Zero AI"
   await resend().emails.send({
-    from: FROM,
+    from: senderFrom(brand),
     to: data.email,
-    subject: `${data.code} is your D-Zero AI verification code`,
+    subject: `${data.code} is your ${appName} verification code`,
     html: baseTemplate(`
       <h2 style="margin:0 0 8px;font-size:22px;color:#111111;">Verify your email</h2>
       <p style="margin:0 0 24px;color:#4b5563;">
@@ -100,9 +115,9 @@ export async function sendVerificationCode(data: { name: string; email: string; 
       </div>
       ${divider()}
       <p style="margin:0;color:#6b7280;font-size:13px;">
-        If you didn't create a D-Zero AI account, you can safely ignore this email.
+        If you didn't create a ${appName} account, you can safely ignore this email.
       </p>
-    `),
+    `, brand),
   })
 }
 
@@ -110,15 +125,16 @@ export async function sendVerificationCode(data: { name: string; email: string; 
 // 1. Welcome email — sent to user after email is verified
 // ---------------------------------------------------------------------------
 
-export async function sendWelcomeEmail(user: { name: string; email: string }) {
+export async function sendWelcomeEmail(user: { name: string; email: string }, brand?: EmailBrand) {
+  const appName = brand?.appName ?? "D-Zero AI"
   await resend().emails.send({
-    from: FROM,
+    from: senderFrom(brand),
     to: user.email,
-    subject: "Welcome to D-Zero AI – We're reviewing your account",
+    subject: `Welcome to ${appName} – We're reviewing your account`,
     html: baseTemplate(`
       <h2 style="margin:0 0 8px;font-size:22px;color:#111111;">Welcome, ${user.name}! 👋</h2>
       <p style="margin:0 0 20px;color:#4b5563;">
-        Thanks for signing up for D-Zero AI. We're excited to help your business respond to
+        Thanks for signing up for ${appName}. We're excited to help your business respond to
         every WhatsApp message — automatically, 24/7.
       </p>
       ${divider()}
@@ -152,9 +168,9 @@ export async function sendWelcomeEmail(user: { name: string; email: string }) {
       ${divider()}
       <p style="margin:0;color:#6b7280;font-size:14px;">
         Got questions in the meantime? Reply to this email or visit our
-        <a href="${APP_URL}/contact" style="color:#00dc82;text-decoration:none;">contact page</a>.
+        <a href="${brand?.appUrl ?? APP_URL}/contact" style="color:#00dc82;text-decoration:none;">contact page</a>.
       </p>
-    `),
+    `, brand),
   })
 }
 
@@ -367,11 +383,12 @@ export async function sendAccountSuspendedEmail(user: { name: string; email: str
 // 7. Password reset — sent to user when they request a password reset
 // ---------------------------------------------------------------------------
 
-export async function sendPasswordResetEmail(data: { name: string; email: string; resetLink: string }) {
+export async function sendPasswordResetEmail(data: { name: string; email: string; resetLink: string }, brand?: EmailBrand) {
+  const appName = brand?.appName ?? "D-Zero AI"
   await resend().emails.send({
-    from: FROM,
+    from: senderFrom(brand),
     to: data.email,
-    subject: "Reset your D-Zero AI password",
+    subject: `Reset your ${appName} password`,
     html: baseTemplate(`
       <h2 style="margin:0 0 8px;font-size:22px;color:#111111;">Password reset request</h2>
       <p style="margin:0 0 20px;color:#4b5563;">
@@ -383,7 +400,7 @@ export async function sendPasswordResetEmail(data: { name: string; email: string
       <p style="margin:0;color:#6b7280;font-size:13px;">
         If you didn't request this, you can safely ignore this email — your password won't change.
       </p>
-    `),
+    `, brand),
   })
 }
 

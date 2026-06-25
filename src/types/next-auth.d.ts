@@ -7,6 +7,7 @@ declare module "next-auth" {
       role: string
       status: string
       businessName: string
+      resellerId: string
     } & DefaultSession["user"]
   }
 }
