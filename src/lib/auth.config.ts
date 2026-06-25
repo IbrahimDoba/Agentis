@@ -70,6 +70,18 @@ export const authConfig: NextAuthConfig = {
       }
       return session
     },
+    async redirect({ url, baseUrl }) {
+      // Multi-tenant: keep auth redirects (login/logout) on the CURRENT domain.
+      // Relative paths are returned as-is so the browser resolves them against
+      // whatever reseller domain the request came in on — instead of being
+      // forced onto NEXTAUTH_URL (which is the Dailzero domain). Absolute URLs
+      // are allowed only when same-origin as the app base.
+      if (url.startsWith("/")) return url
+      try {
+        if (new URL(url).origin === new URL(baseUrl).origin) return url
+      } catch {}
+      return baseUrl
+    },
   },
   pages: {
     signIn: "/login",
