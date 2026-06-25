@@ -31,6 +31,7 @@ export default async function ResellerLayout({ children }: { children: React.Rea
           <Link href="/reseller" style={navLink}>Overview</Link>
           <Link href="/reseller/users" style={navLink}>Customers</Link>
           <Link href="/reseller/plans" style={navLink}>Plans</Link>
+          <Link href="/reseller/settings" style={navLink}>Settings</Link>
         </nav>
         <div style={{ marginLeft: "auto", display: "flex", gap: 12, alignItems: "center" }}>
           <Link href="/dashboard" style={{ ...navLink, color: "var(--text-secondary, #71717a)" }}>← My dashboard</Link>
