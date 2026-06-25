@@ -25,8 +25,13 @@ export async function PATCH(req: NextRequest) {
   if (!ctx) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const b = await req.json().catch(() => ({}))
-  const data: { appName?: string; logoUrl?: string | null; primaryColor?: string | null; supportEmail?: string | null } = {}
+  const data: { name?: string; appName?: string; logoUrl?: string | null; primaryColor?: string | null; supportEmail?: string | null } = {}
 
+  if (b?.name !== undefined) {
+    const v = String(b.name).trim()
+    if (!v) return NextResponse.json({ error: "Business name can't be empty" }, { status: 400 })
+    data.name = v
+  }
   if (b?.appName !== undefined) {
     const v = String(b.appName).trim()
     if (!v) return NextResponse.json({ error: "App name can't be empty" }, { status: 400 })
