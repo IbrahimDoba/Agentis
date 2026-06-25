@@ -5,6 +5,7 @@ type AppCallbackUser = {
   role?: string
   status?: string
   businessName?: string
+  resellerId?: string
 }
 
 // Edge-compatible auth config (no DB imports)
@@ -28,9 +29,21 @@ export const authConfig: NextAuthConfig = {
         return true
       }
 
+      // Super-admin console (all tenants). Root tenant ADMIN only.
       if (pathname.startsWith("/admin")) {
         if (!isLoggedIn) return false
         if (auth?.user?.role !== "ADMIN") return Response.redirect(new URL("/dashboard", nextUrl))
+        return true
+      }
+
+      // Reseller admin console (her own tenant only). RESELLER_ADMIN or the
+      // super-admin. (Pages also guard themselves — there is no middleware yet.)
+      if (pathname.startsWith("/reseller")) {
+        if (!isLoggedIn) return false
+        const role = auth?.user?.role
+        if (role !== "RESELLER_ADMIN" && role !== "ADMIN") {
+          return Response.redirect(new URL("/dashboard", nextUrl))
+        }
         return true
       }
 
@@ -43,6 +56,7 @@ export const authConfig: NextAuthConfig = {
         token.role = appUser.role
         token.status = appUser.status
         token.businessName = appUser.businessName
+        token.resellerId = appUser.resellerId
       }
       return token
     },
@@ -52,6 +66,7 @@ export const authConfig: NextAuthConfig = {
         session.user.role = token.role as string
         session.user.status = token.status as string
         session.user.businessName = token.businessName as string
+        session.user.resellerId = (token.resellerId as string) ?? "platform"
       }
       return session
     },

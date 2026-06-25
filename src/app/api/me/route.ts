@@ -29,6 +29,7 @@ export async function GET() {
       businessName: user.businessName,
       role: user.role,
       status: user.status,
+      resellerId: user.resellerId,
       createdAt: user.createdAt.toISOString(),
       businessCategory: user.businessCategory ?? null,
       businessDescription: user.businessDescription ?? null,

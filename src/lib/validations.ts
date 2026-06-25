@@ -53,6 +53,9 @@ export const profileUpdateSchema = z.object({
 export const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1, "Password required"),
+  // The login form (served on the tenant's domain) passes its own host so
+  // authorize() can resolve the reseller and look the user up per-tenant.
+  domain: z.string().optional(),
 })
 
 export const accountPasswordSchema = z.object({

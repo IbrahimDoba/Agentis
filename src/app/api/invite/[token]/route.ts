@@ -17,7 +17,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
       role: true,
       status: true,
       invitedAt: true,
-      workspace: { select: { name: true, businessName: true } },
+      workspace: { select: { name: true, businessName: true, resellerId: true } },
     },
   })
 
@@ -31,7 +31,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
   if (new Date() > expiry) return NextResponse.json({ error: "This invite link has expired" }, { status: 410 })
 
   const existingUser = await db.user.findUnique({
-    where: { email: invite.email },
+    where: { resellerId_email: { resellerId: invite.workspace.resellerId, email: invite.email } },
     select: { id: true },
   })
 
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest, { params }: Params) {
 
   const invite = await db.workspaceMember.findUnique({
     where: { inviteToken: token },
-    select: { id: true, email: true, status: true, invitedAt: true, workspaceId: true },
+    select: { id: true, email: true, status: true, invitedAt: true, workspaceId: true, workspace: { select: { resellerId: true } } },
   })
 
   if (!invite) return NextResponse.json({ error: "Invalid invite link" }, { status: 404 })
@@ -64,7 +64,9 @@ export async function POST(req: NextRequest, { params }: Params) {
 
   let userId: string
 
-  const existingUser = await db.user.findUnique({ where: { email: invite.email } })
+  const existingUser = await db.user.findUnique({
+    where: { resellerId_email: { resellerId: invite.workspace.resellerId, email: invite.email } },
+  })
 
   if (existingUser) {
     // Existing user — just accept the invite
@@ -86,6 +88,7 @@ export async function POST(req: NextRequest, { params }: Params) {
         email: invite.email,
         businessName: name, // placeholder — they're a team member, not an owner
         passwordHash,
+        resellerId: invite.workspace.resellerId, // same tenant as the workspace owner
         emailVerified: true,
         status: "APPROVED", // invited users are pre-approved
         onboardingCompleted: true, // skip onboarding

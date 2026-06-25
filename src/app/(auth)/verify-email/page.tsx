@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, Suspense } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { signIn } from "next-auth/react"
-import { LogoIcon } from "@/components/landing/Logo"
+import { BrandWordmark } from "@/components/BrandProvider"
 import styles from "./page.module.css"
 import Button from "@/components/ui/Button"
 
@@ -142,8 +142,7 @@ function VerifyEmailForm() {
   return (
     <div className={styles.container}>
       <Link href="/" className={styles.logo}>
-        <LogoIcon size={32} />
-        D-Zero AI
+        <BrandWordmark size={32} />
       </Link>
 
       <div className={styles.card}>

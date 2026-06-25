@@ -1,4 +1,4 @@
-export type Role = "USER" | "ADMIN"
+export type Role = "USER" | "ADMIN" | "RESELLER_ADMIN"
 export type UserStatus = "PENDING" | "APPROVED" | "REJECTED" | "SUSPENDED"
 export type AgentStatus = "PENDING_REVIEW" | "SETTING_UP" | "ACTIVE" | "INACTIVE"
 
@@ -10,6 +10,7 @@ export interface UserPublic {
   businessName: string
   role: Role
   status: UserStatus
+  resellerId: string
   createdAt: string
   businessCategory?: string | null
   businessDescription?: string | null

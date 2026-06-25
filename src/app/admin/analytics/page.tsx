@@ -16,7 +16,7 @@ export default async function AdminAnalyticsPage() {
     pendingUsers,
     totalAgents,
     activeAgents,
-    totalConversations,
+    totalAiSent,
     totalContacts,
     totalLeads,
     subscriberCount,
@@ -27,8 +27,10 @@ export default async function AdminAnalyticsPage() {
     db.user.count({ where: { status: "PENDING" } }),
     db.agent.count(),
     db.agent.count({ where: { status: "ACTIVE" } }),
-    db.conversationLog.count(),
-    db.customer.count(),
+    // AI messages actually sent (outbound, sender = ai) — the real "sent" metric.
+    db.message.count({ where: { direction: "outbound", senderRole: "ai" } }),
+    // Contacts = distinct people agents have talked to = one Conversation per (agent, phone).
+    db.conversation.count(),
     db.lead.count(),
     db.newsletterSubscriber.count(),
     db.user.count({ where: { agents: { some: {} } } }),
@@ -102,6 +104,7 @@ export default async function AdminAnalyticsPage() {
     creditsMonthlyRaw,
     dailyCreditsRaw,
     userCreditsRaw,
+    userAiSentRaw,
   ] = await Promise.all([
     db.agent.count({ where: { agentRuntime: "orchestrator" } }),
     db.conversation.count({ where: { agent: { agentRuntime: "orchestrator" } } }),
@@ -124,6 +127,15 @@ export default async function AdminAnalyticsPage() {
       `SELECT a."userId", COALESCE(SUM(cu."creditsUsed"), 0)::int as total
        FROM "CreditUsage" cu
        JOIN "Agent" a ON cu."agentId" = a."id"
+       GROUP BY a."userId"`
+    ),
+    // AI-sent messages per user (outbound, sender = ai).
+    db.$queryRawUnsafe<Array<{ userId: string; total: number }>>(
+      `SELECT a."userId", COUNT(*)::int as total
+       FROM "Message" m
+       JOIN "Conversation" c ON m."conversationId" = c."id"
+       JOIN "Agent" a ON c."agentId" = a."id"
+       WHERE m."direction" = 'outbound' AND m."senderRole" = 'ai'
        GROUP BY a."userId"`
     ),
   ])
@@ -152,6 +164,11 @@ export default async function AdminAnalyticsPage() {
     userCreditsMap[row.userId] = Number(row.total)
   }
 
+  const userAiSentMap: Record<string, number> = {}
+  for (const row of userAiSentRaw as Array<{ userId: string; total: number }>) {
+    userAiSentMap[row.userId] = Number(row.total)
+  }
+
   // ── Per-user metrics ─────────────────────────────────────────────────────
   const users = await db.user.findMany({
     orderBy: { createdAt: "desc" },
@@ -168,18 +185,20 @@ export default async function AdminAnalyticsPage() {
           id: true,
           status: true,
           agentRuntime: true,
-          _count: { select: { conversationLogs: true, customers: true } },
+          _count: { select: { conversations: true } },
         },
       },
     },
   })
 
   const userMetrics = users.map((u) => {
-    const conversations = u.agents.reduce((s, a) => s + a._count.conversationLogs, 0)
-    const contacts = u.agents.reduce((s, a) => s + a._count.customers, 0)
+    // Contacts = distinct people (one Conversation per agent+phone).
+    const contacts = u.agents.reduce((s, a) => s + a._count.conversations, 0)
+    // "AI sent" = outbound messages the AI sent. Messages live on Conversations,
+    // which only the orchestrator creates — so the per-user total IS the DZero total.
+    const aiSent = userAiSentMap[u.id] ?? 0
     const dzeroAgents = u.agents.filter((a) => a.agentRuntime === "orchestrator")
-    const dzeroConversations = dzeroAgents.reduce((s, a) => s + a._count.conversationLogs, 0)
-    const dzeroContacts = dzeroAgents.reduce((s, a) => s + a._count.customers, 0)
+    const dzeroContacts = dzeroAgents.reduce((s, a) => s + a._count.conversations, 0)
     return {
       id: u.id,
       name: u.name,
@@ -189,11 +208,11 @@ export default async function AdminAnalyticsPage() {
       createdAt: u.createdAt.toISOString(),
       agents: u._count.agents,
       leads: u._count.leads,
-      conversations,
+      conversations: aiSent,
       contacts,
       credits: userCreditsMap[u.id] ?? 0,
       dzeroAgentCount: dzeroAgents.length,
-      dzeroConversations,
+      dzeroConversations: aiSent,
       dzeroContacts,
     }
   })
@@ -218,8 +237,8 @@ export default async function AdminAnalyticsPage() {
           <span className={styles.statSub}>{totalAgents} total · {activeAgents} active</span>
         </div>
         <div className={styles.statCard}>
-          <span className={styles.statLabel}>Total Conversations</span>
-          <span className={styles.statNum}>{totalConversations.toLocaleString()}</span>
+          <span className={styles.statLabel}>AI Messages Sent</span>
+          <span className={styles.statNum}>{totalAiSent.toLocaleString()}</span>
           <span className={styles.statSub}>{creditsAllTime.toLocaleString()} credits used</span>
         </div>
         <div className={styles.statCard}>

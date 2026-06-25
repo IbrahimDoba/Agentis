@@ -6,12 +6,14 @@ import { db } from "@/lib/db"
 import { loginSchema } from "@/lib/validations"
 import { authConfig } from "@/lib/auth.config"
 import { sendVerificationCode } from "@/lib/email"
+import { resolveResellerId, PLATFORM_RESELLER_ID } from "@/lib/tenant"
 
 type AppAuthUser = {
   id: string
   role?: string
   status?: string
   businessName?: string
+  resellerId?: string
   emailVerified?: boolean
 }
 
@@ -30,13 +32,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
+        domain: { label: "Domain", type: "text" },
       },
       async authorize(credentials) {
         const parsed = loginSchema.safeParse(credentials)
         if (!parsed.success) return null
 
+        // Resolve the tenant from the host the login form passed, then look the
+        // user up per-tenant — the same email can exist on multiple tenants.
+        const resellerId = await resolveResellerId(parsed.data.domain)
         const user = await db.user.findUnique({
-          where: { email: parsed.data.email },
+          where: { resellerId_email: { resellerId, email: parsed.data.email } },
         })
         if (!user || !user.passwordHash) return null
 
@@ -53,6 +59,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           role: user.role,
           status: user.status,
           businessName: user.businessName,
+          resellerId: user.resellerId,
         }
       },
     }),
@@ -66,7 +73,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       const email = user.email
       if (!email) return false
 
-      const existing = await db.user.findUnique({ where: { email } })
+      // Google sign-in is offered only on the root (Dailzero) domain in v1, so
+      // it always belongs to the platform tenant. Reseller sites are
+      // email/password only.
+      const resellerId = PLATFORM_RESELLER_ID
+      const existing = await db.user.findUnique({
+        where: { resellerId_email: { resellerId, email } },
+      })
 
       if (existing) {
         if (existing.status === "REJECTED") return "/login?error=rejected"
@@ -74,7 +87,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           const code = generateCode()
           const expiry = new Date(Date.now() + 10 * 60 * 1000)
           await db.user.update({
-            where: { email },
+            where: { resellerId_email: { resellerId, email } },
             data: { verificationCode: code, verificationCodeExpiry: expiry },
           })
           sendVerificationCode({ name: existing.name, email, code }).catch(
@@ -89,6 +102,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         appUser.role = existing.role
         appUser.status = existing.status
         appUser.businessName = existing.businessName
+        appUser.resellerId = existing.resellerId
         appUser.emailVerified = existing.emailVerified
         return true
       }
@@ -102,6 +116,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           name: user.name ?? email.split("@")[0],
           email,
           businessName: user.name ?? email.split("@")[0],
+          resellerId,
           emailVerified: false,
           verificationCode: code,
           verificationCodeExpiry: expiry,

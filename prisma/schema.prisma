@@ -12,12 +12,18 @@ datasource db {
 model User {
   id             String     @id @default(cuid())
   name           String
-  email          String     @unique
+  email          String
   phone          String?
   businessName   String
   passwordHash   String?
   role           Role       @default(USER)
   status         UserStatus @default(PENDING)
+  // Multi-tenant: which reseller (white-label tenant) this user belongs to.
+  // Existing users backfill to the root tenant "platform". Email is unique
+  // PER tenant (see @@unique below), so the same address can exist on Dailzero
+  // and on a reseller's site independently.
+  resellerId     String     @default("platform")
+  reseller       Reseller   @relation("ResellerUsers", fields: [resellerId], references: [id])
   workspaceMembers   WorkspaceMember[] @relation("WorkspaceOwner")
   memberOf           WorkspaceMember[] @relation("WorkspaceMemberUser")
   resetToken            String?    @unique
@@ -73,6 +79,54 @@ model User {
   creditPurchases    CreditPurchase[]
   subscriptionCharges SubscriptionCharge[]
   apiKeys            ApiKey[]
+
+  // Email is unique within a tenant, not globally.
+  @@unique([resellerId, email])
+}
+
+// A reseller = a white-label tenant. The root tenant (Dailzero itself) is a
+// fixed row with id "platform", so there's no special-casing — every user
+// belongs to exactly one reseller. Co-branded: appName/logo/color are shown to
+// her users while a "powered by Dailzero" footer stays.
+model Reseller {
+  id              String   @id @default(cuid()) // root tenant has fixed id "platform"
+  name            String // internal name
+  domain          String   @unique // primary host, e.g. resellers-site.com
+  domainAliases   String[] @default([]) // extra hosts that also map here
+  appName         String // brand shown to her users
+  logoUrl         String?
+  primaryColor    String? // hex accent
+  supportEmail    String?
+  status          String   @default("active") // active | suspended
+  // Wholesale credit pool you allocate her. Her users' AI sends draw from this;
+  // when it hits zero her tenant pauses until you top it up. `creditPool` is the
+  // live balance; `creditPoolTotal` is the lifetime allocation (admin display).
+  creditPool      Int      @default(0)
+  creditPoolTotal Int      @default(0)
+  adminUserId     String? // her RESELLER_ADMIN account
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  users           User[]         @relation("ResellerUsers")
+  plans           ResellerPlan[]
+}
+
+// A reseller's own custom plan — any name, any price (she collects payment
+// herself, offline), any credit allowance, any duration. She assigns one to a
+// user and activates it manually from her admin; the user then runs on that
+// allowance, drawing the reseller's pool. No checkout code for her tenant.
+model ResellerPlan {
+  id           String   @id @default(cuid())
+  resellerId   String
+  reseller     Reseller @relation(fields: [resellerId], references: [id], onDelete: Cascade)
+  name         String
+  priceNaira   Int // her price (record/display only — collected manually)
+  credits      Int // allowance granted per period
+  durationDays Int      @default(30)
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([resellerId])
 }
 
 // External Developer API keys. One user → many keys. The raw key is shown
@@ -472,6 +526,7 @@ model ConversationRead {
 enum Role {
   USER
   ADMIN
+  RESELLER_ADMIN
 }
 
 enum UserStatus {
