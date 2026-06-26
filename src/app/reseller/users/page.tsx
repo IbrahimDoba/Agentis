@@ -76,7 +76,13 @@ export default function ResellerUsersPage() {
       })
       const data = await res.json()
       if (res.ok) {
-        setMsg({ text: `Activated "${data.planName}" — ${data.credits.toLocaleString()} credits granted. Pool left: ${data.poolRemaining.toLocaleString()}.`, ok: true })
+        const poolNote =
+          data.poolDebited > 0
+            ? `${data.poolDebited.toLocaleString()} drawn from your pool`
+            : data.poolDebited < 0
+              ? `${Math.abs(data.poolDebited).toLocaleString()} unused credits returned to your pool`
+              : `no change to your pool`
+        setMsg({ text: `Activated "${data.planName}" — wallet set to ${data.credits.toLocaleString()} credits (${poolNote}). Pool left: ${data.poolRemaining.toLocaleString()}.`, ok: true })
         await load()
       } else {
         setMsg({ text: data.error || "Activation failed", ok: false })
