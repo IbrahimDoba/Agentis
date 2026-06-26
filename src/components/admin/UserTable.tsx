@@ -544,6 +544,7 @@ export function UserTable({ users }: UserTableProps) {
   const router = useRouter()
   const [loading, setLoading] = useState<string | null>(null)
   const [selectedUser, setSelectedUser] = useState<UserWithAgentCount | null>(null)
+  const [search, setSearch] = useState("")
 
   const handleStatusChange = async (userId: string, status: "APPROVED" | "REJECTED" | "SUSPENDED") => {
     setLoading(`${userId}-${status}`)
@@ -571,9 +572,28 @@ export function UserTable({ users }: UserTableProps) {
     )
   }
 
+  const q = search.trim().toLowerCase()
+  const filtered = q
+    ? users.filter((u) =>
+        (u.name ?? "").toLowerCase().includes(q) ||
+        (u.email ?? "").toLowerCase().includes(q) ||
+        (u.businessName ?? "").toLowerCase().includes(q)
+      )
+    : users
+
   return (
     <>
       <div className={styles.wrapper}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", borderBottom: "1px solid var(--border-subtle, #e4e4e7)", flexWrap: "wrap" }}>
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by name or email…"
+            style={{ flex: 1, minWidth: 220, border: "1px solid var(--border, #d4d4d8)", borderRadius: 8, padding: "8px 12px", fontSize: 14, background: "var(--bg-primary, #fff)", color: "inherit" }}
+          />
+          {q && <span style={{ fontSize: 13, color: "var(--text-secondary, #6b7280)" }}>{filtered.length} of {users.length}</span>}
+        </div>
         <table className={styles.table}>
           <thead className={styles.thead}>
             <tr>
@@ -588,7 +608,13 @@ export function UserTable({ users }: UserTableProps) {
             </tr>
           </thead>
           <tbody>
-            {users.map((user) => (
+            {filtered.length === 0 ? (
+              <tr>
+                <td colSpan={8} style={{ padding: "24px 16px", textAlign: "center", color: "var(--text-secondary, #6b7280)" }}>
+                  No users match &quot;{search}&quot;
+                </td>
+              </tr>
+            ) : filtered.map((user) => (
               <tr
                 key={user.id}
                 className={styles.tr}
