@@ -107,3 +107,85 @@ export async function activateResellerPlan(opts: {
 
   return outcome
 }
+
+export type AdjustResult =
+  | { ok: true; newBalance: number; poolRemaining: number }
+  | { ok: false; error: string }
+
+/**
+ * Manually add or deduct a customer's credits — e.g. the reseller charges the
+ * customer in credits for an off-platform service (a logo design, etc.).
+ *
+ * - "add"    → draws the amount from the reseller's pool into the customer's
+ *              wallet, guarded so the pool can never overdraw.
+ * - "deduct" → removes the amount from the customer's wallet, treated as spent,
+ *              so it does NOT return to the pool. Guarded so the wallet can
+ *              never go negative.
+ *
+ * Strictly tenant-scoped: the user must belong to this reseller.
+ */
+export async function adjustResellerUserCredits(opts: {
+  resellerId: string
+  userId: string
+  action: "add" | "deduct"
+  amount: number
+}): Promise<AdjustResult> {
+  const { resellerId, userId, action } = opts
+  const amount = Math.floor(opts.amount)
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return { ok: false, error: "Enter a positive whole number of credits" }
+  }
+
+  const outcome = await db.$transaction(async (tx) => {
+    const user = await tx.user.findFirst({
+      where: { id: userId, resellerId },
+      select: { id: true, creditBalance: true },
+    })
+    if (!user) return { ok: false as const, error: "User not found in your tenant" }
+
+    if (action === "add") {
+      // Draw from the pool, guarded so concurrent grants can't overdraw it.
+      const debit = await tx.reseller.updateMany({
+        where: { id: resellerId, creditPool: { gte: amount } },
+        data: { creditPool: { decrement: amount } },
+      })
+      if (debit.count === 0) {
+        return { ok: false as const, error: "Insufficient pool balance — top up the reseller's pool first" }
+      }
+      await tx.user.update({
+        where: { id: userId },
+        data: { creditBalance: { increment: amount } },
+      })
+    } else {
+      // Deduct: consume from the wallet (never below zero). Pool is untouched.
+      const dec = await tx.user.updateMany({
+        where: { id: userId, resellerId, creditBalance: { gte: amount } },
+        data: { creditBalance: { decrement: amount } },
+      })
+      if (dec.count === 0) {
+        return { ok: false as const, error: `Customer only has ${(user.creditBalance ?? 0).toLocaleString()} credits` }
+      }
+    }
+
+    const [reseller, updated] = await Promise.all([
+      tx.reseller.findUnique({ where: { id: resellerId }, select: { creditPool: true } }),
+      tx.user.findUnique({ where: { id: userId }, select: { creditBalance: true } }),
+    ])
+
+    return {
+      ok: true as const,
+      newBalance: updated?.creditBalance ?? 0,
+      poolRemaining: reseller?.creditPool ?? 0,
+    }
+  })
+
+  // Keep agent messaging consistent with the new balance (disable at zero,
+  // re-enable when credited).
+  if (outcome.ok) {
+    await checkAndEnforceUserAgentLimits(userId).catch((err) =>
+      console.error("[resellerBilling] enforce agents after adjust error:", err)
+    )
+  }
+
+  return outcome
+}

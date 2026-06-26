@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth"
 import { redirect, notFound } from "next/navigation"
 import Link from "next/link"
 import { db } from "@/lib/db"
+import CreditAdjuster from "./CreditAdjuster"
 
 interface Params { params: Promise<{ id: string }> }
 
@@ -50,6 +51,8 @@ export default async function ResellerCustomerPage({ params }: Params) {
         <div style={row}><span style={{ color: "var(--text-secondary, #71717a)" }}>Plan valid until</span><span>{fmt(customer.subscriptionExpiresAt)}</span></div>
         <div style={{ ...row, borderBottom: "none" }}><span style={{ color: "var(--text-secondary, #71717a)" }}>Joined</span><span>{fmt(customer.createdAt)}</span></div>
       </div>
+
+      <CreditAdjuster userId={customer.id} />
 
       <div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, margin: "4px 0 10px" }}>
