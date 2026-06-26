@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { getTenantBranding } from "@/lib/tenant"
+import { getTenantBranding, brandingIcons } from "@/lib/tenant"
 import { BrandProvider } from "@/components/BrandProvider"
 
 // Auth pages are served on the tenant's own domain, so they carry the tenant's
@@ -9,6 +9,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const brand = await getTenantBranding()
   return {
     title: `Sign in · ${brand.appName}`,
+    icons: brandingIcons(brand),
     openGraph: { title: brand.appName, siteName: brand.appName },
     twitter: { title: brand.appName },
   }

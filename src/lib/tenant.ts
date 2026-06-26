@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { headers } from "next/headers"
 import { cache } from "react"
 import { db } from "@/lib/db"
@@ -103,6 +104,16 @@ export function getBranding(reseller: Reseller): Branding {
 export const getTenantBranding = cache(async (): Promise<Branding> => {
   return getBranding(await getTenant())
 })
+
+/**
+ * Favicon/icon metadata for a tenant: the reseller's uploaded logo, falling
+ * back to the platform icon. Lets a reseller's browser tab show her own icon
+ * instead of Dailzero's. Used by the tenant-facing layouts' generateMetadata.
+ */
+export function brandingIcons(branding: Branding): Metadata["icons"] {
+  const icon = branding.logoUrl || "/icon.svg"
+  return { icon, shortcut: icon, apple: icon }
+}
 
 /**
  * Email co-branding for a reseller. Returns `undefined` for the platform tenant
