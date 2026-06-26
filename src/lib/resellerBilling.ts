@@ -12,7 +12,7 @@ import { checkAndEnforceUserAgentLimits } from "@/lib/agentLimitCheck"
 const DAY_MS = 24 * 60 * 60 * 1000
 
 export type ActivateResult =
-  | { ok: true; planName: string; credits: number; expiresAt: Date; poolRemaining: number }
+  | { ok: true; planName: string; credits: number; poolDebited: number; expiresAt: Date; poolRemaining: number }
   | { ok: false; error: string }
 
 /**
@@ -36,18 +36,35 @@ export async function activateResellerPlan(opts: {
     // The user must belong to THIS reseller — never let one tenant touch another's user.
     const user = await tx.user.findFirst({
       where: { id: userId, resellerId },
-      select: { id: true },
+      select: { id: true, creditBalance: true },
     })
     if (!user) return { ok: false as const, error: "User not found in your tenant" }
 
-    // Atomic, guarded pool debit. updateMany with a `gte` guard means concurrent
-    // activations can never overdraw the pool — only those it can cover succeed.
-    const debit = await tx.reseller.updateMany({
-      where: { id: resellerId, creditPool: { gte: plan.credits } },
-      data: { creditPool: { decrement: plan.credits } },
-    })
-    if (debit.count === 0) {
-      return { ok: false as const, error: "Insufficient pool balance — top up the reseller's pool first" }
+    // Changing a plan OVERWRITES the wallet — it does not stack. The user's
+    // current (unused) balance is returned to the pool and the new plan's
+    // credits are issued from it, so the pool only moves by the difference:
+    // an upgrade costs the gap, a downgrade refunds the surplus.
+    //   e.g. user has 3,000 and switches to a 5,000 plan → wallet becomes 5,000
+    //        and the pool drops by 2,000 (not 5,000).
+    const current = user.creditBalance ?? 0
+    const netDebit = plan.credits - current
+
+    if (netDebit > 0) {
+      // Upgrade: draw only the shortfall, guarded with a `gte` so concurrent
+      // activations can never overdraw the pool — only those it can cover succeed.
+      const debit = await tx.reseller.updateMany({
+        where: { id: resellerId, creditPool: { gte: netDebit } },
+        data: { creditPool: { decrement: netDebit } },
+      })
+      if (debit.count === 0) {
+        return { ok: false as const, error: "Insufficient pool balance — top up the reseller's pool first" }
+      }
+    } else if (netDebit < 0) {
+      // Downgrade: the unused surplus reverts to the pool.
+      await tx.reseller.update({
+        where: { id: resellerId },
+        data: { creditPool: { increment: -netDebit } },
+      })
     }
 
     const now = new Date()
@@ -60,8 +77,8 @@ export async function activateResellerPlan(opts: {
         subscriptionStatus: "active",
         subscriptionExpiresAt: expiresAt,
         status: "APPROVED",
-        // Grant the plan's credits into the PAYG wallet; expiry == plan duration.
-        creditBalance: { increment: plan.credits },
+        // Overwrite the PAYG wallet to exactly the plan's credits; expiry == plan duration.
+        creditBalance: plan.credits,
         creditsExpireAt: expiresAt,
       },
     })
@@ -75,6 +92,7 @@ export async function activateResellerPlan(opts: {
       ok: true as const,
       planName: plan.name,
       credits: plan.credits,
+      poolDebited: netDebit,
       expiresAt,
       poolRemaining: reseller?.creditPool ?? 0,
     }
