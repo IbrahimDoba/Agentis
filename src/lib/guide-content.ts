@@ -46,7 +46,9 @@ export const GUIDE_TOPICS: GuideTopic[] = [
     category: "getting-started",
     emoji: "👋",
     intro: "What D-Zero AI is, what it isn't, and how the moving parts fit together.",
-    body: `### What it is
+    body: `> **Quick version:** D-Zero AI is an assistant that answers your WhatsApp customers for you. You teach it about your business, connect your WhatsApp number, and it handles incoming chats — and you can step in whenever you want.
+
+### What it is
 
 D-Zero AI is an AI agent platform for WhatsApp. You configure an agent that knows your business, link a WhatsApp number to it, and the agent handles incoming customer conversations on your behalf — answering questions, recommending products, capturing leads, taking orders, and more.
 
@@ -75,7 +77,9 @@ Read **Setting up your first agent** then **Connecting WhatsApp**. After that yo
     category: "getting-started",
     emoji: "🚀",
     intro: "The minimum config you need to get a working agent live in under 15 minutes.",
-    body: `### Step 1 — Create the agent
+    body: `> **Quick version:** Create an agent, write a short "who you are and what you sell" prompt, add your products, connect WhatsApp, and test it. About 15 minutes start to finish.
+
+### Step 1 — Create the agent
 
 Go to **Agents → Create New**. Pick a template (Receptionist, Sales, Support) or start from scratch. The template fills the system prompt with sensible defaults; from-scratch gives you a blank slate.
 
@@ -114,7 +118,9 @@ Send a message to your connected WhatsApp number. The agent should reply. If it 
     category: "getting-started",
     emoji: "📱",
     intro: "How to link a WhatsApp number to an agent using the Channels page.",
-    body: `### What you need
+    body: `> **Quick version:** Link your WhatsApp by scanning a QR code with your phone — the same way WhatsApp Web works. Takes about two minutes.
+
+### What you need
 
 - A WhatsApp account (personal or Business — both work).
 - Your phone with WhatsApp installed and signed in.
@@ -155,7 +161,9 @@ D-Zero AI uses **WhatsApp Web** (the same Linked Devices feature your personal W
     category: "pages",
     emoji: "💬",
     intro: "Watching live chats, taking over from the AI, and handing back when you're done.",
-    body: `### What you see
+    body: `> **Quick version:** Watch every chat your AI is having, and jump in to reply yourself any time. The AI automatically steps aside while you handle it, then resumes when you hand back.
+
+### What you see
 
 The Conversations page lists every chat your agents have had, sorted by most recent activity. Click one to open the chat drawer with the full message history.
 
@@ -189,7 +197,9 @@ Currently the message input supports plain text. Voice notes and image replies t
     category: "pages",
     emoji: "📣",
     intro: "Sending one message to a list of contacts at once, paced safely.",
-    body: `### What broadcasts are for
+    body: `> **Quick version:** Send one message to a whole list of contacts at once. Sends are spaced out automatically so WhatsApp doesn't flag your number. Best for people who already know you — never cold lists.
+
+### What broadcasts are for
 
 Send the same message to many customers at once — promotions, restocks, important announcements. Distinct from follow-up campaigns (which generate personalised messages per contact).
 
@@ -207,9 +217,11 @@ Sends are spread out with anti-ban delays — typically 5–15 seconds between m
 
 The broadcast respects your warmup tier's daily cap. If your tier allows 1,500 messages/day and you're already at 1,200, the broadcast queues only 300; the rest waits for tomorrow.
 
-### Pause / resume / cancel
+### Pause, resume & cancel
 
-Live progress is shown — sent / failed / remaining. You can pause at any time and resume later (it picks up where it left off), or cancel entirely (in-flight sends still complete; queued ones stop).
+Live progress is shown — sent / failed / remaining. You can **pause** any time and **resume** later; it picks up exactly where it left off. **Cancel** stops everything (an in-flight send still completes; queued ones stop).
+
+If a broadcast ever stalls by itself — for example WhatsApp reconnected mid-send and the rest never went out — just click **Resume** and it re-sends only what's left. It never messages the same contact twice.
 
 ### When to use it (and when not to)
 
@@ -224,7 +236,9 @@ Live progress is shown — sent / failed / remaining. You can pause at any time 
     category: "pages",
     emoji: "🎯",
     intro: "How conversations get flagged as leads and how to track them through pipeline stages.",
-    body: `### How leads are detected
+    body: `> **Quick version:** After each chat, the AI flags people who showed buying interest as "leads" so you can follow up and track them from first contact to sale.
+
+### How leads are detected
 
 After every completed conversation, an AI scanner reads the transcript and decides whether the contact showed buying intent — questions about pricing, availability, "how do I order", "do you deliver to X", etc. If yes, the conversation gets flagged as a Lead and appears in the Leads page.
 
@@ -255,7 +269,9 @@ Click any lead row to open the original conversation with full transcript. From 
     category: "pages",
     emoji: "👥",
     intro: "Inviting team members to share access to your agents and conversations.",
-    body: `### How workspaces work
+    body: `> **Quick version:** Invite teammates to share your agents, chats, and leads. Each plan includes a set number of seats.
+
+### How workspaces work
 
 Every account has its own workspace by default. When you invite a team member, they get access to your workspace — they see the same agents, conversations, leads, and stats you do.
 
@@ -295,13 +311,15 @@ Open Team → click the member → Remove. They lose access immediately. Their p
     category: "pages",
     emoji: "💳",
     intro: "How credits work, what gets billed, and the 30-day rolling cycle.",
-    body: `### What credits buy
+    body: `> **Quick version:** Every message your AI sends costs credits. Replies you send yourself — from the dashboard or your phone — are free. Your credits refill every 30 days.
+
+### What credits buy
 
 Credits are consumed by **AI activity**, not human activity:
 
 - 5 credits per AI text reply
 - 8 credits per AI image send
-- 3 credits per second of voice note transcription
+- 3 credits per second of voice note transcription (15 credits minimum per note)
 
 Manual replies you send (from the dashboard or your phone directly) are **free** — no credits charged.
 
@@ -314,6 +332,8 @@ Manual replies you send (from the dashboard or your phone directly) are **free**
 | Starter | ₦35,000 | 60,000 |
 | Pro | ₦70,000 | 100,000 |
 | Enterprise | Custom | Unlimited |
+
+> If your account was set up by a reseller or partner, your plan names, prices, and credit amounts may differ from the table above. Your own **Billing** page always shows the plan that actually applies to you.
 
 A typical text-only conversation uses ~10–30 credits. So 60,000 credits ≈ 2,000–6,000 conversations per month.
 
@@ -345,7 +365,9 @@ Click any plan card on the Billing or Subscription page → submit an upgrade re
     category: "agent",
     emoji: "🖼️",
     intro: "Cosmetic identity for your agent — name, photo, category. Doesn't affect AI behaviour directly.",
-    body: `### What the Profile tab is for
+    body: `> **Quick version:** Your agent's name, photo, and category — its identity. It doesn't change how the AI talks; that's the Configuration tab.
+
+### What the Profile tab is for
 
 This tab holds the agent's **identity**: the business name, category, description, and profile photo. The values here are used in:
 
@@ -374,7 +396,9 @@ It does **not** define what the agent says or how it behaves — that's the **Co
     category: "agent",
     emoji: "⚙️",
     intro: "The system prompt and product catalogue. The most important tab in your agent.",
-    body: `### System prompt
+    body: `> **Quick version:** The most important tab — the instructions that tell your AI who it is and how to behave, plus the product list it can quote from accurately.
+
+### System prompt
 
 This is the agent's personality and instructions, written as a single block of text. The agent reads this every single conversation, so be clear.
 
@@ -411,7 +435,9 @@ Save changes any time. The next inbound message picks up the new prompt. No rest
     category: "agent",
     emoji: "📚",
     intro: "Upload PDFs/Word/text files and the agent answers questions from them at runtime.",
-    body: `### How it works
+    body: `> **Quick version:** Upload your files — PDFs, docs, menus, policies — and the AI answers customer questions using what's inside them.
+
+### How it works
 
 When you upload a document, we:
 
@@ -456,7 +482,9 @@ This is "RAG" (retrieval-augmented generation). The agent doesn't memorise the d
     category: "agent",
     emoji: "🔧",
     intro: "Webhooks the agent can call mid-conversation to fetch live data or take actions.",
-    body: `### What tools are
+    body: `> **Quick version:** Tools let your AI do things mid-chat — check an order, create a payment, book an appointment — by calling web links you provide.
+
+### What tools are
 
 Tools are HTTP endpoints **you** host. The agent decides when to call them based on the description you give. Use them for anything the agent can't know from the system prompt or documents alone — live order status, real-time inventory, payment account creation, appointment booking, etc.
 
@@ -502,7 +530,9 @@ Your tool URLs are public from D-Zero's side. If your webhook is sensitive, vali
     category: "agent",
     emoji: "🎛️",
     intro: "Per-agent toggles for conversation behaviours like auto-pause-on-human-reply.",
-    body: `### What lives here
+    body: `> **Quick version:** Per-agent on/off switches for how it behaves in chats. Right now: whether the AI pauses when you reply by hand.
+
+### What lives here
 
 The Settings tab holds **per-agent behavioural toggles**. Stuff that affects how the agent acts during conversations, distinct from what it knows (Configuration) or who it is (Profile).
 
@@ -537,7 +567,9 @@ Things on the roadmap to land in this tab:
     category: "features",
     emoji: "💌",
     intro: "Automatically re-engage cold conversations with personalised AI-drafted messages.",
-    body: `### The idea
+    body: `> **Quick version:** The AI finds chats that went cold, writes a friendly personal "just checking in" message for each one, and sends them slowly over a day so your number stays safe. You can review every message first, or let it send automatically.
+
+### The idea
 
 Most contacts who message your business once and don't buy never come back — usually because nobody followed up. Follow-up campaigns let the AI scan your conversation history, identify cold leads, draft personalised re-engagement messages, and send them in a paced batch.
 
@@ -562,9 +594,27 @@ For each picked conversation, the AI generates a personalised message using the 
 
 Messages spread across 24+ hours minimum, with batch breaks every 10 sends and human-like pacing between each. You can't fire 500 follow-ups at once even if you wanted to — that's how numbers get banned.
 
-### Live progress + cancellation
+### Live progress
 
-The campaign page shows sent / scheduled / skipped / failed counts updating in real time. Cancel any in-flight campaign and any not-yet-sent messages stop. Already-sent ones can't be unsent.
+The campaign page shows the counts updating live:
+
+- **Found** — how many cold chats the scan picked.
+- **Sent** — messages already delivered.
+- **Scheduled** — drafted and waiting their turn in the 24-hour queue.
+- **Skipped / Failed** — couldn't send (e.g. the contact is no longer reachable on WhatsApp).
+
+### Cancelling
+
+Cancel a running campaign and every not-yet-sent message stops. Already-sent ones can't be unsent.
+
+### If a campaign gets stuck on "Sending"
+
+Once in a while a campaign sits on **Sending** and stops moving — usually because WhatsApp briefly dropped and reconnected while it was working, which strands the messages that were still waiting. To get it going again:
+
+1. Check the agent's WhatsApp shows **Connected** on the Channels page.
+2. Open the campaign and click **Resend unsent**.
+
+It re-queues only the messages that never went out and gives them a fresh 24-hour schedule. Anything that already sent is never sent twice — so it's always safe to click.
 
 ### Cost
 
@@ -577,7 +627,9 @@ Follow-up messages count as AI sends — billed at 5 credits each.`,
     category: "features",
     emoji: "🔥",
     intro: "How we keep your WhatsApp number from getting banned, and why daily caps grow over time.",
-    body: `### Why warmup matters
+    body: `> **Quick version:** WhatsApp bans numbers that suddenly blast lots of messages. We raise your daily send limit slowly as your number ages, so it always looks like a normal business.
+
+### Why warmup matters
 
 WhatsApp aggressively bans numbers that look like spam — high outbound volume, no incoming messages, repetitive content, sends outside business hours. New numbers (just registered with WhatsApp) are most at risk. Established numbers with normal usage history can handle more.
 
@@ -628,7 +680,9 @@ If WhatsApp bans the number outright (status code 403), the agent goes into BANN
     category: "features",
     emoji: "⏸️",
     intro: "How the system knows you've taken over a conversation, and what to do if you'd rather it didn't.",
-    body: `### The problem this solves
+    body: `> **Quick version:** When you reply to a customer yourself, the AI goes quiet for that chat so you're not both replying at once. Switch it back to AI when you're done.
+
+### The problem this solves
 
 Most operators want the AI to handle conversations until they decide to step in — usually because the AI is mid-misunderstanding or the customer is asking something nuanced. The friction was that to step in cleanly, you had to remember to flip a toggle to "Human mode" before replying. People forgot, the AI replied at the same time as the human, and conversations got messy.
 
