@@ -31,8 +31,20 @@ export async function GET(
 
       const unsub = subscribe(agentId, controller)
 
+      // Keepalive comment every 25s so proxies/load balancers don't drop the
+      // idle connection, and a failed write surfaces a dead stream promptly.
+      // SSE comment lines (": ...") are ignored by EventSource.
+      const keepalive = setInterval(() => {
+        try {
+          controller.enqueue(encoder.encode(": ping\n\n"))
+        } catch {
+          /* stream closed — abort handler cleans up */
+        }
+      }, 25000)
+
       // Clean up when client disconnects
       req.signal.addEventListener("abort", () => {
+        clearInterval(keepalive)
         unsub()
         try { controller.close() } catch { /* already closed */ }
       })

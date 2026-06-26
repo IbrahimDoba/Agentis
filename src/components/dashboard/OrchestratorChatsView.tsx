@@ -180,11 +180,14 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
   const drawerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
-  // Freshness comes from the SSE stream below (invalidates on push). The
-  // interval is just a safety net for a dropped/zombie connection — hence
-  // 5 min instead of 30s. refetchIntervalInBackground:false (global default)
-  // pauses it while the tab is hidden.
+  // Freshness comes from the SSE stream below (invalidates on push). These
+  // intervals are just safety nets for a dropped/zombie connection;
+  // refetchIntervalInBackground:false (global default) pauses them while the
+  // tab is hidden. The OPEN chat polls faster — it's one cheap query and the
+  // place the operator is actually watching, so messages stay live within
+  // seconds even if SSE is blocked. The heavier list query stays at 5 min.
   const SAFETY_NET_MS = 5 * 60 * 1000
+  const OPEN_CHAT_POLL_MS = 15 * 1000
   const { data, isLoading } = useQuery<{ conversations: OrchestratorConversation[] }>({
     queryKey: ["orchestrator-chats", agentId],
     queryFn: async () => {
@@ -214,7 +217,7 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
     },
     enabled: !!selectedId,
     staleTime: 30 * 1000,
-    refetchInterval: SAFETY_NET_MS,
+    refetchInterval: OPEN_CHAT_POLL_MS,
   })
 
   // Real-time: invalidate the chats list + the open conversation's messages
@@ -321,20 +324,54 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
     [qc]
   )
 
-  // SSE: subscribe to live message events while drawer is open
+  // SSE: subscribe to live message events while the drawer is open. The stream
+  // WILL drop periodically (serverless caps a connection's lifetime), so we
+  // reconnect with backoff instead of closing for good — otherwise real-time
+  // silently stops after the first drop. On each (re)connect we also refetch to
+  // catch anything that landed while we were disconnected.
   useEffect(() => {
     if (!selectedId) return
-    const es = new EventSource(`/api/conversations/${selectedId}/stream`)
-    es.addEventListener("message", () => {
-      // Delay refetch slightly — orchestrator saves to DB async via BullMQ
-      // so the message won't be in DB the instant the webhook fires
-      setTimeout(() => {
-        qc.invalidateQueries({ queryKey: ["orchestrator-messages", selectedId] })
-        qc.invalidateQueries({ queryKey: ["orchestrator-chats", agentId] })
-      }, 1500)
-    })
-    es.onerror = () => es.close()
-    return () => es.close()
+    let es: EventSource | null = null
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null
+    let backoff = 3000
+    let stopped = false
+
+    const refetch = () => {
+      qc.invalidateQueries({ queryKey: ["orchestrator-messages", selectedId] })
+      qc.invalidateQueries({ queryKey: ["orchestrator-chats", agentId] })
+    }
+
+    const connect = () => {
+      if (stopped) return
+      es = new EventSource(`/api/conversations/${selectedId}/stream`)
+      es.onopen = () => {
+        backoff = 3000
+        refetch() // catch up on anything missed before/while (re)connecting
+      }
+      es.addEventListener("message", () => {
+        // Orchestrator saves to DB async via BullMQ, so the row may not be in
+        // the DB the instant the event fires — give it a moment before refetch.
+        setTimeout(refetch, 1500)
+      })
+      es.onerror = () => {
+        es?.close()
+        es = null
+        if (!stopped && reconnectTimer === null) {
+          reconnectTimer = setTimeout(() => {
+            reconnectTimer = null
+            connect()
+          }, backoff)
+          backoff = Math.min(backoff * 2, 30000)
+        }
+      }
+    }
+    connect()
+
+    return () => {
+      stopped = true
+      if (reconnectTimer !== null) clearTimeout(reconnectTimer)
+      es?.close()
+    }
   }, [selectedId, agentId, qc])
 
   const setMode = useMutation({
