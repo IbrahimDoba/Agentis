@@ -1,10 +1,20 @@
+import type { Metadata } from "next"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { redirect } from "next/navigation"
 import { cookies } from "next/headers"
 import { DashboardShell } from "@/components/dashboard/DashboardShell"
-import { getTenantBranding } from "@/lib/tenant"
+import { getTenantBranding, brandingIcons } from "@/lib/tenant"
 import { BrandProvider } from "@/components/BrandProvider"
+
+// Tenant-aware tab title + favicon so a reseller's customers see her brand.
+export async function generateMetadata(): Promise<Metadata> {
+  const brand = await getTenantBranding()
+  return {
+    title: `Dashboard · ${brand.appName}`,
+    icons: brandingIcons(brand),
+  }
+}
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await auth()

@@ -1,7 +1,17 @@
+import type { Metadata } from "next"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { auth } from "@/lib/auth"
-import { getTenant } from "@/lib/tenant"
+import { getTenant, getTenantBranding, brandingIcons } from "@/lib/tenant"
+
+// Tenant-aware tab title + favicon for the reseller admin console.
+export async function generateMetadata(): Promise<Metadata> {
+  const brand = await getTenantBranding()
+  return {
+    title: `${brand.appName} · Admin`,
+    icons: brandingIcons(brand),
+  }
+}
 
 // Reseller admin console. A standalone surface (not the customer dashboard, not
 // the Dailzero super-admin). Guarded here AND by the auth.config `authorized`
