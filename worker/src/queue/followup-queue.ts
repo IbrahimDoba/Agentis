@@ -49,6 +49,17 @@ const worker = new Worker<FollowUpJob>(
       return
     }
 
+    // Idempotency: never re-send a message that already went out. Guards against
+    // resume re-enqueues, stale delayed jobs, and BullMQ retries all landing on
+    // the same message.
+    const msgRows = await sql<{ status: string }[]>`
+      SELECT "status" FROM "FollowUpMessage" WHERE "id" = ${messageId} LIMIT 1
+    `
+    if (msgRows[0]?.status === "sent") {
+      logger.info({ campaignId, messageId }, "Follow-up message already sent — skipping duplicate")
+      return
+    }
+
     const sock = sessionManager.get(agentId)
     if (!sock) throw new Error(`No active session for agent ${agentId}`)
 
@@ -248,7 +259,7 @@ export async function resetForResume(campaignId: string): Promise<number> {
     SET "status" = 'approved', "scheduledAt" = NULL
     WHERE "campaignId" = ${campaignId}
       AND "status" = 'scheduled'
-      AND "scheduledAt" < NOW()
+      AND "scheduledAt" < NOW() - INTERVAL '2 minutes'
     RETURNING "id"
   `
 

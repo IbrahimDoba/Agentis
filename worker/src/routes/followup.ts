@@ -46,9 +46,12 @@ export const followUpRoutes: FastifyPluginAsync = async (app) => {
 
   /**
    * POST /v1/followup-campaigns/:id/resume
-   * Bring a campaign that was auto-paused (status = 'failed') back to life:
-   * reset failed + stuck-scheduled messages to 'approved', flip the campaign
-   * back to 'sending', clear the Redis failure counter, then re-enqueue.
+   * Bring a campaign that was auto-paused ('failed') OR silently stalled
+   * (status still 'sending' but messages stuck in 'scheduled' after a mid-send
+   * WhatsApp reconnect) back to life: reset failed + overdue-scheduled messages
+   * to 'approved', flip the campaign back to 'sending', clear the Redis failure
+   * counter, then re-enqueue. Sends are idempotent, so already-sent messages
+   * are never re-sent.
    */
   app.post("/followup-campaigns/:id/resume", async (req, reply) => {
     const { id: campaignId } = req.params as { id: string }

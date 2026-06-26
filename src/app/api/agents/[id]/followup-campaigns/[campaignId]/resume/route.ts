@@ -25,12 +25,13 @@ export async function POST(_req: NextRequest, { params }: Params) {
   })
   if (!campaign) return NextResponse.json({ error: "Campaign not found" }, { status: 404 })
 
-  // Only failed campaigns can be resumed. Cancelled is a deliberate user
-  // action — they have to start a new campaign if they change their mind.
-  // Completed campaigns have nothing to retry.
-  if (campaign.status !== "failed") {
+  // Resumable: 'failed' (auto-paused after repeated errors) and 'sending'
+  // (silently stalled — messages stuck in 'scheduled' after a mid-send WhatsApp
+  // reconnect; the campaign never advances past "sending"). Cancelled is a
+  // deliberate user action and completed has nothing left to retry.
+  if (campaign.status !== "failed" && campaign.status !== "sending") {
     return NextResponse.json(
-      { error: `Cannot resume a campaign in '${campaign.status}' state. Only failed campaigns can be resumed.` },
+      { error: `Cannot resume a campaign in '${campaign.status}' state. Only failed or stuck "sending" campaigns can be resumed.` },
       { status: 400 }
     )
   }

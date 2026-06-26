@@ -451,16 +451,16 @@ function CampaignDetailModal({ campaign, agentId, onClose, onRefresh }: {
             )
           )}
 
-          {c.status === "failed" && (
+          {(c.status === "failed" || isSending) && (
             <>
               {resumeError && <span className={styles.confirmText}>⚠ {resumeError}</span>}
               <button
                 className={styles.startBtn}
                 onClick={handleResume}
                 disabled={resuming}
-                title="Reset failed + stuck messages back to approved and re-queue them for sending"
+                title="Re-queue any messages that were scheduled but never sent (e.g. after a WhatsApp reconnect) and give them a fresh send schedule. Already-sent messages are never re-sent."
               >
-                {resuming ? "Resuming…" : "Resume Campaign"}
+                {resuming ? "Resuming…" : isSending ? "Resend unsent" : "Resume Campaign"}
               </button>
             </>
           )}
