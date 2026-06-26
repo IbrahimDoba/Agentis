@@ -52,9 +52,17 @@ export default async function ResellerCustomerPage({ params }: Params) {
       </div>
 
       <div>
-        <div style={{ fontWeight: 700, fontSize: 16, margin: "4px 0 10px" }}>Agents ({customer.agents.length})</div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, margin: "4px 0 10px" }}>
+          <div style={{ fontWeight: 700, fontSize: 16 }}>Agents ({customer.agents.length})</div>
+          <Link
+            href={`/reseller/users/${customer.id}/agents/new`}
+            style={{ fontSize: 13, fontWeight: 700, textDecoration: "none", color: "#fff", background: "var(--accent, #16a34a)", borderRadius: 8, padding: "8px 14px" }}
+          >
+            + Add agent
+          </Link>
+        </div>
         {customer.agents.length === 0 ? (
-          <p style={{ color: "var(--text-secondary, #71717a)", fontSize: 14 }}>This customer hasn&apos;t set up an agent yet.</p>
+          <p style={{ color: "var(--text-secondary, #71717a)", fontSize: 14 }}>This customer hasn&apos;t set up an agent yet — click <strong>Add agent</strong> to create one for them.</p>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {customer.agents.map((a) => (
