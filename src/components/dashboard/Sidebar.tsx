@@ -228,19 +228,22 @@ export function Sidebar({ userName, businessName, currentUserId, currentWorkspac
           </div>
         )}
 
-        <div className={styles.navItemWrap}>
-          <Link
-            href="/changelog"
-            className={styles.whatsNewLink}
-            onClick={onClose}
-          >
-            <span className={styles.navIcon}>
-              <SparklesIcon width={16} height={16} />
-            </span>
-            {!collapsed && <span>What&apos;s New</span>}
-          </Link>
-          {collapsed && <span className={styles.tooltip}>What&apos;s New</span>}
-        </div>
+        {/* What's New is the Dailzero changelog — platform tenants only. */}
+        {brand.isPlatform && (
+          <div className={styles.navItemWrap}>
+            <Link
+              href="/changelog"
+              className={styles.whatsNewLink}
+              onClick={onClose}
+            >
+              <span className={styles.navIcon}>
+                <SparklesIcon width={16} height={16} />
+              </span>
+              {!collapsed && <span>What&apos;s New</span>}
+            </Link>
+            {collapsed && <span className={styles.tooltip}>What&apos;s New</span>}
+          </div>
+        )}
 
         {!collapsed && stats && (() => {
           // Reseller-tenant users run on a pool-granted wallet — show that

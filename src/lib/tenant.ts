@@ -115,6 +115,21 @@ export function brandingIcons(branding: Branding): Metadata["icons"] {
   return { icon, shortcut: icon, apple: icon }
 }
 
+// The platform's own brand mentions as they appear in shared marketing copy:
+// "D-Zero AI", "D-Zero", "DZero AI", "DZero", "Dailzero" (any case/separator).
+const PLATFORM_NAME_RE = /\bD[-\s]?Zero(?:\s+AI)?\b|\bDail[-\s]?Zero\b/gi
+
+/**
+ * Rewrite platform brand mentions in free-form copy to the tenant's app name.
+ * No-op for the platform tenant, so Dailzero's own copy is left exactly as
+ * written. Used to white-label shared copy — e.g. the changelog / "What's New"
+ * — so a reseller and her clients see HER brand instead of ours.
+ */
+export function brandText(text: string, branding: Branding): string {
+  if (branding.isPlatform) return text
+  return text.replace(PLATFORM_NAME_RE, branding.appName)
+}
+
 /**
  * Email co-branding for a reseller. Returns `undefined` for the platform tenant
  * (so emails fall back to Dailzero defaults). The email `from` ADDRESS stays on

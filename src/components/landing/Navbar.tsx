@@ -17,7 +17,7 @@ import {
   MegaphoneIcon,
 } from "@heroicons/react/24/outline"
 import { useTheme } from "@/components/ThemeProvider"
-import { LogoIcon } from "@/components/landing/Logo"
+import { BrandWordmark } from "@/components/BrandProvider"
 import styles from "./Navbar.module.css"
 
 const industries = [
@@ -81,8 +81,7 @@ export function Navbar() {
   return (
     <nav className={`${styles.nav} ${scrolled ? styles.navScrolled : ""}`}>
       <Link href="/" className={styles.logo}>
-        <LogoIcon size={32} />
-        D-Zero AI
+        <BrandWordmark size={32} />
       </Link>
 
       <ul className={styles.links}>
