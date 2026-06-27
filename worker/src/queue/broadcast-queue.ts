@@ -23,14 +23,43 @@ const QUEUE_NAME = "broadcast-send"
 // Consecutive failure threshold before auto-pausing
 const MAX_CONSECUTIVE_FAILURES = 3
 
-async function isDeliverable(sock: ReturnType<typeof sessionManager.get>, toJid: string): Promise<boolean> {
-  if (!sock) return false
-  if (toJid.endsWith("@lid")) return true
+// Resolve the JID we should actually send to. WhatsApp increasingly addresses
+// contacts by privacy LID (@lid). Sending to the phone JID (@s.whatsapp.net)
+// for a LID-migrated contact SILENTLY FAILS — sendMessage returns an id (so we
+// mark it "sent") but nothing is delivered. That's the "says 96 sent, none
+// arrive" symptom. AI replies work because they reply to the inbound message's
+// LID directly; broadcasts constructed a phone JID instead. So here we resolve
+// the contact's LID and send to THAT. Returns null when the number isn't on
+// WhatsApp at all.
+async function resolveSendJid(
+  sock: ReturnType<typeof sessionManager.get>,
+  toJid: string
+): Promise<string | null> {
+  if (!sock) return null
+  // Already LID-addressed — send as-is.
+  if (toJid.endsWith("@lid")) return toJid
+
+  // Prefer the contact's LID. getLIDForPN resolves from the local mapping or
+  // fetches it from WhatsApp (USync) when unknown, so it works for existing
+  // contacts — not just ones who've messaged since this deployed.
+  try {
+    const lidStore = (sock as unknown as {
+      signalRepository?: { lidMapping?: { getLIDForPN?: (pn: string) => Promise<string | null> } }
+    }).signalRepository?.lidMapping
+    const lid = await lidStore?.getLIDForPN?.(toJid)
+    if (lid && lid.endsWith("@lid")) return lid
+  } catch {
+    // fall through to phone-JID verification
+  }
+
+  // Not LID-migrated (or mapping unavailable) — verify the number is on
+  // WhatsApp and send to the phone JID.
   try {
     const checks = (await sock.onWhatsApp(toJid)) ?? []
-    return checks.some((item) => item?.exists)
+    const match = checks.find((item) => item?.exists)
+    return match ? (match.jid || toJid) : null
   } catch {
-    return false
+    return null
   }
 }
 
@@ -91,13 +120,19 @@ const worker = new Worker<BroadcastJob>(
     }
 
     const session = await getSessionByAgentId(agentId)
-    if (!session) {
+    if (!session || session.status !== "CONNECTED") {
+      // The socket can be present but the link isn't actually up (e.g. mid
+      // reconnect right after a QR re-scan). Sending now would "succeed" without
+      // delivering — pause so a resume re-sends once the link is truly back.
+      logger.warn({ broadcastId, agentId, status: session?.status }, "Session not connected — pausing broadcast (recipients stay pending)")
       await updateBroadcastStatus(broadcastId, "paused")
       return
     }
 
-    const deliverable = await isDeliverable(sock, toJid)
-    if (!deliverable) {
+    // Re-resolve the canonical JID at send time — one stored at creation may no
+    // longer route after a re-link.
+    const sendJid = await resolveSendJid(sock, toJid)
+    if (!sendJid) {
       await updateRecipientStatus(recipientId, "failed", "Recipient is not currently deliverable on WhatsApp")
       if (!alreadyFailed) await incrementBroadcastFailed(broadcastId)
       logger.warn({ broadcastId, recipientId, toJid }, "Recipient is not deliverable — marking failed")
@@ -122,7 +157,7 @@ const worker = new Worker<BroadcastJob>(
       : message.replace(/\{name\},?\s*/gi, "")
 
     try {
-      await sendWithPacing(sock, toJid, personalizedMessage, session.warmupTier)
+      await sendWithPacing(sock, sendJid, personalizedMessage, session.warmupTier)
       await updateRecipientStatus(recipientId, "sent")
       await incrementBroadcastSent(broadcastId)
 
@@ -130,7 +165,7 @@ const worker = new Worker<BroadcastJob>(
       const redis = getRedis()
       await redis.del(`bc:failures:${broadcastId}`)
 
-      logger.info({ broadcastId, recipientId, toJid, batchIndex }, "Broadcast message sent")
+      logger.info({ broadcastId, recipientId, toJid, sendJid, batchIndex }, "Broadcast message sent")
     } catch (err: any) {
       await updateRecipientStatus(recipientId, "failed", err.message)
       if (!alreadyFailed) await incrementBroadcastFailed(broadcastId)
