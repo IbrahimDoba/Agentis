@@ -29,7 +29,14 @@ export async function GET(
     }
 
     const conversations = await db.conversation.findMany({
-      where: { agentId },
+      // Hide empty widget chats: a visitor who opened the embed widget but never
+      // sent a message. Only surface an embed conversation once it has at least
+      // one message. WhatsApp conversations are always created on a real inbound
+      // message, so they're never hidden by this.
+      where: {
+        agentId,
+        NOT: { channel: "embed", messages: { none: {} } },
+      },
       orderBy: { lastActivityAt: "desc" },
       select: {
         id: true,
