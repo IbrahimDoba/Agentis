@@ -16,52 +16,13 @@ import {
 import { RateLimitError } from "../lib/errors.js"
 import { truncatedNormal } from "../anti-ban/distribution.js"
 import { logger as rootLogger } from "../lib/logger.js"
+import { resolveSendJid } from "../baileys/resolve-jid.js"
 
 const logger = rootLogger.child({ module: "broadcast-queue" })
 const QUEUE_NAME = "broadcast-send"
 
 // Consecutive failure threshold before auto-pausing
 const MAX_CONSECUTIVE_FAILURES = 3
-
-// Resolve the JID we should actually send to. WhatsApp increasingly addresses
-// contacts by privacy LID (@lid). Sending to the phone JID (@s.whatsapp.net)
-// for a LID-migrated contact SILENTLY FAILS — sendMessage returns an id (so we
-// mark it "sent") but nothing is delivered. That's the "says 96 sent, none
-// arrive" symptom. AI replies work because they reply to the inbound message's
-// LID directly; broadcasts constructed a phone JID instead. So here we resolve
-// the contact's LID and send to THAT. Returns null when the number isn't on
-// WhatsApp at all.
-async function resolveSendJid(
-  sock: ReturnType<typeof sessionManager.get>,
-  toJid: string
-): Promise<string | null> {
-  if (!sock) return null
-  // Already LID-addressed — send as-is.
-  if (toJid.endsWith("@lid")) return toJid
-
-  // Prefer the contact's LID. getLIDForPN resolves from the local mapping or
-  // fetches it from WhatsApp (USync) when unknown, so it works for existing
-  // contacts — not just ones who've messaged since this deployed.
-  try {
-    const lidStore = (sock as unknown as {
-      signalRepository?: { lidMapping?: { getLIDForPN?: (pn: string) => Promise<string | null> } }
-    }).signalRepository?.lidMapping
-    const lid = await lidStore?.getLIDForPN?.(toJid)
-    if (lid && lid.endsWith("@lid")) return lid
-  } catch {
-    // fall through to phone-JID verification
-  }
-
-  // Not LID-migrated (or mapping unavailable) — verify the number is on
-  // WhatsApp and send to the phone JID.
-  try {
-    const checks = (await sock.onWhatsApp(toJid)) ?? []
-    const match = checks.find((item) => item?.exists)
-    return match ? (match.jid || toJid) : null
-  } catch {
-    return null
-  }
-}
 
 export interface BroadcastJob {
   broadcastId: string
