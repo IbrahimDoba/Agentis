@@ -82,7 +82,7 @@ export async function GET(req: NextRequest) {
       // Mark the stream open immediately so EventSource fires `open`.
       controller.enqueue(encoder.encode(": connected\n\n"))
 
-      const unsub = subscribeByConversation(conversationId, controller)
+      const unsub = subscribeByConversation(site.agentId, conversationId, controller)
 
       // Keepalive comment so proxies/Cloudflare don't drop an idle stream.
       const keepalive = setInterval(() => {

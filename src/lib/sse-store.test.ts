@@ -1,4 +1,4 @@
-import { describe, it, expect, afterAll, vi } from "vitest"
+import { describe, it, expect, afterAll } from "vitest"
 import {
   subscribe,
   subscribeByConversation,
@@ -57,6 +57,7 @@ describe("sse-store pub/sub (real Redis)", () => {
     const b = fakeController()
     const unsubA = subscribe(agentA, a.ctrl)
     const unsubB = subscribe(agentB, b.ctrl)
+    await __waitForSubscriberReadyForTests()
 
     await publish(agentA, "message", { n: 1 })
     await waitFor(() => a.events.length > 0)
@@ -86,6 +87,7 @@ describe("sse-store pub/sub (real Redis)", () => {
     const c2 = fakeController()
     const u1 = subscribe(agentId, c1.ctrl)
     const u2 = subscribe(agentId, c2.ctrl)
+    await __waitForSubscriberReadyForTests()
 
     await publish(agentId, "message", { n: 3 })
     await waitFor(() => c1.events.length > 0 && c2.events.length > 0)
@@ -100,7 +102,8 @@ describe("sse-store pub/sub (real Redis)", () => {
     const agentId = `vitest-conv-agent-${Date.now()}`
     const conversationId = `vitest-conv-${Date.now()}`
     const { events, ctrl } = fakeController()
-    const unsub = subscribeByConversation(conversationId, ctrl)
+    const unsub = subscribeByConversation(agentId, conversationId, ctrl)
+    await __waitForSubscriberReadyForTests()
 
     await publish(agentId, "message", { conversationId, body: "hi" })
     await waitFor(() => events.length > 0)
@@ -113,7 +116,8 @@ describe("sse-store pub/sub (real Redis)", () => {
     const subscribed = `subscribed-${Date.now()}`
     const other = `other-${Date.now()}`
     const { events, ctrl } = fakeController()
-    const unsub = subscribeByConversation(subscribed, ctrl)
+    const unsub = subscribeByConversation(agentId, subscribed, ctrl)
+    await __waitForSubscriberReadyForTests()
 
     await publish(agentId, "message", { conversationId: other })
     await new Promise((r) => setTimeout(r, 150))
@@ -127,7 +131,8 @@ describe("sse-store pub/sub (real Redis)", () => {
     const agentSub = fakeController()
     const convSub = fakeController()
     const u1 = subscribe(agentId, agentSub.ctrl)
-    const u2 = subscribeByConversation(conversationId, convSub.ctrl)
+    const u2 = subscribeByConversation(agentId, conversationId, convSub.ctrl)
+    await __waitForSubscriberReadyForTests()
 
     await publish(agentId, "message", { conversationId, n: 1 })
     await waitFor(() => agentSub.events.length > 0 && convSub.events.length > 0)
