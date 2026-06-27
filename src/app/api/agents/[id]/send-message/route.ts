@@ -10,8 +10,17 @@ import { push } from "@/lib/sse-store"
 // — which bills credits AND enforces the agent's warmup / rate / new-contact
 // caps, same as any non-human outbound.
 
+// Default country code for local numbers entered with a leading 0 (Nigeria).
+// Numbers already in international form keep their own country code.
+const DEFAULT_COUNTRY_CODE = "234"
+
 function normalizePhone(value: string): string {
-  return value.replace(/\D/g, "")
+  const digits = value.replace(/\D/g, "")
+  // "00" is the international access prefix — the real country code follows it.
+  if (digits.startsWith("00")) return digits.slice(2)
+  // A single leading "0" is a local number — swap it for the default code.
+  if (digits.startsWith("0")) return DEFAULT_COUNTRY_CODE + digits.slice(1)
+  return digits
 }
 
 export async function POST(

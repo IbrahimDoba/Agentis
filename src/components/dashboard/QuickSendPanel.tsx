@@ -6,7 +6,6 @@ import {
   ArrowPathIcon,
   PaperAirplaneIcon,
   PauseCircleIcon,
-  ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline"
 import { Input, Textarea } from "@/components/ui/Input"
 import styles from "./BroadcastsPanel.module.css"
@@ -68,13 +67,6 @@ export function QuickSendPanel({ agentId, isConnected, warmupTier }: QuickSendPa
         <div className={styles.pill}>Warmup Tier {warmupTier ?? 1}</div>
       </div>
 
-      <div className={styles.notice}>
-        <ExclamationTriangleIcon width={18} height={18} />
-        <div>
-          Messaging brand-new numbers carries the highest ban risk. We verify the number, count it against this agent’s warmup/daily caps, and charge credits per send. Keep it personal and low-volume.
-        </div>
-      </div>
-
       {feedback && <div className={styles.feedback}>{feedback}</div>}
 
       <section className={styles.card}>
@@ -90,7 +82,7 @@ export function QuickSendPanel({ agentId, isConnected, warmupTier }: QuickSendPa
           placeholder="2348012345678"
           value={phone}
           onChange={(e) => { setPhone(e.target.value); setFeedback(null) }}
-          hint="Include the country code — symbols and spaces are fine, we’ll strip them."
+          hint="Include the country code, or start a local number with 0 — symbols and spaces are fine."
           inputMode="tel"
         />
 
