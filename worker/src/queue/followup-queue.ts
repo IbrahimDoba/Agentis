@@ -7,6 +7,7 @@ import { getSessionByAgentId } from "../db/queries.js"
 import { truncatedNormal } from "../anti-ban/distribution.js"
 import { logger as rootLogger } from "../lib/logger.js"
 import { sql } from "../db/client.js"
+import { resolveSendJid } from "../baileys/resolve-jid.js"
 
 const logger = rootLogger.child({ module: "followup-queue" })
 const QUEUE_NAME = "followup-send"
@@ -66,6 +67,27 @@ const worker = new Worker<FollowUpJob>(
     const session = await getSessionByAgentId(agentId)
     if (!session) throw new Error(`Session record not found for agent ${agentId}`)
 
+    // Resolve the routable JID. WhatsApp addresses many contacts by LID;
+    // sending to the stored phone JID (@s.whatsapp.net) silently fails for those
+    // — the message gets marked "sent" but never arrives. Resolve to the LID and
+    // send to that. Done BEFORE the rate-limit slot so an unreachable contact
+    // doesn't burn daily quota.
+    const sendJid = await resolveSendJid(sock, toJid)
+    if (!sendJid) {
+      await sql`
+        UPDATE "FollowUpMessage"
+        SET "status" = 'failed', "error" = 'Recipient is not currently reachable on WhatsApp'
+        WHERE "id" = ${messageId}
+      `
+      await sql`
+        UPDATE "FollowUpCampaign"
+        SET "totalSkipped" = "totalSkipped" + 1
+        WHERE "id" = ${campaignId}
+      `
+      logger.warn({ campaignId, messageId, toJid }, "Follow-up recipient not reachable — marking failed")
+      return
+    }
+
     // Anti-ban rate limiting
     await checkAndIncrement(agentId, session.warmupTier)
 
@@ -76,7 +98,7 @@ const worker = new Worker<FollowUpJob>(
       : message.replace(/\{name\},?\s*/gi, "")
 
     try {
-      await sendWithPacing(sock, toJid, personalizedMessage, session.warmupTier)
+      await sendWithPacing(sock, sendJid, personalizedMessage, session.warmupTier)
 
       // Mark message sent + update conversation lastFollowedUpAt
       await sql`
