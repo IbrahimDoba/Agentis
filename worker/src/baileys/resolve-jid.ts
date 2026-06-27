@@ -16,6 +16,14 @@ export async function resolveSendJid(sock: WASocket | null, toJid: string): Prom
   // Already LID-addressed — send as-is.
   if (toJid.endsWith("@lid")) return toJid
 
+  // A 15+ digit "number" is really an unresolved LID stored with the wrong
+  // suffix — follow-ups/scanned contacts save `<id>@s.whatsapp.net` even when
+  // <id> is a LID. Real phone numbers are <= 13 digits in practice, so route
+  // these as @lid (the address AI replies use). Without this, getLIDForPN below
+  // can't resolve a LID-as-phone and the contact is wrongly marked unreachable.
+  const user = toJid.replace(/@.*$/, "").replace(/\D/g, "")
+  if (user.length >= 15) return `${user}@lid`
+
   try {
     const lidStore = (sock as unknown as {
       signalRepository?: { lidMapping?: { getLIDForPN?: (pn: string) => Promise<string | null> } }
