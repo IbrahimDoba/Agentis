@@ -6,6 +6,7 @@ import { useQueries, useQuery } from "@tanstack/react-query"
 import { DevicePhoneMobileIcon, MegaphoneIcon } from "@heroicons/react/24/outline"
 import { BroadcastsPanel } from "@/components/dashboard/BroadcastsPanel"
 import { FollowUpPanel } from "@/components/dashboard/FollowUpPanel"
+import { QuickSendPanel } from "@/components/dashboard/QuickSendPanel"
 import styles from "./page.module.css"
 
 interface Agent {
@@ -36,7 +37,7 @@ async function fetchSession(agentId: string): Promise<SessionStatus | null> {
   return res.json()
 }
 
-type Tab = "broadcasts" | "followup"
+type Tab = "broadcasts" | "followup" | "send"
 
 export default function BroadcastsPage() {
   const [tab, setTab] = useState<Tab>("broadcasts")
@@ -128,6 +129,12 @@ export default function BroadcastsPage() {
         >
           AI Follow-ups
         </button>
+        <button
+          className={`${styles.tabBtn} ${tab === "send" ? styles.tabBtnActive : ""}`}
+          onClick={() => setTab("send")}
+        >
+          Send Message
+        </button>
       </div>
 
       <div className={styles.layout}>
@@ -175,7 +182,7 @@ export default function BroadcastsPage() {
           {!selectedAgent ? (
             <div className={styles.emptyState}>
               <MegaphoneIcon width={28} height={28} />
-              <div>Select a connected agent to open {tab === "followup" ? "follow-up campaigns" : "broadcasts"}.</div>
+              <div>Select a connected agent to open {tab === "followup" ? "follow-up campaigns" : tab === "send" ? "direct send" : "broadcasts"}.</div>
             </div>
           ) : loadingSession ? (
             <div className={styles.emptyState}>Checking WhatsApp session...</div>
@@ -183,6 +190,12 @@ export default function BroadcastsPage() {
             <FollowUpPanel
               agentId={selectedAgent.id}
               isConnected={session?.status === "CONNECTED"}
+            />
+          ) : tab === "send" ? (
+            <QuickSendPanel
+              agentId={selectedAgent.id}
+              isConnected={session?.status === "CONNECTED"}
+              warmupTier={session?.warmupTier}
             />
           ) : (
             <BroadcastsPanel
