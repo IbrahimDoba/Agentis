@@ -26,6 +26,8 @@ interface BillingData {
   overageCredits: number
   overageChargeNaira: number | null
   subscriptionExpired: boolean
+  walletBalance: number
+  walletExpiresAt: string | null
   monthlyBreakdown: { text: number; image: number; voice: number }
   agentBreakdown: Array<{ id: string; businessName: string; runtime: string; transportType: string; monthlyCredits: number; conversationCount: number }>
   agents: { id: string; status: string; messagingEnabled: boolean; businessName: string; whatsappPhoneNumber: string | null; whatsappPhoneNumberId: string | null; whatsappAgentLink: string | null }[]
@@ -69,6 +71,9 @@ function UserDetailModal({ user, onClose, onStatusChange, loading }: {
   const [billing, setBilling] = useState<BillingData | null>(null)
   const [billingLoading, setBillingLoading] = useState(true)
   const [agentMessaging, setAgentMessaging] = useState<AgentMessagingState>({})
+  const [allocAmount, setAllocAmount] = useState("")
+  const [allocating, setAllocating] = useState(false)
+  const [allocMsg, setAllocMsg] = useState<string | null>(null)
 
   useEffect(() => {
     fetch(`/api/admin/users/${user.id}/billing`)
@@ -167,6 +172,29 @@ function UserDetailModal({ user, onClose, onStatusChange, loading }: {
       alert("Failed to reset usage")
     } finally {
       setResettingUsage(false)
+    }
+  }
+
+  const handleAllocate = async () => {
+    const amt = Math.floor(Number(allocAmount))
+    if (!Number.isFinite(amt) || amt <= 0) { setAllocMsg("Enter a positive amount of credits"); return }
+    setAllocating(true); setAllocMsg(null)
+    try {
+      const res = await fetch(`/api/admin/users/${user.id}/credits`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: amt }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setAllocMsg(data.error || "Failed to allocate credits"); return }
+      setAllocAmount("")
+      setAllocMsg(`Added ${amt.toLocaleString()} credits — new balance ${Number(data.creditBalance).toLocaleString()}${data.creditsExpireAt ? `, expires ${formatDate(data.creditsExpireAt)}` : ""}.`)
+      setBilling((prev) => prev ? { ...prev, walletBalance: data.creditBalance, walletExpiresAt: data.creditsExpireAt } : prev)
+      router.refresh()
+    } catch {
+      setAllocMsg("Failed to allocate credits")
+    } finally {
+      setAllocating(false)
     }
   }
 
@@ -476,6 +504,41 @@ function UserDetailModal({ user, onClose, onStatusChange, loading }: {
                 </div>
               ) : (
                 <div className={styles.billingLoading}>Could not load billing data</div>
+              )}
+            </div>
+
+            {/* ── Wallet credits (admin allocation, 12-month expiry) ── */}
+            <div className={styles.modalSection}>
+              <div className={styles.modalSectionTitle}>Allocate credits (12-month)</div>
+              <p style={{ fontSize: 13, color: "var(--text-secondary, #6b7280)", margin: "0 0 10px" }}>
+                Give this user a custom amount of credits. They top up the user&apos;s spendable balance and expire 12 months from today.
+              </p>
+              {billing && (
+                <div style={{ fontSize: 13, marginBottom: 10 }}>
+                  Current wallet: <strong>{billing.walletBalance.toLocaleString()}</strong> credits
+                  {billing.walletExpiresAt
+                    ? <> · expires {formatDate(billing.walletExpiresAt)}</>
+                    : <> · no expiry set</>}
+                </div>
+              )}
+              <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                <input
+                  type="number"
+                  min={1}
+                  step={1}
+                  inputMode="numeric"
+                  placeholder="Amount of credits"
+                  value={allocAmount}
+                  onChange={(e) => setAllocAmount(e.target.value)}
+                  className={styles.agentLimitInput}
+                  style={{ width: 170 }}
+                />
+                <button className={styles.agentLimitSaveBtn} onClick={handleAllocate} disabled={allocating}>
+                  {allocating ? "Adding…" : "Add credits"}
+                </button>
+              </div>
+              {allocMsg && (
+                <div style={{ marginTop: 10, fontSize: 13, fontWeight: 600, color: "var(--text-primary, #18181b)" }}>{allocMsg}</div>
               )}
             </div>
           </>

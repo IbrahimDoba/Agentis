@@ -18,7 +18,7 @@ export async function GET(req: NextRequest, { params }: Params) {
 
   const user = await db.user.findUnique({
     where: { id },
-    select: { plan: true, subscriptionExpiresAt: true },
+    select: { plan: true, subscriptionExpiresAt: true, creditBalance: true, creditsExpireAt: true },
   })
 
   if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 })
@@ -146,6 +146,10 @@ export async function GET(req: NextRequest, { params }: Params) {
     overageCredits,
     overageChargeNaira,
     subscriptionExpired,
+    // PAYG wallet: admin-allocated top-up credits (separate from the plan
+    // allowance) with a rolling 12-month expiry.
+    walletBalance: user.creditBalance ?? 0,
+    walletExpiresAt: user.creditsExpireAt ? user.creditsExpireAt.toISOString() : null,
     monthlyBreakdown: {
       text: Number(typeMap["text"] ?? 0),
       image: Number(typeMap["image"] ?? 0),
