@@ -9,6 +9,9 @@ const logger = rootLogger.child({ module: "routes/followup" })
 
 const StartSchema = z.object({
   agentId: z.string().min(1),
+  // Optional one-off override (hours) for how long to spread this run over.
+  // Omitted → enqueueFollowUpCampaign uses the safe 24h default.
+  spreadHours: z.number().positive().max(72).optional(),
 })
 
 export const followUpRoutes: FastifyPluginAsync = async (app) => {
@@ -36,11 +39,11 @@ export const followUpRoutes: FastifyPluginAsync = async (app) => {
     if (!campaign) return reply.status(404).send({ error: "Campaign not found" })
 
     // Fire enqueue async — don't block HTTP response
-    followUpQueue.enqueueFollowUpCampaign(campaignId, body.agentId).catch((err) => {
+    followUpQueue.enqueueFollowUpCampaign(campaignId, body.agentId, body.spreadHours).catch((err) => {
       logger.error({ campaignId, err: err.message }, "Failed to enqueue follow-up campaign")
     })
 
-    logger.info({ campaignId, agentId: body.agentId }, "Follow-up campaign start requested")
+    logger.info({ campaignId, agentId: body.agentId, spreadHours: body.spreadHours ?? 24 }, "Follow-up campaign start requested")
     return reply.send({ ok: true })
   })
 

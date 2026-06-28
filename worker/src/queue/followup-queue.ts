@@ -178,9 +178,16 @@ worker.on("completed", async (job) => {
 
 /**
  * Enqueue all approved messages for a campaign with progressive delays.
- * Spreads messages over ~24h or the natural anti-ban pacing, whichever is longer.
+ * Spreads messages over `spreadHours` (default 24h) or the natural anti-ban
+ * pacing, whichever is longer. `spreadHours` is an optional one-off override
+ * (e.g. 2h to compress a re-run) — callers that omit it get the safe 24h
+ * default, so normal campaigns are unaffected.
  */
-export async function enqueueFollowUpCampaign(campaignId: string, agentId: string): Promise<void> {
+export async function enqueueFollowUpCampaign(
+  campaignId: string,
+  agentId: string,
+  spreadHours = 24
+): Promise<void> {
   const messages = await sql<{
     id: string
     toJid: string
@@ -198,8 +205,12 @@ export async function enqueueFollowUpCampaign(campaignId: string, agentId: strin
 
   if (messages.length === 0) return
 
-  // Spread messages over 24h minimum
-  const windowMs = 24 * 60 * 60 * 1000
+  // Spread messages over the requested window (default 24h). Clamped to a sane
+  // range so a one-off override can compress a re-run (e.g. 2h) without being
+  // able to set something that never sends (too long) or hammers the number
+  // beyond what the anti-ban pacing floor allows (too short).
+  const clampedHours = Math.min(72, Math.max(0.5, spreadHours))
+  const windowMs = clampedHours * 60 * 60 * 1000
   const minSpacingMs = Math.floor(windowMs / messages.length)
 
   let cumulativeDelayMs = 0
@@ -244,6 +255,7 @@ export async function enqueueFollowUpCampaign(campaignId: string, agentId: strin
   logger.info({
     campaignId,
     total: messages.length,
+    spreadHours: clampedHours,
     estimatedDurationMs: cumulativeDelayMs,
   }, "Follow-up campaign enqueued")
 }
