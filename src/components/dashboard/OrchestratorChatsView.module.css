@@ -550,6 +550,42 @@
 .sendBtn:disabled { opacity: 0.4; cursor: not-allowed; }
 .sendBtn:not(:disabled):hover { opacity: 0.85; }
 
+/* AI "polish my draft" button — sits between the input and Send. */
+.starBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: opacity 0.15s, background 0.15s, border-color 0.15s;
+}
+
+.starBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+.starBtn:not(:disabled):hover {
+  background: rgba(251, 191, 36, 0.08);
+  border-color: var(--accent);
+}
+
+.starIcon {
+  width: 20px;
+  height: 20px;
+}
+
+.starIconSpin {
+  animation: starPulse 0.9s ease-in-out infinite;
+}
+
+@keyframes starPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
 /* Messages */
 .messages {
   flex: 1;

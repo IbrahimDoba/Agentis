@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import Link from "next/link"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { Cog6ToothIcon, MegaphoneIcon } from "@heroicons/react/24/outline"
+import { Cog6ToothIcon, MegaphoneIcon, SparklesIcon } from "@heroicons/react/24/outline"
 import styles from "./OrchestratorChatsView.module.css"
 import { useAgentEventStream } from "@/lib/useAgentEventStream"
 import { useBrand } from "@/components/BrandProvider"
@@ -418,6 +418,30 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
       setDraftText("")
       qc.invalidateQueries({ queryKey: ["orchestrator-messages", selectedId] })
       qc.invalidateQueries({ queryKey: ["orchestrator-chats", agentId] })
+    },
+  })
+
+  // AI "polish my draft" — rewrites the current draft (fix errors, improve
+  // clarity, keep the operator's voice) using recent conversation context.
+  // Replaces the draft in place so the operator reviews before sending. Charges
+  // a flat fee server-side; nothing is sent here.
+  const improveDraft = useMutation({
+    mutationFn: async ({ id, text }: { id: string; text: string }) => {
+      const res = await fetch(`/api/conversations/${id}/improve-draft`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      })
+      if (!res.ok) {
+        const err = (await res.json().catch(() => ({}))) as Record<string, string>
+        throw new Error(err.error ?? "Failed to improve draft")
+      }
+      return (await res.json()) as { text: string; creditsUsed: number }
+    },
+    onSuccess: (data) => {
+      setDraftText(data.text)
+      // Refocus so the operator can tweak/send straight away.
+      inputRef.current?.focus()
     },
   })
 
@@ -871,6 +895,11 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
                     : (sendMessage.error instanceof Error ? sendMessage.error.message : "Failed to send message")}
                 </div>
               )}
+              {improveDraft.isError && (
+                <div className={styles.sendError}>
+                  {improveDraft.error instanceof Error ? improveDraft.error.message : "Failed to improve draft"}
+                </div>
+              )}
               {convMode === "ai" && (
                 <div className={styles.aiHint}>
                   Sending a message will pause the AI for this conversation. You can resume it anytime.
@@ -883,19 +912,36 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
                   placeholder="Type a message…"
                   value={draftText}
                   rows={1}
+                  disabled={improveDraft.isPending}
                   onChange={(e) => setDraftText(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault()
-                      if (draftText.trim() && selectedId) {
+                      if (draftText.trim() && selectedId && !improveDraft.isPending) {
                         sendMessage.mutate({ id: selectedId, text: draftText })
                       }
                     }
                   }}
                 />
                 <button
+                  type="button"
+                  className={styles.starBtn}
+                  title="AI will regenerate this text"
+                  aria-label="AI will regenerate this text"
+                  disabled={!draftText.trim() || improveDraft.isPending || sendMessage.isPending}
+                  onClick={() => {
+                    if (draftText.trim() && selectedId) {
+                      improveDraft.mutate({ id: selectedId, text: draftText })
+                    }
+                  }}
+                >
+                  <SparklesIcon
+                    className={`${styles.starIcon} ${improveDraft.isPending ? styles.starIconSpin : ""}`}
+                  />
+                </button>
+                <button
                   className={styles.sendBtn}
-                  disabled={!draftText.trim() || sendMessage.isPending}
+                  disabled={!draftText.trim() || sendMessage.isPending || improveDraft.isPending}
                   onClick={() => {
                     if (draftText.trim() && selectedId) {
                       sendMessage.mutate({ id: selectedId, text: draftText })
