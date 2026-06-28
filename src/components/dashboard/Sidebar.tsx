@@ -280,6 +280,25 @@ export function Sidebar({ userName, businessName, currentUserId, currentWorkspac
           const isWarning = !unlimited && pct >= 75
           const isDanger = !unlimited && pct >= 90
 
+          // PAYG wallet — purchased / admin-allocated top-up credits the user
+          // HAS (separate from the plan usage meter). Show it distinctly and
+          // positively (green), with the validity date in a neutral tone — it
+          // must NOT read like a warning or an about-to-expire state.
+          const walletCredits = stats.creditBalance ?? 0
+          const walletExp = stats.creditsExpireAt ? new Date(stats.creditsExpireAt) : null
+          const walletLine = walletCredits > 0 ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 1, marginTop: 8, paddingTop: 8, borderTop: "1px solid var(--border-subtle, rgba(120,120,120,0.18))" }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: "#16a34a" }}>
+                💳 {walletCredits.toLocaleString()} credits
+              </span>
+              {walletExp && (
+                <span style={{ fontSize: 10.5, color: "var(--text-secondary, #71717a)" }}>
+                  valid until {walletExp.toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}
+                </span>
+              )}
+            </div>
+          ) : null
+
           // Subscription expiry awareness. Free plan has no expiry; paid
           // plans get an "expires in N days" hint inside the window and a
           // hard "Expired" state once the date is past.
@@ -345,6 +364,7 @@ export function Sidebar({ userName, businessName, currentUserId, currentWorkspac
                   </span>
                 )}
               </div>
+              {walletLine}
             </Link>
           )
         })()}
