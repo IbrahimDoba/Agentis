@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { agentSchema, adminAgentUpdateSchema } from "@/lib/validations"
-import { sendAgentApprovedEmail } from "@/lib/email"
+import { sendAgentLiveEmail } from "@/lib/email"
 import { buildAndSyncElevenLabsPrompt } from "@/lib/agentSync"
 import { setAgentWebhook, addCustomerHistoryTool, setWhatsAppAccountAgent } from "@/lib/elevenlabs"
 import type { Product } from "@/types"
@@ -166,13 +166,13 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       }
 
       if (parsed.data.status === "ACTIVE") {
-        sendAgentApprovedEmail({
+        sendAgentLiveEmail({
           userName: updated.user.name,
           userEmail: updated.user.email,
           businessName: updated.businessName,
           whatsappPhoneNumber: updated.whatsappPhoneNumber,
           whatsappAgentLink: updated.whatsappAgentLink,
-        }).catch((err) => console.error("[PATCH /api/agents/:id] approved email error:", err))
+        }).catch((err) => console.error("[PATCH /api/agents/:id] live email error:", err))
       }
 
       return NextResponse.json({

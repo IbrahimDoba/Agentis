@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { agentSchema } from "@/lib/validations"
-import { sendAgentSubmittedNotification } from "@/lib/email"
 import { getWorkspaceContext } from "@/lib/workspace"
 import { syncProductImagesToOrchestratorMedia } from "@/lib/orchestrator-media-sync"
 import { buildOrchestratorSystemPrompt } from "@/lib/orchestratorSync"
@@ -158,13 +157,6 @@ export async function POST(req: NextRequest) {
         }
       }
     }
-
-    sendAgentSubmittedNotification({
-      userName: session.user.name ?? "",
-      userEmail: session.user.email ?? "",
-      businessName: session.user.businessName ?? parsed.data.businessName,
-      agentId: agent.id,
-    }).catch((err) => console.error("[POST /api/agents] email error:", err))
 
     return NextResponse.json(
       {

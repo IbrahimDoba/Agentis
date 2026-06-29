@@ -130,22 +130,22 @@ export async function sendWelcomeEmail(user: { name: string; email: string }, br
   await resend().emails.send({
     from: senderFrom(brand),
     to: user.email,
-    subject: `Welcome to ${appName} – We're reviewing your account`,
+    subject: `Welcome to ${appName} 🎉`,
     html: baseTemplate(`
       <h2 style="margin:0 0 8px;font-size:22px;color:#111111;">Welcome, ${user.name}! 👋</h2>
       <p style="margin:0 0 20px;color:#4b5563;">
-        Thanks for signing up for ${appName}. We're excited to help your business respond to
-        every WhatsApp message — automatically, 24/7.
+        Thanks for signing up for ${appName}. You're all set — let's get your AI agent
+        responding to every WhatsApp message, automatically, 24/7.
       </p>
       ${divider()}
-      <h3 style="margin:0 0 12px;font-size:16px;color:#111111;">What happens next?</h3>
+      <h3 style="margin:0 0 12px;font-size:16px;color:#111111;">Get started in 3 steps</h3>
       <table cellpadding="0" cellspacing="0" style="width:100%;">
         <tr>
           <td style="padding:10px 0;vertical-align:top;width:28px;">
             <span style="display:inline-block;background:#00dc82;color:#0a0a0a;font-weight:700;font-size:12px;width:20px;height:20px;border-radius:50%;text-align:center;line-height:20px;">1</span>
           </td>
           <td style="padding:10px 0 10px 10px;color:#374151;font-size:14px;">
-            Our team reviews your account — usually within <strong>24 hours</strong>.
+            Log in and set up your agent — add your business details, knowledge and products.
           </td>
         </tr>
         <tr>
@@ -153,7 +153,7 @@ export async function sendWelcomeEmail(user: { name: string; email: string }, br
             <span style="display:inline-block;background:#00dc82;color:#0a0a0a;font-weight:700;font-size:12px;width:20px;height:20px;border-radius:50%;text-align:center;line-height:20px;">2</span>
           </td>
           <td style="padding:10px 0 10px 10px;color:#374151;font-size:14px;">
-            Once approved, you'll get an email and can log in to set up your AI agent.
+            Connect your WhatsApp number in a couple of taps.
           </td>
         </tr>
         <tr>
@@ -161,10 +161,11 @@ export async function sendWelcomeEmail(user: { name: string; email: string }, br
             <span style="display:inline-block;background:#00dc82;color:#0a0a0a;font-weight:700;font-size:12px;width:20px;height:20px;border-radius:50%;text-align:center;line-height:20px;">3</span>
           </td>
           <td style="padding:10px 0 10px 10px;color:#374151;font-size:14px;">
-            Your agent goes live on WhatsApp and starts handling customer messages.
+            Your agent goes live and starts handling customer messages 24/7.
           </td>
         </tr>
       </table>
+      ${btn("Go to dashboard", `${brand?.appUrl ?? APP_URL}/dashboard`)}
       ${divider()}
       <p style="margin:0;color:#6b7280;font-size:14px;">
         Got questions in the meantime? Reply to this email or visit our
@@ -190,7 +191,7 @@ export async function sendNewSignupNotification(user: {
     subject: `New signup: ${user.businessName}`,
     html: baseTemplate(`
       <h2 style="margin:0 0 8px;font-size:20px;color:#111111;">New Account Signup</h2>
-      <p style="margin:0 0 24px;color:#4b5563;">A new business has signed up and is waiting for approval.</p>
+      <p style="margin:0 0 24px;color:#4b5563;">A new business just signed up.</p>
       ${divider()}
       <table cellpadding="0" cellspacing="0" style="width:100%;">
         ${infoRow("Name", user.name)}
@@ -198,83 +199,16 @@ export async function sendNewSignupNotification(user: {
         ${infoRow("Business", user.businessName)}
         ${user.phone ? infoRow("Phone", user.phone) : ""}
       </table>
-      ${btn("Review in Admin Panel", `${APP_URL}/admin/users`)}
+      ${btn("View in Admin Panel", `${APP_URL}/admin/users`)}
     `),
   })
 }
 
 // ---------------------------------------------------------------------------
-// 3. Account approved — sent to user when admin approves them
+// 3. Agent live — sent to the user when their agent goes active on WhatsApp
 // ---------------------------------------------------------------------------
 
-export async function sendAccountApprovedEmail(user: { name: string; email: string }) {
-  await resend().emails.send({
-    from: FROM,
-    to: user.email,
-    subject: "Your D-Zero AI account has been approved!",
-    html: baseTemplate(`
-      <h2 style="margin:0 0 8px;font-size:22px;color:#111111;">You're approved, ${user.name}! 🎉</h2>
-      <p style="margin:0 0 20px;color:#4b5563;">
-        Great news — your D-Zero AI account has been approved. You can now log in and set up
-        your AI WhatsApp agent.
-      </p>
-      ${divider()}
-      <h3 style="margin:0 0 12px;font-size:16px;color:#111111;">Get started in minutes</h3>
-      <table cellpadding="0" cellspacing="0" style="width:100%;">
-        <tr>
-          <td style="padding:8px 0 8px 0;color:#374151;font-size:14px;">
-            ✅ &nbsp;Log in to your dashboard
-          </td>
-        </tr>
-        <tr>
-          <td style="padding:8px 0;color:#374151;font-size:14px;">
-            ✅ &nbsp;Fill in your business details and set up your agent
-          </td>
-        </tr>
-        <tr>
-          <td style="padding:8px 0;color:#374151;font-size:14px;">
-            ✅ &nbsp;Our team will configure your WhatsApp integration and get you live
-          </td>
-        </tr>
-      </table>
-      ${btn("Go to Dashboard", `${APP_URL}/dashboard`)}
-    `),
-  })
-}
-
-// ---------------------------------------------------------------------------
-// 4. Account rejected — sent to user when admin rejects them
-// ---------------------------------------------------------------------------
-
-export async function sendAccountRejectedEmail(user: { name: string; email: string }) {
-  await resend().emails.send({
-    from: FROM,
-    to: user.email,
-    subject: "An update on your D-Zero AI application",
-    html: baseTemplate(`
-      <h2 style="margin:0 0 8px;font-size:22px;color:#111111;">Hi ${user.name},</h2>
-      <p style="margin:0 0 20px;color:#4b5563;">
-        Thank you for your interest in D-Zero AI. After reviewing your application, we're
-        unable to move forward at this time.
-      </p>
-      <p style="margin:0 0 20px;color:#4b5563;">
-        This may be because we've reached capacity for our current cohort. We encourage you
-        to check back in the future as we expand.
-      </p>
-      ${divider()}
-      <p style="margin:0;color:#4b5563;font-size:14px;">
-        If you believe this is a mistake or would like more information, please reach out to
-        us at <a href="mailto:support@dailzero.com" style="color:#00dc82;text-decoration:none;">support@dailzero.com</a>.
-      </p>
-    `),
-  })
-}
-
-// ---------------------------------------------------------------------------
-// 5. Agent approved & live — sent to user when admin sets agent to ACTIVE
-// ---------------------------------------------------------------------------
-
-export async function sendAgentApprovedEmail(data: {
+export async function sendAgentLiveEmail(data: {
   userName: string
   userEmail: string
   businessName: string
@@ -284,12 +218,12 @@ export async function sendAgentApprovedEmail(data: {
   await resend().emails.send({
     from: FROM,
     to: data.userEmail,
-    subject: "Your AI agent is approved and live on WhatsApp! 🚀",
+    subject: "Your AI agent is live on WhatsApp! 🚀",
     html: baseTemplate(`
       <h2 style="margin:0 0 8px;font-size:22px;color:#111111;">You're live, ${data.userName}! 🚀</h2>
       <p style="margin:0 0 20px;color:#4b5563;">
-        Your AI agent for <strong>${data.businessName}</strong> has been approved and is now
-        live on WhatsApp — handling customer messages automatically, 24/7.
+        Your AI agent for <strong>${data.businessName}</strong> is now live on WhatsApp —
+        handling customer messages automatically, 24/7.
       </p>
       ${divider()}
       ${data.whatsappPhoneNumber || data.whatsappAgentLink ? `
@@ -324,37 +258,7 @@ export async function sendAgentApprovedEmail(data: {
 }
 
 // ---------------------------------------------------------------------------
-// 6. Agent submitted — sent to admin when user creates their agent
-// ---------------------------------------------------------------------------
-
-export async function sendAgentSubmittedNotification(data: {
-  userName: string
-  userEmail: string
-  businessName: string
-  agentId: string
-}) {
-  await resend().emails.send({
-    from: FROM,
-    to: ADMIN_EMAIL,
-    subject: `Agent ready for setup: ${data.businessName}`,
-    html: baseTemplate(`
-      <h2 style="margin:0 0 8px;font-size:20px;color:#111111;">New Agent Submitted</h2>
-      <p style="margin:0 0 24px;color:#4b5563;">
-        A business has submitted their agent details and it's ready for you to configure in ElevenLabs.
-      </p>
-      ${divider()}
-      <table cellpadding="0" cellspacing="0" style="width:100%;">
-        ${infoRow("Business", data.businessName)}
-        ${infoRow("Owner", data.userName)}
-        ${infoRow("Email", data.userEmail)}
-      </table>
-      ${btn("Configure Agent", `${APP_URL}/admin/agents/${data.agentId}`)}
-    `),
-  })
-}
-
-// ---------------------------------------------------------------------------
-// 5b. Account suspended — sent to user when admin suspends them
+// 4. Account suspended — sent to user when admin suspends them
 // ---------------------------------------------------------------------------
 
 export async function sendAccountSuspendedEmail(user: { name: string; email: string }) {
@@ -748,10 +652,12 @@ export async function sendCreditPurchaseReceipt(data: {
         Hi ${data.name}, your payment was received and your credits are ready to use.
       </p>
       <div style="background:#f4f4f5;border-radius:12px;padding:20px 24px;margin:0 0 24px;">
-        ${infoRow("Amount paid", naira)}
-        ${infoRow("Credits added", credits)}
-        ${infoRow("Reference", data.reference)}
-        ${infoRow("Use by", expires)}
+        <table width="100%" cellpadding="0" cellspacing="0" style="width:100%;">
+          ${infoRow("Amount paid", naira)}
+          ${infoRow("Credits added", credits)}
+          ${infoRow("Reference", data.reference)}
+          ${infoRow("Use by", expires)}
+        </table>
       </div>
       <p style="margin:0 0 20px;color:#6b7280;font-size:13px;">
         Credits don't expire as long as you keep using D-Zero — every top-up
@@ -789,10 +695,12 @@ export async function sendSubscriptionActivatedEmail(data: {
       <h2 style="margin:0 0 8px;font-size:22px;color:#111111;">You're on ${data.planLabel} 🎉</h2>
       <p style="margin:0 0 20px;color:#4b5563;">Hi ${data.name}, your subscription is active and your AI agents are live.</p>
       <div style="background:#f4f4f5;border-radius:12px;padding:20px 24px;margin:0 0 24px;">
-        ${infoRow("Plan", data.planLabel)}
-        ${infoRow("Amount paid", naira)}
-        ${infoRow("Reference", data.reference)}
-        ${infoRow("Auto-renews on", next)}
+        <table width="100%" cellpadding="0" cellspacing="0" style="width:100%;">
+          ${infoRow("Plan", data.planLabel)}
+          ${infoRow("Amount paid", naira)}
+          ${infoRow("Reference", data.reference)}
+          ${infoRow("Auto-renews on", next)}
+        </table>
       </div>
       <p style="margin:0 0 20px;color:#6b7280;font-size:13px;">We'll automatically renew with your saved card each month. You can turn off auto-renew or change your card anytime in billing.</p>
       ${btn("Manage subscription", `${APP_URL}/dashboard/subscription`)}
@@ -818,10 +726,12 @@ export async function sendSubscriptionRenewedEmail(data: {
       <h2 style="margin:0 0 8px;font-size:22px;color:#111111;">Subscription renewed</h2>
       <p style="margin:0 0 20px;color:#4b5563;">Hi ${data.name}, your ${data.planLabel} plan renewed successfully.</p>
       <div style="background:#f4f4f5;border-radius:12px;padding:20px 24px;margin:0 0 24px;">
-        ${infoRow("Plan", data.planLabel)}
-        ${infoRow("Amount charged", naira)}
-        ${infoRow("Reference", data.reference)}
-        ${infoRow("Next renewal", next)}
+        <table width="100%" cellpadding="0" cellspacing="0" style="width:100%;">
+          ${infoRow("Plan", data.planLabel)}
+          ${infoRow("Amount charged", naira)}
+          ${infoRow("Reference", data.reference)}
+          ${infoRow("Next renewal", next)}
+        </table>
       </div>
       ${btn("View billing", `${APP_URL}/dashboard/subscription`)}
     `),
