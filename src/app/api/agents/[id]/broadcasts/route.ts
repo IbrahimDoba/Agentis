@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { baileysClient } from "@/lib/baileys-client"
+import { isFreeTrialExpired } from "@/lib/trial"
 
 interface Params {
   params: Promise<{ id: string }>
@@ -10,7 +11,10 @@ interface Params {
 async function assertAccess(agentId: string, userId: string, role?: string) {
   const agent = await db.agent.findUnique({
     where: { id: agentId },
-    select: { userId: true },
+    select: {
+      userId: true,
+      user: { select: { plan: true, resellerId: true, subscriptionExpiresAt: true } },
+    },
   })
 
   if (!agent) {
@@ -19,6 +23,11 @@ async function assertAccess(agentId: string, userId: string, role?: string) {
 
   if (agent.userId !== userId && role !== "ADMIN") {
     return { error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) }
+  }
+
+  // Free-trial wall: an expired platform free user can't start broadcasts.
+  if (isFreeTrialExpired(agent.user)) {
+    return { error: NextResponse.json({ error: "Your free trial has ended — choose a plan to keep sending." }, { status: 402 }) }
   }
 
   const session = await db.baileysSession.findUnique({

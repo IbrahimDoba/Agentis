@@ -382,6 +382,22 @@ function UserDetailModal({ user, onClose, onStatusChange, loading }: {
                             +{m === 12 ? "1yr" : `${m}mo`}
                           </button>
                         ))}
+                        <button className={styles.quickBtn}
+                          onClick={() => {
+                            const d = new Date(); d.setDate(d.getDate() + 7)
+                            const s = d.toISOString().slice(0, 10)
+                            setExpiresAt(s); handleSaveExpiry(s)
+                          }}>
+                          7-day trial
+                        </button>
+                        <button className={styles.quickBtnClear}
+                          onClick={() => {
+                            const d = new Date(); d.setDate(d.getDate() - 1)
+                            const s = d.toISOString().slice(0, 10)
+                            setExpiresAt(s); handleSaveExpiry(s)
+                          }}>
+                          Expire now
+                        </button>
                         {expiresAt && (
                           <button className={styles.quickBtnClear}
                             onClick={() => { setExpiresAt(""); handleSaveExpiry("") }}>

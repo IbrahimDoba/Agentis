@@ -23,7 +23,7 @@ export function creditsForTokens(inputTokens: number, outputTokens: number): num
 }
 
 export const PLAN_CREDIT_LIMITS: Record<string, number> = {
-  free: 2000,
+  free: 1000,
   basic: 25000,
   starter: 60000,
   pro: 100000,

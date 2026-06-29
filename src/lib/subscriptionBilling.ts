@@ -374,7 +374,10 @@ export async function downgradeToFree(userId: string): Promise<void> {
     where: { id: userId },
     data: {
       plan: "free",
-      subscriptionExpiresAt: null,
+      // Land on the "choose a plan" wall, not free-forever: a lapsed paying
+      // customer should re-subscribe rather than fall back to an open free tier.
+      // (Past timestamp = trial already expired.)
+      subscriptionExpiresAt: new Date(Date.now() - 1000),
       subscriptionStatus: "none",
       autoRenew: false,
       cancelAtPeriodEnd: false,
