@@ -119,9 +119,9 @@ describe("apiBilling — chargeApiTurn / remaining (real DB)", () => {
     const future = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000)
     const walletCtx: AgentBillingContext = { userId, plan: "free", subscriptionExpiresAt: future }
 
-    // Exhaust the free plan (limit 2000) within the billing window.
+    // Exhaust the free plan (limit 1000) within the billing window.
     await db.creditUsage.create({
-      data: { agentId: walletAgentId, messageType: "text", source: "ai", creditsUsed: 2000, billedTo: "plan" },
+      data: { agentId: walletAgentId, messageType: "text", source: "ai", creditsUsed: 1000, billedTo: "plan" },
     })
     // Fund the wallet.
     await db.user.update({
@@ -157,8 +157,8 @@ describe("apiBilling — chargeApiTurn / remaining (real DB)", () => {
     const freshAgent = await makeAgent()
     await db.user.update({ where: { id: userId }, data: { creditBalance: 50, creditsExpireAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) } })
     const remaining = await getRemainingCredits({ userId, plan: "free", subscriptionExpiresAt: null }, freshAgent)
-    // free plan limit 2000, no usage on this agent + 50 wallet
-    expect(remaining).toBe(2000 + 50)
+    // free plan limit 1000, no usage on this agent + 50 wallet
+    expect(remaining).toBe(1000 + 50)
     await db.agent.deleteMany({ where: { id: freshAgent } })
   })
 })

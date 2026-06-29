@@ -4,6 +4,7 @@ import { db } from "@/lib/db"
 import { baileysClient } from "@/lib/baileys-client"
 import { push } from "@/lib/sse-store"
 import { getConversationMessages } from "@/lib/queries/messages"
+import { isFreeTrialExpired } from "@/lib/trial"
 
 export async function GET(
   req: NextRequest,
@@ -74,6 +75,7 @@ export async function POST(
             userId: true,
             agentRuntime: true,
             autoPauseOnHumanReply: true,
+            user: { select: { plan: true, resellerId: true, subscriptionExpiresAt: true } },
           },
         },
       },
@@ -81,6 +83,15 @@ export async function POST(
     if (!conversation) return NextResponse.json({ error: "Not found" }, { status: 404 })
     if (conversation.agent.userId !== session.user.id && session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+
+    // Free-trial wall: a platform free user whose trial has ended can't send
+    // (matches the quick-send + broadcast routes). Paid/reseller users are never gated.
+    if (isFreeTrialExpired(conversation.agent.user)) {
+      return NextResponse.json(
+        { error: "Your free trial has ended — choose a plan to keep sending." },
+        { status: 402 }
+      )
     }
 
     // Save to DB

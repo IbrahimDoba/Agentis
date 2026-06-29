@@ -9,7 +9,7 @@ export const PLAN_PRICES: Record<string, number> = {
 
 // Monthly Dailzero AI credit allowances per plan
 export const PLAN_CREDIT_LIMITS: Record<string, number> = {
-  free: 2000,
+  free: 1000,
   basic: 25000,
   starter: 60000,
   pro: 100000,
@@ -50,7 +50,7 @@ export const PLAN_LABELS: Record<string, string> = {
 
 export const PLAN_FEATURES: Record<string, string[]> = {
   free: [
-    "2,000 credits / month",
+    "1,000 credits / month",
     "1 AI agent",
     "WhatsApp integration",
     "Conversation logs",

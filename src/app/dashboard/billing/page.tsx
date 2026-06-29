@@ -79,7 +79,7 @@ export default function BillingPage() {
   const plan = stats?.plan ?? "free"
   const planLabel = PLAN_LABELS[plan] ?? plan
   const price = PLAN_PRICES[plan] ?? 0
-  const creditLimit = stats?.creditLimit ?? PLAN_CREDIT_LIMITS[plan] ?? 2000
+  const creditLimit = stats?.creditLimit ?? PLAN_CREDIT_LIMITS[plan] ?? 1000
   const unlimited = creditLimit === -1
   const overageRate = PLAN_OVERAGE_RATE_PER_1K[plan] ?? null
 

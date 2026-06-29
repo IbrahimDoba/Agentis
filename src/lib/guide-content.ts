@@ -327,7 +327,7 @@ Manual replies you send (from the dashboard or your phone directly) are **free**
 
 | Plan | Price | Credits/month |
 |---|---|---|
-| Free | — | 2,000 |
+| Free | — | 1,000 |
 | Basic | ₦15,000 | 25,000 |
 | Starter | ₦35,000 | 60,000 |
 | Pro | ₦70,000 | 100,000 |

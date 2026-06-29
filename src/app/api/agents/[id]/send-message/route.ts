@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { baileysClient } from "@/lib/baileys-client"
 import { push } from "@/lib/sse-store"
+import { isFreeTrialExpired } from "@/lib/trial"
 
 // Quick-send: message a single WhatsApp number directly (no contact list).
 // Unlike broadcasts this can reach brand-new numbers, so we verify the number
@@ -49,11 +50,23 @@ export async function POST(
     // Access check: agent must belong to the user (or caller is admin)
     const agent = await db.agent.findUnique({
       where: { id: agentId },
-      select: { userId: true, messagingEnabled: true },
+      select: {
+        userId: true,
+        messagingEnabled: true,
+        user: { select: { plan: true, resellerId: true, subscriptionExpiresAt: true } },
+      },
     })
     if (!agent) return NextResponse.json({ error: "Agent not found" }, { status: 404 })
     if (agent.userId !== session.user.id && session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+
+    // Free-trial wall: a platform free user whose trial has ended can't send.
+    if (isFreeTrialExpired(agent.user)) {
+      return NextResponse.json(
+        { error: "Your free trial has ended — choose a plan to keep sending." },
+        { status: 402 }
+      )
     }
 
     // WhatsApp must be live for this agent

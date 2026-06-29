@@ -4,6 +4,7 @@ import { db } from "@/lib/db"
 import { redirect } from "next/navigation"
 import { cookies } from "next/headers"
 import { DashboardShell } from "@/components/dashboard/DashboardShell"
+import { TrialBanner } from "@/components/dashboard/TrialBanner"
 import { getTenantBranding, brandingIcons } from "@/lib/tenant"
 import { BrandProvider } from "@/components/BrandProvider"
 
@@ -23,6 +24,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect("/login")
   }
 
+  // Trial state for the soft "choose a plan" wall (platform free users only).
+  let trialUser: { plan: string | null; resellerId: string | null; subscriptionExpiresAt: Date | null } | null = null
+
   // Only check onboarding for approved users
   if (session.user.status === "APPROVED") {
     const user = await db.user.findUnique({
@@ -30,9 +34,19 @@ export default async function DashboardLayout({ children }: { children: React.Re
       select: {
         onboardingCompleted: true,
         maxAgents: true,
+        plan: true,
+        resellerId: true,
+        subscriptionExpiresAt: true,
         _count: { select: { agents: true } },
       },
     })
+    if (user) {
+      trialUser = {
+        plan: user.plan,
+        resellerId: user.resellerId,
+        subscriptionExpiresAt: user.subscriptionExpiresAt,
+      }
+    }
     if (user && !user.onboardingCompleted) {
       // If they already have an agent or hit their limit, skip onboarding
       const hasAgent = user._count.agents > 0
@@ -68,6 +82,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           currentUserId={session.user.id}
           currentWorkspaceId={currentWorkspaceId}
         >
+          {trialUser && <TrialBanner user={trialUser} />}
           {children}
         </DashboardShell>
       </div>

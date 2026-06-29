@@ -2,6 +2,25 @@ import { NextResponse } from "next/server"
 import { createHmac, timingSafeEqual } from "crypto"
 import { db } from "@/lib/db"
 import { push } from "@/lib/sse-store"
+import { isTrialPlan, trialDeadlineFrom } from "@/lib/trial"
+
+// Start a platform free user's trial clock the first time they connect WhatsApp.
+// Runs once: skipped for reseller/paid users and anyone who already has a
+// deadline (so reconnects never reset it).
+async function maybeStartFreeTrial(agentId: string): Promise<void> {
+  const agent = await db.agent.findUnique({
+    where: { id: agentId },
+    select: { user: { select: { id: true, plan: true, resellerId: true, subscriptionExpiresAt: true } } },
+  })
+  const user = agent?.user
+  if (!user) return
+  if (!isTrialPlan(user.plan, user.resellerId)) return
+  if (user.subscriptionExpiresAt) return
+  await db.user.update({
+    where: { id: user.id },
+    data: { subscriptionExpiresAt: trialDeadlineFrom(new Date()) },
+  })
+}
 
 function verify(body: string, signature: string): boolean {
   const secret = process.env.BAILEYS_WEBHOOK_SECRET ?? ""
@@ -34,6 +53,7 @@ export async function POST(req: Request) {
           lastConnectedAt: new Date(),
         },
       })
+      await maybeStartFreeTrial(agentId)
       break
 
     case "session.disconnected":
