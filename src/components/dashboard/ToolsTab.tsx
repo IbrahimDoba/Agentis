@@ -39,6 +39,27 @@ function toSnakeCase(str: string) {
   return str.toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "")
 }
 
+const BEARER_PREFIX = "Bearer "
+
+// Read the bearer token out of a tool's Authorization header (for the input).
+function getAuthToken(tool: { headers?: Record<string, string> }): string {
+  const auth = tool.headers?.Authorization ?? ""
+  return auth.startsWith(BEARER_PREFIX) ? auth.slice(BEARER_PREFIX.length) : auth
+}
+
+// Apply a bearer token to a tool's headers, preserving any other headers.
+// Empty token removes the Authorization header (and drops headers if now empty).
+function withAuthToken(
+  headers: Record<string, string> | undefined,
+  token: string
+): Record<string, string> | undefined {
+  const next = { ...(headers ?? {}) }
+  const trimmed = token.trim()
+  if (trimmed) next.Authorization = `${BEARER_PREFIX}${trimmed}`
+  else delete next.Authorization
+  return Object.keys(next).length > 0 ? next : undefined
+}
+
 export function ToolsTab({ agentId, initialTools, elevenlabsAgentId, agentRuntime, agentStatus }: ToolsTabProps) {
   const [tools, setTools] = useState<AgentTool[]>(initialTools ?? [])
   const [loadingTools, setLoadingTools] = useState(!!elevenlabsAgentId)
@@ -250,6 +271,15 @@ export function ToolsTab({ agentId, initialTools, elevenlabsAgentId, agentRuntim
               />
 
               <Input
+                label="Authorization token"
+                type="password"
+                value={getAuthToken(tool)}
+                onChange={(e) => handleUpdateTool(tool.id, { headers: withAuthToken(tool.headers, e.target.value) })}
+                placeholder="Paste the token your API expects"
+                hint="Sent as an Authorization: Bearer header on every call. Must match the token your API checks for. Leave blank for no auth."
+              />
+
+              <Input
                 label="Description"
                 value={tool.description}
                 onChange={(e) => handleUpdateTool(tool.id, { description: e.target.value })}
@@ -351,6 +381,14 @@ export function ToolsTab({ agentId, initialTools, elevenlabsAgentId, agentRuntim
             value={newTool.url}
             onChange={(e) => setNewTool((t) => ({ ...t, url: e.target.value }))}
             placeholder="https://yoursite.com/api/orders"
+          />
+          <Input
+            label="Authorization token"
+            type="password"
+            value={getAuthToken(newTool)}
+            onChange={(e) => setNewTool((t) => ({ ...t, headers: withAuthToken(t.headers, e.target.value) }))}
+            placeholder="Paste the token your API expects (optional)"
+            hint="Sent as an Authorization: Bearer header on every call to this tool."
           />
           <Input
             label="Description"
