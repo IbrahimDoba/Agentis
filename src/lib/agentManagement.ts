@@ -152,6 +152,7 @@ export async function setAgentToolsForUser(
       name: p.name.trim(),
       description: p.description.trim(),
     })),
+    ...(t.headers ? { headers: t.headers } : {}),
   }))
 
   await db.agent.update({ where: { id: agentId }, data: { toolsData: normalized as unknown as object } })

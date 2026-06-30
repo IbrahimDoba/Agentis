@@ -25,6 +25,9 @@ const apiAgentToolSchema = z.object({
   url: z.string().url("Tool url must be a valid URL"),
   method: z.enum(["GET", "POST"]),
   parameters: z.array(apiToolParameterSchema).default([]),
+  // Optional outbound request headers (e.g. an Authorization token the tool's
+  // API requires). Preserved so the orchestrator can authenticate the call.
+  headers: z.record(z.string(), z.string()).optional(),
 })
 
 export const apiSetToolsSchema = z.object({

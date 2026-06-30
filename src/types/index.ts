@@ -42,6 +42,9 @@ export interface AgentTool {
   url: string
   method: "GET" | "POST"
   parameters: ToolParameter[]
+  // Custom request headers sent on every outbound call to this tool — e.g.
+  // { Authorization: "Bearer <token>" } so the endpoint can authenticate us.
+  headers?: Record<string, string>
 }
 
 export interface Product {
