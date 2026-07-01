@@ -800,40 +800,24 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
                   {selectedConv?.messageCount} messages
                 </div>
               </div>
-              {/* AI / Human toggle */}
+              {/* Who replies: AI · Human (AI resumes after the timer) · Always human (pinned) */}
               {selectedConv && (
-                <>
-                  <div className={`${styles.modeToggle} ${setMode.isPending ? styles.modeTogglePending : ""}`}>
-                    <button
-                      className={`${styles.modeBtn} ${convMode === "ai" ? styles.modeBtnAi : ""}`}
-                      onClick={() => setMode.mutate({ conversationId: selectedId!, mode: "ai" })}
-                      disabled={setMode.isPending}
-                      title="AI handles replies for this conversation"
-                    >
-                      AI
-                    </button>
-                    <button
-                      className={`${styles.modeBtn} ${convMode === "human" ? styles.modeBtnHuman : ""}`}
-                      onClick={() => setMode.mutate({ conversationId: selectedId!, mode: "human" })}
-                      disabled={setMode.isPending}
-                      title="You handle replies for this conversation"
-                    >
-                      Human
-                    </button>
-                  </div>
-                  <label
-                    title="Keep this chat on human permanently — the AI won't take it back over when the auto-reset timer fires."
-                    style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, cursor: "pointer", whiteSpace: "nowrap", userSelect: "none", opacity: setMode.isPending ? 0.6 : 1 }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={!!selectedConv.aiLocked}
-                      onChange={(e) => setMode.mutate({ conversationId: selectedId!, aiLocked: e.target.checked })}
-                      disabled={setMode.isPending}
-                    />
-                    Always human
-                  </label>
-                </>
+                <select
+                  className={styles.modeSelect}
+                  value={selectedConv.aiLocked ? "always" : convMode === "ai" ? "ai" : "human"}
+                  disabled={setMode.isPending}
+                  title="AI = the agent replies. Human = you reply (AI resumes after the auto-reset timer). Always human = stays human, never auto-resumes."
+                  onChange={(e) => {
+                    const v = e.target.value
+                    if (v === "ai") setMode.mutate({ conversationId: selectedId!, mode: "ai" })
+                    else if (v === "human") setMode.mutate({ conversationId: selectedId!, mode: "human", aiLocked: false })
+                    else setMode.mutate({ conversationId: selectedId!, aiLocked: true })
+                  }}
+                >
+                  <option value="ai">AI replies</option>
+                  <option value="human">Human</option>
+                  <option value="always">Always human</option>
+                </select>
               )}
               {/* Settings deeplink — opens the agent's Settings tab in a new tab so
                   the operator doesn't lose their place in the chat. */}

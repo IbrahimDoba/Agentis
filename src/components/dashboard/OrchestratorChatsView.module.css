@@ -409,6 +409,31 @@
   color: #fbbf24;
 }
 
+/* Who-replies selector (AI · Human · Always human) */
+.modeSelect {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color 0.15s;
+}
+.modeSelect:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+.modeSelect:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.modeSelect:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 /* Human mode banner */
 .humanBanner {
   background: rgba(251, 191, 36, 0.08);
