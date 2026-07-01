@@ -7,6 +7,10 @@ interface WorkerEvent {
   level: string
   category: string
   agentId: string | null
+  agentName?: string | null
+  ownerName?: string | null
+  ownerBusiness?: string | null
+  ownerEmail?: string | null
   message: string
   detail: unknown
   createdAt: string
@@ -80,6 +84,7 @@ export function AdminEventsClient() {
               <th style={th}>When</th>
               <th style={th}>Level</th>
               <th style={th}>Category</th>
+              <th style={th}>Agent</th>
               <th style={th}>Message</th>
               <th style={th}></th>
             </tr>
@@ -95,12 +100,24 @@ export function AdminEventsClient() {
                     </span>
                   </td>
                   <td style={{ ...td, fontFamily: "monospace", fontSize: 12 }}>{e.category}</td>
+                  <td style={td}>
+                    {e.agentId ? (
+                      <div>
+                        <div style={{ fontWeight: 600 }}>{e.agentName ?? "(unknown agent)"}</div>
+                        <div style={{ fontSize: 11, color: "var(--text-secondary, #71717a)" }}>
+                          {[e.ownerName ?? e.ownerBusiness, e.ownerEmail].filter(Boolean).join(" · ") || "—"}
+                        </div>
+                      </div>
+                    ) : (
+                      <span style={{ color: "var(--text-secondary, #71717a)" }}>—</span>
+                    )}
+                  </td>
                   <td style={td}>{e.message}</td>
                   <td style={{ ...td, color: "var(--text-secondary, #71717a)" }}>{e.detail ? (open === e.id ? "▲" : "▼") : ""}</td>
                 </tr>
                 {open === e.id && e.detail != null && (
                   <tr>
-                    <td style={{ ...td, background: "var(--bg-primary, #fafafa)" }} colSpan={5}>
+                    <td style={{ ...td, background: "var(--bg-primary, #fafafa)" }} colSpan={6}>
                       <pre style={{ margin: 0, fontSize: 12, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
                         {JSON.stringify({ agentId: e.agentId, ...(e.detail as object) }, null, 2)}
                       </pre>
