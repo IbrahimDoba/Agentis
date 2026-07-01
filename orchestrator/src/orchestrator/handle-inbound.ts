@@ -7,7 +7,7 @@ import {
   type AdContext,
 } from "../db/queries/conversations.js"
 import { buildSystemPrompt, buildMessages } from "./context-builder.js"
-import { dispatchReply } from "./response-dispatcher.js"
+import { dispatchReply, chargeEmbedTurn } from "./response-dispatcher.js"
 import { buildRichContent } from "./rich-content.js"
 import { publishSseEvent } from "../lib/sse-publish.js"
 import { runAgentTurn } from "./run-agent-turn.js"
@@ -219,6 +219,16 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
         tokensOutput: i === 0 ? totalOutputTokens : 0,
       })
     }
+  } else {
+    // Embed skips the Baileys worker (and thus its per-message billing), so
+    // charge the turn's tokens here — once — so widget replies count toward
+    // credits just like WhatsApp. Best-effort: the reply is already persisted.
+    await chargeEmbedTurn({
+      agentId,
+      conversationId: conversation.id,
+      tokensInput: totalInputTokens,
+      tokensOutput: totalOutputTokens,
+    }).catch((err) => logger.error({ err, agentId, conversationId: conversation.id }, "Failed to charge embed turn"))
   }
 
   const duration = Date.now() - startMs

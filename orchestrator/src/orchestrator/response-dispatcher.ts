@@ -53,6 +53,41 @@ export async function dispatchReply(opts: DispatchOptions): Promise<void> {
   }, "Reply dispatched to worker")
 }
 
+export interface ChargeTurnOptions {
+  agentId: string
+  conversationId: string
+  tokensInput: number
+  tokensOutput: number
+}
+
+/**
+ * Record credits for a non-WhatsApp AI turn (the embed widget) via the worker's
+ * billing endpoint. Embed replies are delivered by the orchestrator directly
+ * and never touch the Baileys send queue, so the queue's per-message billing
+ * doesn't run — this makes widget usage count the same way. Best-effort: the
+ * reply is already delivered, so a billing hiccup must not fail the turn.
+ */
+export async function chargeEmbedTurn(opts: ChargeTurnOptions): Promise<void> {
+  const res = await fetch(`${config.WA_WORKER_URL}/v1/billing/charge`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${config.WORKER_API_KEY}`,
+    },
+    body: JSON.stringify({
+      agentId: opts.agentId,
+      conversationId: opts.conversationId,
+      tokensInput: opts.tokensInput,
+      tokensOutput: opts.tokensOutput,
+      messageType: "text",
+    }),
+  })
+  if (!res.ok) {
+    const body = await res.text().catch(() => "")
+    throw new Error(`Worker charge failed: ${res.status} ${body}`)
+  }
+}
+
 export interface DispatchLabelOptions {
   agentId: string
   toJid: string
