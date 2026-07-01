@@ -45,6 +45,7 @@ interface OrchestratorConversation {
   phoneSource?: "conversation" | "customer_name_match" | "worker_lid_mapping"
   contactName: string | null
   mode: string
+  aiLocked?: boolean
   channel?: "whatsapp" | "embed"
   visitorId?: string | null
   lastActivityAt: string
@@ -378,11 +379,14 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
   }, [selectedId, agentId, qc])
 
   const setMode = useMutation({
-    mutationFn: async ({ conversationId, mode }: { conversationId: string; mode: "ai" | "human" }) => {
+    mutationFn: async ({ conversationId, mode, aiLocked }: { conversationId: string; mode?: "ai" | "human"; aiLocked?: boolean }) => {
       const res = await fetch(`/api/conversations/${conversationId}/mode`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode }),
+        body: JSON.stringify({
+          ...(mode ? { mode } : {}),
+          ...(aiLocked !== undefined ? { aiLocked } : {}),
+        }),
       })
       if (!res.ok) throw new Error("Failed to update mode")
     },
@@ -798,24 +802,38 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
               </div>
               {/* AI / Human toggle */}
               {selectedConv && (
-                <div className={`${styles.modeToggle} ${setMode.isPending ? styles.modeTogglePending : ""}`}>
-                  <button
-                    className={`${styles.modeBtn} ${convMode === "ai" ? styles.modeBtnAi : ""}`}
-                    onClick={() => setMode.mutate({ conversationId: selectedId!, mode: "ai" })}
-                    disabled={setMode.isPending}
-                    title="AI handles replies for this conversation"
+                <>
+                  <div className={`${styles.modeToggle} ${setMode.isPending ? styles.modeTogglePending : ""}`}>
+                    <button
+                      className={`${styles.modeBtn} ${convMode === "ai" ? styles.modeBtnAi : ""}`}
+                      onClick={() => setMode.mutate({ conversationId: selectedId!, mode: "ai" })}
+                      disabled={setMode.isPending}
+                      title="AI handles replies for this conversation"
+                    >
+                      AI
+                    </button>
+                    <button
+                      className={`${styles.modeBtn} ${convMode === "human" ? styles.modeBtnHuman : ""}`}
+                      onClick={() => setMode.mutate({ conversationId: selectedId!, mode: "human" })}
+                      disabled={setMode.isPending}
+                      title="You handle replies for this conversation"
+                    >
+                      Human
+                    </button>
+                  </div>
+                  <label
+                    title="Keep this chat on human permanently — the AI won't take it back over when the auto-reset timer fires."
+                    style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, cursor: "pointer", whiteSpace: "nowrap", userSelect: "none", opacity: setMode.isPending ? 0.6 : 1 }}
                   >
-                    AI
-                  </button>
-                  <button
-                    className={`${styles.modeBtn} ${convMode === "human" ? styles.modeBtnHuman : ""}`}
-                    onClick={() => setMode.mutate({ conversationId: selectedId!, mode: "human" })}
-                    disabled={setMode.isPending}
-                    title="You handle replies for this conversation"
-                  >
-                    Human
-                  </button>
-                </div>
+                    <input
+                      type="checkbox"
+                      checked={!!selectedConv.aiLocked}
+                      onChange={(e) => setMode.mutate({ conversationId: selectedId!, aiLocked: e.target.checked })}
+                      disabled={setMode.isPending}
+                    />
+                    Always human
+                  </label>
+                </>
               )}
               {/* Settings deeplink — opens the agent's Settings tab in a new tab so
                   the operator doesn't lose their place in the chat. */}
