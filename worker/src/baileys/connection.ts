@@ -8,6 +8,7 @@ import {
 } from "@whiskeysockets/baileys"
 import { Boom } from "@hapi/boom"
 import { logger as rootLogger } from "../lib/logger.js"
+import { recordEvent } from "../lib/event-log.js"
 
 export interface ConnectionOptions {
   agentId: string
@@ -86,6 +87,7 @@ export async function createConnection(opts: ConnectionOptions): Promise<WASocke
       // 403 = account banned/restricted by WhatsApp
       if (statusCode === 403) {
         log.warn({ statusCode }, "Session banned by WhatsApp")
+        void recordEvent({ level: "error", category: "session.banned", agentId: opts.agentId, message: "Session banned by WhatsApp", detail: { statusCode } })
         opts.onBanned()
         return
       }
@@ -97,6 +99,10 @@ export async function createConnection(opts: ConnectionOptions): Promise<WASocke
         statusCode !== DisconnectReason.connectionReplaced // 440
       const reason = err?.message ?? `statusCode=${statusCode}`
       log.info({ reason, statusCode, shouldReconnect }, "Connection closed")
+      // Record the closure so connection failures (QR expiry, WhatsApp <failure>
+      // rejections, etc.) are diagnosable from the DB — including the status code
+      // we otherwise only see in the Railway logs.
+      void recordEvent({ level: "warn", category: "session.closed", agentId: opts.agentId, message: reason, detail: { statusCode, shouldReconnect } })
       opts.onDisconnected(reason, shouldReconnect)
     }
   })

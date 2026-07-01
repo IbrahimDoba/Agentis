@@ -8,6 +8,7 @@ import { truncatedNormal } from "../anti-ban/distribution.js"
 import { logger as rootLogger } from "../lib/logger.js"
 import { sql } from "../db/client.js"
 import { resolveSendJid } from "../baileys/resolve-jid.js"
+import { recordEvent } from "../lib/event-log.js"
 
 const logger = rootLogger.child({ module: "followup-queue" })
 const QUEUE_NAME = "followup-send"
@@ -85,6 +86,7 @@ const worker = new Worker<FollowUpJob>(
         WHERE "id" = ${campaignId}
       `
       logger.warn({ campaignId, messageId, toJid }, "Follow-up recipient not reachable — marking failed")
+      void recordEvent({ level: "warn", category: "followup.unreachable", agentId, message: "Follow-up recipient not reachable on WhatsApp", detail: { campaignId, messageId, toJid } })
       return
     }
 
@@ -122,6 +124,7 @@ const worker = new Worker<FollowUpJob>(
 
       logger.info({ campaignId, messageId, toJid }, "Follow-up message sent")
     } catch (err: any) {
+      void recordEvent({ level: "warn", category: "followup.send_failed", agentId, message: err?.message ?? "follow-up send failed", detail: { campaignId, messageId, toJid, sendJid } })
       await sql`
         UPDATE "FollowUpMessage"
         SET "status" = 'failed', "error" = ${err.message}
