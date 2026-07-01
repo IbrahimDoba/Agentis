@@ -779,3 +779,21 @@ model SubscriptionCharge {
   @@index([userId, createdAt(sort: Desc)])
   @@index([status, createdAt])
 }
+
+// Structured failure/event log written by the worker (connection failures, send
+// failures, etc.) so production issues are diagnosable from the DB / admin panel
+// without Railway log access. High-signal, low-volume — only warnings/errors.
+model WorkerEvent {
+  id        String   @id @default(cuid())
+  level     String                                   // "warn" | "error"
+  category  String                                   // e.g. "session.closed", "broadcast.send_failed"
+  agentId   String?
+  userId    String?
+  message   String   @db.Text
+  detail    Json?                                    // { statusCode, reason, jid, error, ... }
+  createdAt DateTime @default(now()) @db.Timestamptz()
+
+  @@index([category, createdAt(sort: Desc)])
+  @@index([agentId, createdAt(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
+}

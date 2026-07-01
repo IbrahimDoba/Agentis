@@ -17,6 +17,7 @@ import { RateLimitError } from "../lib/errors.js"
 import { truncatedNormal } from "../anti-ban/distribution.js"
 import { logger as rootLogger } from "../lib/logger.js"
 import { resolveSendJid } from "../baileys/resolve-jid.js"
+import { recordEvent } from "../lib/event-log.js"
 
 const logger = rootLogger.child({ module: "broadcast-queue" })
 const QUEUE_NAME = "broadcast-send"
@@ -130,6 +131,7 @@ const worker = new Worker<BroadcastJob>(
     } catch (err: any) {
       await updateRecipientStatus(recipientId, "failed", err.message)
       if (!alreadyFailed) await incrementBroadcastFailed(broadcastId)
+      void recordEvent({ level: "warn", category: "broadcast.send_failed", agentId, message: err?.message ?? "broadcast send failed", detail: { broadcastId, recipientId, toJid, sendJid } })
 
       // Track consecutive failures — auto-pause after threshold
       const redis = getRedis()
