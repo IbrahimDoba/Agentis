@@ -7,6 +7,7 @@ import { Cog6ToothIcon, MegaphoneIcon, SparklesIcon } from "@heroicons/react/24/
 import styles from "./OrchestratorChatsView.module.css"
 import { useAgentEventStream } from "@/lib/useAgentEventStream"
 import { useBrand } from "@/components/BrandProvider"
+import { useToast } from "@/context/ToastContext"
 
 interface AdContext {
   title: string | null
@@ -177,6 +178,8 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
   const [draftText, setDraftText] = useState("")
   const [leadFilter, setLeadFilter] = useState<"all" | "leads" | "handoff">("all")
   const [labelFilter, setLabelFilter] = useState<string>("all")
+  const [exporting, setExporting] = useState<null | "vcard" | "csv">(null)
+  const { showToast } = useToast()
   const drawerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
@@ -558,16 +561,66 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
     })
   }, [agentId, conversations, qc])
 
+  // Download all WhatsApp leads for this agent — vCard (.vcf) for phone contacts
+  // or CSV for spreadsheets/CRM. Both read live Conversation data server-side.
+  const downloadExport = async (kind: "vcard" | "csv") => {
+    setExporting(kind)
+    try {
+      const res = await fetch(`/api/agents/${agentId}/contacts/export-${kind}`)
+      if (!res.ok) throw new Error("Export failed")
+      const count = Number(res.headers.get("X-Contact-Count") ?? "0")
+      if (count === 0) {
+        showToast("No WhatsApp leads to export yet.", "error")
+        return
+      }
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download =
+        res.headers.get("content-disposition")?.match(/filename="(.+)"/)?.[1] ??
+        (kind === "vcard" ? "leads.vcf" : "leads.csv")
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+      showToast(`Exported ${count} lead${count === 1 ? "" : "s"}.`)
+    } catch {
+      showToast("Export failed — please try again.", "error")
+    } finally {
+      setExporting(null)
+    }
+  }
+
   return (
     <div className={styles.root}>
       {/* Search */}
-      <div className={styles.searchWrap}>
+      <div className={styles.searchWrap} style={{ display: "flex", gap: 8, alignItems: "center" }}>
         <input
           className={styles.search}
           placeholder="Search by name or number…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
+          style={{ flex: 1 }}
         />
+        <button
+          className={styles.metaFilterBtn}
+          onClick={() => downloadExport("vcard")}
+          disabled={exporting !== null}
+          title="Download all WhatsApp leads as a .vcf to import into your phone's contacts"
+          style={{ whiteSpace: "nowrap" }}
+        >
+          {exporting === "vcard" ? "Preparing…" : "⬇ Save to phone"}
+        </button>
+        <button
+          className={styles.metaFilterBtn}
+          onClick={() => downloadExport("csv")}
+          disabled={exporting !== null}
+          title="Download all WhatsApp leads as a CSV (Excel / Google Sheets / CRM)"
+          style={{ whiteSpace: "nowrap" }}
+        >
+          {exporting === "csv" ? "Preparing…" : "⬇ CSV"}
+        </button>
       </div>
 
       <div className={styles.metaFilters}>
