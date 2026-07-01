@@ -1,5 +1,5 @@
 import { getAgentBillingInfo, getMonthlyCreditsUsed, insertCreditUsage } from "../db/queries.js"
-import { PLAN_CREDIT_LIMITS, allowsOverage } from "./credits.js"
+import { PLAN_CREDIT_LIMITS, allowsOverage, creditsForTokens, creditsForMessageType } from "./credits.js"
 import { routeMessageCharge, deductFromWallet } from "./wallet.js"
 import { getBillingPeriod } from "./billing-period.js"
 
@@ -43,4 +43,62 @@ export async function chargeAiCredits(opts: {
   }
 
   await insertCreditUsage({ agentId, conversationId, messageType, source: "ai", creditsUsed: credits, billedTo })
+}
+
+/**
+ * Record credits for one AI turn using real OpenAI token counts (token-weighted,
+ * the same unit as the WhatsApp send path), routing to plan/wallet.
+ *
+ * Unlike chargeAiCredits this NEVER throws and always records usage — it's for
+ * channels that deliver the reply BEFORE billing (e.g. the embed widget, which
+ * bypasses the Baileys send queue entirely). Blocking an already-sent reply is
+ * pointless, so we just make sure it gets counted. Returns null only when the
+ * agent has no billing profile.
+ */
+export async function chargeAiTurn(opts: {
+  agentId: string
+  conversationId?: string
+  tokensInput?: number
+  tokensOutput?: number
+  messageType?: "text" | "image"
+}): Promise<{ creditsUsed: number; billedTo: "plan" | "wallet" } | null> {
+  const { agentId, conversationId, tokensInput, tokensOutput } = opts
+  const messageType = opts.messageType === "image" ? "image" : "text"
+
+  const hasTokens =
+    typeof tokensInput === "number" && typeof tokensOutput === "number" &&
+    (tokensInput > 0 || tokensOutput > 0)
+  const credits = hasTokens
+    ? creditsForTokens(tokensInput!, tokensOutput!)
+    : creditsForMessageType(messageType)
+
+  const billing = await getAgentBillingInfo(agentId)
+  if (!billing) return null
+
+  let billedTo: "plan" | "wallet" = "plan"
+  const monthlyLimit = PLAN_CREDIT_LIMITS[billing.plan] ?? PLAN_CREDIT_LIMITS.free
+  const overageAllowed = allowsOverage(billing.plan)
+  if (monthlyLimit !== -1) {
+    const { start, end } = getBillingPeriod(billing.subscriptionExpiresAt)
+    const used = await getMonthlyCreditsUsed(agentId, start, end)
+    const decision = routeMessageCharge({ creditsToCharge: credits, planLimit: monthlyLimit, used, overageAllowed })
+    billedTo = decision.billedTo
+    if (decision.needsWalletDeduction) {
+      // Best-effort — record even if the wallet can't fully cover it (the reply
+      // already went out). billedTo stays "wallet" so accounting is accurate.
+      await deductFromWallet(billing.userId, credits)
+    }
+  }
+
+  await insertCreditUsage({
+    agentId,
+    conversationId,
+    messageType,
+    source: "ai",
+    creditsUsed: credits,
+    tokensInput: hasTokens ? tokensInput : null,
+    tokensOutput: hasTokens ? tokensOutput : null,
+    billedTo,
+  })
+  return { creditsUsed: credits, billedTo }
 }
