@@ -432,6 +432,9 @@ model Conversation {
   phoneNumber          String
   contactName          String?
   mode                 String              @default("ai")
+  // When true, this conversation stays human forever — the auto-resume-AI
+  // sweep skips it, so the timer never flips it back to AI.
+  aiLocked             Boolean             @default(false)
   channel              String              @default("whatsapp")
   visitorId            String?
   lastActivityAt       DateTime?           @default(now())

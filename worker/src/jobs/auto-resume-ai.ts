@@ -26,6 +26,7 @@ async function runSweep(): Promise<void> {
       FROM "Agent" a
       WHERE c."agentId" = a."id"
         AND c."mode" = 'human'
+        AND NOT c."aiLocked"
         AND a."autoResumeAiAfterMinutes" IS NOT NULL
         AND a."autoResumeAiAfterMinutes" > 0
         AND c."lastActivityAt" < NOW() - (a."autoResumeAiAfterMinutes" * INTERVAL '1 minute')

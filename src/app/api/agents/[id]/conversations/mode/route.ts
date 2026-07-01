@@ -28,8 +28,9 @@ export async function PATCH(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
+  // "Always human" chats are exempt from the bulk "turn AI on" — they stay human.
   const { count } = await db.conversation.updateMany({
-    where: { agentId },
+    where: mode === "ai" ? { agentId, aiLocked: false } : { agentId },
     data: { mode },
   })
 

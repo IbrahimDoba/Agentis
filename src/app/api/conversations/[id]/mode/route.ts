@@ -10,10 +10,14 @@ export async function PATCH(
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const { id: conversationId } = await params
-  const { mode } = await req.json()
+  const body = await req.json()
+  const mode = body?.mode
+  const aiLocked = body?.aiLocked
 
-  if (mode !== "ai" && mode !== "human") {
-    return NextResponse.json({ error: "mode must be 'ai' or 'human'" }, { status: 400 })
+  const hasMode = mode === "ai" || mode === "human"
+  const hasLock = typeof aiLocked === "boolean"
+  if (!hasMode && !hasLock) {
+    return NextResponse.json({ error: "Provide mode ('ai'|'human') and/or aiLocked (boolean)" }, { status: 400 })
   }
 
   const conversation = await db.conversation.findUnique({
@@ -25,10 +29,19 @@ export async function PATCH(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
-  await db.conversation.update({
-    where: { id: conversationId },
-    data: { mode },
-  })
+  const data: { mode?: string; aiLocked?: boolean } = {}
+  if (hasMode) {
+    data.mode = mode
+    // Turning the AI back on is an explicit override — clear the "always human" lock.
+    if (mode === "ai") data.aiLocked = false
+  }
+  if (hasLock) {
+    data.aiLocked = aiLocked
+    // "Always human" implies human mode now, so the timer has nothing to skip past.
+    if (aiLocked) data.mode = "human"
+  }
 
-  return NextResponse.json({ ok: true, mode })
+  await db.conversation.update({ where: { id: conversationId }, data })
+
+  return NextResponse.json({ ok: true, ...data })
 }
