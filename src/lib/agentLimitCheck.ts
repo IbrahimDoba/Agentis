@@ -1,5 +1,5 @@
 import { db } from "@/lib/db"
-import { PLAN_CREDIT_LIMITS, PLAN_OVERAGE_RATE_PER_1K } from "@/lib/plans"
+import { PLAN_CREDIT_LIMITS, PLAN_OVERAGE_RATE_PER_1K, effectiveCreditLimit } from "@/lib/plans"
 import { sumCreditsForAgents } from "@/lib/creditUsage"
 import { getBillingPeriod } from "@/lib/billing-period"
 import { getBalance } from "@/lib/creditWallet"
@@ -51,6 +51,8 @@ export async function checkAndEnforceAgentLimit(agentId: string): Promise<void> 
         select: {
           plan: true,
           subscriptionExpiresAt: true,
+          carryoverCredits: true,
+          carryoverExpiresAt: true,
         },
       },
     },
@@ -60,14 +62,14 @@ export async function checkAndEnforceAgentLimit(agentId: string): Promise<void> 
   if (!agent) return
   if (agent.status !== "ACTIVE") return
 
-  const { plan, subscriptionExpiresAt } = agent.user
+  const { plan, subscriptionExpiresAt, carryoverCredits, carryoverExpiresAt } = agent.user
   const overageAllowed = (PLAN_OVERAGE_RATE_PER_1K[plan] ?? null) !== null
 
   // Check 1: Subscription period expired
   const subscriptionExpired = subscriptionExpiresAt ? new Date() > subscriptionExpiresAt : false
 
-  // Check 2: Monthly credit limit exceeded
-  const creditLimit = PLAN_CREDIT_LIMITS[plan] ?? 0
+  // Check 2: Monthly credit limit exceeded (includes any still-valid carryover)
+  const creditLimit = effectiveCreditLimit(PLAN_CREDIT_LIMITS[plan] ?? 0, carryoverCredits, carryoverExpiresAt)
   let creditsExceeded = false
 
   if (creditLimit !== -1) {

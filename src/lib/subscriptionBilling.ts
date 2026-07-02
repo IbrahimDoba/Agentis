@@ -1,5 +1,5 @@
 import { db } from "@/lib/db"
-import { PLAN_PRICES, PLAN_CREDIT_LIMITS, PLAN_OVERAGE_RATE_PER_1K, PLAN_LABELS } from "@/lib/plans"
+import { PLAN_PRICES, PLAN_CREDIT_LIMITS, PLAN_OVERAGE_RATE_PER_1K, PLAN_LABELS, effectiveCreditLimit } from "@/lib/plans"
 import { getBillingPeriod } from "@/lib/billing-period"
 import { sumCreditsForAgents } from "@/lib/creditUsage"
 import { checkAndEnforceUserAgentLimits } from "@/lib/agentLimitCheck"
@@ -74,14 +74,17 @@ export function computeOverageNaira(usedCredits: number, limit: number, ratePer1
 export async function computeRenewalAmount(userId: string, plan: string): Promise<RenewalAmount> {
   const planNaira = PLAN_PRICES[plan] ?? 0
   const rate = PLAN_OVERAGE_RATE_PER_1K[plan] // null = no overage entitlement
-  const limit = PLAN_CREDIT_LIMITS[plan] ?? 0
+  const baseLimit = PLAN_CREDIT_LIMITS[plan] ?? 0
 
   let overage = 0
-  if (rate !== null && limit !== -1) {
+  if (rate !== null && baseLimit !== -1) {
     const user = await db.user.findUnique({
       where: { id: userId },
-      select: { subscriptionExpiresAt: true },
+      select: { subscriptionExpiresAt: true, carryoverCredits: true },
     })
+    // Include the carryover that was active this cycle so the customer isn't
+    // billed overage for usage the carryover already covered.
+    const limit = baseLimit + (user?.carryoverCredits ?? 0)
     const { start, end } = getBillingPeriod(user?.subscriptionExpiresAt ?? null)
     const agents = await db.agent.findMany({
       where: { userId, status: "ACTIVE" },
@@ -120,7 +123,13 @@ export async function applySubscriptionCharge(args: {
     where: { reference: args.reference },
     select: {
       id: true, userId: true, status: true, plan: true, amountNaira: true, kind: true,
-      user: { select: { name: true, email: true, subscriptionExpiresAt: true } },
+      user: {
+        select: {
+          name: true, email: true, subscriptionExpiresAt: true,
+          plan: true, carryoverCredits: true, carryoverExpiresAt: true,
+          agents: { select: { id: true } },
+        },
+      },
     },
   })
 
@@ -148,6 +157,26 @@ export async function applySubscriptionCharge(args: {
     ? addOneMonth(new Date())
     : nextExpiry(charge.user.subscriptionExpiresAt)
 
+  // Carry unused plan allowance forward for one cycle whenever the plan CHANGES
+  // (upgrade or downgrade). It stacks on the new plan's allowance until this new
+  // cycle ends; a same-plan renewal clears it (back to just the base allowance).
+  let carryoverCredits = 0
+  let carryoverExpiresAt: Date | null = null
+  if (charge.plan !== charge.user.plan) {
+    const oldBase = PLAN_CREDIT_LIMITS[charge.user.plan] ?? PLAN_CREDIT_LIMITS.free
+    if (oldBase !== -1) {
+      const oldLimit = effectiveCreditLimit(oldBase, charge.user.carryoverCredits, charge.user.carryoverExpiresAt)
+      const { start, end } = getBillingPeriod(charge.user.subscriptionExpiresAt ?? null)
+      const agentIds = charge.user.agents.map((a) => a.id)
+      const usedThisCycle = agentIds.length ? await sumCreditsForAgents(agentIds, start, end) : 0
+      const unused = Math.max(0, oldLimit - usedThisCycle)
+      if (unused > 0) {
+        carryoverCredits = unused
+        carryoverExpiresAt = newExpiry
+      }
+    }
+  }
+
   const auth = args.authorization
   const cardExpiry =
     auth?.exp_month && auth?.exp_year ? `${auth.exp_month}/${auth.exp_year.slice(-2)}` : undefined
@@ -157,6 +186,8 @@ export async function applySubscriptionCharge(args: {
     data: {
       plan: charge.plan,
       subscriptionExpiresAt: newExpiry,
+      carryoverCredits,
+      carryoverExpiresAt,
       subscriptionStatus: "active",
       cancelAtPeriodEnd: false,
       pendingPlan: null, // any scheduled downgrade is now applied (charge.plan)
@@ -379,6 +410,9 @@ export async function downgradeToFree(userId: string): Promise<void> {
       // (Past timestamp = trial already expired.)
       subscriptionExpiresAt: new Date(Date.now() - 1000),
       subscriptionStatus: "none",
+      // Drop any plan-change carryover — a lapsed account starts clean.
+      carryoverCredits: 0,
+      carryoverExpiresAt: null,
       autoRenew: false,
       cancelAtPeriodEnd: false,
       pendingPlan: null,

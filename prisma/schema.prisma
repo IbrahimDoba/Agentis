@@ -63,6 +63,12 @@ model User {
   // every top-up — rolling expiry, so active users never lose credits.
   creditBalance           Int        @default(0)
   creditsExpireAt         DateTime?
+  // One-cycle carryover: unused plan allowance kept when the plan CHANGES
+  // (upgrade or downgrade). Added on top of the new plan's monthly allowance
+  // until `carryoverExpiresAt` (= that cycle's end), then dropped at the next
+  // same-plan renewal. Not touched by top-ups (that's the wallet above).
+  carryoverCredits        Int        @default(0)
+  carryoverExpiresAt      DateTime?
   onboardingCompleted     Boolean    @default(false)
   referralsEnabled    Boolean    @default(false)
   historySyncEnabled  Boolean    @default(false)

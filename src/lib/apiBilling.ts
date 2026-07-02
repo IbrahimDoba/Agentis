@@ -1,6 +1,6 @@
 import { db } from "@/lib/db"
 import { creditsForTokens } from "@/lib/credits"
-import { PLAN_CREDIT_LIMITS, PLAN_OVERAGE_RATE_PER_1K } from "@/lib/plans"
+import { PLAN_CREDIT_LIMITS, PLAN_OVERAGE_RATE_PER_1K, effectiveCreditLimit } from "@/lib/plans"
 import { getBillingPeriod } from "@/lib/billing-period"
 import { sumCreditsForAgents } from "@/lib/creditUsage"
 import { getBalance, deductFromWallet } from "@/lib/creditWallet"
@@ -44,6 +44,8 @@ export interface AgentBillingContext {
   userId: string
   plan: string
   subscriptionExpiresAt: Date | null
+  carryoverCredits: number
+  carryoverExpiresAt: Date | null
 }
 
 // Resolve the agent's owner + plan. Returns null if the agent doesn't exist.
@@ -52,13 +54,15 @@ export async function getAgentBillingContext(agentId: string): Promise<AgentBill
   if (!agent) return null
   const user = await db.user.findUnique({
     where: { id: agent.userId },
-    select: { plan: true, subscriptionExpiresAt: true },
+    select: { plan: true, subscriptionExpiresAt: true, carryoverCredits: true, carryoverExpiresAt: true },
   })
   if (!user) return null
   return {
     userId: agent.userId,
     plan: user.plan ?? "free",
     subscriptionExpiresAt: user.subscriptionExpiresAt ?? null,
+    carryoverCredits: user.carryoverCredits ?? 0,
+    carryoverExpiresAt: user.carryoverExpiresAt ?? null,
   }
 }
 
@@ -76,7 +80,7 @@ export async function preflightApiCharge(
   const expired = ctx.subscriptionExpiresAt ? new Date() > ctx.subscriptionExpiresAt : false
   if (expired) return { ok: false, reason: "SUBSCRIPTION_EXPIRED" }
 
-  const planLimit = PLAN_CREDIT_LIMITS[ctx.plan] ?? PLAN_CREDIT_LIMITS.free
+  const planLimit = effectiveCreditLimit(PLAN_CREDIT_LIMITS[ctx.plan] ?? PLAN_CREDIT_LIMITS.free, ctx.carryoverCredits, ctx.carryoverExpiresAt)
   if (planLimit === -1) return { ok: true } // unlimited
   if (allowsOverage(ctx.plan)) return { ok: true } // starter/pro can overshoot
 
@@ -108,7 +112,7 @@ export async function chargeApiTurn(params: {
   const { agentId, conversationId, ctx, inputTokens, outputTokens } = params
   const credits = creditsForTokens(inputTokens, outputTokens)
 
-  const planLimit = PLAN_CREDIT_LIMITS[ctx.plan] ?? PLAN_CREDIT_LIMITS.free
+  const planLimit = effectiveCreditLimit(PLAN_CREDIT_LIMITS[ctx.plan] ?? PLAN_CREDIT_LIMITS.free, ctx.carryoverCredits, ctx.carryoverExpiresAt)
   let billedTo: "plan" | "wallet" = "plan"
 
   if (planLimit !== -1) {
@@ -149,7 +153,7 @@ export async function getRemainingCredits(
   agentId: string
 ): Promise<number> {
   const wallet = await getBalance(ctx.userId)
-  const planLimit = PLAN_CREDIT_LIMITS[ctx.plan] ?? PLAN_CREDIT_LIMITS.free
+  const planLimit = effectiveCreditLimit(PLAN_CREDIT_LIMITS[ctx.plan] ?? PLAN_CREDIT_LIMITS.free, ctx.carryoverCredits, ctx.carryoverExpiresAt)
   if (planLimit === -1) return wallet.creditBalance
   const { start, end } = getBillingPeriod(ctx.subscriptionExpiresAt)
   const used = await sumCreditsForAgents([agentId], start, end)

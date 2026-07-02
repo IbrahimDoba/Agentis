@@ -1,5 +1,5 @@
 import { db } from "@/lib/db"
-import { PLAN_CREDIT_LIMITS } from "@/lib/plans"
+import { PLAN_CREDIT_LIMITS, effectiveCreditLimit } from "@/lib/plans"
 import { getBillingPeriod } from "@/lib/billing-period"
 import { sumCreditsForAgents } from "@/lib/creditUsage"
 import { deductFromWallet } from "@/lib/creditWallet"
@@ -39,7 +39,7 @@ export async function chargeDraftAssist(params: {
   const { agentId, conversationId, ctx, tokensInput, tokensOutput } = params
   const credits = DRAFT_ASSIST_CREDITS
 
-  const planLimit = PLAN_CREDIT_LIMITS[ctx.plan] ?? PLAN_CREDIT_LIMITS.free
+  const planLimit = effectiveCreditLimit(PLAN_CREDIT_LIMITS[ctx.plan] ?? PLAN_CREDIT_LIMITS.free, ctx.carryoverCredits, ctx.carryoverExpiresAt)
   let billedTo: "plan" | "wallet" = "plan"
 
   if (planLimit !== -1) {

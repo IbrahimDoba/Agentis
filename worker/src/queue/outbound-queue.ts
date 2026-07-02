@@ -23,7 +23,7 @@ import {
 import { webhookEmitter } from "../dashboard/webhook-emitter.js"
 import { logger as rootLogger } from "../lib/logger.js"
 import { RateLimitError } from "../lib/errors.js"
-import { PLAN_CREDIT_LIMITS, creditsForMessageType, creditsForTokens, allowsOverage } from "../billing/credits.js"
+import { PLAN_CREDIT_LIMITS, effectiveCreditLimit, creditsForMessageType, creditsForTokens, allowsOverage } from "../billing/credits.js"
 import { routeMessageCharge, deductFromWallet } from "../billing/wallet.js"
 import { getBillingPeriod } from "../billing/billing-period.js"
 
@@ -116,7 +116,8 @@ const worker = new Worker<OutboundJob>(
         throw new RateLimitError("Subscription expired")
       }
 
-      const monthlyLimit = PLAN_CREDIT_LIMITS[billing.plan] ?? PLAN_CREDIT_LIMITS.free
+      const baseLimit = PLAN_CREDIT_LIMITS[billing.plan] ?? PLAN_CREDIT_LIMITS.free
+      const monthlyLimit = effectiveCreditLimit(baseLimit, billing.carryoverCredits, billing.carryoverExpiresAt)
       const overageAllowed = allowsOverage(billing.plan)
       if (monthlyLimit !== -1) {
         const { start: monthStart, end: monthEnd } = getBillingPeriod(billing.subscriptionExpiresAt)

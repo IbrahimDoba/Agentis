@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
-import { PLAN_CREDIT_LIMITS, PLAN_OVERAGE_RATE_PER_1K } from "@/lib/plans"
+import { PLAN_CREDIT_LIMITS, PLAN_OVERAGE_RATE_PER_1K, effectiveCreditLimit } from "@/lib/plans"
 import { getBillingPeriod } from "@/lib/billing-period"
 
 interface Params {
@@ -18,7 +18,7 @@ export async function GET(req: NextRequest, { params }: Params) {
 
   const user = await db.user.findUnique({
     where: { id },
-    select: { plan: true, subscriptionExpiresAt: true, creditBalance: true, creditsExpireAt: true },
+    select: { plan: true, subscriptionExpiresAt: true, creditBalance: true, creditsExpireAt: true, carryoverCredits: true, carryoverExpiresAt: true },
   })
 
   if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 })
@@ -127,7 +127,7 @@ export async function GET(req: NextRequest, { params }: Params) {
   const totalCreditsUsed = Number(totalAgg[0]?.total ?? 0)
 
   const plan = user.plan ?? "free"
-  const creditLimit = PLAN_CREDIT_LIMITS[plan] ?? PLAN_CREDIT_LIMITS.free
+  const creditLimit = effectiveCreditLimit(PLAN_CREDIT_LIMITS[plan] ?? PLAN_CREDIT_LIMITS.free, user.carryoverCredits, user.carryoverExpiresAt)
   const overageCredits = creditLimit === -1 ? 0 : Math.max(0, monthlyCreditsUsed - creditLimit)
   const overageRate = PLAN_OVERAGE_RATE_PER_1K[plan] ?? null
   const overageChargeNaira =

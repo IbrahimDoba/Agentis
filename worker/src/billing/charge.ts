@@ -1,5 +1,5 @@
 import { getAgentBillingInfo, getMonthlyCreditsUsed, insertCreditUsage } from "../db/queries.js"
-import { PLAN_CREDIT_LIMITS, allowsOverage, creditsForTokens, creditsForMessageType } from "./credits.js"
+import { PLAN_CREDIT_LIMITS, effectiveCreditLimit, allowsOverage, creditsForTokens, creditsForMessageType } from "./credits.js"
 import { routeMessageCharge, deductFromWallet } from "./wallet.js"
 import { getBillingPeriod } from "./billing-period.js"
 
@@ -29,7 +29,7 @@ export async function chargeAiCredits(opts: {
   if (subscriptionExpired) throw new Error("Subscription expired")
 
   let billedTo: "plan" | "wallet" = "plan"
-  const monthlyLimit = PLAN_CREDIT_LIMITS[billing.plan] ?? PLAN_CREDIT_LIMITS.free
+  const monthlyLimit = effectiveCreditLimit(PLAN_CREDIT_LIMITS[billing.plan] ?? PLAN_CREDIT_LIMITS.free, billing.carryoverCredits, billing.carryoverExpiresAt)
   const overageAllowed = allowsOverage(billing.plan)
   if (monthlyLimit !== -1) {
     const { start, end } = getBillingPeriod(billing.subscriptionExpiresAt)
@@ -76,7 +76,7 @@ export async function chargeAiTurn(opts: {
   if (!billing) return null
 
   let billedTo: "plan" | "wallet" = "plan"
-  const monthlyLimit = PLAN_CREDIT_LIMITS[billing.plan] ?? PLAN_CREDIT_LIMITS.free
+  const monthlyLimit = effectiveCreditLimit(PLAN_CREDIT_LIMITS[billing.plan] ?? PLAN_CREDIT_LIMITS.free, billing.carryoverCredits, billing.carryoverExpiresAt)
   const overageAllowed = allowsOverage(billing.plan)
   if (monthlyLimit !== -1) {
     const { start, end } = getBillingPeriod(billing.subscriptionExpiresAt)

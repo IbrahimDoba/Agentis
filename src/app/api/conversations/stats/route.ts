@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { NextRequest, NextResponse } from "next/server"
-import { PLAN_CREDIT_LIMITS } from "@/lib/plans"
+import { PLAN_CREDIT_LIMITS, effectiveCreditLimit } from "@/lib/plans"
 import { getWorkspaceContext } from "@/lib/workspace"
 import { sumCreditsForAgents, sumCreditsBySourceForAgents } from "@/lib/creditUsage"
 import { getBillingPeriod } from "@/lib/billing-period"
@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
 
   const user = await db.user.findUnique({
     where: { id: ownerId },
-    select: { plan: true, subscriptionExpiresAt: true, creditBalance: true, creditsExpireAt: true, resellerId: true },
+    select: { plan: true, subscriptionExpiresAt: true, creditBalance: true, creditsExpireAt: true, resellerId: true, carryoverCredits: true, carryoverExpiresAt: true },
   })
 
   const { start: monthStart, end: monthEnd } = getBillingPeriod(user?.subscriptionExpiresAt)
@@ -158,7 +158,11 @@ export async function GET(req: NextRequest) {
   }
 
   const plan = user?.plan ?? "free"
-  const creditLimit = PLAN_CREDIT_LIMITS[plan] ?? PLAN_CREDIT_LIMITS.free
+  const creditLimit = effectiveCreditLimit(
+    PLAN_CREDIT_LIMITS[plan] ?? PLAN_CREDIT_LIMITS.free,
+    user?.carryoverCredits,
+    user?.carryoverExpiresAt
+  )
 
   return NextResponse.json({
     runtime,

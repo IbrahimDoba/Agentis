@@ -21,6 +21,24 @@ export const PLAN_CREDIT_LIMITS: Record<string, number> = {
   reseller: 0,
 }
 
+/**
+ * A plan's monthly allowance plus any still-valid one-cycle carryover (unused
+ * allowance kept when the plan changed). Stacks on top of the base until
+ * `carryoverExpiresAt`, then drops off. Returns -1 unchanged for unlimited.
+ */
+export function effectiveCreditLimit(
+  baseLimit: number,
+  carryoverCredits: number | null | undefined,
+  carryoverExpiresAt: Date | string | null | undefined,
+  now: Date = new Date()
+): number {
+  if (baseLimit === -1) return -1
+  const carry = carryoverCredits ?? 0
+  if (carry <= 0) return baseLimit
+  if (carryoverExpiresAt && new Date(carryoverExpiresAt).getTime() <= now.getTime()) return baseLimit
+  return baseLimit + carry
+}
+
 // Dailzero orchestrator usage policy (80% target margin)
 export const AI_CREDIT_COSTS = {
   text: 5,
