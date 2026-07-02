@@ -1,5 +1,5 @@
 import { db } from "@/lib/db"
-import { PLAN_PRICES, PLAN_CREDIT_LIMITS, PLAN_OVERAGE_RATE_PER_1K, PLAN_LABELS, effectiveCreditLimit } from "@/lib/plans"
+import { PLAN_PRICES, PLAN_CREDIT_LIMITS, PLAN_OVERAGE_RATE_PER_1K, PLAN_LABELS, effectiveCreditLimit, carryoverForNextCycle } from "@/lib/plans"
 import { getBillingPeriod } from "@/lib/billing-period"
 import { sumCreditsForAgents } from "@/lib/creditUsage"
 import { checkAndEnforceUserAgentLimits } from "@/lib/agentLimitCheck"
@@ -157,23 +157,24 @@ export async function applySubscriptionCharge(args: {
     ? addOneMonth(new Date())
     : nextExpiry(charge.user.subscriptionExpiresAt)
 
-  // Carry unused plan allowance forward for one cycle whenever the plan CHANGES
-  // (upgrade or downgrade). It stacks on the new plan's allowance until this new
-  // cycle ends; a same-plan renewal clears it (back to just the base allowance).
+  // Roll unused plan allowance into the next cycle on every paid charge — renewal
+  // OR plan change — capped at CARRYOVER_CAP_RATE of the OLD plan's allowance and
+  // expiring at the end of the next cycle (one cycle, never compounding). Only
+  // paid plans (basic/starter/pro) roll over; free (trial), reseller (pool) and
+  // enterprise (unlimited) don't.
   let carryoverCredits = 0
   let carryoverExpiresAt: Date | null = null
-  if (charge.plan !== charge.user.plan) {
-    const oldBase = PLAN_CREDIT_LIMITS[charge.user.plan] ?? PLAN_CREDIT_LIMITS.free
-    if (oldBase !== -1) {
-      const oldLimit = effectiveCreditLimit(oldBase, charge.user.carryoverCredits, charge.user.carryoverExpiresAt)
-      const { start, end } = getBillingPeriod(charge.user.subscriptionExpiresAt ?? null)
-      const agentIds = charge.user.agents.map((a) => a.id)
-      const usedThisCycle = agentIds.length ? await sumCreditsForAgents(agentIds, start, end) : 0
-      const unused = Math.max(0, oldLimit - usedThisCycle)
-      if (unused > 0) {
-        carryoverCredits = unused
-        carryoverExpiresAt = newExpiry
-      }
+  const oldPlan = charge.user.plan
+  const oldBase = PLAN_CREDIT_LIMITS[oldPlan] ?? PLAN_CREDIT_LIMITS.free
+  if ((PLAN_PRICES[oldPlan] ?? 0) > 0 && oldBase !== -1) {
+    const oldLimit = effectiveCreditLimit(oldBase, charge.user.carryoverCredits, charge.user.carryoverExpiresAt)
+    const { start, end } = getBillingPeriod(charge.user.subscriptionExpiresAt ?? null)
+    const agentIds = charge.user.agents.map((a) => a.id)
+    const usedThisCycle = agentIds.length ? await sumCreditsForAgents(agentIds, start, end) : 0
+    const rolled = carryoverForNextCycle(oldLimit, usedThisCycle, oldBase)
+    if (rolled > 0) {
+      carryoverCredits = rolled
+      carryoverExpiresAt = newExpiry
     }
   }
 

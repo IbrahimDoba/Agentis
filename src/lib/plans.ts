@@ -39,6 +39,29 @@ export function effectiveCreditLimit(
   return baseLimit + carry
 }
 
+// On renewal OR plan change, unused allowance rolls into the next cycle, capped
+// at this fraction of the OLD plan's base allowance (so a light user can bank at
+// most +25% for one cycle, never compounding).
+export const CARRYOVER_CAP_RATE = 0.25
+
+/**
+ * How much unused allowance to carry into the next cycle: the unused amount
+ * (effective limit − usage this cycle), capped at `capRate` of the plan's BASE
+ * allowance. Capping against the base (not the effective limit) prevents a
+ * still-valid prior carryover from compounding. Returns 0 for unlimited/zero
+ * base plans.
+ */
+export function carryoverForNextCycle(
+  oldEffectiveLimit: number,
+  usedThisCycle: number,
+  capBaseLimit: number,
+  capRate: number = CARRYOVER_CAP_RATE
+): number {
+  const unused = Math.max(0, oldEffectiveLimit - usedThisCycle)
+  const cap = Math.max(0, Math.floor(capBaseLimit * capRate))
+  return Math.min(unused, cap)
+}
+
 // Dailzero orchestrator usage policy (80% target margin)
 export const AI_CREDIT_COSTS = {
   text: 5,
