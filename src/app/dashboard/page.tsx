@@ -43,8 +43,9 @@ export default function DashboardPage() {
     elevenlabs: agents.filter((a) => (a.agentRuntime === "elevenlabs") || !!a.elevenlabsAgentId),
   }), [agents])
 
+  // Orchestrator-only — the ElevenLabs runtime + its toggle were removed.
   const availableRuntimes = useMemo<RuntimePreference[]>(
-    () => (["orchestrator", "elevenlabs"] as RuntimePreference[]).filter((rt) => runtimeAgents[rt].length > 0),
+    () => (["orchestrator"] as RuntimePreference[]).filter((rt) => runtimeAgents[rt].length > 0),
     [runtimeAgents]
   )
 
@@ -92,48 +93,6 @@ export default function DashboardPage() {
           <Link href="/dashboard/billing" className={styles.overageBadge}>
             Overage Active · {overageCredits.toLocaleString()} credits · {formatNaira(overageCharge)} due
           </Link>
-        )}
-        {availableRuntimes.length > 1 && (
-          <div style={{
-            display: "inline-flex",
-            gap: "0.4rem",
-            background: "var(--bg-card)",
-            border: "1px solid var(--border)",
-            borderRadius: 10,
-            padding: "0.25rem",
-            marginTop: "0.9rem",
-          }}>
-            <button
-              onClick={() => setRuntime("orchestrator")}
-              style={{
-                border: "none",
-                borderRadius: 8,
-                padding: "0.4rem 0.85rem",
-                background: effectiveRuntime === "orchestrator" ? "var(--accent)" : "transparent",
-                color: effectiveRuntime === "orchestrator" ? "#000" : "var(--text-muted)",
-                fontWeight: 700,
-                cursor: "pointer",
-                fontFamily: "inherit",
-              }}
-            >
-              {brand.appName}
-            </button>
-            <button
-              onClick={() => setRuntime("elevenlabs")}
-              style={{
-                border: "none",
-                borderRadius: 8,
-                padding: "0.4rem 0.85rem",
-                background: effectiveRuntime === "elevenlabs" ? "var(--accent)" : "transparent",
-                color: effectiveRuntime === "elevenlabs" ? "#000" : "var(--text-muted)",
-                fontWeight: 700,
-                cursor: "pointer",
-                fontFamily: "inherit",
-              }}
-            >
-              ElevenLabs
-            </button>
-          </div>
         )}
       </div>
 
