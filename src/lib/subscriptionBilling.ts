@@ -157,11 +157,12 @@ export async function applySubscriptionCharge(args: {
     ? addOneMonth(new Date())
     : nextExpiry(charge.user.subscriptionExpiresAt)
 
-  // Roll unused plan allowance into the next cycle on every paid charge — renewal
-  // OR plan change — capped at CARRYOVER_CAP_RATE of the OLD plan's allowance and
-  // expiring at the end of the next cycle (one cycle, never compounding). Only
-  // paid plans (basic/starter/pro) roll over; free (trial), reseller (pool) and
-  // enterprise (unlimited) don't.
+  // Roll unused plan allowance into the next cycle on every paid charge, expiring
+  // at the end of that next cycle (one cycle). On a plan CHANGE (upgrade/downgrade)
+  // the FULL unused carries — you keep everything when you move plans. On a
+  // same-plan RENEWAL it's capped at CARRYOVER_CAP_RATE of the base so it can't
+  // accumulate indefinitely. Only paid plans (basic/starter/pro) roll over; free
+  // (trial), reseller (pool) and enterprise (unlimited) don't.
   let carryoverCredits = 0
   let carryoverExpiresAt: Date | null = null
   const oldPlan = charge.user.plan
@@ -171,7 +172,10 @@ export async function applySubscriptionCharge(args: {
     const { start, end } = getBillingPeriod(charge.user.subscriptionExpiresAt ?? null)
     const agentIds = charge.user.agents.map((a) => a.id)
     const usedThisCycle = agentIds.length ? await sumCreditsForAgents(agentIds, start, end) : 0
-    const rolled = carryoverForNextCycle(oldLimit, usedThisCycle, oldBase)
+    const isPlanChange = charge.plan !== oldPlan
+    const rolled = isPlanChange
+      ? Math.max(0, oldLimit - usedThisCycle)                    // plan change → full unused
+      : carryoverForNextCycle(oldLimit, usedThisCycle, oldBase)  // renewal → capped at 25%
     if (rolled > 0) {
       carryoverCredits = rolled
       carryoverExpiresAt = newExpiry
