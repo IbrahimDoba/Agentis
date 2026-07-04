@@ -31,6 +31,7 @@ Also verify Vercel has deployed `main` @ `937b15d`.
 | `923884c` | Capped rollover at 25% on renewals + plan changes. |
 | `b32fe0a` | **Corrected**: FULL carryover on plan change, 25% cap only on same-plan renewal. |
 | `937b15d` | **Billing-window bug fix** (see below). |
+| `8543347` | **Follow-up "message everyone" mode**: generate a personalized message for EVERY eligible contact (not just AI-picked), forced review, operator picks who sends. Scan cap 150→2000, concurrency 5→10. Worker send-window now auto-scales ~1000/24h (2000 msgs → ~48h) when `spreadHours` omitted. Files: `followup-scanner.ts`, `followup-campaigns/route.ts`, `FollowUpPanel.tsx`, worker `followup-queue.ts`. Generation is free; only approved+sent messages bill credits. |
 
 Also saved (uncommitted, repo root): **`AI_AUTOMATION_IDEAS.md`** (product brainstorm — voice-agent revival, WhatsApp+voice omnichannel, AI accounts-receivable, Pidgin/local-language, etc.).
 
