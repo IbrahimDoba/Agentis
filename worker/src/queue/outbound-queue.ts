@@ -64,6 +64,24 @@ const worker = new Worker<OutboundJob>(
   async (job: Job<OutboundJob>) => {
     const { agentId, toJid, text, mediaUrl, type, conversationId, source, tokensInput, tokensOutput } = job.data
 
+    // Per-agent serialization. Global concurrency is raised (see worker opts
+    // below) so DIFFERENT numbers send in parallel, but this per-agent Redis lock
+    // keeps the SAME number strictly serial — so the anti-ban pacing per number is
+    // preserved EXACTLY as before (no two sends from one number at once). If the
+    // agent is already sending, defer this job a few seconds and let it retry —
+    // this is what stops one slow (low-tier) number from blocking everyone else.
+    const lockRedis = getRedis()
+    const lockKey = `outbound:lock:${agentId}`
+    const gotLock = await lockRedis.set(lockKey, "1", "PX", 300_000, "NX")
+    if (!gotLock) {
+      await queue.add("send", job.data, {
+        delay: 4_000 + Math.floor(Math.random() * 6_000),
+        priority: source === "human" ? 1 : 5,
+      })
+      return
+    }
+
+    try {
     // §7.8 — Phone online check
     const sock = sessionManager.get(agentId)
     if (!sock) throw new Error(`No active session for agent ${agentId}`)
@@ -194,10 +212,17 @@ const worker = new Worker<OutboundJob>(
       webhookEmitter.emit("message.failed", { agentId, toJid, conversationId, error: msg })
       throw err
     }
+    } finally {
+      // Release the per-agent lock so the next message for this number can send.
+      await lockRedis.del(lockKey).catch(() => {})
+    }
   },
   {
     connection: getRedis(),
-    concurrency: 1, // one message at a time per worker instance
+    // Per-agent lock (above) keeps each number serial + paced; raising global
+    // concurrency lets DIFFERENT numbers send in parallel, so one slow number no
+    // longer head-of-line-blocks everyone else's replies.
+    concurrency: 10,
   }
 )
 
