@@ -40,7 +40,7 @@ interface BroadcastsPanelProps {
   warmupTier?: number
 }
 
-const MAX_SELECTABLE = 200
+const MAX_SELECTABLE = 2000
 const EMPTY_CONTACTS: BroadcastContact[] = []
 
 function sameSelection(a: string[], b: string[]) {

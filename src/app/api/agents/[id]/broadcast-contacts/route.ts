@@ -62,7 +62,7 @@ export async function GET(req: NextRequest, { params }: Params) {
           createdAt: true,
         },
         orderBy: { lastActivityAt: "desc" },
-        take: 150,
+        take: 2000,
       }),
       db.customer.findMany({
         where: {
@@ -82,7 +82,7 @@ export async function GET(req: NextRequest, { params }: Params) {
           lastSeen: true,
         },
         orderBy: { lastSeen: "desc" },
-        take: 150,
+        take: 2000,
       }),
       db.conversationLog.findMany({
         where: {
@@ -100,7 +100,7 @@ export async function GET(req: NextRequest, { params }: Params) {
           createdAt: true,
         },
         orderBy: { createdAt: "desc" },
-        take: 150,
+        take: 2000,
       }),
     ])
 
@@ -145,7 +145,7 @@ export async function GET(req: NextRequest, { params }: Params) {
 
     const contacts = Array.from(merged.values())
       .sort((a, b) => b.lastActiveAt - a.lastActiveAt)
-      .slice(0, 200)
+      .slice(0, 2000)
       .map((item) => ({
         phoneNumber: item.phoneNumber,
         displayName: item.displayName,
