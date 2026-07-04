@@ -7,6 +7,10 @@ interface ScanOptions {
   agentId: string
   campaignId: string
   minDaysSince: number
+  // "Message everyone": skip the AI's needed/not-needed judgment and generate a
+  // personalized re-engagement message for EVERY eligible contact, for the
+  // operator to review and pick from.
+  includeAll?: boolean
 }
 
 interface ClassifyResult {
@@ -15,15 +19,19 @@ interface ClassifyResult {
   message: string
 }
 
-const BATCH_CONCURRENCY = 5
-const MAX_CONVERSATIONS = 150
+const BATCH_CONCURRENCY = 10
+// Safety bound on one scan (not truly unlimited — an unbounded scan of every
+// conversation could rack up OpenAI cost + take a long time). Covers the
+// up-to-2000 range; raise if needed.
+const MAX_CONVERSATIONS = 2000
 const FOLLOW_UP_COOLDOWN_DAYS = 7
 
 async function classifyAndGenerate(
   messages: { direction: string; content: string; createdAt: Date }[],
   contactName: string | null,
   businessDescription: string,
-  daysSinceLastMessage: number
+  daysSinceLastMessage: number,
+  includeAll: boolean
 ): Promise<ClassifyResult | null> {
   const transcript = messages
     .slice(-14)
@@ -58,17 +66,41 @@ If follow-up IS needed, write a short, natural, personalized WhatsApp message (1
 
 Respond ONLY with valid JSON: {"needed": true/false, "reason": "one sentence why", "message": "the follow-up message or empty string if not needed"}`
 
+  // "Message everyone" mode: skip the needed/not-needed judgment — ALWAYS write a
+  // warm, personalized re-engagement message. The operator reviews and decides.
+  const reengagePrompt = `You are writing a short, warm, personalized WhatsApp follow-up to re-engage a past customer of a business. ALWAYS write a message.
+
+Business: ${businessDescription}
+Contact: ${contactName ?? "Unknown"}
+Days since last customer message: ${daysSinceLastMessage}
+
+Conversation (most recent):
+${transcript}
+
+Write a message that:
+- References what they were interested in / asked about specifically
+- Uses the contact's first name if available
+- Gently invites them to continue or come back — helpful and friendly, NOT pushy
+- Is 1-2 sentences, sounds like a real human, not a bot
+
+Respond ONLY with valid JSON: {"reason": "one sentence context", "message": "the follow-up message"}`
+
   try {
     const res = await openai.chat.completions.create({
       model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
+      messages: [{ role: "user", content: includeAll ? reengagePrompt : prompt }],
       response_format: { type: "json_object" },
-      temperature: 0.4,
+      temperature: includeAll ? 0.6 : 0.4,
       max_tokens: 300,
     })
     const raw = res.choices[0]?.message?.content
     if (!raw) return null
     const parsed = JSON.parse(raw) as ClassifyResult
+    if (includeAll) {
+      // Always a follow-up here, as long as the model produced a message.
+      if (!parsed.message?.trim()) return null
+      return { needed: true, reason: parsed.reason ?? "", message: parsed.message }
+    }
     if (typeof parsed.needed !== "boolean") return null
     return parsed
   } catch {
@@ -94,7 +126,7 @@ export async function runFollowUpScan(opts: ScanOptions): Promise<{
   scanned: number
   found: number
 }> {
-  const { agentId, campaignId, minDaysSince } = opts
+  const { agentId, campaignId, minDaysSince, includeAll = false } = opts
 
   // Get the agent's business description for context
   const agent = await db.agent.findUnique({
@@ -165,7 +197,8 @@ export async function runFollowUpScan(opts: ScanOptions): Promise<{
       orderedMessages,
       conv.contactName,
       businessDescription,
-      daysSince
+      daysSince,
+      includeAll
     )
 
     return { conv, result }

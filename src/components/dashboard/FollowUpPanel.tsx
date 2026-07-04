@@ -81,11 +81,12 @@ function CampaignBadge({ status }: { status: CampaignStatus }) {
 // ─── Setup Modal ────────────────────────────────────────────────────────────
 
 function SetupModal({ onStart, onClose }: {
-  onStart: (mode: "auto" | "review", minDays: number) => void
+  onStart: (mode: "auto" | "review", minDays: number, includeAll: boolean) => void
   onClose: () => void
 }) {
   const [mode, setMode] = useState<"auto" | "review">("review")
   const [minDays, setMinDays] = useState(1)
+  const [includeAll, setIncludeAll] = useState(false)
 
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
@@ -115,34 +116,66 @@ function SetupModal({ onStart, onClose }: {
         </div>
 
         <div className={styles.setupSection}>
-          <label className={styles.setupLabel}>Send mode</label>
+          <label className={styles.setupLabel}>Who to message</label>
           <div className={styles.modeCards}>
             <button
-              className={`${styles.modeCard} ${mode === "review" ? styles.modeCardActive : ""}`}
-              onClick={() => setMode("review")}
+              className={`${styles.modeCard} ${!includeAll ? styles.modeCardActive : ""}`}
+              onClick={() => setIncludeAll(false)}
             >
-              <span className={styles.modeIcon}>👀</span>
+              <span className={styles.modeIcon}>🎯</span>
               <div>
-                <div className={styles.modeName}>Review first</div>
-                <div className={styles.modeDesc}>See and approve each message before it sends.</div>
+                <div className={styles.modeName}>AI picks</div>
+                <div className={styles.modeDesc}>Only contacts the AI judges worth a follow-up.</div>
               </div>
             </button>
             <button
-              className={`${styles.modeCard} ${mode === "auto" ? styles.modeCardActive : ""}`}
-              onClick={() => setMode("auto")}
+              className={`${styles.modeCard} ${includeAll ? styles.modeCardActive : ""}`}
+              onClick={() => setIncludeAll(true)}
             >
-              <span className={styles.modeIcon}>⚡</span>
+              <span className={styles.modeIcon}>📢</span>
               <div>
-                <div className={styles.modeName}>Send automatically</div>
-                <div className={styles.modeDesc}>AI drafts and sends all messages without review.</div>
+                <div className={styles.modeName}>Message everyone</div>
+                <div className={styles.modeDesc}>A personalised message for every contact — you review and pick who sends.</div>
               </div>
             </button>
           </div>
         </div>
 
+        {includeAll ? (
+          <div className={styles.setupSection}>
+            <p className={styles.setupDesc}>Every message goes to <strong>review</strong> first — you choose who actually gets sent.</p>
+          </div>
+        ) : (
+          <div className={styles.setupSection}>
+            <label className={styles.setupLabel}>Send mode</label>
+            <div className={styles.modeCards}>
+              <button
+                className={`${styles.modeCard} ${mode === "review" ? styles.modeCardActive : ""}`}
+                onClick={() => setMode("review")}
+              >
+                <span className={styles.modeIcon}>👀</span>
+                <div>
+                  <div className={styles.modeName}>Review first</div>
+                  <div className={styles.modeDesc}>See and approve each message before it sends.</div>
+                </div>
+              </button>
+              <button
+                className={`${styles.modeCard} ${mode === "auto" ? styles.modeCardActive : ""}`}
+                onClick={() => setMode("auto")}
+              >
+                <span className={styles.modeIcon}>⚡</span>
+                <div>
+                  <div className={styles.modeName}>Send automatically</div>
+                  <div className={styles.modeDesc}>AI drafts and sends all messages without review.</div>
+                </div>
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className={styles.modalFooter}>
           <button className={styles.cancelBtn} onClick={onClose}>Cancel</button>
-          <button className={styles.startBtn} onClick={() => onStart(mode, minDays)}>
+          <button className={styles.startBtn} onClick={() => onStart(includeAll ? "review" : mode, minDays, includeAll)}>
             Start Scanning →
           </button>
         </div>
@@ -503,7 +536,7 @@ export function FollowUpPanel({ agentId, isConnected }: Props) {
   )
   useVisibleInterval(loadCampaigns, 5000, hasActiveCampaign)
 
-  const handleStart = async (mode: "auto" | "review", minDays: number) => {
+  const handleStart = async (mode: "auto" | "review", minDays: number, includeAll: boolean) => {
     setCreating(true)
     setError("")
     setShowSetup(false)
@@ -511,7 +544,7 @@ export function FollowUpPanel({ agentId, isConnected }: Props) {
       const res = await fetch(`/api/agents/${agentId}/followup-campaigns`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode, minDaysSince: minDays }),
+        body: JSON.stringify({ mode, minDaysSince: minDays, includeAll }),
       })
       if (!res.ok) throw new Error("Failed to start")
       const data = await res.json()

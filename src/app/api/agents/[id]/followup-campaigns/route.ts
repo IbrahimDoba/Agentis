@@ -35,7 +35,11 @@ export async function POST(req: NextRequest, { params }: Params) {
   if (!agent) return NextResponse.json({ error: "Not found" }, { status: 404 })
 
   const body = await req.json()
-  const mode: "auto" | "review" = body.mode === "review" ? "review" : "auto"
+  const includeAll: boolean = body.includeAll === true
+  // "Message everyone" always goes to review — the operator decides who gets sent.
+  const mode: "auto" | "review" = includeAll
+    ? "review"
+    : body.mode === "review" ? "review" : "auto"
   const minDaysSince: number = Math.max(1, Number(body.minDaysSince) || 1)
 
   // Create the campaign record immediately
@@ -44,7 +48,7 @@ export async function POST(req: NextRequest, { params }: Params) {
   })
 
   // Run scan async — do not await, let the client poll for status
-  runFollowUpScan({ agentId, campaignId: campaign.id, minDaysSince }).catch(async (err) => {
+  runFollowUpScan({ agentId, campaignId: campaign.id, minDaysSince, includeAll }).catch(async (err) => {
     console.error("[followup-scan] error:", err)
     await db.followUpCampaign.update({
       where: { id: campaign.id },

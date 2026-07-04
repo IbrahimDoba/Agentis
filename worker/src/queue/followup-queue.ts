@@ -181,15 +181,16 @@ worker.on("completed", async (job) => {
 
 /**
  * Enqueue all approved messages for a campaign with progressive delays.
- * Spreads messages over `spreadHours` (default 24h) or the natural anti-ban
- * pacing, whichever is longer. `spreadHours` is an optional one-off override
- * (e.g. 2h to compress a re-run) — callers that omit it get the safe 24h
- * default, so normal campaigns are unaffected.
+ *
+ * Send window: when `spreadHours` is omitted it AUTO-SCALES with campaign size to
+ * stay near a safe ~1000 sends / 24h — so a large "message everyone" campaign
+ * spreads over multiple days (e.g. 2000 msgs → ~48h) instead of blasting them in
+ * 24h. An explicit `spreadHours` overrides (e.g. 2h to compress a small re-run).
  */
 export async function enqueueFollowUpCampaign(
   campaignId: string,
   agentId: string,
-  spreadHours = 24
+  spreadHours?: number
 ): Promise<void> {
   const messages = await sql<{
     id: string
@@ -208,11 +209,13 @@ export async function enqueueFollowUpCampaign(
 
   if (messages.length === 0) return
 
-  // Spread messages over the requested window (default 24h). Clamped to a sane
-  // range so a one-off override can compress a re-run (e.g. 2h) without being
-  // able to set something that never sends (too long) or hammers the number
-  // beyond what the anti-ban pacing floor allows (too short).
-  const clampedHours = Math.min(72, Math.max(0.5, spreadHours))
+  // Default window auto-scales with size (~1000 sends / 24h) so big campaigns
+  // spread over multiple days; an explicit spreadHours overrides (e.g. compress
+  // a re-run). Clamped to [0.5h, 7d] so it can't be set to never-sends or a rate
+  // that hammers the number past the anti-ban pacing floor.
+  const SAFE_SENDS_PER_DAY = 1000
+  const autoHours = Math.max(24, (messages.length / SAFE_SENDS_PER_DAY) * 24)
+  const clampedHours = Math.min(168, Math.max(0.5, spreadHours ?? autoHours))
   const windowMs = clampedHours * 60 * 60 * 1000
   const minSpacingMs = Math.floor(windowMs / messages.length)
 
