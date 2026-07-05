@@ -1,7 +1,7 @@
 import { db } from "@/lib/db"
 import { PLAN_CREDIT_LIMITS, effectiveCreditLimit } from "@/lib/plans"
 import { getBillingPeriod } from "@/lib/billing-period"
-import { sumCreditsForAgents } from "@/lib/creditUsage"
+import { sumCreditsForUser } from "@/lib/creditUsage"
 import { deductFromWallet } from "@/lib/creditWallet"
 import {
   type AgentBillingContext,
@@ -44,7 +44,7 @@ export async function chargeDraftAssist(params: {
 
   if (planLimit !== -1) {
     const { start, end } = getBillingPeriod(ctx.subscriptionExpiresAt)
-    const used = await sumCreditsForAgents([agentId], start, end)
+    const used = await sumCreditsForUser(ctx.userId, start, end)
     const decision = routeMessageCharge({
       creditsToCharge: credits,
       planLimit,

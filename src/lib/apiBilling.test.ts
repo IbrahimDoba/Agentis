@@ -147,18 +147,19 @@ describe("apiBilling — chargeApiTurn / remaining (real DB)", () => {
 
   it("preflight blocks an expired subscription", async () => {
     const past = new Date(Date.now() - 1000)
-    const res = await preflightApiCharge({ userId, plan: "free", subscriptionExpiresAt: past, carryoverCredits: 0, carryoverExpiresAt: null }, agentId)
+    const res = await preflightApiCharge({ userId, plan: "free", subscriptionExpiresAt: past, carryoverCredits: 0, carryoverExpiresAt: null })
     expect(res.ok).toBe(false)
     expect(res.reason).toBe("SUBSCRIPTION_EXPIRED")
   })
 
-  it("getRemainingCredits sums plan room + wallet", async () => {
-    // Fresh agent with no usage; reset wallet to a known value.
-    const freshAgent = await makeAgent()
+  it("getRemainingCredits sums account-wide plan room + wallet", async () => {
+    // Per-account: clear ALL the user's usage so the full plan allowance is free,
+    // then set a known wallet balance.
+    const userAgents = await db.agent.findMany({ where: { userId }, select: { id: true } })
+    await db.creditUsage.deleteMany({ where: { agentId: { in: userAgents.map((a) => a.id) } } })
     await db.user.update({ where: { id: userId }, data: { creditBalance: 50, creditsExpireAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) } })
-    const remaining = await getRemainingCredits({ userId, plan: "free", subscriptionExpiresAt: null, carryoverCredits: 0, carryoverExpiresAt: null }, freshAgent)
-    // free plan limit 1000, no usage on this agent + 50 wallet
+    const remaining = await getRemainingCredits({ userId, plan: "free", subscriptionExpiresAt: null, carryoverCredits: 0, carryoverExpiresAt: null })
+    // free plan limit 1000, no usage + 50 wallet
     expect(remaining).toBe(1000 + 50)
-    await db.agent.deleteMany({ where: { id: freshAgent } })
   })
 })

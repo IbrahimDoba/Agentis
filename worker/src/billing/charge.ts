@@ -1,4 +1,4 @@
-import { getAgentBillingInfo, getMonthlyCreditsUsed, insertCreditUsage } from "../db/queries.js"
+import { getAgentBillingInfo, getMonthlyCreditsUsedForUser, insertCreditUsage } from "../db/queries.js"
 import { PLAN_CREDIT_LIMITS, effectiveCreditLimit, allowsOverage, creditsForTokens, creditsForMessageType } from "./credits.js"
 import { routeMessageCharge, deductFromWallet } from "./wallet.js"
 import { getBillingPeriod } from "./billing-period.js"
@@ -33,7 +33,7 @@ export async function chargeAiCredits(opts: {
   const overageAllowed = allowsOverage(billing.plan)
   if (monthlyLimit !== -1) {
     const { start, end } = getBillingPeriod(billing.subscriptionExpiresAt)
-    const used = await getMonthlyCreditsUsed(agentId, start, end)
+    const used = await getMonthlyCreditsUsedForUser(billing.userId, start, end)
     const decision = routeMessageCharge({ creditsToCharge: credits, planLimit: monthlyLimit, used, overageAllowed })
     billedTo = decision.billedTo
     if (decision.needsWalletDeduction) {
@@ -80,7 +80,7 @@ export async function chargeAiTurn(opts: {
   const overageAllowed = allowsOverage(billing.plan)
   if (monthlyLimit !== -1) {
     const { start, end } = getBillingPeriod(billing.subscriptionExpiresAt)
-    const used = await getMonthlyCreditsUsed(agentId, start, end)
+    const used = await getMonthlyCreditsUsedForUser(billing.userId, start, end)
     const decision = routeMessageCharge({ creditsToCharge: credits, planLimit: monthlyLimit, used, overageAllowed })
     billedTo = decision.billedTo
     if (decision.needsWalletDeduction) {
