@@ -17,7 +17,7 @@ import {
   logOutbound,
   markOutboundSent,
   getAgentBillingInfo,
-  getMonthlyCreditsUsed,
+  getMonthlyCreditsUsedForUser,
   insertCreditUsage,
 } from "../db/queries.js"
 import { webhookEmitter } from "../dashboard/webhook-emitter.js"
@@ -139,7 +139,8 @@ const worker = new Worker<OutboundJob>(
       const overageAllowed = allowsOverage(billing.plan)
       if (monthlyLimit !== -1) {
         const { start: monthStart, end: monthEnd } = getBillingPeriod(billing.subscriptionExpiresAt)
-        const used = await getMonthlyCreditsUsed(agentId, monthStart, monthEnd)
+        // Account-wide: sum ALL the user's agents against the shared plan limit.
+        const used = await getMonthlyCreditsUsedForUser(billing.userId, monthStart, monthEnd)
         // Decide whether this charge lands on the plan allowance or the PAYG
         // wallet. Wallet draws happen ONLY when the plan would overflow and
         // overage isn't allowed (Free/Basic). The decision is pure — see

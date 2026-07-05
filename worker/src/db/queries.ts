@@ -420,6 +420,22 @@ export async function getMonthlyCreditsUsed(agentId: string, monthStart: Date, m
   return Number(rows[0]?.total ?? 0)
 }
 
+// Per-ACCOUNT usage: sum CreditUsage across ALL of a user's agents in the window.
+// The plan allowance is account-wide, so enforcement must compare the user's
+// TOTAL usage to the limit — not one agent's. Summing a single agent let a user
+// with several agents blow past the limit while no individual agent crossed it.
+export async function getMonthlyCreditsUsedForUser(userId: string, monthStart: Date, monthEnd: Date): Promise<number> {
+  const rows = await sql<{ total: number | null }[]>`
+    SELECT COALESCE(SUM(cu."creditsUsed"), 0)::int as total
+    FROM "CreditUsage" cu
+    JOIN "Agent" a ON a."id" = cu."agentId"
+    WHERE a."userId" = ${userId}
+      AND cu."createdAt" >= ${monthStart.toISOString()}::timestamptz
+      AND cu."createdAt" < ${monthEnd.toISOString()}::timestamptz
+  `
+  return Number(rows[0]?.total ?? 0)
+}
+
 export async function insertCreditUsage(entry: {
   agentId: string
   conversationId?: string

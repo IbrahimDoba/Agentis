@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
   // 7. Pre-flight credit check.
   const ctx = await getAgentBillingContext(agentId)
   if (!ctx) return apiError("AGENT_NOT_FOUND", "Agent not found.", { requestId })
-  const pre = await preflightApiCharge(ctx, agentId)
+  const pre = await preflightApiCharge(ctx)
   if (!pre.ok) {
     const message = pre.reason === "SUBSCRIPTION_EXPIRED" ? "Subscription expired." : "Insufficient credits."
     return apiError("INSUFFICIENT_CREDITS", message, { requestId })
@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
   // 9. Track per-key spend for the rolling daily cap (worker did the ledger write).
   const credits = AI_CREDIT_COSTS.text
   await recordApiKeySpend(keyId, credits)
-  const remaining = await getRemainingCredits(ctx, agentId)
+  const remaining = await getRemainingCredits(ctx)
 
   return NextResponse.json({
     message_id: result.jobId,

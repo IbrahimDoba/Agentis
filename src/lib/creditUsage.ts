@@ -33,6 +33,39 @@ export async function sumCreditsForAgents(
   return Number(rows[0]?.total ?? 0)
 }
 
+// Per-ACCOUNT usage: sum CreditUsage across ALL of a user's agents. The plan
+// allowance is account-wide, so enforcement must sum every agent the user owns —
+// summing a single agent let a multi-agent user exceed the limit without any one
+// agent crossing it. Mirrors worker/src/db/queries.ts getMonthlyCreditsUsedForUser.
+export async function sumCreditsForUser(userId: string, start?: Date, end?: Date): Promise<number> {
+  const hasWindow = Boolean(start && end)
+  const rows = hasWindow
+    ? await db.$queryRawUnsafe<{ total: number | null }[]>(
+        `
+        SELECT COALESCE(SUM(cu."creditsUsed"), 0)::int as total
+        FROM "CreditUsage" cu
+        JOIN "Agent" a ON a."id" = cu."agentId"
+        WHERE a."userId" = $1
+          AND cu."createdAt" >= $2::timestamptz
+          AND cu."createdAt" < $3::timestamptz
+      `,
+        userId,
+        start!.toISOString(),
+        end!.toISOString()
+      )
+    : await db.$queryRawUnsafe<{ total: number | null }[]>(
+        `
+        SELECT COALESCE(SUM(cu."creditsUsed"), 0)::int as total
+        FROM "CreditUsage" cu
+        JOIN "Agent" a ON a."id" = cu."agentId"
+        WHERE a."userId" = $1
+      `,
+        userId
+      )
+
+  return Number(rows[0]?.total ?? 0)
+}
+
 export async function sumCreditsBySourceForAgents(
   agentIds: string[],
   start?: Date,

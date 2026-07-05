@@ -1,6 +1,6 @@
 import { db } from "@/lib/db"
 import { PLAN_CREDIT_LIMITS, PLAN_OVERAGE_RATE_PER_1K, effectiveCreditLimit } from "@/lib/plans"
-import { sumCreditsForAgents } from "@/lib/creditUsage"
+import { sumCreditsForUser } from "@/lib/creditUsage"
 import { getBillingPeriod } from "@/lib/billing-period"
 import { getBalance } from "@/lib/creditWallet"
 
@@ -86,7 +86,7 @@ export async function checkAndEnforceAgentLimit(agentId: string): Promise<void> 
           },
           _sum: { creditsUsed: true },
         }))._sum.creditsUsed ?? 0
-      : await sumCreditsForAgents([agent.id], monthStart, monthEnd)
+      : await sumCreditsForUser(agent.userId, monthStart, monthEnd)
     creditsExceeded = used >= creditLimit
     console.log(`[agentLimit] Agent ${agentId}: used=${used}, limit=${creditLimit}, exceeded=${creditsExceeded}`)
   }

@@ -36,7 +36,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     // for an account that definitively can't cover the charge.
     const ctx = await getAgentBillingContext(conversation.agentId)
     if (!ctx) return NextResponse.json({ error: "Agent not found" }, { status: 404 })
-    const pre = await preflightApiCharge(ctx, conversation.agentId)
+    const pre = await preflightApiCharge(ctx)
     if (!pre.ok) {
       const message =
         pre.reason === "SUBSCRIPTION_EXPIRED"

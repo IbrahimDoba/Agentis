@@ -2,7 +2,7 @@ import { db } from "@/lib/db"
 import { creditsForTokens } from "@/lib/credits"
 import { PLAN_CREDIT_LIMITS, PLAN_OVERAGE_RATE_PER_1K, effectiveCreditLimit } from "@/lib/plans"
 import { getBillingPeriod } from "@/lib/billing-period"
-import { sumCreditsForAgents } from "@/lib/creditUsage"
+import { sumCreditsForUser } from "@/lib/creditUsage"
 import { getBalance, deductFromWallet } from "@/lib/creditWallet"
 
 // Billing for the External Developer API. Mirrors the worker's WhatsApp charge
@@ -74,8 +74,7 @@ export interface PreflightResult {
 // Can this account pay for at least one more turn? Run before the LLM call so we
 // don't do (paid) work for an account that definitively can't cover it.
 export async function preflightApiCharge(
-  ctx: AgentBillingContext,
-  agentId: string
+  ctx: AgentBillingContext
 ): Promise<PreflightResult> {
   const expired = ctx.subscriptionExpiresAt ? new Date() > ctx.subscriptionExpiresAt : false
   if (expired) return { ok: false, reason: "SUBSCRIPTION_EXPIRED" }
@@ -85,7 +84,7 @@ export async function preflightApiCharge(
   if (allowsOverage(ctx.plan)) return { ok: true } // starter/pro can overshoot
 
   const { start, end } = getBillingPeriod(ctx.subscriptionExpiresAt)
-  const used = await sumCreditsForAgents([agentId], start, end)
+  const used = await sumCreditsForUser(ctx.userId, start, end)
   if (used < planLimit) return { ok: true } // plan still has room
 
   const wallet = await getBalance(ctx.userId)
@@ -117,7 +116,7 @@ export async function chargeApiTurn(params: {
 
   if (planLimit !== -1) {
     const { start, end } = getBillingPeriod(ctx.subscriptionExpiresAt)
-    const used = await sumCreditsForAgents([agentId], start, end)
+    const used = await sumCreditsForUser(ctx.userId, start, end)
     const decision = routeMessageCharge({
       creditsToCharge: credits,
       planLimit,
@@ -149,14 +148,13 @@ export async function chargeApiTurn(params: {
 // Remaining credits = plan allowance left this cycle + wallet balance. Used for
 // the response's remaining_credits field.
 export async function getRemainingCredits(
-  ctx: AgentBillingContext,
-  agentId: string
+  ctx: AgentBillingContext
 ): Promise<number> {
   const wallet = await getBalance(ctx.userId)
   const planLimit = effectiveCreditLimit(PLAN_CREDIT_LIMITS[ctx.plan] ?? PLAN_CREDIT_LIMITS.free, ctx.carryoverCredits, ctx.carryoverExpiresAt)
   if (planLimit === -1) return wallet.creditBalance
   const { start, end } = getBillingPeriod(ctx.subscriptionExpiresAt)
-  const used = await sumCreditsForAgents([agentId], start, end)
+  const used = await sumCreditsForUser(ctx.userId, start, end)
   const planRemaining = Math.max(0, planLimit - used)
   return planRemaining + wallet.creditBalance
 }

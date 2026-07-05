@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
   // 7. Billing context + pre-flight (don't run the LLM if they can't pay).
   const ctx = await getAgentBillingContext(agentId)
   if (!ctx) return apiError("AGENT_NOT_FOUND", "Agent not found.", { requestId })
-  const pre = await preflightApiCharge(ctx, agentId)
+  const pre = await preflightApiCharge(ctx)
   if (!pre.ok) {
     const message = pre.reason === "SUBSCRIPTION_EXPIRED" ? "Subscription expired." : "Insufficient credits."
     return apiError("INSUFFICIENT_CREDITS", message, { requestId })
@@ -127,7 +127,7 @@ export async function POST(req: NextRequest) {
   // 10. Track per-key spend for the rolling daily cap.
   await recordApiKeySpend(keyId, charge.credits)
 
-  const remaining = await getRemainingCredits(ctx, agentId)
+  const remaining = await getRemainingCredits(ctx)
 
   const responseBody = {
     message: { role: "assistant", content: result.reply },
