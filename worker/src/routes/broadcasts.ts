@@ -18,7 +18,11 @@ import { logger as rootLogger } from "../lib/logger.js"
 import type { WASocket } from "@whiskeysockets/baileys"
 
 const logger = rootLogger.child({ module: "routes/broadcasts" })
-const MAX_BROADCAST_RECIPIENTS = 200
+// Max recipients accepted in one broadcast request. Matches HARD_CAPS.maxPerDay
+// (the absolute daily ceiling) so a user can queue all their contacts in one
+// campaign. The per-tier daily cap below still governs how many actually go out
+// per day — anything over today's remaining capacity is deferred, not sent.
+const MAX_BROADCAST_RECIPIENTS = 2000
 
 const CreateSchema = z.object({
   agentId: z.string().min(1),
@@ -56,7 +60,20 @@ export const broadcastRoutes: FastifyPluginAsync = async (app) => {
    * Create and immediately start a broadcast campaign.
    */
   app.post("/broadcasts", async (req, reply) => {
-    const body = CreateSchema.parse(req.body)
+    // Validate without throwing so a bad request returns a clean 400 (a raw
+    // ZodError thrown here surfaces to the user as an opaque 500).
+    const parsed = CreateSchema.safeParse(req.body)
+    if (!parsed.success) {
+      const tooManyRecipients = parsed.error.issues.some(
+        (issue) => issue.code === "too_big" && issue.path[0] === "phoneNumbers"
+      )
+      return reply.status(400).send({
+        error: tooManyRecipients
+          ? `Too many recipients — a single broadcast can include at most ${MAX_BROADCAST_RECIPIENTS} contacts. Split the rest into another campaign.`
+          : "Invalid broadcast request.",
+      })
+    }
+    const body = parsed.data
 
     // Check session exists and is connected
     const session = await getSessionByAgentId(body.agentId)
