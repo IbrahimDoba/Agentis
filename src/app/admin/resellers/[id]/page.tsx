@@ -2,6 +2,8 @@ import { auth } from "@/lib/auth"
 import { redirect, notFound } from "next/navigation"
 import Link from "next/link"
 import { db } from "@/lib/db"
+import { PLATFORM_RESELLER_ID } from "@/lib/tenant"
+import ResellerProfileEditor from "@/components/admin/ResellerProfileEditor"
 
 interface Params { params: Promise<{ id: string }> }
 
@@ -53,6 +55,22 @@ export default async function AdminResellerDetailPage({ params }: Params) {
           {reseller.domain} · {reseller.creditPool.toLocaleString()} / {reseller.creditPoolTotal.toLocaleString()} pool credits ({pct}%) · {users.length} customers
         </p>
       </div>
+
+      <ResellerProfileEditor
+        isPlatform={reseller.id === PLATFORM_RESELLER_ID}
+        reseller={{
+          id: reseller.id,
+          name: reseller.name,
+          appName: reseller.appName,
+          domain: reseller.domain,
+          domainAliases: reseller.domainAliases,
+          primaryColor: reseller.primaryColor,
+          supportEmail: reseller.supportEmail,
+          supportWhatsapp: reseller.supportWhatsapp,
+          logoUrl: reseller.logoUrl,
+          status: reseller.status,
+        }}
+      />
 
       <div style={{ overflowX: "auto", border: "1px solid var(--border, #e4e4e7)", borderRadius: 14 }}>
         <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 860 }}>
