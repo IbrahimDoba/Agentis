@@ -175,7 +175,7 @@ function UserDetailModal({ user, onClose, onStatusChange, loading }: {
     }
   }
 
-  const handleAllocate = async () => {
+  const handleAllocate = async (action: "add" | "deduct" = "add") => {
     const amt = Math.floor(Number(allocAmount))
     if (!Number.isFinite(amt) || amt <= 0) { setAllocMsg("Enter a positive amount of credits"); return }
     setAllocating(true); setAllocMsg(null)
@@ -183,16 +183,17 @@ function UserDetailModal({ user, onClose, onStatusChange, loading }: {
       const res = await fetch(`/api/admin/users/${user.id}/credits`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: amt }),
+        body: JSON.stringify({ amount: amt, action }),
       })
       const data = await res.json()
-      if (!res.ok) { setAllocMsg(data.error || "Failed to allocate credits"); return }
+      if (!res.ok) { setAllocMsg(data.error || `Failed to ${action} credits`); return }
       setAllocAmount("")
-      setAllocMsg(`Added ${amt.toLocaleString()} credits — new balance ${Number(data.creditBalance).toLocaleString()}${data.creditsExpireAt ? `, expires ${formatDate(data.creditsExpireAt)}` : ""}.`)
+      const verb = action === "deduct" ? "Removed" : "Added"
+      setAllocMsg(`${verb} ${amt.toLocaleString()} credits — new balance ${Number(data.creditBalance).toLocaleString()}${data.creditsExpireAt ? `, expires ${formatDate(data.creditsExpireAt)}` : ""}.`)
       setBilling((prev) => prev ? { ...prev, walletBalance: data.creditBalance, walletExpiresAt: data.creditsExpireAt } : prev)
       router.refresh()
     } catch {
-      setAllocMsg("Failed to allocate credits")
+      setAllocMsg(`Failed to ${action} credits`)
     } finally {
       setAllocating(false)
     }
@@ -525,9 +526,9 @@ function UserDetailModal({ user, onClose, onStatusChange, loading }: {
 
             {/* ── Wallet credits (admin allocation, 12-month expiry) ── */}
             <div className={styles.modalSection}>
-              <div className={styles.modalSectionTitle}>Allocate credits (12-month)</div>
+              <div className={styles.modalSectionTitle}>Adjust credits (12-month)</div>
               <p style={{ fontSize: 13, color: "var(--text-secondary, #6b7280)", margin: "0 0 10px" }}>
-                Give this user a custom amount of credits. They top up the user&apos;s spendable balance and expire 12 months from today.
+                Add or remove a custom amount of the user&apos;s spendable credits. Adding tops up the balance and resets expiry to 12 months from today; removing corrects an over-grant and can&apos;t push the balance below zero.
               </p>
               {billing && (
                 <div style={{ fontSize: 13, marginBottom: 10 }}>
@@ -549,8 +550,16 @@ function UserDetailModal({ user, onClose, onStatusChange, loading }: {
                   className={styles.agentLimitInput}
                   style={{ width: 170 }}
                 />
-                <button className={styles.agentLimitSaveBtn} onClick={handleAllocate} disabled={allocating}>
-                  {allocating ? "Adding…" : "Add credits"}
+                <button className={styles.agentLimitSaveBtn} onClick={() => handleAllocate("add")} disabled={allocating}>
+                  {allocating ? "Saving…" : "Add credits"}
+                </button>
+                <button
+                  className={styles.agentLimitSaveBtn}
+                  onClick={() => handleAllocate("deduct")}
+                  disabled={allocating}
+                  style={{ background: "var(--danger-bg, #fee2e2)", color: "var(--danger-text, #b91c1c)" }}
+                >
+                  {allocating ? "Saving…" : "Reduce credits"}
                 </button>
               </div>
               {allocMsg && (
