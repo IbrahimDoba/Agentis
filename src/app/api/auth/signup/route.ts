@@ -30,6 +30,10 @@ export async function POST(req: NextRequest) {
     // in on; unknown hosts (and Dailzero's own) resolve to the platform tenant.
     const reseller = await findResellerByHost(req.headers.get("host"))
     const resellerId = reseller?.id ?? PLATFORM_RESELLER_ID
+    // The platform tenant ("Dailzero") is itself a Reseller row whose domain is
+    // dailzero.com, so findResellerByHost returns it (non-null) for our own host.
+    // Treat it as the platform — only a genuine white-label tenant is a reseller.
+    const isPlatformTenant = resellerId === PLATFORM_RESELLER_ID
     const brand = emailBrandOf(reseller)
 
     const existing = await db.user.findUnique({
@@ -70,7 +74,7 @@ export async function POST(req: NextRequest) {
         // Reseller-tenant signups start on the 0-allowance "reseller" plan (no
         // free Dailzero credits) — they get credits only when their reseller
         // admin activates a plan from her pool. Platform signups default to free.
-        plan: reseller ? "reseller" : "free",
+        plan: isPlatformTenant ? "free" : "reseller",
         emailVerified: false,
         verificationCode: code,
         verificationCodeExpiry: expiry,
