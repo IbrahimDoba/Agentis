@@ -13,6 +13,7 @@ import type { ProductResponseMapping } from "./rich-content.js"
 import { sql } from "../db/client.js"
 import type { ChatMessage } from "../providers/types.js"
 import { logger as rootLogger } from "../lib/logger.js"
+import { stripImageUrls } from "../lib/strip-image-urls.js"
 
 const logger = rootLogger.child({ module: "run-agent-turn" })
 
@@ -213,7 +214,10 @@ export async function runAgentTurn(
 
         currentMessages.push({
           role: "tool",
-          content: toolResult,
+          // Strip raw image URLs before the model sees the result — otherwise it
+          // pastes them into the reply as ugly markdown images. The raw result
+          // was already captured above (collectedToolResults) for embed cards.
+          content: stripImageUrls(toolResult),
           tool_call_id: tc.id,
         })
       }
