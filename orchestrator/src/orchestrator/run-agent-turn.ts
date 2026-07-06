@@ -1,6 +1,7 @@
 import { getAgentTools, isProductAlbumEnabled, type OrchestratorAgent } from "../db/queries/agents.js"
 import { resolveProvider } from "../providers/registry.js"
 import { SEND_IMAGE_TOOL, executeSendImage } from "../tools/built-in/send-image.js"
+import { SEND_PRODUCT_IMAGE_TOOL, executeSendProductImage } from "../tools/built-in/send-product-image.js"
 import { SEND_PRODUCT_ALBUM_TOOL, executeSendProductAlbum } from "../tools/built-in/send-product-album.js"
 import { SEND_PRODUCT_PHOTOS_TOOL, executeSendProductPhotos } from "../tools/built-in/send-product-photos.js"
 import { REQUEST_HUMAN_HANDOFF_TOOL, executeRequestHumanHandoff } from "../tools/built-in/request-human-handoff.js"
@@ -91,6 +92,10 @@ export async function runAgentTurn(
     // WhatsApp JID, so they're gated by includeSendImage (the dev API omits it).
     ...(includeSendImage ? (albumEnabled ? [SEND_PRODUCT_PHOTOS_TOOL] : [SEND_IMAGE_TOOL]) : []),
     ...(albumEnabled ? [SEND_PRODUCT_ALBUM_TOOL] : []),
+    // Webhook-catalogue images: when an agent's products come from external
+    // tools (not the DailZero media library), let the AI send a photo by the
+    // `imageUrl` those tools return — instead of pasting a raw link in the text.
+    ...(includeSendImage && externalTools.length > 0 ? [SEND_PRODUCT_IMAGE_TOOL] : []),
     ...(includeSendImage && taggingEnabled ? [TAG_CONVERSATION_TOOL] : []),
     REQUEST_HUMAN_HANDOFF_TOOL,
     MARK_QUALIFIED_LEAD_TOOL,
@@ -150,6 +155,12 @@ export async function runAgentTurn(
 
         if (tc.name === "send_image") {
           toolResult = await executeSendImage(tc.arguments, {
+            agentId,
+            conversationId,
+            toJid: senderJid,
+          })
+        } else if (tc.name === "send_product_image") {
+          toolResult = await executeSendProductImage(tc.arguments, {
             agentId,
             conversationId,
             toJid: senderJid,
