@@ -8,6 +8,7 @@ import {
   computeSummary,
   formatBase,
   formatMoney,
+  toBase,
   type FinanceEntryDTO,
   type FinanceKind,
   type RateMap,
@@ -89,6 +90,9 @@ export function FinancesDashboard({ entries, rates, actualRevenue }: Props) {
     call(`/api/admin/finances/entries/${e.id}`, "DELETE")
   }
 
+  const editEntry = (id: string, patch: Record<string, unknown>) =>
+    call(`/api/admin/finances/entries/${id}`, "PATCH", patch)
+
   async function saveRate() {
     const rate = Number(rateVal)
     if (!rateCode.trim()) { setMsg("Enter a currency code"); return }
@@ -144,13 +148,13 @@ export function FinancesDashboard({ entries, rates, actualRevenue }: Props) {
       <Section title="Expenses" kind="expense" rows={expenses} rates={rates} busy={busy}
         form={expForm} setForm={setExpForm}
         onAdd={() => addEntry("expense", expForm, () => setExpForm(blankForm()))}
-        onToggle={toggleRecurring} onDelete={del} />
+        onToggle={toggleRecurring} onDelete={del} onEdit={editEntry} />
 
       {/* ── Revenue ── */}
       <Section title="Revenue (manual)" kind="revenue" rows={revenues} rates={rates} busy={busy}
         form={revForm} setForm={setRevForm}
         onAdd={() => addEntry("revenue", revForm, () => setRevForm(blankForm()))}
-        onToggle={toggleRecurring} onDelete={del} />
+        onToggle={toggleRecurring} onDelete={del} onEdit={editEntry} />
 
       {/* ── FX rates ── */}
       <div className={styles.section}>
@@ -194,7 +198,7 @@ function RefStat({ label, value }: { label: string; value: string }) {
   )
 }
 
-function Section({ title, kind, rows, rates, busy, form, setForm, onAdd, onToggle, onDelete }: {
+function Section({ title, kind, rows, rates, busy, form, setForm, onAdd, onToggle, onDelete, onEdit }: {
   title: string
   kind: FinanceKind
   rows: FinanceEntryDTO[]
@@ -205,8 +209,48 @@ function Section({ title, kind, rows, rates, busy, form, setForm, onAdd, onToggl
   onAdd: () => void
   onToggle: (e: FinanceEntryDTO) => void
   onDelete: (e: FinanceEntryDTO) => void
+  onEdit: (id: string, patch: Record<string, unknown>) => Promise<boolean>
 }) {
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) => setForm({ ...form, [k]: v })
+
+  const [editId, setEditId] = useState<string | null>(null)
+  const [editForm, setEditForm] = useState<FormState>(blankForm())
+  const eset = <K extends keyof FormState>(k: K, v: FormState[K]) => setEditForm({ ...editForm, [k]: v })
+
+  const startEdit = (e: FinanceEntryDTO) => {
+    setEditId(e.id)
+    setEditForm({
+      label: e.label,
+      amount: String(e.amount),
+      currency: e.currency,
+      recurring: e.recurring,
+      note: e.note ?? "",
+      incurredAt: e.incurredAt.slice(0, 10),
+    })
+  }
+  const saveEdit = async (id: string) => {
+    const amount = Math.floor(Number(editForm.amount))
+    if (!editForm.label.trim() || !Number.isFinite(amount) || amount <= 0) return
+    const ok = await onEdit(id, {
+      label: editForm.label,
+      amount,
+      currency: editForm.currency,
+      recurring: editForm.recurring,
+      note: editForm.note,
+      incurredAt: editForm.incurredAt,
+    })
+    if (ok) setEditId(null)
+  }
+
+  // Section total in the NGN base (rows we can't convert are excluded but flagged).
+  let sectionTotal = 0
+  let anyUnconverted = false
+  for (const e of rows) {
+    const b = toBase(e.amount, e.currency, rates)
+    if (b === null) anyUnconverted = true
+    else sectionTotal += b
+  }
+
   return (
     <div className={styles.section}>
       <div className={styles.sectionTitle}>{title}</div>
@@ -227,7 +271,34 @@ function Section({ title, kind, rows, rates, busy, form, setForm, onAdd, onToggl
               <tr><td colSpan={6} className={styles.empty}>Nothing yet — add a {kind} below.</td></tr>
             )}
             {rows.map((e) => {
-              const base = e.currency === BASE_CURRENCY ? e.amount : rates[e.currency] ? e.amount * rates[e.currency] : null
+              const base = toBase(e.amount, e.currency, rates)
+              if (editId === e.id) {
+                return (
+                  <tr key={e.id}>
+                    <td>
+                      <input className={styles.input} style={{ width: "100%" }} value={editForm.label} onChange={(ev) => eset("label", ev.target.value)} />
+                      <input className={styles.input} style={{ width: "100%", marginTop: 4 }} placeholder="Note (optional)" value={editForm.note} onChange={(ev) => eset("note", ev.target.value)} />
+                    </td>
+                    <td className={styles.num}>
+                      <input className={styles.input} style={{ width: 90 }} type="number" min={1} step={1} value={editForm.amount} onChange={(ev) => eset("amount", ev.target.value)} />
+                      <select className={styles.input} style={{ width: 72, marginTop: 4 }} value={editForm.currency} onChange={(ev) => eset("currency", ev.target.value)}>
+                        {COMMON_CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                    </td>
+                    <td className={styles.num}>—</td>
+                    <td>
+                      <label className={styles.check}>
+                        <input type="checkbox" checked={editForm.recurring} onChange={(ev) => eset("recurring", ev.target.checked)} /> Monthly
+                      </label>
+                    </td>
+                    <td><input className={styles.input} style={{ width: 130 }} type="date" value={editForm.incurredAt} onChange={(ev) => eset("incurredAt", ev.target.value)} /></td>
+                    <td className={styles.rowActions}>
+                      <button className={styles.btn} style={{ padding: "4px 10px" }} onClick={() => saveEdit(e.id)} disabled={busy}>Save</button>
+                      <button className={styles.linkBtn} onClick={() => setEditId(null)} disabled={busy}>Cancel</button>
+                    </td>
+                  </tr>
+                )
+              }
               return (
                 <tr key={e.id}>
                   <td>
@@ -242,11 +313,27 @@ function Section({ title, kind, rows, rates, busy, form, setForm, onAdd, onToggl
                     </button>
                   </td>
                   <td className={styles.date}>{e.incurredAt.slice(0, 10)}</td>
-                  <td><button className={styles.del} onClick={() => onDelete(e)} disabled={busy}>✕</button></td>
+                  <td className={styles.rowActions}>
+                    <button className={styles.editBtn} onClick={() => startEdit(e)} disabled={busy} title="Edit">✎</button>
+                    <button className={styles.del} onClick={() => onDelete(e)} disabled={busy} title="Delete">✕</button>
+                  </td>
                 </tr>
               )
             })}
           </tbody>
+          {rows.length > 0 && (
+            <tfoot>
+              <tr className={styles.totalRow}>
+                <td>Total {kind === "expense" ? "expenses" : "revenue"} ({rows.length})</td>
+                <td></td>
+                <td className={styles.num}>
+                  {formatBase(sectionTotal)}
+                  {anyUnconverted && <span className={styles.needRate} title="Some rows have no FX rate and are excluded"> *</span>}
+                </td>
+                <td colSpan={3}></td>
+              </tr>
+            </tfoot>
+          )}
         </table>
       </div>
 
