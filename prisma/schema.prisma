@@ -21,7 +21,9 @@ model User {
   // Multi-tenant: which reseller (white-label tenant) this user belongs to.
   // Existing users backfill to the root tenant "platform". Email is unique
   // PER tenant (see @@unique below), so the same address can exist on Dailzero
-  // and on a reseller's site independently.
+  // and on a reseller's site independently. (resellerId is served by the leading
+  // column of @@unique([resellerId, email]); status/plan get their own indexes
+  // below for admin counts + the daily renewal/expiry cron scans.)
   resellerId     String     @default("platform")
   reseller       Reseller   @relation("ResellerUsers", fields: [resellerId], references: [id])
   workspaceMembers   WorkspaceMember[] @relation("WorkspaceOwner")
@@ -88,6 +90,8 @@ model User {
 
   // Email is unique within a tenant, not globally.
   @@unique([resellerId, email])
+  @@index([status])
+  @@index([plan, subscriptionExpiresAt])
 }
 
 // A reseller = a white-label tenant. The root tenant (Dailzero itself) is a
@@ -241,6 +245,13 @@ model Agent {
   embedSite            EmbedSite?
   whatsappLabels       WhatsAppLabel[]
   chatLabels           ChatLabel[]
+
+  // Postgres does not auto-index FKs. `userId` is the app's hottest filter
+  // (dashboard, billing, stats poll); `agentRuntime`/`elevenlabsAgentId` gate
+  // runtime routing and voice-webhook lookups.
+  @@index([userId, status])
+  @@index([agentRuntime])
+  @@index([elevenlabsAgentId])
 }
 
 // A WhatsApp Business label synced from the connected phone (read-only mirror of
@@ -572,6 +583,8 @@ model Customer {
 
   agent               Agent?           @relation(fields: [agentId], references: [id], onDelete: SetNull)
   conversationLogs    ConversationLog[]
+
+  @@index([agentId])
 }
 
 model Referral {
@@ -588,6 +601,8 @@ model Referral {
 
   referrer         User           @relation("ReferralsMade", fields: [referrerId], references: [id], onDelete: Cascade)
   referred         User           @relation("ReferredBy", fields: [referredId], references: [id], onDelete: Cascade)
+
+  @@index([referrerId])
 }
 
 enum ReferralStatus {
@@ -629,6 +644,10 @@ model ConversationLog {
 
   agent             Agent?    @relation(fields: [agentId], references: [id], onDelete: SetNull)
   customer          Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  // Voice logs are always listed/exported by agent, newest first.
+  @@index([agentId, createdAt])
+  @@index([elevenlabsAgentId, createdAt])
 }
 
 model WorkspaceMember {
@@ -646,6 +665,7 @@ model WorkspaceMember {
   user        User?               @relation("WorkspaceMemberUser", fields: [userId], references: [id], onDelete: SetNull)
 
   @@unique([workspaceId, email])
+  @@index([userId])
 }
 
 enum WorkspaceRole {
@@ -670,6 +690,9 @@ model PaymentRequest {
   notes       String?
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([status])
 }
 
 model BaileysSession {
