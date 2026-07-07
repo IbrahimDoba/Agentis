@@ -4,6 +4,7 @@ import {
   sendSubscriptionExpiringSoonEmail,
   sendSubscriptionExpiredEmail,
 } from "@/lib/email"
+import { mapWithConcurrency } from "@/lib/concurrency"
 
 // Picks the day window we use for "expiring soon" warnings. 5–8 days
 // inclusive gives the daily scan a 4-day catch range so a user is never
@@ -13,12 +14,29 @@ import {
 const WARNING_DAYS_MIN = 5
 const WARNING_DAYS_MAX = 8
 
+const DAY_MS = 24 * 60 * 60 * 1000
+// Scan in id-ordered pages (bounded memory) and send emails with bounded
+// concurrency (each user is independent + idempotent) so the run stays under
+// the cron timeout as the base grows.
+const PAGE_SIZE = 200
+const CONCURRENCY = 6
+
 export interface ExpiryScanSummary {
   scanned: number
   warned: number
   expired: number
   skippedAlreadyNotified: number
   errors: { userId: string; email: string; stage: "warning" | "expired"; message: string }[]
+}
+
+type ExpiryRow = {
+  id: string
+  name: string
+  email: string
+  plan: string
+  subscriptionExpiresAt: Date | null
+  expiryWarningEmailSentAt: Date | null
+  expiredEmailSentAt: Date | null
 }
 
 // Run once daily (typically via cron hitting /api/cron/subscription-expiry).
@@ -34,91 +52,101 @@ export async function runSubscriptionExpiryScan(): Promise<ExpiryScanSummary> {
     errors: [],
   }
 
-  // Pull every paid-plan user with a configured expiry. We do the date math
-  // in JS rather than SQL so we don't have to wrangle timezone quirks per
-  // Neon connection.
-  const users = await db.user.findMany({
-    where: {
-      plan: { not: "free" },
-      subscriptionExpiresAt: { not: null },
-    },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      plan: true,
-      subscriptionExpiresAt: true,
-      expiryWarningEmailSentAt: true,
-      expiredEmailSentAt: true,
-    },
-  })
-
   const now = Date.now()
-  const dayMs = 24 * 60 * 60 * 1000
 
-  for (const user of users) {
-    summary.scanned++
-    if (!user.subscriptionExpiresAt) continue
-
-    const expiresAt = user.subscriptionExpiresAt
-    const msUntilExpiry = expiresAt.getTime() - now
-    const daysUntilExpiry = Math.ceil(msUntilExpiry / dayMs)
-    const planLabel = PLAN_LABELS[user.plan] ?? user.plan
-
-    // 1) Already past expiry — send the "expired" email if we haven't yet.
-    if (msUntilExpiry <= 0) {
-      if (user.expiredEmailSentAt) {
-        summary.skippedAlreadyNotified++
-        continue
-      }
-      try {
-        await sendSubscriptionExpiredEmail({
-          name: user.name,
-          email: user.email,
-          planLabel,
-          expiresAt,
-        })
-        await db.user.update({
-          where: { id: user.id },
-          data: { expiredEmailSentAt: new Date() },
-        })
-        summary.expired++
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err)
-        summary.errors.push({ userId: user.id, email: user.email, stage: "expired", message })
-      }
-      continue
-    }
-
-    // 2) Inside the warning window — send the "expiring soon" email if we
-    // haven't yet. Outside the window is a no-op (either too far away or
-    // overlapping with the expired branch above).
-    if (daysUntilExpiry >= WARNING_DAYS_MIN && daysUntilExpiry <= WARNING_DAYS_MAX) {
-      if (user.expiryWarningEmailSentAt) {
-        summary.skippedAlreadyNotified++
-        continue
-      }
-      try {
-        await sendSubscriptionExpiringSoonEmail({
-          name: user.name,
-          email: user.email,
-          planLabel,
-          daysRemaining: daysUntilExpiry,
-          expiresAt,
-        })
-        await db.user.update({
-          where: { id: user.id },
-          data: { expiryWarningEmailSentAt: new Date() },
-        })
-        summary.warned++
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err)
-        summary.errors.push({ userId: user.id, email: user.email, stage: "warning", message })
-      }
-    }
+  let cursor: string | undefined
+  for (;;) {
+    // Pull paid-plan users with a configured expiry, one page at a time. Date
+    // math stays in JS to avoid per-connection timezone quirks.
+    const page: ExpiryRow[] = await db.user.findMany({
+      where: {
+        plan: { not: "free" },
+        subscriptionExpiresAt: { not: null },
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        plan: true,
+        subscriptionExpiresAt: true,
+        expiryWarningEmailSentAt: true,
+        expiredEmailSentAt: true,
+      },
+      orderBy: { id: "asc" },
+      take: PAGE_SIZE,
+      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+    })
+    if (page.length === 0) break
+    await mapWithConcurrency(page, CONCURRENCY, (user) => processExpiryUser(user, now, summary))
+    cursor = page[page.length - 1].id
+    if (page.length < PAGE_SIZE) break
   }
 
   return summary
+}
+
+// Send the expiring-soon / expired email for one user (each is idempotent via
+// its sent-flag). Mutates `summary`; a throw is captured per-user.
+async function processExpiryUser(user: ExpiryRow, now: number, summary: ExpiryScanSummary): Promise<void> {
+  summary.scanned++
+  if (!user.subscriptionExpiresAt) return
+
+  const expiresAt = user.subscriptionExpiresAt
+  const msUntilExpiry = expiresAt.getTime() - now
+  const daysUntilExpiry = Math.ceil(msUntilExpiry / DAY_MS)
+  const planLabel = PLAN_LABELS[user.plan] ?? user.plan
+
+  // 1) Already past expiry — send the "expired" email if we haven't yet.
+  if (msUntilExpiry <= 0) {
+    if (user.expiredEmailSentAt) {
+      summary.skippedAlreadyNotified++
+      return
+    }
+    try {
+      await sendSubscriptionExpiredEmail({
+        name: user.name,
+        email: user.email,
+        planLabel,
+        expiresAt,
+      })
+      await db.user.update({
+        where: { id: user.id },
+        data: { expiredEmailSentAt: new Date() },
+      })
+      summary.expired++
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err)
+      summary.errors.push({ userId: user.id, email: user.email, stage: "expired", message })
+    }
+    return
+  }
+
+  // 2) Inside the warning window — send the "expiring soon" email if we
+  // haven't yet. Outside the window is a no-op (either too far away or
+  // overlapping with the expired branch above).
+  if (daysUntilExpiry >= WARNING_DAYS_MIN && daysUntilExpiry <= WARNING_DAYS_MAX) {
+    if (user.expiryWarningEmailSentAt) {
+      summary.skippedAlreadyNotified++
+      return
+    }
+    try {
+      await sendSubscriptionExpiringSoonEmail({
+        name: user.name,
+        email: user.email,
+        planLabel,
+        daysRemaining: daysUntilExpiry,
+        expiresAt,
+      })
+      await db.user.update({
+        where: { id: user.id },
+        data: { expiryWarningEmailSentAt: new Date() },
+      })
+      summary.warned++
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err)
+      summary.errors.push({ userId: user.id, email: user.email, stage: "warning", message })
+    }
+  }
 }
 
 // Used by the admin "reset usage" path to clear the sent-flags so the user

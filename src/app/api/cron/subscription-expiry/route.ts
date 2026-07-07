@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server"
 import { runSubscriptionExpiryScan } from "@/lib/subscription-expiry-job"
 import { runSubscriptionRenewalScan } from "@/lib/subscription-renewal-job"
 
+// Give the daily scan headroom (Vercel caps this to the plan's max). The scans
+// paginate + run bounded-concurrency internally, but a large base still does
+// real Paystack/Resend round-trips, so don't let the default 10–15s cut it off.
+export const maxDuration = 300
+
 // Daily scheduled scan for the subscription-expiry email cycle. Should be
 // hit once per day by an external scheduler (Railway cron, Vercel cron,
 // GitHub Actions, cron-job.org, etc.). Protected by CRON_SECRET — the
