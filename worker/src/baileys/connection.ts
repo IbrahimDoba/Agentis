@@ -3,6 +3,7 @@ import {
   DisconnectReason,
   makeCacheableSignalKeyStore,
   Browsers,
+  fetchLatestWaWebVersion,
   type WASocket,
   type AuthenticationState,
 } from "@whiskeysockets/baileys"
@@ -26,19 +27,41 @@ export interface ConnectionOptions {
 }
 
 
+// WhatsApp's servers reject NEW device links (QR and pairing code) from clients
+// announcing a stale WA Web version — rc13's bundled default is already stale
+// ("Couldn't link device", Baileys #2679). fetchLatestWaWebVersion() reads the
+// REAL current version from web.whatsapp.com (unlike fetchLatestBaileysVersion,
+// which returns the same stale pin). Cache it for 6h and fall back to the
+// bundled default if the fetch fails, so a web.whatsapp.com hiccup can't stop
+// sessions from starting.
+let cachedWaVersion: { version: [number, number, number]; fetchedAt: number } | null = null
+const WA_VERSION_TTL_MS = 6 * 60 * 60 * 1000
+
+async function resolveWaWebVersion(): Promise<[number, number, number] | undefined> {
+  if (cachedWaVersion && Date.now() - cachedWaVersion.fetchedAt < WA_VERSION_TTL_MS) {
+    return cachedWaVersion.version
+  }
+  try {
+    const { version } = await fetchLatestWaWebVersion({})
+    cachedWaVersion = { version: version as [number, number, number], fetchedAt: Date.now() }
+    rootLogger.info({ version }, "Using latest WA Web version")
+    return cachedWaVersion.version
+  } catch (err) {
+    rootLogger.warn({ err: (err as Error)?.message }, "Failed to fetch latest WA Web version — using bundled default")
+    return undefined
+  }
+}
+
 export async function createConnection(opts: ConnectionOptions): Promise<WASocket> {
   const log = rootLogger.child({ agentId: opts.agentId })
   // Baileys is very chatty at INFO level (retry receipts, signal noise, etc.)
   // Use a WARN-only child so its internal logs don't flood the output
   const baileysLog = rootLogger.child({ agentId: opts.agentId, level: "warn" })
 
-  // Per Baileys docs: do NOT pin/fetch the WhatsApp version per connection —
-  // "avoid setting latest version each connection to prevent incompatibility".
-  // Letting Baileys use the version it bundles (and was tested against) is more
-  // stable than fetchLatestBaileysVersion(), which can return a web version the
-  // installed Baileys protocol can't actually handle — a common cause of
-  // "scan succeeds but the device never links."
+  const waVersion = await resolveWaWebVersion()
+
   const sock = makeWASocket({
+    ...(waVersion ? { version: waVersion } : {}),
     auth: {
       creds: opts.authState.creds,
       keys: makeCacheableSignalKeyStore(opts.authState.keys, baileysLog as never),

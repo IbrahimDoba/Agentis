@@ -21,6 +21,12 @@ interface ActiveSession {
   reconnectAttempts: number
   paused: boolean // anti-ban reactive pause
   stopRequested: boolean // true when user intentionally disconnects/restarts/destroys
+  // True once this socket has emitted its first QR — i.e. the WebSocket + noise
+  // handshake completed and WhatsApp sent pair-device refs. The server only
+  // accepts requestPairingCode from that point; the dashboard calls create()
+  // then pairing-code back-to-back, so an immediate request races the handshake
+  // and fails (the "worked once, never again" pairing bug).
+  qrReady: boolean
 }
 
 const sessions = new Map<string, ActiveSession>()
@@ -46,15 +52,51 @@ export const sessionManager = {
   },
 
   async requestPairingCode(agentId: string, phoneNumber: string): Promise<string> {
-    const active = sessions.get(agentId)
-    if (!active) throw new SessionError("Session not started — call create first")
-    if (active.sock.authState.creds.registered) {
-      throw new SessionError("Already registered — pairing code not needed")
-    }
     const digits = phoneNumber.replace(/\D/g, "")
-    const code = await active.sock.requestPairingCode(digits)
-    logger.info({ agentId, digits }, "Pairing code requested")
-    return code
+    // Baileys encodes this straight into a JID — a local-format number (no
+    // country code) produces an invalid JID and a code that can never link.
+    if (digits.length < 10) {
+      throw new SessionError("Enter the full number with country code, e.g. 2348012345678")
+    }
+
+    // Wait until the CURRENT socket is pairing-ready (first QR emitted = noise
+    // handshake done + pair-device refs received). Re-fetch the session every
+    // tick: auto-reconnect replaces the ActiveSession object under us, and a
+    // fresh socket starts with qrReady=false until its own QR arrives.
+    const waitForReady = async (timeoutMs: number): Promise<ActiveSession> => {
+      const deadline = Date.now() + timeoutMs
+      for (;;) {
+        const current = sessions.get(agentId)
+        if (!current) throw new SessionError("Session not started — call create first")
+        if (current.sock.authState.creds.registered) {
+          throw new SessionError("Already registered — pairing code not needed")
+        }
+        if (current.qrReady) return current
+        if (Date.now() > deadline) {
+          throw new SessionError("WhatsApp connection not ready yet — try again in a few seconds")
+        }
+        await new Promise((r) => setTimeout(r, 500))
+      }
+    }
+
+    // Timeouts sized so even the retry path stays under the dashboard's
+    // serverless proxy timeout (QR normally arrives 1–3s after create()).
+    let active = await waitForReady(20_000)
+    try {
+      const code = await active.sock.requestPairingCode(digits)
+      logger.info({ agentId, digits }, "Pairing code requested")
+      return code
+    } catch (err) {
+      // The socket can die between its QR and our request (QR refs exhausted →
+      // close → auto-reconnect). Retry ONCE against the freshest socket after
+      // it becomes ready — its qrReady flag resets until its own QR arrives.
+      logger.warn({ agentId, err: (err as Error)?.message }, "Pairing code request failed — retrying on a fresh socket")
+      await new Promise((r) => setTimeout(r, 2_000))
+      active = await waitForReady(15_000)
+      const code = await active.sock.requestPairingCode(digits)
+      logger.info({ agentId, digits, retried: true }, "Pairing code requested")
+      return code
+    }
   },
 
   // Disconnect: stops the socket and marks DISCONNECTED — preserves auth files + DB record
@@ -164,6 +206,7 @@ async function startSession(agentId: string, reconnectAttempt = 0): Promise<void
     reconnectAttempts: reconnectAttempt,
     paused: false,
     stopRequested: false,
+    qrReady: false,
   }
   sessions.set(agentId, active)
 
@@ -173,6 +216,9 @@ async function startSession(agentId: string, reconnectAttempt = 0): Promise<void
     syncFullHistory,
 
     onQr: async (qr) => {
+      // Handshake complete + pair-device refs received — the socket can now
+      // accept requestPairingCode (see sessionManager.requestPairingCode).
+      active.qrReady = true
       active.qrCallbacks.forEach((cb) => cb(qr, "qr"))
       await updateSessionStatus(agentId, "QR_PENDING")
       webhookEmitter.emit("session.qr", { agentId, qr })
