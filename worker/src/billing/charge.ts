@@ -26,7 +26,16 @@ export async function chargeAiCredits(opts: {
   const subscriptionExpired = billing.subscriptionExpiresAt
     ? new Date() > new Date(billing.subscriptionExpiresAt)
     : false
-  if (subscriptionExpired) throw new Error("Subscription expired")
+
+  // Plan/trial lapsed → the plan allowance is void; only the PAYG wallet can fund
+  // the send. deductFromWallet is atomic and refuses expired/insufficient wallets,
+  // so a usable wallet keeps the agent sending and anything else still blocks.
+  if (subscriptionExpired) {
+    const result = await deductFromWallet(billing.userId, credits)
+    if (!result.ok) throw new Error("Subscription expired")
+    await insertCreditUsage({ agentId, conversationId, messageType, source: "ai", creditsUsed: credits, billedTo: "wallet" })
+    return
+  }
 
   let billedTo: "plan" | "wallet" = "plan"
   const monthlyLimit = effectiveCreditLimit(PLAN_CREDIT_LIMITS[billing.plan] ?? PLAN_CREDIT_LIMITS.free, billing.carryoverCredits, billing.carryoverExpiresAt)

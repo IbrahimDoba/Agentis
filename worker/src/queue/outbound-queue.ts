@@ -130,34 +130,42 @@ const worker = new Worker<OutboundJob>(
       const subscriptionExpired = billing.subscriptionExpiresAt
         ? new Date() > new Date(billing.subscriptionExpiresAt)
         : false
-      if (subscriptionExpired) {
-        throw new RateLimitError("Subscription expired")
-      }
 
-      const baseLimit = PLAN_CREDIT_LIMITS[billing.plan] ?? PLAN_CREDIT_LIMITS.free
-      const monthlyLimit = effectiveCreditLimit(baseLimit, billing.carryoverCredits, billing.carryoverExpiresAt)
-      const overageAllowed = allowsOverage(billing.plan)
-      if (monthlyLimit !== -1) {
-        const { start: monthStart, end: monthEnd } = getBillingPeriod(billing.subscriptionExpiresAt)
-        // Account-wide: sum ALL the user's agents against the shared plan limit.
-        const used = await getMonthlyCreditsUsedForUser(billing.userId, monthStart, monthEnd)
-        // Decide whether this charge lands on the plan allowance or the PAYG
-        // wallet. Wallet draws happen ONLY when the plan would overflow and
-        // overage isn't allowed (Free/Basic). The decision is pure — see
-        // routeMessageCharge tests for the truth table.
-        const decision = routeMessageCharge({
-          creditsToCharge,
-          planLimit: monthlyLimit,
-          used,
-          overageAllowed,
-        })
-        billedTo = decision.billedTo
-        if (decision.needsWalletDeduction) {
-          const result = await deductFromWallet(billing.userId, creditsToCharge)
-          if (!result.ok) {
-            throw new RateLimitError(
-              `Plan credits exhausted (${used}/${monthlyLimit}) and wallet has insufficient balance`
-            )
+      if (subscriptionExpired) {
+        // Plan/trial lapsed → plan allowance is void; fund the send from the PAYG
+        // wallet only. deductFromWallet is atomic + refuses expired/insufficient
+        // wallets, so a usable wallet keeps sending and everything else blocks.
+        const result = await deductFromWallet(billing.userId, creditsToCharge)
+        if (!result.ok) {
+          throw new RateLimitError("Subscription expired")
+        }
+        billedTo = "wallet"
+      } else {
+        const baseLimit = PLAN_CREDIT_LIMITS[billing.plan] ?? PLAN_CREDIT_LIMITS.free
+        const monthlyLimit = effectiveCreditLimit(baseLimit, billing.carryoverCredits, billing.carryoverExpiresAt)
+        const overageAllowed = allowsOverage(billing.plan)
+        if (monthlyLimit !== -1) {
+          const { start: monthStart, end: monthEnd } = getBillingPeriod(billing.subscriptionExpiresAt)
+          // Account-wide: sum ALL the user's agents against the shared plan limit.
+          const used = await getMonthlyCreditsUsedForUser(billing.userId, monthStart, monthEnd)
+          // Decide whether this charge lands on the plan allowance or the PAYG
+          // wallet. Wallet draws happen ONLY when the plan would overflow and
+          // overage isn't allowed (Free/Basic). The decision is pure — see
+          // routeMessageCharge tests for the truth table.
+          const decision = routeMessageCharge({
+            creditsToCharge,
+            planLimit: monthlyLimit,
+            used,
+            overageAllowed,
+          })
+          billedTo = decision.billedTo
+          if (decision.needsWalletDeduction) {
+            const result = await deductFromWallet(billing.userId, creditsToCharge)
+            if (!result.ok) {
+              throw new RateLimitError(
+                `Plan credits exhausted (${used}/${monthlyLimit}) and wallet has insufficient balance`
+              )
+            }
           }
         }
       }

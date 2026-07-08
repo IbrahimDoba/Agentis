@@ -6,8 +6,10 @@ import { getTrialState } from "@/lib/trial"
 export function TrialBanner({
   user,
 }: {
-  user: { plan: string | null; resellerId: string | null; subscriptionExpiresAt: Date | null }
+  user: { plan: string | null; resellerId: string | null; subscriptionExpiresAt: Date | null; creditBalance?: number | null; creditsExpireAt?: Date | null }
 }) {
+  // getTrialState treats a usable PAYG wallet as "not gated", so a lapsed-trial
+  // user who topped up sees no wall here.
   const state = getTrialState(user)
 
   const row: React.CSSProperties = {

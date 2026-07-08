@@ -53,7 +53,7 @@ export async function POST(
       select: {
         userId: true,
         messagingEnabled: true,
-        user: { select: { plan: true, resellerId: true, subscriptionExpiresAt: true } },
+        user: { select: { plan: true, resellerId: true, subscriptionExpiresAt: true, creditBalance: true, creditsExpireAt: true } },
       },
     })
     if (!agent) return NextResponse.json({ error: "Agent not found" }, { status: 404 })

@@ -13,7 +13,7 @@ async function assertAccess(agentId: string, userId: string, role?: string) {
     where: { id: agentId },
     select: {
       userId: true,
-      user: { select: { plan: true, resellerId: true, subscriptionExpiresAt: true } },
+      user: { select: { plan: true, resellerId: true, subscriptionExpiresAt: true, creditBalance: true, creditsExpireAt: true } },
     },
   })
 

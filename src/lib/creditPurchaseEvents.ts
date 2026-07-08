@@ -1,6 +1,7 @@
 import { db } from "@/lib/db"
 import { addCredits } from "@/lib/creditWallet"
 import { sendCreditPurchaseReceipt } from "@/lib/email"
+import { checkAndEnforceUserAgentLimits } from "@/lib/agentLimitCheck"
 
 // Service layer for the Paystack webhook. Keeps the DB transitions + wallet
 // crediting separate from the HTTP/HMAC concerns so they can be unit-tested
@@ -69,6 +70,13 @@ export async function applyChargeSuccess(args: ApplyChargeArgs): Promise<ApplyCh
   } catch (err) {
     return { result: "grant_failed", reason: String(err) }
   }
+
+  // The fresh wallet balance may lift a limit/expiry pause — re-evaluate this
+  // user's agents so buying credits turns messaging back on immediately.
+  // Best-effort: never fail the grant over the re-enable.
+  await checkAndEnforceUserAgentLimits(purchase.userId).catch((err) =>
+    console.error("[creditPurchase] re-enable agents after grant failed", { reference: args.reference, err: String(err) })
+  )
 
   // Receipt email is best-effort — DON'T block the webhook response or
   // surface failure (Paystack retry won't help us send Resend mail).

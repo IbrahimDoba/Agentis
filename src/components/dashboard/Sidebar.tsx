@@ -25,6 +25,7 @@ import { useDashboardData } from "@/hooks/useDashboardData"
 import { useBrand } from "@/components/BrandProvider"
 import { usePlanStats } from "@/hooks/usePlanStats"
 import { PLAN_LABELS } from "@/lib/plans"
+import { hasUsableWallet } from "@/lib/walletStatus"
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher"
 import styles from "./Sidebar.module.css"
 
@@ -252,7 +253,10 @@ export function Sidebar({ userName, businessName, currentUserId, currentWorkspac
             const credits = stats.creditBalance ?? 0
             const exp = stats.creditsExpireAt ?? stats.subscriptionExpiresAt
             const expDate = exp ? new Date(exp) : null
-            const resellerExpired = expDate ? expDate.getTime() <= Date.now() : false
+            // Only "expired" when there are no usable credits — a positive,
+            // in-date balance is still spendable, so don't flag it.
+            const resellerExpired = (expDate ? expDate.getTime() <= Date.now() : false)
+              && !hasUsableWallet(credits, exp)
             return (
               <Link href="/dashboard/billing" className={styles.usageMini} onClick={onClose}>
                 <div className={styles.usageMiniHeader}>
@@ -314,6 +318,11 @@ export function Sidebar({ userName, businessName, currentUserId, currentWorkspac
               if (daysUntilExpiry <= 7) expiryState = "expiring"
             }
           }
+
+          // A usable PAYG wallet funds sends past the subscription date, so the
+          // agent is NOT down — suppress the expired/expiring warnings entirely
+          // (the positive wallet credits line still shows below).
+          if (hasUsableWallet(walletCredits, stats.creditsExpireAt)) expiryState = "none"
 
           // Expired takes over the whole card — usage is moot until they
           // renew (the agents have stopped replying anyway).

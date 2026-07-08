@@ -75,7 +75,7 @@ export async function POST(
             userId: true,
             agentRuntime: true,
             autoPauseOnHumanReply: true,
-            user: { select: { plan: true, resellerId: true, subscriptionExpiresAt: true } },
+            user: { select: { plan: true, resellerId: true, subscriptionExpiresAt: true, creditBalance: true, creditsExpireAt: true } },
           },
         },
       },

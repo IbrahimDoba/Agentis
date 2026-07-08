@@ -14,15 +14,19 @@ describe("shouldDisableMessaging — truth table", () => {
     expect(shouldDisableMessaging(ok)).toBe(false)
   })
 
-  it("disables when subscription is expired, regardless of credits", () => {
+  it("disables when subscription is expired and there's no usable wallet", () => {
     expect(shouldDisableMessaging({ ...ok, subscriptionExpired: true })).toBe(true)
+  })
+
+  it("KEEPS ENABLED when subscription is expired but the PAYG wallet has credits", () => {
+    // A paid, spendable wallet funds sends past plan/subscription expiry.
     expect(
       shouldDisableMessaging({
         ...ok,
         subscriptionExpired: true,
-        walletBalance: 99999, // wallet doesn't save you from an expired sub
+        walletBalance: 99999,
       })
-    ).toBe(true)
+    ).toBe(false)
   })
 
   it("keeps enabled when plan is exhausted but overage is allowed (Starter/Pro)", () => {

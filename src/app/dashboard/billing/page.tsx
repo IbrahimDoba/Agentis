@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { usePlanStats, type PlanStats } from "@/hooks/usePlanStats"
 import { PLAN_LABELS, PLAN_PRICES, PLAN_CREDIT_LIMITS, PLAN_OVERAGE_RATE_PER_1K, formatNaira } from "@/lib/plans"
+import { hasUsableWallet } from "@/lib/walletStatus"
 import { formatDate } from "@/lib/utils"
 import styles from "./page.module.css"
 
@@ -22,7 +23,8 @@ function StatRow({ label, value, sub }: { label: string; value: React.ReactNode;
 function ResellerBilling({ stats }: { stats: PlanStats }) {
   const credits = stats.creditBalance ?? 0
   const exp = stats.creditsExpireAt ?? stats.subscriptionExpiresAt
-  const expired = exp ? new Date() > new Date(exp) : false
+  // Only "expired" when there are no usable credits left.
+  const expired = (exp ? new Date() > new Date(exp) : false) && !hasUsableWallet(credits, exp)
   return (
     <div className={styles.page}>
       <div className={styles.header}>
@@ -99,7 +101,10 @@ export default function BillingPage() {
   const isExhausted = !unlimited && monthlyUsed >= creditLimit
 
   const expiry = stats?.subscriptionExpiresAt
-  const isExpired = expiry ? new Date() > new Date(expiry) : false
+  // A usable PAYG wallet keeps the agent sending past the plan date, so don't
+  // show the alarming "Expired" state — the wallet is funding the service.
+  const isExpired = (expiry ? new Date() > new Date(expiry) : false)
+    && !hasUsableWallet(stats?.creditBalance, stats?.creditsExpireAt)
 
   const monthName = new Date().toLocaleString("default", { month: "long", year: "numeric" })
 

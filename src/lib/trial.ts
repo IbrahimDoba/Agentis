@@ -13,10 +13,16 @@
 export const TRIAL_DAYS = 7
 const DAY_MS = 24 * 60 * 60 * 1000
 
+import { hasUsableWallet } from "@/lib/walletStatus"
+
 type TrialUser = {
   plan: string | null | undefined
   resellerId: string | null | undefined
   subscriptionExpiresAt: Date | string | null | undefined
+  // Optional PAYG wallet — when present and usable, a lapsed trial is NOT gated
+  // (the wallet funds sends). Callers that enforce the gate must select these.
+  creditBalance?: number | null
+  creditsExpireAt?: Date | string | null
 }
 
 /** Is this user on the platform free-trial regime (vs paid / reseller)? */
@@ -43,7 +49,12 @@ export function getTrialState(user: TrialUser): TrialState {
   if (!user.subscriptionExpiresAt) return { status: "pending" }
   const endsAt = new Date(user.subscriptionExpiresAt)
   const now = Date.now()
-  if (now > endsAt.getTime()) return { status: "expired", endsAt }
+  if (now > endsAt.getTime()) {
+    // Trial deadline passed — but a usable PAYG wallet keeps the user sending,
+    // so they're no longer trial-gated (no soft wall, no send block).
+    if (hasUsableWallet(user.creditBalance, user.creditsExpireAt, new Date(now))) return { status: "none" }
+    return { status: "expired", endsAt }
+  }
   const daysLeft = Math.max(0, Math.ceil((endsAt.getTime() - now) / DAY_MS))
   return { status: "active", endsAt, daysLeft }
 }

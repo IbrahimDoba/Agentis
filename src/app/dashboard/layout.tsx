@@ -25,7 +25,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   }
 
   // Trial state for the soft "choose a plan" wall (platform free users only).
-  let trialUser: { plan: string | null; resellerId: string | null; subscriptionExpiresAt: Date | null } | null = null
+  let trialUser: { plan: string | null; resellerId: string | null; subscriptionExpiresAt: Date | null; creditBalance: number; creditsExpireAt: Date | null } | null = null
 
   // Only check onboarding for approved users
   if (session.user.status === "APPROVED") {
@@ -37,6 +37,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
         plan: true,
         resellerId: true,
         subscriptionExpiresAt: true,
+        creditBalance: true,
+        creditsExpireAt: true,
         _count: { select: { agents: true } },
       },
     })
@@ -45,6 +47,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
         plan: user.plan,
         resellerId: user.resellerId,
         subscriptionExpiresAt: user.subscriptionExpiresAt,
+        creditBalance: user.creditBalance,
+        creditsExpireAt: user.creditsExpireAt,
       }
     }
     if (user && !user.onboardingCompleted) {

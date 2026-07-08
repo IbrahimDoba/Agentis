@@ -12,6 +12,7 @@ import { formatDate } from "@/lib/utils"
 import { useDashboardData } from "@/hooks/useDashboardData"
 import { usePlanStats } from "@/hooks/usePlanStats"
 import { PLAN_LABELS, PLAN_OVERAGE_RATE_PER_1K, formatNaira } from "@/lib/plans"
+import { hasUsableWallet } from "@/lib/walletStatus"
 import { useRuntimePreference, type RuntimePreference } from "@/hooks/useRuntimePreference"
 import { useBrand } from "@/components/BrandProvider"
 import type { AgentPublic } from "@/types"
@@ -62,8 +63,14 @@ export default function DashboardPage() {
   const creditLimit = stats?.creditLimit ?? 0
   const isUnlimited = creditLimit === -1
   const pct = isUnlimited ? 0 : creditLimit > 0 ? Math.min(100, Math.round((monthlyUsed / creditLimit) * 100)) : 0
-  const isDanger = !isUnlimited && pct >= 90
-  const isWarning = !isUnlimited && pct >= 75
+  // When the plan is spent/expired but a usable PAYG wallet is funding the
+  // account, the plan % isn't the real story: don't alarm, show the wallet.
+  const walletBalance = stats?.creditBalance ?? 0
+  const subExpired = stats?.subscriptionExpiresAt ? new Date() > new Date(stats.subscriptionExpiresAt) : false
+  const planExhausted = !isUnlimited && monthlyUsed >= creditLimit
+  const onWallet = hasUsableWallet(walletBalance, stats?.creditsExpireAt) && (subExpired || planExhausted)
+  const isDanger = !isUnlimited && pct >= 90 && !onWallet
+  const isWarning = !isUnlimited && pct >= 75 && !onWallet
   const overageRate = PLAN_OVERAGE_RATE_PER_1K[plan] ?? null
   const overageCredits = isUnlimited ? 0 : Math.max(0, monthlyUsed - creditLimit)
   const overageCharge = overageRate !== null && overageCredits > 0
@@ -82,7 +89,7 @@ export default function DashboardPage() {
             <Link href="/dashboard/profile" className={`${styles.planPill} ${isDanger ? styles.planPillDanger : isWarning ? styles.planPillWarning : ""}`}>
               <span className={styles.planPillLabel}>{planLabel}</span>
               <span className={styles.planPillSep}>·</span>
-              <span>⚡ {isUnlimited ? "∞" : `${pct}%`}</span>
+              <span>{isUnlimited ? "⚡ ∞" : onWallet ? `💳 ${walletBalance.toLocaleString()} cr` : `⚡ ${pct}%`}</span>
             </Link>
           )}
         </div>
