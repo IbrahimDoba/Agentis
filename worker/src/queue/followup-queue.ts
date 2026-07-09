@@ -1,5 +1,6 @@
 import { Queue, Worker, type Job } from "bullmq"
 import { getRedis } from "./redis.js"
+import { isLeader } from "../lib/leader.js"
 import { sessionManager } from "../baileys/session-manager.js"
 import { sendWithPacing } from "../anti-ban/pacing.js"
 import { checkAndIncrement } from "../anti-ban/rate-limiter.js"
@@ -39,6 +40,13 @@ const worker = new Worker<FollowUpJob>(
   QUEUE_NAME,
   async (job: Job<FollowUpJob>) => {
     const { campaignId, messageId, agentId, toJid, message, conversationId, contactName } = job.data
+
+    // Only the leader holds WhatsApp sockets — a standby must not process sends.
+    // Bounce the job back so the leader picks it up.
+    if (!isLeader()) {
+      await queue.add("send", job.data, { delay: 3_000 })
+      return
+    }
 
     // Check campaign is still sending
     const campaigns = await sql<{ status: string }[]>`

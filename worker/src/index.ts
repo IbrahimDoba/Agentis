@@ -18,6 +18,7 @@ import { followUpRoutes } from "./routes/followup.js"
 import { closeFollowUpQueue } from "./queue/followup-queue.js"
 import { labelRoutes } from "./routes/labels.js"
 import { billingRoutes } from "./routes/billing.js"
+import { becomeLeader, releaseLeadership } from "./lib/leader.js"
 
 const app = Fastify({ logger: false }) // we use pino directly
 
@@ -58,6 +59,9 @@ const shutdown = async () => {
   await closeBroadcastQueue()
   await closeFollowUpQueue()
   await app.close()
+  // Release leadership so a standby instance takes over immediately (before we
+  // drop the Redis connection).
+  await releaseLeadership()
   // closeConversations() — removed, orchestrator handles LLM
   await closeRedis()
   process.exit(0)
@@ -75,6 +79,13 @@ process.on("unhandledRejection", (reason) => {
 try {
   await app.listen({ port: config.PORT, host: "0.0.0.0" })
   logger.info({ port: config.PORT }, "Worker started")
+
+  // The worker holds every agent's WhatsApp socket in memory, so only ONE
+  // instance may run the session subsystem. Block here until we're the leader;
+  // a standby keeps its HTTP/health endpoint up (so the platform stays happy)
+  // but connects NO sessions and processes NO send jobs — preventing two
+  // connections from fighting over an account (which caused triplicate replies).
+  await becomeLeader()
 
   // Periodic sweep: resume AI on human-mode conversations idle past their
   // agent's auto-resume threshold.

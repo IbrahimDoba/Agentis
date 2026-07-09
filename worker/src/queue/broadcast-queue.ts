@@ -1,5 +1,6 @@
 import { Queue, Worker, type Job } from "bullmq"
 import { getRedis } from "./redis.js"
+import { isLeader } from "../lib/leader.js"
 import { sessionManager } from "../baileys/session-manager.js"
 import { sendWithPacing } from "../anti-ban/pacing.js"
 import { checkAndIncrement } from "../anti-ban/rate-limiter.js"
@@ -49,6 +50,13 @@ const worker = new Worker<BroadcastJob>(
   QUEUE_NAME,
   async (job: Job<BroadcastJob>) => {
     const { broadcastId, recipientId, agentId, toJid, message, contactName, batchIndex } = job.data
+
+    // Only the leader holds WhatsApp sockets — a standby must not process sends.
+    // Bounce the job back so the leader picks it up.
+    if (!isLeader()) {
+      await queue.add("send", job.data, { delay: 3_000 })
+      return
+    }
 
     // Cancelled → terminal skip. Paused → leave the recipient PENDING so a
     // resume re-sends it (don't mark it skipped, or it'd be lost to resume).

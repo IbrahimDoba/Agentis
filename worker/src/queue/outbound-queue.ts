@@ -1,6 +1,7 @@
 import { Queue, Worker, type Job } from "bullmq"
 import { randomUUID } from "crypto"
 import { getRedis } from "./redis.js"
+import { isLeader } from "../lib/leader.js"
 import { sessionManager } from "../baileys/session-manager.js"
 import { sendWithPacing, sendImageWithPacing, businessHoursCheck } from "../anti-ban/pacing.js"
 import {
@@ -63,6 +64,18 @@ const worker = new Worker<OutboundJob>(
   QUEUE_NAME,
   async (job: Job<OutboundJob>) => {
     const { agentId, toJid, text, mediaUrl, type, conversationId, source, tokensInput, tokensOutput } = job.data
+
+    // Only the leader instance holds WhatsApp sockets. A standby has no session
+    // for this agent — if it processed the job it would grab the per-agent lock
+    // and then throw "No active session", blocking the leader's real send for up
+    // to the lock TTL. Bounce the job back so the leader picks it up.
+    if (!isLeader()) {
+      await queue.add("send", job.data, {
+        delay: 2_000,
+        priority: source === "human" ? 1 : 5,
+      })
+      return
+    }
 
     // Per-agent serialization. Global concurrency is raised (see worker opts
     // below) so DIFFERENT numbers send in parallel, but this per-agent Redis lock
