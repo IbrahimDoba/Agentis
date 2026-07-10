@@ -66,6 +66,24 @@ export async function sumCreditsForUser(userId: string, start?: Date, end?: Date
   return Number(rows[0]?.total ?? 0)
 }
 
+// Lifetime credits drawn from the user's PAYG wallet (billedTo='wallet') across
+// all their agents. The wallet is a rolling pool (top-ups add, usage draws — no
+// monthly reset), so the usage bar's denominator is walletUsed + creditBalance
+// (= total ever funded) and the fill grows left→right with usage.
+export async function sumWalletCreditsUsedForUser(userId: string): Promise<number> {
+  const rows = await db.$queryRawUnsafe<{ total: number | null }[]>(
+    `
+    SELECT COALESCE(SUM(cu."creditsUsed"), 0)::int as total
+    FROM "CreditUsage" cu
+    JOIN "Agent" a ON a."id" = cu."agentId"
+    WHERE a."userId" = $1
+      AND cu."billedTo" = 'wallet'
+  `,
+    userId
+  )
+  return Number(rows[0]?.total ?? 0)
+}
+
 export async function sumCreditsBySourceForAgents(
   agentIds: string[],
   start?: Date,

@@ -16,3 +16,26 @@ export function hasUsableWallet(
   if (!creditsExpireAt) return true // no expiry set = never expires (matches deductFromWallet)
   return new Date(creditsExpireAt).getTime() > now.getTime()
 }
+
+// Should the usage UI show the PAY-AS-YOU-GO bar instead of the plan bar?
+// The plan allowance always takes priority while it's alive and has room;
+// the wallet takes over the bar only when it is actually what's funding sends:
+// the plan is expired OR its allowance is finished — and the wallet is usable.
+// Mirrors the charge routing (plan first, wallet only on overflow).
+export function paygTakeover(opts: {
+  creditBalance: number | null | undefined
+  creditsExpireAt: string | Date | null | undefined
+  subscriptionExpiresAt: string | Date | null | undefined
+  monthlyCreditsUsed: number
+  creditLimit: number // -1 = unlimited
+  now?: Date
+}): boolean {
+  const now = opts.now ?? new Date()
+  if (!hasUsableWallet(opts.creditBalance, opts.creditsExpireAt, now)) return false
+  if (opts.creditLimit === -1) return false // unlimited plan never exhausts
+  const planExpired = opts.subscriptionExpiresAt
+    ? new Date(opts.subscriptionExpiresAt).getTime() <= now.getTime()
+    : false
+  const planExhausted = opts.creditLimit <= 0 || opts.monthlyCreditsUsed >= opts.creditLimit
+  return planExpired || planExhausted
+}

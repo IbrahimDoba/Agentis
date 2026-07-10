@@ -3,7 +3,7 @@ import { db } from "@/lib/db"
 import { NextRequest, NextResponse } from "next/server"
 import { PLAN_CREDIT_LIMITS, effectiveCreditLimit } from "@/lib/plans"
 import { getWorkspaceContext } from "@/lib/workspace"
-import { sumCreditsForAgents, sumCreditsBySourceForAgents } from "@/lib/creditUsage"
+import { sumCreditsForAgents, sumCreditsBySourceForAgents, sumWalletCreditsUsedForUser } from "@/lib/creditUsage"
 import { getBillingPeriod } from "@/lib/billing-period"
 import { cachedJson } from "@/lib/cache"
 
@@ -191,6 +191,9 @@ export async function GET(req: NextRequest) {
       // so surface the wallet balance + a reseller flag for their read-only plan UI.
       creditBalance: user?.creditBalance ?? 0,
       creditsExpireAt: user?.creditsExpireAt?.toISOString() ?? null,
+      // Lifetime PAYG wallet draw — powers the pay-as-you-go usage bar
+      // (fill = walletUsed / (walletUsed + creditBalance)).
+      walletUsed: await sumWalletCreditsUsedForUser(ownerId),
       isReseller: (user?.resellerId ?? "platform") !== "platform",
     }
   })

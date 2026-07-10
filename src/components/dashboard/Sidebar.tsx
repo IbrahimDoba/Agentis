@@ -25,7 +25,7 @@ import { useDashboardData } from "@/hooks/useDashboardData"
 import { useBrand } from "@/components/BrandProvider"
 import { usePlanStats } from "@/hooks/usePlanStats"
 import { PLAN_LABELS } from "@/lib/plans"
-import { hasUsableWallet } from "@/lib/walletStatus"
+import { hasUsableWallet, paygTakeover } from "@/lib/walletStatus"
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher"
 import styles from "./Sidebar.module.css"
 
@@ -339,6 +339,43 @@ export function Sidebar({ userName, businessName, currentUserId, currentWorkspac
                   <div className={styles.expiredDesc}>Your AI agents have stopped replying. Renew to bring them back online.</div>
                 </div>
                 <div className={styles.expiredCta}>Renew now →</div>
+              </Link>
+            )
+          }
+
+          // PAYG takeover: the wallet is what's funding sends (plan expired or
+          // allowance finished) — the bar becomes the pay-as-you-go meter:
+          // fill grows left→right with wallet usage; "left" = current balance.
+          // While the plan has allowance, the plan bar below keeps priority.
+          if (paygTakeover({
+            creditBalance: walletCredits,
+            creditsExpireAt: stats.creditsExpireAt,
+            subscriptionExpiresAt: stats.subscriptionExpiresAt,
+            monthlyCreditsUsed: used,
+            creditLimit: limit,
+          })) {
+            const walletUsedCr = stats.walletUsed ?? 0
+            const walletTotal = walletUsedCr + walletCredits
+            const walletPct = walletTotal > 0 ? Math.min(100, Math.round((walletUsedCr / walletTotal) * 100)) : 0
+            const planExpiredNow = expiresAt ? expiresAt.getTime() <= Date.now() : false
+            return (
+              <Link href="/dashboard/billing" className={styles.usageMini} onClick={onClose}>
+                <div className={styles.usageMiniHeader}>
+                  <span className={styles.usageMiniPlanDot} style={{ background: "#16a34a" }} />
+                  <span className={styles.usageMiniPlan}>Pay-as-you-go</span>
+                  <span className={styles.usageMiniPct} style={{ color: "#16a34a" }}>💳 {walletPct}%</span>
+                </div>
+                <div className={styles.usageMiniTrack}>
+                  <div className={styles.usageMiniFill} style={{ width: `${walletPct}%`, background: "#16a34a" }} />
+                </div>
+                <div className={styles.usageMiniFooter}>
+                  <span className={styles.usageMiniUsed}>{walletUsedCr.toLocaleString()} cr used</span>
+                  <span className={styles.usageMiniRem} style={{ color: "#16a34a" }}>{walletCredits.toLocaleString()} left</span>
+                </div>
+                <div className={styles.expiringHint} style={{ color: "var(--text-secondary, #71717a)" }}>
+                  {planExpiredNow ? "Plan expired — wallet covering sends" : "Plan allowance finished — wallet covering sends"}
+                  {walletExp ? ` · valid until ${walletExp.toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}` : ""}
+                </div>
               </Link>
             )
           }

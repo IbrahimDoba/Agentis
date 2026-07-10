@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePlanStats, type PlanStats } from "@/hooks/usePlanStats"
 import { PLAN_LABELS, PLAN_PRICES, PLAN_CREDIT_LIMITS, PLAN_OVERAGE_RATE_PER_1K, formatNaira } from "@/lib/plans"
-import { hasUsableWallet } from "@/lib/walletStatus"
+import { hasUsableWallet, paygTakeover } from "@/lib/walletStatus"
 import { formatDate } from "@/lib/utils"
 import styles from "./page.module.css"
 
@@ -106,6 +106,22 @@ export default function BillingPage() {
   const isExpired = (expiry ? new Date() > new Date(expiry) : false)
     && !hasUsableWallet(stats?.creditBalance, stats?.creditsExpireAt)
 
+  // PAYG wallet numbers. When the wallet is what's funding sends (plan expired
+  // or allowance finished), the usage card switches to the pay-as-you-go meter:
+  // fill grows left→right with wallet usage; remaining = current balance.
+  const walletBalance = stats?.creditBalance ?? 0
+  const walletUsed = stats?.walletUsed ?? 0
+  const walletTotal = walletUsed + walletBalance
+  const walletPct = walletTotal > 0 ? Math.min(100, Math.round((walletUsed / walletTotal) * 100)) : 0
+  const walletExp = stats?.creditsExpireAt ? new Date(stats.creditsExpireAt) : null
+  const paygActive = paygTakeover({
+    creditBalance: walletBalance,
+    creditsExpireAt: stats?.creditsExpireAt,
+    subscriptionExpiresAt: expiry,
+    monthlyCreditsUsed: monthlyUsed,
+    creditLimit,
+  })
+
   const monthName = new Date().toLocaleString("default", { month: "long", year: "numeric" })
 
   return (
@@ -157,10 +173,42 @@ export default function BillingPage() {
                 }
               />
             )}
+            {walletBalance > 0 && (
+              <StatRow
+                label="💳 Pay-as-you-go wallet"
+                value={<span style={{ color: "#16a34a", fontWeight: 700 }}>{walletBalance.toLocaleString()} cr</span>}
+                sub={walletExp ? `valid until ${formatDate(walletExp.toISOString())}` : undefined}
+              />
+            )}
           </div>
         </div>
 
-        {/* Usage card */}
+        {/* Usage card — switches to the PAYG meter when the wallet is funding sends */}
+        {paygActive ? (
+          <div className={styles.usageCard}>
+            <div className={styles.usageCardTitle}>💳 Pay-as-you-go credits</div>
+
+            <div className={styles.usageBig}>
+              <span className={styles.usageBigNum}>{walletUsed.toLocaleString()}</span>
+              <span className={styles.usageBigOf}>/ {walletTotal.toLocaleString()} used</span>
+            </div>
+
+            <div className={styles.barTrack}>
+              <div className={styles.barFill} style={{ width: `${walletPct}%`, background: "#16a34a" }} />
+            </div>
+            <div className={styles.usageMeta}>
+              <span className={styles.usagePct} style={{ color: "#16a34a" }}>{walletPct}% used</span>
+              <span className={styles.usageRemaining}>{walletBalance.toLocaleString()} remaining</span>
+            </div>
+
+            <p className={styles.unlimitedNote}>
+              {isExhausted && !(expiry && new Date() > new Date(expiry))
+                ? "Your plan allowance for this month is finished — usage now draws from your wallet."
+                : "Your plan has lapsed — your wallet credits are keeping the agent running."}
+              {walletExp ? ` Wallet valid until ${formatDate(walletExp.toISOString())}.` : ""}
+            </p>
+          </div>
+        ) : (
         <div className={`${styles.usageCard} ${isDanger ? styles.usageCardDanger : isWarning ? styles.usageCardWarning : ""}`}>
           <div className={styles.usageCardTitle}>⚡ Credits used this month</div>
 
@@ -206,6 +254,7 @@ export default function BillingPage() {
             </div>
           )}
         </div>
+        )}
 
         {/* Overage card (only show if overdue) */}
         {overageCredits > 0 && (

@@ -1,5 +1,6 @@
 import Link from "next/link"
-import { getTrialState } from "@/lib/trial"
+import { getTrialState, isTrialPlan } from "@/lib/trial"
+import { hasUsableWallet } from "@/lib/walletStatus"
 
 // Soft "choose a plan" wall + trial countdown shown at the top of the dashboard
 // for platform free users. Reseller/paid users render nothing (status "none").
@@ -43,6 +44,32 @@ export function TrialBanner({
           }}
         >
           Choose a plan
+        </Link>
+      </div>
+    )
+  }
+
+  // Trial deadline passed but a usable PAYG wallet is funding the agent —
+  // getTrialState reports "none" for this case (no red wall). Show a calm,
+  // positive strip instead of nothing, so the user knows what's powering sends.
+  const lapsedOnWallet =
+    state.status === "none" &&
+    isTrialPlan(user.plan, user.resellerId) &&
+    !!user.subscriptionExpiresAt &&
+    new Date(user.subscriptionExpiresAt).getTime() <= Date.now() &&
+    hasUsableWallet(user.creditBalance, user.creditsExpireAt)
+  if (lapsedOnWallet) {
+    const balance = (user.creditBalance ?? 0).toLocaleString()
+    return (
+      <div style={{ ...row, background: "#dcfce7", color: "#166534" }}>
+        <span>
+          💳 Running on <strong>Pay-as-you-go</strong> — {balance} credits left.
+        </span>
+        <Link
+          href="/dashboard/credits"
+          style={{ color: "#166534", fontWeight: 700, textDecoration: "underline", whiteSpace: "nowrap" }}
+        >
+          Top up
         </Link>
       </div>
     )
