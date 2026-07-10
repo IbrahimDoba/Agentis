@@ -28,7 +28,7 @@ export async function GET(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    const conversations = await db.conversation.findMany({
+    const allConversations = await db.conversation.findMany({
       // Hide empty widget chats: a visitor who opened the embed widget but never
       // sent a message. Only surface an embed conversation once it has at least
       // one message. WhatsApp conversations are always created on a real inbound
@@ -40,6 +40,7 @@ export async function GET(
       orderBy: { lastActivityAt: "desc" },
       select: {
         id: true,
+        deletedAt: true,
         phoneNumber: true,
         contactName: true,
         mode: true,
@@ -62,6 +63,15 @@ export async function GET(
         },
       },
     })
+
+    // Soft delete: a deleted thread stays hidden UNTIL the customer messages
+    // again — once lastActivityAt moves past deletedAt, it reappears (fresh: the
+    // AI memory cutoff also lives at deletedAt, so the agent starts over). Prisma
+    // can't compare two columns in `where`, so filter here — deleted rows are a
+    // small minority.
+    const conversations = allConversations.filter(
+      (c) => !c.deletedAt || (c.lastActivityAt != null && c.lastActivityAt > c.deletedAt)
+    )
 
     // Only resolve LID conversations, and only fetch the customers whose names
     // could match them — instead of pulling up to 1000 customer rows per poll.

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import Link from "next/link"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { Cog6ToothIcon, MegaphoneIcon, SparklesIcon } from "@heroicons/react/24/outline"
+import { Cog6ToothIcon, MegaphoneIcon, SparklesIcon, TrashIcon } from "@heroicons/react/24/outline"
 import styles from "./OrchestratorChatsView.module.css"
 import { useAgentEventStream } from "@/lib/useAgentEventStream"
 import { useBrand } from "@/components/BrandProvider"
@@ -392,6 +392,19 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["orchestrator-chats", agentId] })
+    },
+  })
+
+  // Soft-delete: hides the conversation from this list and resets the AI's
+  // memory of it (the orchestrator only reads messages sent after the delete).
+  const deleteConv = useMutation({
+    mutationFn: async (conversationId: string) => {
+      const res = await fetch(`/api/conversations/${conversationId}/delete`, { method: "POST" })
+      if (!res.ok) throw new Error("Failed to delete conversation")
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["orchestrator-chats", agentId] })
+      setSelectedId(null)
     },
   })
 
@@ -830,6 +843,20 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
               >
                 <Cog6ToothIcon width={16} height={16} />
               </Link>
+              {selectedConv && (
+                <button
+                  className={styles.settingsBtn}
+                  title="Delete conversation — hides it from your list and resets the AI's memory of it"
+                  disabled={deleteConv.isPending}
+                  onClick={() => {
+                    if (confirm("Delete this conversation? It'll be hidden from your list and the AI will forget its history. This doesn't delete the record — it just resets it.")) {
+                      deleteConv.mutate(selectedId!)
+                    }
+                  }}
+                >
+                  <TrashIcon width={16} height={16} />
+                </button>
+              )}
               <button className={styles.closeBtn} onClick={() => setSelectedId(null)}>✕</button>
             </div>
 

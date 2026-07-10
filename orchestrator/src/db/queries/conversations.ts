@@ -189,13 +189,19 @@ export async function getRecentMessages(
   conversationId: string,
   limit: number
 ): Promise<Message[]> {
+  // Memory cutoff: if the conversation was soft-deleted, only surface messages
+  // created AFTER the deletedAt timestamp. This is how a "deleted" conversation
+  // resets the AI's memory — the model never sees anything from before the
+  // delete, so it can't reference or repeat stale context.
   const rows = await sql<Message[]>`
-    SELECT "id", "conversationId", "direction", "content",
-           "mediaUrl", "mediaDescription", "toolCalls",
-           "tokensInput", "tokensOutput", "modelUsed", "createdAt"
-    FROM "Message"
-    WHERE "conversationId" = ${conversationId}
-    ORDER BY "createdAt" DESC
+    SELECT m."id", m."conversationId", m."direction", m."content",
+           m."mediaUrl", m."mediaDescription", m."toolCalls",
+           m."tokensInput", m."tokensOutput", m."modelUsed", m."createdAt"
+    FROM "Message" m
+    JOIN "Conversation" c ON c."id" = m."conversationId"
+    WHERE m."conversationId" = ${conversationId}
+      AND m."createdAt" > COALESCE(c."deletedAt", '-infinity'::timestamptz)
+    ORDER BY m."createdAt" DESC
     LIMIT ${limit}
   `
   // Return in chronological order (oldest first)

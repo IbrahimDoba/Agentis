@@ -467,6 +467,11 @@ model Conversation {
   // stop the AI re-dumping the whole catalogue (a credit drain) — once sent, the
   // album only resends when the customer explicitly asks to see everything again.
   lastProductAlbumSentAt DateTime?
+  // Soft delete. When set: hidden from the conversations tab AND acts as the AI
+  // memory cutoff — the orchestrator only feeds the model messages sent AFTER
+  // this timestamp, so it "forgets" everything prior (a clean per-conversation
+  // memory reset). The row + messages are preserved; nothing is destroyed.
+  deletedAt            DateTime?
   createdAt            DateTime            @default(now())
   messages             Message[]
   summary              ConversationSummary?
