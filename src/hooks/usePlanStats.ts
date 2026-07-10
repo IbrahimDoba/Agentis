@@ -13,6 +13,9 @@ export interface PlanStats {
   subscriptionExpiresAt: string | null
   creditBalance?: number
   creditsExpireAt?: string | null
+  // Lifetime credits drawn from the PAYG wallet — the usage-bar numerator when
+  // the wallet takes over (denominator = walletUsed + creditBalance).
+  walletUsed?: number
   isReseller?: boolean
 }
 
