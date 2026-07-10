@@ -6,10 +6,40 @@ import {
   fetchLatestWaWebVersion,
   type WASocket,
   type AuthenticationState,
+  type CacheStore,
 } from "@whiskeysockets/baileys"
 import { Boom } from "@hapi/boom"
 import { logger as rootLogger } from "../lib/logger.js"
 import { recordEvent } from "../lib/event-log.js"
+
+// Bounded in-memory cache for Baileys' message-retry counters. Baileys needs a
+// msgRetryCounterCache to ENFORCE maxMsgRetryCount — without one the counter is
+// never tracked, so a recipient on a flaky connection that keeps sending
+// "retry receipts" (couldn't decrypt) makes Baileys resend the SAME message
+// over and over. The result: one send in our DB, but the customer receives the
+// reply 2-3× (WhiskeySockets/Baileys#853). This caps that.
+function makeRetryCounterCache(): CacheStore {
+  const store = new Map<string, { v: unknown; exp: number }>()
+  const TTL_MS = 5 * 60_000
+  const prune = () => {
+    const now = Date.now()
+    for (const [k, e] of store) if (e.exp < now) store.delete(k)
+  }
+  return {
+    get<T>(key: string): T | undefined {
+      const e = store.get(key)
+      if (!e) return undefined
+      if (e.exp < Date.now()) { store.delete(key); return undefined }
+      return e.v as T
+    },
+    set<T>(key: string, value: T): void {
+      if (store.size > 10_000) prune()
+      store.set(key, { v: value, exp: Date.now() + TTL_MS })
+    },
+    del(key: string): void { store.delete(key) },
+    flushAll(): void { store.clear() },
+  }
+}
 
 export interface ConnectionOptions {
   agentId: string
@@ -70,6 +100,11 @@ export async function createConnection(opts: ConnectionOptions): Promise<WASocke
     browser: Browsers.macOS("Chrome"),
     connectTimeoutMs: 30_000,
     retryRequestDelayMs: 2_000,
+    // Cap message-retry resends so a flaky recipient can't make us deliver the
+    // same reply 2-3× (see makeRetryCounterCache above). The cache ENFORCES the
+    // cap; without it the count was never tracked and resends ran unbounded.
+    msgRetryCounterCache: makeRetryCounterCache(),
+    maxMsgRetryCount: 3,
     markOnlineOnConnect: false,
     // v7 "deaf session" hardening:
     // - A real 60s query timeout instead of `undefined` (= no timeout). With no
