@@ -55,7 +55,10 @@ export async function inboundRoutes(app: FastifyInstance) {
     // different/derived id, which the messageId dedup above won't catch. Dedup
     // on the (agent, sender, text) tuple within a short window so a redelivered
     // message can't trigger a second AI reply. Embed has its own delivery model.
-    if (channel !== "embed" && (await isDuplicateContent(agentId, senderJid, text))) {
+    // Dedup on the STABLE phone identity (fromPhone), not senderJid — the same
+    // message can arrive under both a @lid and a phone jid (WhatsApp LID
+    // migration), which would otherwise leak past and cause a duplicate reply.
+    if (channel !== "embed" && (await isDuplicateContent(agentId, fromPhone, text))) {
       logger.info({ agentId, fromPhone, messageId }, "Duplicate content within replay window — skipping")
       return reply.code(200).send({ status: "duplicate" })
     }
