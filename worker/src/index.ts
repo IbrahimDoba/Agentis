@@ -87,6 +87,19 @@ try {
   // connections from fighting over an account (which caused triplicate replies).
   await becomeLeader()
 
+  // Reclaim inodes BEFORE any session connects/saves. The old dual-write kept a
+  // local `.enc` copy of every auth file, which doubled the file count and
+  // exhausted the volume's inodes → ENOSPC → sessions couldn't save → the
+  // duplicate-delivery storm. Deleting frees inodes even at 100% full, so this
+  // self-heals a jammed worker on deploy without any manual shell access.
+  try {
+    const { reclaimEncBackups } = await import("./baileys/auth-store.js")
+    const freed = await reclaimEncBackups()
+    logger.info({ freed }, "Startup .enc reclaim complete")
+  } catch (err) {
+    logger.warn({ err }, "Startup .enc reclaim failed (continuing)")
+  }
+
   // Periodic sweep: resume AI on human-mode conversations idle past their
   // agent's auto-resume threshold.
   startAutoResumeSweep()

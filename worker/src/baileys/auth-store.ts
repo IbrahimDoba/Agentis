@@ -17,6 +17,45 @@ function sessionDir(agentId: string) {
 }
 
 /**
+ * One-time reclaim: delete every local `.enc` backup across all agents.
+ *
+ * We no longer keep local `.enc` copies — they DOUBLED the file count and, on a
+ * volume with many tiny auth files, exhausted its INODES → ENOSPC ("no space
+ * left") even with GBs of bytes free → sessions couldn't save → decrypt failures
+ * → duplicate-delivery storm.
+ *
+ * Run this on startup, BEFORE any session tries to save: deleting files frees
+ * inodes even when the filesystem is "full", so a worker booting on a jammed
+ * volume self-heals with no manual shell access. Safe — only the backup copies
+ * are removed; Baileys' live plaintext files are untouched.
+ */
+export async function reclaimEncBackups(): Promise<number> {
+  const { readdirSync, existsSync: exists } = await import("fs")
+  if (!exists(AUTH_BASE)) return 0
+  let removed = 0
+  let agents: string[] = []
+  try {
+    agents = readdirSync(AUTH_BASE, { withFileTypes: true })
+      .filter((d) => d.isDirectory())
+      .map((d) => d.name)
+  } catch (err) {
+    logger.warn({ err }, "reclaimEncBackups: could not list auth dir")
+    return 0
+  }
+  for (const agent of agents) {
+    const dir = path.join(AUTH_BASE, agent)
+    let files: string[] = []
+    try { files = readdirSync(dir) } catch { continue }
+    for (const f of files) {
+      if (!f.endsWith(".enc")) continue
+      try { await rm(path.join(dir, f), { force: true }); removed++ } catch { /* ignore */ }
+    }
+  }
+  if (removed > 0) logger.info({ removed }, "Reclaimed local .enc backups on startup (freed inodes)")
+  return removed
+}
+
+/**
  * Returns a Baileys auth state that:
  * - Stores auth files locally, encrypted at rest (AES-256-GCM)
  * - Mirrors to Supabase Storage on every save
