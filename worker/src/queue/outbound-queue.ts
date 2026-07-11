@@ -3,6 +3,7 @@ import { randomUUID } from "crypto"
 import { getRedis } from "./redis.js"
 import { isLeader } from "../lib/leader.js"
 import { sessionManager } from "../baileys/session-manager.js"
+import { blockSendReason } from "../baileys/auth-health.js"
 import { sendWithPacing, sendImageWithPacing, businessHoursCheck } from "../anti-ban/pacing.js"
 import {
   checkAndIncrement,
@@ -23,7 +24,7 @@ import {
 } from "../db/queries.js"
 import { webhookEmitter } from "../dashboard/webhook-emitter.js"
 import { logger as rootLogger } from "../lib/logger.js"
-import { RateLimitError } from "../lib/errors.js"
+import { RateLimitError, StorageUnwritableError } from "../lib/errors.js"
 import { PLAN_CREDIT_LIMITS, effectiveCreditLimit, creditsForMessageType, creditsForTokens, allowsOverage } from "../billing/credits.js"
 import { routeMessageCharge, deductFromWallet } from "../billing/wallet.js"
 import { getBillingPeriod } from "../billing/billing-period.js"
@@ -101,6 +102,18 @@ const worker = new Worker<OutboundJob>(
 
     // §7.5 — Check if paused
     if (sessionManager.isPaused(agentId)) throw new Error(`Session ${agentId} is paused (anti-ban)`)
+
+    // FAIL CLOSED: if the auth volume is full (or this agent's auth writes are
+    // failing), DROP the reply instead of sending. Persisting the signal ratchet
+    // is unsafe here, and a send now risks the broken-session retry storm that
+    // delivered one reply 100+ times. Returning (not throwing) marks the job
+    // complete so BullMQ doesn't retry it — the AI simply stays silent until
+    // storage recovers, which is the intended trade-off.
+    const blocked = await blockSendReason(agentId)
+    if (blocked) {
+      logger.error({ agentId, toJid, reason: blocked }, "Outbound send SKIPPED — auth storage not writable (failing closed)")
+      return
+    }
 
     // Get session for tier and business hours
     const session = await getSessionByAgentId(agentId)
@@ -225,6 +238,12 @@ const worker = new Worker<OutboundJob>(
       recordAckSuccess(agentId)
       webhookEmitter.emit("message.sent", { agentId, toJid, conversationId })
     } catch (err) {
+      // Backstop: storage filled between the pre-send check and the send. Not a
+      // WhatsApp throttle signal and not worth retrying — fail closed quietly.
+      if (err instanceof StorageUnwritableError) {
+        logger.error({ agentId, toJid, err: err.message }, "Outbound send aborted mid-flight — auth storage not writable (failing closed)")
+        return
+      }
       // Only count as throttle signal if it's not a connection-level error
       const msg = String(err)
       const isConnectionError = msg.includes("Connection Closed") || msg.includes("ECONNRESET") || msg.includes("socket hang up") || msg.includes("Stream Errored")

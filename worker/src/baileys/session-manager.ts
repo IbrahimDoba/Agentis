@@ -1,5 +1,6 @@
 import type { WASocket } from "@whiskeysockets/baileys"
 import { getEncryptedAuthState, purgeAuthFiles } from "./auth-store.js"
+import { clearAuthUnhealthy } from "./auth-health.js"
 import { createConnection } from "./connection.js"
 import { createEventHandlers } from "./event-handlers.js"
 import { attachHistorySyncHandler } from "./history-sync.js"
@@ -243,6 +244,9 @@ async function startSession(agentId: string, reconnectAttempt = 0): Promise<void
       })
       // Clear any throttle error state and un-pause from previous connection issues
       resetErrors(agentId)
+      // A clean link means the auth volume is writable again — clear any
+      // fail-closed breaker so this agent resumes sending (see auth-health.ts).
+      clearAuthUnhealthy(agentId)
       if (active.paused) {
         active.paused = false
         logger.info({ agentId }, "Session outbound auto-resumed on reconnect")

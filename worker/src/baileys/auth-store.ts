@@ -6,6 +6,7 @@ import { encrypt, decrypt } from "../lib/crypto.js"
 import { supabase } from "../db/supabase.js"
 import { config } from "../config.js"
 import { logger } from "../lib/logger.js"
+import { markAuthUnhealthy } from "./auth-health.js"
 
 // Configurable so it can point at a PERSISTENT Railway volume — when the auth
 // folder survives restarts, the worker stops re-downloading every agent's
@@ -76,8 +77,28 @@ export async function getEncryptedAuthState(agentId: string) {
   // Wrap useMultiFileAuthState with encryption/decryption
   const { state, saveCreds } = await useMultiFileAuthState(dir)
 
+  // Detect auth-persistence failures at the SOURCE. useMultiFileAuthState writes
+  // one file per signal key; when the volume is full these throw ENOSPC and the
+  // signal ratchet corrupts mid-update — the root of the duplicate-delivery
+  // storm. Surfacing the failure here trips the per-agent breaker so the send
+  // path fails closed (see auth-health.ts) instead of storming.
+  const originalKeysSet = state.keys.set.bind(state.keys)
+  state.keys.set = async (data) => {
+    try {
+      return await originalKeysSet(data)
+    } catch (err) {
+      markAuthUnhealthy(agentId, `keys.set: ${(err as Error).message}`)
+      throw err
+    }
+  }
+
   const saveCredsEncrypted = async () => {
-    await saveCreds()
+    try {
+      await saveCreds()
+    } catch (err) {
+      markAuthUnhealthy(agentId, `saveCreds: ${(err as Error).message}`)
+      throw err
+    }
     await backupToStorage(agentId, dir)
   }
 

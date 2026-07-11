@@ -2,6 +2,7 @@ import type { WASocket, AnyMessageContent } from "@whiskeysockets/baileys"
 import { truncatedNormal } from "./distribution.js"
 import { getTierConfig } from "./warmup.js"
 import { markSentByUs } from "../baileys/sent-message-cache.js"
+import { assertStorageWritable } from "../baileys/auth-health.js"
 import { logger as rootLogger } from "../lib/logger.js"
 
 const logger = rootLogger.child({ module: "pacing" })
@@ -32,6 +33,11 @@ export async function sendWithPacing(
   text: string,
   warmupTier: number
 ): Promise<string | undefined> {
+  // FAIL CLOSED: never send while the auth volume is full. A ratchet update we
+  // can't persist corrupts the session and triggers the duplicate-delivery
+  // storm — silence is strictly safer. Throws before any WhatsApp I/O.
+  await assertStorageWritable()
+
   const tier = getTierConfig(warmupTier)
 
   // §7.2 — Typing indicator
@@ -81,6 +87,9 @@ export async function sendImageWithPacing(
   caption: string,
   warmupTier: number
 ): Promise<string | undefined> {
+  // FAIL CLOSED on a full auth volume — see sendWithPacing.
+  await assertStorageWritable()
+
   const tier = getTierConfig(warmupTier)
 
   try {
@@ -133,6 +142,9 @@ export async function sendAlbum(
   // caption applied to the first image when `captions` is absent.
   opts: { title?: string; caption?: string; captions?: string[] } = {}
 ): Promise<{ sent: number; parentId: string | null }> {
+  // FAIL CLOSED on a full auth volume — see sendWithPacing.
+  await assertStorageWritable()
+
   // Optional intro / title text before the album ("Here's our collection 👇").
   if (opts.title) {
     try {

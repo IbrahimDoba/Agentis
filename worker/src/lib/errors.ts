@@ -32,3 +32,15 @@ export class SessionError extends WorkerError {
     super(message, "SESSION_ERROR", 503)
   }
 }
+
+/**
+ * Thrown when the auth volume can no longer be durably written (disk/inodes
+ * full, or a real auth-file write just failed). We FAIL CLOSED on this: a send
+ * is aborted rather than risking the broken-session retry storm that delivers
+ * one reply dozens of times. Better the AI stays silent than spams a customer.
+ */
+export class StorageUnwritableError extends WorkerError {
+  constructor(reason: string) {
+    super(`Auth storage not writable: ${reason}`, "STORAGE_UNWRITABLE", 503)
+  }
+}
