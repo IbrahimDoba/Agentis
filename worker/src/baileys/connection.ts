@@ -101,10 +101,20 @@ export async function createConnection(opts: ConnectionOptions): Promise<WASocke
     connectTimeoutMs: 30_000,
     retryRequestDelayMs: 2_000,
     // Cap message-retry resends so a flaky recipient can't make us deliver the
-    // same reply 2-3× (see makeRetryCounterCache above). The cache ENFORCES the
-    // cap; without it the count was never tracked and resends ran unbounded.
+    // same reply many times (see makeRetryCounterCache above). The cache ENFORCES
+    // the cap; without it the count was never tracked and resends ran unbounded.
     msgRetryCounterCache: makeRetryCounterCache(),
-    maxMsgRetryCount: 3,
+    // At most ONE resend attempt per message. On a broken signal session the
+    // recipient can send retry receipts in a loop; anything higher lets a single
+    // reply be delivered dozens+ of times.
+    maxMsgRetryCount: 1,
+    // getMessage is what Baileys calls to RE-fetch a message body to resend when
+    // a recipient asks for a retry. We intentionally return undefined: we do NOT
+    // keep a resend store, and — critically — declining the resend is what stops
+    // the retry-storm duplicate deliveries (one reply arriving 100× on a broken
+    // session). The first send still goes out normally; only broken-session
+    // resends are declined. See WhiskeySockets/Baileys#853.
+    getMessage: async () => undefined,
     markOnlineOnConnect: false,
     // v7 "deaf session" hardening:
     // - A real 60s query timeout instead of `undefined` (= no timeout). With no
