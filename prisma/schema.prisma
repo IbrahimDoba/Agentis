@@ -245,6 +245,7 @@ model Agent {
   embedSite            EmbedSite?
   whatsappLabels       WhatsAppLabel[]
   chatLabels           ChatLabel[]
+  baileysAuthKeys      BaileysAuthKey[]
 
   // Postgres does not auto-index FKs. `userId` is the app's hottest filter
   // (dashboard, billing, stats poll); `agentRuntime`/`elevenlabsAgentId` gate
@@ -721,6 +722,25 @@ model BaileysSession {
   createdAt            DateTime         @default(now())
   updatedAt            DateTime         @updatedAt
   outboundLogs         BaileysOutboundLog[]
+}
+
+// Baileys signal auth state, one row per key. Replaces the per-file volume
+// store (useMultiFileAuthState) so the auth footprint can never exhaust the
+// disk's INODES — the root cause of the duplicate-delivery incident. `category`
+// is the Baileys SignalData type ("creds" | "session" | "pre-key" | "sender-key"
+// | "sender-key-memory" | "app-state-sync-key" | "app-state-sync-version");
+// `keyId` mirrors the file store's fixed id; `value` is the AES-256-GCM
+// encrypted BufferJSON blob. Written by the worker via raw SQL, not Prisma.
+model BaileysAuthKey {
+  agentId   String
+  agent     Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  category  String
+  keyId     String
+  value     Bytes
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@id([agentId, category, keyId])
+  @@index([agentId])
 }
 
 model BaileysOutboundLog {

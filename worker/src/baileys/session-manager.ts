@@ -1,7 +1,9 @@
 import type { WASocket } from "@whiskeysockets/baileys"
 import { getEncryptedAuthState, purgeAuthFiles } from "./auth-store.js"
+import { getPostgresAuthState, purgePgAuthKeys } from "./auth-store-pg.js"
 import { clearAuthUnhealthy } from "./auth-health.js"
 import { createConnection } from "./connection.js"
+import { config } from "../config.js"
 import { createEventHandlers } from "./event-handlers.js"
 import { attachHistorySyncHandler } from "./history-sync.js"
 import { attachLabelHandlers } from "./labels.js"
@@ -127,6 +129,7 @@ export const sessionManager = {
       sessions.delete(agentId)
     }
     await purgeAuthFiles(agentId)
+    await purgePgAuthKeys(agentId)
     await deleteSession(agentId)
     logger.info({ agentId }, "Session destroyed")
   },
@@ -183,7 +186,12 @@ export const sessionManager = {
 async function startSession(agentId: string, reconnectAttempt = 0): Promise<void> {
   logger.info({ agentId, reconnectAttempt }, "Starting Baileys session")
 
-  const { state, saveCreds } = await getEncryptedAuthState(agentId)
+  // Postgres-backed auth (default) keeps one row per signal key so the volume
+  // can never exhaust inodes; the file store remains as a one-release fallback.
+  const { state, saveCreds } =
+    config.AUTH_STORE === "postgres"
+      ? await getPostgresAuthState(agentId)
+      : await getEncryptedAuthState(agentId)
 
   // Admin-gated chat-history-on-link feature: only request a full history
   // pull when the agent's owning user has the toggle on AND this session
@@ -272,8 +280,10 @@ async function startSession(agentId: string, reconnectAttempt = 0): Promise<void
       webhookEmitter.emit("session.disconnected", { agentId, reason })
 
       if (!shouldReconnect) {
-        // Purge stale auth files so the next connect starts fresh
+        // Logged out / replaced — purge stale auth (both stores) so the next
+        // connect starts fresh with a new QR.
         await purgeAuthFiles(agentId)
+        await purgePgAuthKeys(agentId)
         sessions.delete(agentId)
         return
       }

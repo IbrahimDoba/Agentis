@@ -27,6 +27,23 @@ const schema = z.object({
   // then the worker stops re-downloading every agent's auth backup from
   // Supabase on each boot (the main source of Supabase egress).
   AUTH_STORAGE_DIR: z.string().default("auth_sessions"),
+  // Where Baileys auth state is persisted. "postgres" (default) keeps one row
+  // per signal key in the DB — no per-key files, so the auth volume can never
+  // exhaust inodes (the root of the duplicate-delivery incident). "file" is the
+  // legacy per-file volume store, kept as a one-release escape hatch. On first
+  // load in postgres mode an agent with no DB rows is backfilled from its
+  // existing local files (zero QR re-scan), then those files are reclaimed.
+  AUTH_STORE: z.enum(["postgres", "file"]).default("postgres"),
+  // When true, delete an agent's local auth files after they're backfilled into
+  // Postgres, reclaiming the inodes. Default FALSE for the first release: keep
+  // the files as a live fallback while the DB store is proven in prod. Note that
+  // even with this off, switching to the Postgres store STOPS file growth (all
+  // writes go to the DB), so inode exhaustion cannot recur — this flag only
+  // controls reclaiming the already-written files. Flip to true once confident.
+  AUTH_RECLAIM_MIGRATED: z
+    .string()
+    .transform((v) => v === "true")
+    .default("false"),
 
   ALERT_WEBHOOK_URL: z.string().url().optional().or(z.literal("").transform(() => undefined)),
   LOG_LEVEL: z.enum(["trace", "debug", "info", "warn", "error", "fatal"]).default("info"),

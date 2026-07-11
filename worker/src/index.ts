@@ -100,6 +100,21 @@ try {
     logger.warn({ err }, "Startup .enc reclaim failed (continuing)")
   }
 
+  // With Postgres-backed auth, delete local auth dirs for agents already
+  // migrated (creds present in the DB) so their inodes are freed even before
+  // those sessions reconnect. Gated behind AUTH_RECLAIM_MIGRATED (default off):
+  // the first release keeps the files as a fallback. Un-migrated agents are
+  // never touched regardless.
+  if (config.AUTH_STORE === "postgres" && config.AUTH_RECLAIM_MIGRATED) {
+    try {
+      const { reclaimMigratedAuthDirs } = await import("./baileys/auth-store-pg.js")
+      const reclaimed = await reclaimMigratedAuthDirs()
+      logger.info({ reclaimed }, "Startup migrated-auth-dir reclaim complete")
+    } catch (err) {
+      logger.warn({ err }, "Startup migrated-auth-dir reclaim failed (continuing)")
+    }
+  }
+
   // Periodic sweep: resume AI on human-mode conversations idle past their
   // agent's auto-resume threshold.
   startAutoResumeSweep()
