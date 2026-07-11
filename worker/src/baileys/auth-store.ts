@@ -39,43 +39,20 @@ export async function getEncryptedAuthState(agentId: string) {
 
   const saveCredsEncrypted = async () => {
     await saveCreds()
-    await encryptLocalFiles(dir)
     await backupToStorage(agentId, dir)
   }
 
   return { state, saveCreds: saveCredsEncrypted }
 }
 
-async function encryptLocalFiles(dir: string) {
-  const { readdirSync } = await import("fs")
-  const files = readdirSync(dir)
-  for (const file of files) {
-    if (file.endsWith(".enc")) continue
-    const filePath = path.join(dir, file)
-    try {
-      const plain = await readFile(filePath)
-      const enc = encrypt(plain)
-      await writeFile(filePath + ".enc", enc)
-      // Don't delete the plain file — Baileys needs it; we keep .enc for backup
-    } catch (err) {
-      logger.warn({ err, file }, "Failed to encrypt auth file")
-    }
-  }
-
-  // Prune orphaned .enc backups whose plaintext file Baileys has since deleted
-  // (used pre-keys, rotated sessions). Without this the backup set grows forever
-  // and every restore download gets bigger — a major Supabase egress driver.
-  const plainSet = new Set(files.filter((f) => !f.endsWith(".enc")))
-  for (const file of files) {
-    if (!file.endsWith(".enc")) continue
-    if (!plainSet.has(file.slice(0, -4))) {
-      try { await rm(path.join(dir, file), { force: true }) } catch { /* ignore */ }
-    }
-  }
-}
-
 let bucketExists: boolean | null = null
 
+// Back up the auth state to Supabase Storage. We encrypt each plaintext file
+// IN MEMORY and upload it — we do NOT keep a local `.enc` copy. Keeping the .enc
+// duplicate on disk doubled the auth-session footprint (Baileys already writes
+// one file per contact/pre-key/session), which filled the worker's disk and
+// caused ENOSPC → session-save failures → decrypt/retry storms → duplicate
+// deliveries. Storing only the plaintext Baileys needs halves the disk usage.
 async function backupToStorage(agentId: string, dir: string) {
   // Check bucket exists once; skip silently if not found
   if (bucketExists === null) {
@@ -89,26 +66,37 @@ async function backupToStorage(agentId: string, dir: string) {
   if (!bucketExists) return
 
   const { readdirSync } = await import("fs")
-  const files = readdirSync(dir).filter((f) => f.endsWith(".enc"))
-  for (const file of files) {
-    const filePath = path.join(dir, file)
+  const allFiles = readdirSync(dir)
+  // Only the plaintext files Baileys maintains — the .enc copies live in Supabase.
+  const plainFiles = allFiles.filter((f) => !f.endsWith(".enc"))
+
+  // Reclaim space from any local .enc left over from the old dual-write scheme
+  // (previous deploys wrote a .enc for every file). One-time cleanup on save.
+  for (const f of allFiles) {
+    if (f.endsWith(".enc")) {
+      try { await rm(path.join(dir, f), { force: true }) } catch { /* ignore */ }
+    }
+  }
+
+  for (const file of plainFiles) {
     try {
-      const data = await readFile(filePath)
-      const storagePath = `${agentId}/${file}`
+      const plain = await readFile(path.join(dir, file))
+      const enc = encrypt(plain) // encrypt in memory — no local .enc written
+      const storagePath = `${agentId}/${file}.enc`
       const { error } = await supabase.storage
         .from(config.AUTH_STORAGE_BUCKET)
-        .upload(storagePath, data, { upsert: true, contentType: "application/octet-stream" })
+        .upload(storagePath, enc, { upsert: true, contentType: "application/octet-stream" })
       if (error) logger.warn({ error, file }, "Failed to backup auth file to storage")
     } catch (err) {
       logger.warn({ err, file }, "Failed to backup auth file")
     }
   }
 
-  // Prune backups in storage that no longer exist locally. uploads are
-  // upsert-only and never deleted, so without this the bucket keeps every
-  // rotated key/session forever — bloating each restore download (egress).
+  // Prune backups in storage whose local plaintext is gone (used pre-keys,
+  // rotated sessions). uploads are upsert-only and never deleted, so without
+  // this the bucket keeps every rotated key forever — bloating each restore.
   try {
-    const localSet = new Set(files)
+    const localSet = new Set(plainFiles.map((f) => `${f}.enc`))
     const { data: remote } = await supabase.storage.from(config.AUTH_STORAGE_BUCKET).list(agentId)
     const stale = (remote ?? [])
       .filter((f) => !localSet.has(f.name))
