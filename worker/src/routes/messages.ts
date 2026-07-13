@@ -15,6 +15,10 @@ const sendSchema = z.object({
   type: z.enum(["text", "image"]).default("text"),
   conversationId: z.string().optional(),
   source: z.enum(["ai", "human", "api"]).default("ai"),
+  // The orchestrator-persisted Message row backing this send. If the queue
+  // aborts the send (a human replied first), the worker deletes this row so
+  // the dashboard doesn't show a message the customer never received.
+  messageId: z.string().optional(),
   // PAYG: orchestrator passes real OpenAI token counts so the worker bills
   // by actual cost instead of the flat per-type rate. Only the FIRST part of
   // a split reply carries non-zero tokens — subsequent parts pass 0/0 to
@@ -37,6 +41,7 @@ export const messageRoutes: FastifyPluginAsync = async (app) => {
       type: body.type,
       conversationId: body.conversationId,
       source: body.source,
+      messageId: body.messageId,
       tokensInput: body.tokensInput,
       tokensOutput: body.tokensOutput,
     })

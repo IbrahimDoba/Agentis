@@ -21,7 +21,10 @@ import {
   getAgentBillingInfo,
   getMonthlyCreditsUsedForUser,
   insertCreditUsage,
+  humanIntervenedSince,
+  deleteMessageById,
 } from "../db/queries.js"
+import { recordEvent } from "../lib/event-log.js"
 import { webhookEmitter } from "../dashboard/webhook-emitter.js"
 import { logger as rootLogger } from "../lib/logger.js"
 import { RateLimitError, StorageUnwritableError } from "../lib/errors.js"
@@ -42,6 +45,10 @@ export interface OutboundJob {
   // "api" = developer-initiated outbound via the public API. Billed like "ai"
   // (flat per-message), counts toward warmup/anti-ban like any non-human send.
   source: "ai" | "human" | "api"
+  // The orchestrator-persisted Message row backing this AI reply part. When the
+  // send is aborted (human replied first), the worker deletes this row so the
+  // dashboard doesn't show a message the customer never received.
+  messageId?: string
   // PAYG: real OpenAI token counts from the orchestrator's chat completion.
   // Only carried on the FIRST part of a split reply; subsequent parts pass 0
   // so we don't double-charge the same LLM turn. When absent (broadcasts,
@@ -64,7 +71,7 @@ const queue = new Queue<OutboundJob>(QUEUE_NAME, {
 const worker = new Worker<OutboundJob>(
   QUEUE_NAME,
   async (job: Job<OutboundJob>) => {
-    const { agentId, toJid, text, mediaUrl, type, conversationId, source, tokensInput, tokensOutput } = job.data
+    const { agentId, toJid, text, mediaUrl, type, conversationId, source, messageId, tokensInput, tokensOutput } = job.data
 
     // Only the leader instance holds WhatsApp sockets. A standby has no session
     // for this agent — if it processed the job it would grab the per-agent lock
@@ -130,6 +137,28 @@ const worker = new Worker<OutboundJob>(
     if (extraDelayMs > 0 && session.warmupTier < 4) {
       logger.debug({ agentId, extraDelayMs, tier: session.warmupTier }, "Outside business hours — adding extra delay")
       await new Promise((r) => setTimeout(r, extraDelayMs))
+    }
+
+    // Human-interjection abort. The delays before this point (queue wait,
+    // business hours, per-agent lock) give an operator plenty of time to answer
+    // first — from the dashboard or their own phone. If they did (or the chat
+    // was switched to human mode), this AI reply is a stale double-answer:
+    // drop it — no send, no rate-limit slot, no billing — and delete the
+    // orchestrator-persisted row so the dashboard matches what WhatsApp got.
+    if (source === "ai" && conversationId) {
+      const intervened = await humanIntervenedSince(conversationId, new Date(job.timestamp))
+      if (intervened) {
+        logger.info({ agentId, conversationId, messageId }, "Human replied first — aborting queued AI reply")
+        void recordEvent({
+          level: "warn",
+          category: "ai.reply_aborted",
+          agentId,
+          message: "Human replied first — queued AI reply aborted before send",
+          detail: { conversationId },
+        })
+        if (messageId) await deleteMessageById(messageId).catch(() => {})
+        return
+      }
     }
 
     // Rate limiting (human messages bypass — operator-initiated sends should never be blocked)
