@@ -40,6 +40,21 @@ export const sessionRoutes: FastifyPluginAsync = async (app) => {
     reply.send({ ...session, dailyMessageCount: Number(redisCount ?? 0) })
   })
 
+  // GET /v1/sessions/:agentId/catalog — read the connected number's OWN WhatsApp
+  // Business catalogue (products + images), for the "Sync catalogue from
+  // WhatsApp" feature. 409 if not connected; empty list if no catalogue.
+  app.get<{ Params: { agentId: string } }>("/sessions/:agentId/catalog", async (req, reply) => {
+    const { fetchWhatsAppCatalog } = await import("../baileys/catalog.js")
+    try {
+      const result = await fetchWhatsAppCatalog(req.params.agentId)
+      reply.send({ ok: true, ...result })
+    } catch (err) {
+      const status = (err as Error & { statusCode?: number }).statusCode ?? 500
+      req.log.warn({ agentId: req.params.agentId, err: (err as Error).message }, "WhatsApp catalogue fetch failed")
+      reply.code(status).send({ ok: false, error: (err as Error).message })
+    }
+  })
+
   // POST /v1/sessions/:agentId/disconnect — stop socket, preserve auth + DB record
   app.post<{ Params: { agentId: string } }>("/sessions/:agentId/disconnect", async (req, reply) => {
     await sessionManager.disconnect(req.params.agentId)

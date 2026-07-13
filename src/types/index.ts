@@ -60,6 +60,17 @@ export interface Product {
   // The AI sends these as a per-product album when a customer asks about it.
   images?: string[]
   mediaId?: string
+  // ── WhatsApp catalogue sync ──────────────────────────────────────────────
+  // Where this product came from. "whatsapp" = pulled from the connected
+  // number's WhatsApp Business catalogue; undefined/"manual" = added in
+  // Dailzero. A sync only ever touches "whatsapp" products — manual ones are
+  // never overwritten.
+  source?: "whatsapp" | "manual"
+  // Operator's own SKU on WhatsApp — the stable key we re-sync on (may be empty
+  // if they never set SKUs, in which case waProductId is the fallback key).
+  retailerId?: string
+  // WhatsApp's internal product id — stable fallback merge key.
+  waProductId?: string
 }
 
 export interface AgentPublic {
