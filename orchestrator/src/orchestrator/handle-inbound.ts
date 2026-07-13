@@ -4,6 +4,7 @@ import {
   insertMessage,
   setConversationAdContextIfEmpty,
   getConversationMessageCount,
+  humanIntervenedSince,
   type AdContext,
 } from "../db/queries/conversations.js"
 import { buildSystemPrompt, buildMessages } from "./context-builder.js"
@@ -90,6 +91,10 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
     content: text,
     id: payload.messageId,
   })
+  // Anchor for the human-interjection check: any operator reply AFTER this
+  // moment means a human answered this customer message first — the AI's
+  // pending reply must then be dropped, not sent as a stale double-answer.
+  const inboundSavedAt = new Date()
 
   // Real-time: tell any open dashboard stream a customer message landed, so it
   // shows immediately — even when AI is paused (human-handoff mode below).
@@ -184,9 +189,24 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
   // cards don't render twice when a long reply gets split.
   const richContent = buildRichContent(collectedToolResults)
 
-  // 8. Persist outbound message(s)
+  // 7c. Human-interjection gate. The LLM turn takes seconds — if an operator
+  // answered this customer (dashboard or their own phone) or took the chat to
+  // human mode while we were generating, drop the reply BEFORE it's persisted
+  // or dispatched. The worker re-checks again at send time (after the anti-ban
+  // delays), so both windows are covered.
+  if (await humanIntervenedSince(conversation.id, inboundSavedAt)) {
+    logger.info(
+      { agentId, conversationId: conversation.id },
+      "Human replied first — dropping the AI reply (not persisted, not sent)"
+    )
+    return
+  }
+
+  // 8. Persist outbound message(s), keeping each part's row id so the worker
+  // can delete the row if it aborts the send (human replied while queued).
+  const partMessageIds: string[] = []
   for (let i = 0; i < replyParts.length; i++) {
-    await insertMessage({
+    const partId = await insertMessage({
       conversationId: conversation.id,
       direction: "outbound",
       content: replyParts[i],
@@ -195,6 +215,7 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
       tokensOutput: totalOutputTokens,
       modelUsed: agent.model,
     })
+    partMessageIds.push(partId)
   }
 
   // Real-time: notify open dashboard streams that the AI reply is persisted.
@@ -214,6 +235,9 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
         toJid: senderJid,
         text: replyParts[i],
         source: "ai",
+        // The persisted row backing this part — lets the worker delete it if
+        // it aborts the send because a human replied while the job waited.
+        messageId: partMessageIds[i],
         // PAYG: charge the full turn's tokens against the FIRST part only.
         // Subsequent parts pass 0/0 so the worker doesn't double-charge.
         tokensInput: i === 0 ? totalInputTokens : 0,

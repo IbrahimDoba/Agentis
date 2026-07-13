@@ -215,3 +215,27 @@ export async function getConversationMessageCount(conversationId: string): Promi
   `
   return parseInt(rows[0]?.count ?? "0", 10)
 }
+
+// Has a HUMAN taken over this conversation since `since`? True when the
+// conversation is in human mode OR an operator reply (dashboard or their own
+// phone — both write senderRole='human' outbound rows) landed after `since`.
+// Used to abort a pending AI reply the moment a human answers first, instead
+// of sending a stale double-answer after the anti-ban delay.
+export async function humanIntervenedSince(conversationId: string, since: Date): Promise<boolean> {
+  const rows = await sql<{ mode: string; humanReplied: boolean }[]>`
+    SELECT c."mode",
+      EXISTS(
+        SELECT 1 FROM "Message" m
+        WHERE m."conversationId" = c."id"
+          AND m."direction" = 'outbound'
+          AND m."senderRole" = 'human'
+          AND m."createdAt" > ${since.toISOString()}
+      ) as "humanReplied"
+    FROM "Conversation" c
+    WHERE c."id" = ${conversationId}
+    LIMIT 1
+  `
+  const row = rows[0]
+  if (!row) return false
+  return row.mode === "human" || row.humanReplied
+}

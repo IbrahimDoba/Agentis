@@ -477,6 +477,39 @@ export async function getConversationMode(phoneNumber: string, agentId: string):
   return (rows[0]?.mode === "human") ? "human" : "ai"
 }
 
+// Has a HUMAN taken over this conversation since `since`? True when the
+// conversation is in human mode OR an operator reply (dashboard or their own
+// phone — both write senderRole='human' outbound rows) landed after `since`.
+// The outbound queue uses this right before sending an AI reply: the anti-ban
+// delays give a human plenty of time to answer first, and a stale AI reply
+// must then be aborted, not sent. Mirrors the orchestrator's pre-persist gate
+// (orchestrator/src/db/queries/conversations.ts humanIntervenedSince).
+export async function humanIntervenedSince(conversationId: string, since: Date): Promise<boolean> {
+  const rows = await sql<{ mode: string; humanReplied: boolean }[]>`
+    SELECT c."mode",
+      EXISTS(
+        SELECT 1 FROM "Message" m
+        WHERE m."conversationId" = c."id"
+          AND m."direction" = 'outbound'
+          AND m."senderRole" = 'human'
+          AND m."createdAt" > ${since.toISOString()}::timestamptz
+      ) as "humanReplied"
+    FROM "Conversation" c
+    WHERE c."id" = ${conversationId}
+    LIMIT 1
+  `
+  const row = rows[0]
+  if (!row) return false
+  return row.mode === "human" || row.humanReplied
+}
+
+// Remove an AI reply row that was persisted by the orchestrator but ABORTED at
+// send time (human replied while the job waited in the queue) — the customer
+// never received it, so the dashboard must not show it.
+export async function deleteMessageById(messageId: string): Promise<void> {
+  await sql`DELETE FROM "Message" WHERE "id" = ${messageId}`
+}
+
 export async function getAgentIsHumanMode(agentId: string): Promise<boolean> {
   const rows = await sql<{ isActive: boolean }[]>`
     SELECT "isActive" FROM "OrchestratorAgent" WHERE "agentId" = ${agentId} LIMIT 1

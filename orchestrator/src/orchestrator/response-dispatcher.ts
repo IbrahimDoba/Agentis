@@ -9,6 +9,10 @@ export interface DispatchOptions {
   toJid: string
   text: string
   source: "ai" | "human"
+  // The persisted Message row backing this part. The worker deletes it if it
+  // aborts the send (a human replied while the job sat in the queue) so the
+  // dashboard never shows an AI message that was never delivered.
+  messageId?: string
   // PAYG: real OpenAI token counts for this LLM turn. Pass on the FIRST part
   // of a split reply; pass 0/0 on subsequent parts so they don't re-charge
   // the same turn. Worker falls back to flat per-type rate when omitted.
@@ -35,6 +39,7 @@ export async function dispatchReply(opts: DispatchOptions): Promise<void> {
       text: opts.text,
       conversationId: opts.conversationId,
       source: opts.source,
+      ...(opts.messageId ? { messageId: opts.messageId } : {}),
       ...(opts.tokensInput !== undefined ? { tokensInput: opts.tokensInput } : {}),
       ...(opts.tokensOutput !== undefined ? { tokensOutput: opts.tokensOutput } : {}),
     }),
