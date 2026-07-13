@@ -43,10 +43,11 @@ export const sessionRoutes: FastifyPluginAsync = async (app) => {
   // GET /v1/sessions/:agentId/catalog — read the connected number's OWN WhatsApp
   // Business catalogue (products + images), for the "Sync catalogue from
   // WhatsApp" feature. 409 if not connected; empty list if no catalogue.
-  app.get<{ Params: { agentId: string } }>("/sessions/:agentId/catalog", async (req, reply) => {
+  app.get<{ Params: { agentId: string }; Querystring: { limit?: string; jid?: string } }>("/sessions/:agentId/catalog", async (req, reply) => {
     const { fetchWhatsAppCatalog } = await import("../baileys/catalog.js")
     try {
-      const result = await fetchWhatsAppCatalog(req.params.agentId)
+      const limit = req.query.limit ? Number(req.query.limit) : undefined
+      const result = await fetchWhatsAppCatalog(req.params.agentId, { limit, jid: req.query.jid })
       reply.send({ ok: true, ...result })
     } catch (err) {
       const status = (err as Error & { statusCode?: number }).statusCode ?? 500

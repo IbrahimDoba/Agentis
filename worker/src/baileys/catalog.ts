@@ -60,32 +60,61 @@ interface RawProduct {
 const PAGE_SIZE = 100
 const MAX_PAGES = 20 // safety bound: 2,000 products
 
+export interface FetchCatalogOptions {
+  /** Page size to request (Baileys default is 10; we default to 100). */
+  limit?: number
+  /**
+   * Query a SPECIFIC number's public catalogue instead of the connected
+   * account's own — a diagnostic knob to test whether getCatalog works at all
+   * (e.g. against a known business) vs. being blocked for our own account.
+   * Accepts a bare number or a full jid.
+   */
+  jid?: string
+}
+
+interface CatalogSocketExt extends CatalogSocket {
+  getCatalog: (opts: { limit?: number; cursor?: string; jid?: string }) => Promise<{
+    products: RawProduct[]
+    nextPageCursor?: string
+  }>
+}
+
 /**
  * Read the connected number's OWN WhatsApp Business catalogue, paginated.
  * Throws a 409-tagged error when the agent has no live session. Returns an
  * empty list (not an error) when the account simply has no catalogue —
  * personal accounts, or business accounts that never set one up.
  */
-export async function fetchWhatsAppCatalog(agentId: string): Promise<WhatsAppCatalogResult> {
-  const sock = sessionManager.get(agentId) as unknown as CatalogSocket | null
+export async function fetchWhatsAppCatalog(
+  agentId: string,
+  opts: FetchCatalogOptions = {}
+): Promise<WhatsAppCatalogResult> {
+  const sock = sessionManager.get(agentId) as unknown as CatalogSocketExt | null
   if (!sock || typeof sock.getCatalog !== "function") {
     const err = new Error("Agent is not connected to WhatsApp") as Error & { statusCode?: number }
     err.statusCode = 409
     throw err
   }
 
+  const limit = opts.limit && opts.limit > 0 ? opts.limit : PAGE_SIZE
+  const jid = opts.jid
+    ? opts.jid.includes("@")
+      ? opts.jid
+      : `${opts.jid.replace(/\D/g, "")}@s.whatsapp.net`
+    : undefined
+
   const products: WhatsAppCatalogProduct[] = []
   let cursor: string | undefined
   let pages = 0
   do {
-    const res = await sock.getCatalog({ limit: PAGE_SIZE, cursor })
+    const res = await sock.getCatalog({ limit, cursor, jid })
     for (const raw of res.products ?? []) products.push(normalizeProduct(raw))
     cursor = res.nextPageCursor
     pages++
   } while (cursor && pages < MAX_PAGES)
 
   const truncated = Boolean(cursor) && pages >= MAX_PAGES
-  logger.info({ agentId, count: products.length, pages, truncated }, "Fetched WhatsApp catalogue")
+  logger.info({ agentId, jid: jid ?? "own", limit, count: products.length, pages, truncated }, "Fetched WhatsApp catalogue")
   return { products, count: products.length, truncated }
 }
 
