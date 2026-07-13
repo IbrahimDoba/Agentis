@@ -48,9 +48,9 @@ describe("apiBilling — routeMessageCharge (pure truth table)", () => {
 })
 
 describe("apiBilling — allowsOverage", () => {
-  it("matches the plan policy", () => {
-    expect(allowsOverage("starter")).toBe(true)
-    expect(allowsOverage("pro")).toBe(true)
+  it("no plan allows overage — every plan falls back to PAYG then stops", () => {
+    expect(allowsOverage("starter")).toBe(false)
+    expect(allowsOverage("pro")).toBe(false)
     expect(allowsOverage("free")).toBe(false)
     expect(allowsOverage("basic")).toBe(false)
   })

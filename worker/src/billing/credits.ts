@@ -52,12 +52,19 @@ export function effectiveCreditLimit(
   return baseLimit + carry
 }
 
+// Overage is REMOVED platform-wide (mirror of src/lib/plans.ts). A null rate for
+// every plan means no plan overshoots its allowance — sends bill the monthly
+// allowance first, then the PAYG wallet, then STOP. `basic` is now listed
+// explicitly: it was previously ABSENT, so allowsOverage()'s `!== null` check
+// returned true for it (undefined !== null) and Basic users got unlimited free
+// overshoot — a bug this closes.
 export const PLAN_OVERAGE_RATE_PER_1K: Record<string, number | null> = {
   free: null,
-  starter: 1000,
-  pro: 800,
+  basic: null,
+  starter: null,
+  pro: null,
   enterprise: null,
-  reseller: null, // no overage — reseller users pause when their wallet empties
+  reseller: null,
 }
 
 export function creditsForMessageType(type?: "text" | "image"): number {

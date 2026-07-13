@@ -3,7 +3,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { Navbar } from "@/components/landing/Navbar"
 import { Footer } from "@/components/landing/Footer"
-import { PLAN_PRICES, PLAN_CREDIT_LIMITS, PLAN_OVERAGE_RATE_PER_1K, formatNaira } from "@/lib/plans"
+import { PLAN_PRICES, PLAN_CREDIT_LIMITS, formatNaira } from "@/lib/plans"
 import { PAYG_DEFAULT_NGN_PER_CREDIT } from "@/lib/credits"
 import styles from "./page.module.css"
 
@@ -33,8 +33,6 @@ const proMonthly = plan("pro")
 const BASIC_CREDITS_FMT = PLAN_CREDIT_LIMITS.basic.toLocaleString("en-NG")
 const STARTER_CREDITS_FMT = PLAN_CREDIT_LIMITS.starter.toLocaleString("en-NG")
 const PRO_CREDITS_FMT = PLAN_CREDIT_LIMITS.pro.toLocaleString("en-NG")
-const STARTER_OVERAGE_FMT = `${formatNaira(PLAN_OVERAGE_RATE_PER_1K.starter ?? 0)} / 1k credits`
-const PRO_OVERAGE_FMT = `${formatNaira(PLAN_OVERAGE_RATE_PER_1K.pro ?? 0)} / 1k credits`
 
 const basicFeatures = [
   { text: "1 AI WhatsApp Agent", included: true },
@@ -47,7 +45,7 @@ const basicFeatures = [
   { text: "Customer memory & context", included: true },
   { text: "Email support", included: true },
   { text: "Voice call capability", included: false },
-  { text: "Overage credits", included: false },
+  { text: "Pay-as-you-go top-ups", included: true },
   { text: "Advanced analytics", included: false },
 ]
 
@@ -61,7 +59,7 @@ const starterFeatures = [
   { text: "Conversation monitoring dashboard", included: true },
   { text: "Email support", included: true },
   { text: "7-day free trial", included: true },
-  { text: `${formatNaira(PLAN_OVERAGE_RATE_PER_1K.starter ?? 0)} per 1,000 extra credits`, included: true },
+  { text: "Pay-as-you-go top-ups when you exceed your plan", included: true },
   { text: "Voice call capability", included: false },
   { text: "Advanced AI personality", included: false },
   { text: "Multi-language support", included: false },
@@ -80,7 +78,7 @@ const proFeatures = [
   { text: "Advanced analytics & insights", included: true },
   { text: "Custom response guidelines", included: true },
   { text: "7-day free trial", included: true },
-  { text: `${formatNaira(PLAN_OVERAGE_RATE_PER_1K.pro ?? 0)} per 1,000 extra credits`, included: true },
+  { text: "Pay-as-you-go top-ups when you exceed your plan", included: true },
 ]
 
 const faqs = [
@@ -94,7 +92,7 @@ const faqs = [
   },
   {
     q: "What happens if I exceed my credit limit?",
-    a: `Basic does not include overage credits. On Starter, additional credits beyond ${STARTER_CREDITS_FMT}/month are charged at ${STARTER_OVERAGE_FMT}. On Pro, overage is ${PRO_OVERAGE_FMT}.`,
+    a: `Your plan's monthly credits are used first. Beyond that, sends draw from your pay-as-you-go balance, which you can top up anytime. When both your monthly credits and your pay-as-you-go balance run out, your agent pauses until your next renewal or top-up — there are no surprise overage charges.`,
   },
   {
     q: "Do I have to subscribe to a monthly plan?",
@@ -284,7 +282,7 @@ export default function PricingPage() {
               </div>
               {[
                 ["Monthly Credits", `${BASIC_CREDITS_FMT} (~500 text convos)`, `${STARTER_CREDITS_FMT} (~923 text convos)`, `${PRO_CREDITS_FMT} (~1,538 text convos)`],
-                ["Overage Rate", "None", STARTER_OVERAGE_FMT, PRO_OVERAGE_FMT],
+                ["Beyond your plan", "Pay-as-you-go", "Pay-as-you-go", "Pay-as-you-go"],
                 ["Response Type", "Text + Image", "Text + Image", "Text + Image + Media"],
                 ["Media Sending", "✓ Images", "✓ Images", "✓ Images, PDFs"],
                 ["FAQ Handling", "Standard", "Advanced", "Advanced AI"],

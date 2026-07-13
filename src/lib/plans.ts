@@ -71,13 +71,19 @@ export const AI_CREDIT_COSTS = {
 } as const
 
 // Overage rate in Naira per 1,000 credits (null = no overage allowed)
+// Overage is REMOVED platform-wide: no plan overshoots its allowance. Every
+// plan now bills monthly allowance first, then the PAYG wallet, then STOPS.
+// Kept as an all-null table (rather than deleted) so the many consumers that
+// read it — allowsOverage(), renewal billing, dashboard guards — uniformly see
+// "no overage entitlement" without a broad refactor. A null rate means: no
+// overshoot at send time, and nothing billed for exceeding the plan.
 export const PLAN_OVERAGE_RATE_PER_1K: Record<string, number | null> = {
   free: null,
   basic: null,
-  starter: 1000,
-  pro: 800,
+  starter: null,
+  pro: null,
   enterprise: null, // custom
-  reseller: null, // no overage — reseller users can't self-pay; they pause when the wallet empties
+  reseller: null,
 }
 
 export const PLAN_LABELS: Record<string, string> = {

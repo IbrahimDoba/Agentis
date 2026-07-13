@@ -256,8 +256,10 @@ export default function BillingPage() {
         </div>
         )}
 
-        {/* Overage card (only show if overdue) */}
-        {overageCredits > 0 && (
+        {/* Overage removed platform-wide — this card only renders if a plan ever
+            re-enables an overage rate. With all rates null it never shows;
+            exceeding the allowance now draws the PAYG wallet or stops. */}
+        {overageRate !== null && overageCredits > 0 && (
           <div className={styles.overageCard}>
             <div className={styles.overageTitle}>⚠ Overage this month</div>
             <div className={styles.overageBig}>{overageCredits.toLocaleString()} <span>credits over limit</span></div>

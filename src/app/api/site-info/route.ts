@@ -97,7 +97,7 @@ const siteInfo = {
           "Conversation monitoring dashboard",
           "Email support",
           "7-day free trial",
-          "₦1,000 per 1,000 extra credits",
+          "Pay-as-you-go top-ups when you exceed your plan",
         ],
         notIncluded: [
           "Voice call capability",
@@ -106,7 +106,7 @@ const siteInfo = {
           "Priority support",
           "Advanced analytics",
         ],
-        overageRate: "₦1,000 per 1,000 credits above 60,000",
+        overageRate: "None — pay-as-you-go beyond your plan; the agent pauses when both run out",
       },
       {
         name: "Pro",
@@ -126,9 +126,9 @@ const siteInfo = {
           "Advanced analytics & insights",
           "Custom response guidelines",
           "7-day free trial",
-          "₦800 per 1,000 extra credits",
+          "Pay-as-you-go top-ups when you exceed your plan",
         ],
-        overageRate: "₦800 per 1,000 credits above 100,000",
+        overageRate: "None — pay-as-you-go beyond your plan; the agent pauses when both run out",
       },
     ],
     enterprise: {
@@ -152,7 +152,7 @@ const siteInfo = {
     {
       question: "What happens if I exceed my conversation limit?",
       answer:
-        "On the Starter plan, additional credits beyond your 60,000 monthly allowance are charged at ₦1,000 per 1,000 credits. On the Pro plan, the overage rate is ₦800 per 1,000 credits.",
+        "Your plan's monthly credits are used first. Beyond that, sends draw from your pay-as-you-go balance, which you can top up anytime. When both your monthly credits and pay-as-you-go balance run out, your agent pauses until your next renewal or top-up — there are no surprise overage charges.",
     },
     {
       question: "Do you offer custom plans?",
