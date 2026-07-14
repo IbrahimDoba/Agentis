@@ -50,13 +50,26 @@ export async function checkDuplicateText(text: string, jid: string): Promise<voi
 
 /**
  * Track new contacts (§7.10 — max 50 new contacts/day).
+ *
+ * The cap exists to stop UNSOLICITED first-contact sends — the real ban vector.
+ * A reply inside a conversation the CUSTOMER started is not outreach, so
+ * callers pass enforceCap:false for those: the contact is still marked seen
+ * (so later genuine outreach to them isn't miscounted as "new") but the reply
+ * neither consumes nor enforces the daily budget. Without this, a busy ad
+ * campaign burns the 50 slots by evening and every additional NEW customer
+ * gets silence instead of an AI reply.
  */
-export async function trackNewContact(agentId: string, jid: string): Promise<void> {
+export async function trackNewContact(
+  agentId: string,
+  jid: string,
+  opts: { enforceCap?: boolean } = {}
+): Promise<void> {
+  const enforceCap = opts.enforceCap ?? true
   const redis = getRedis()
   const seenKey = `rl:seen:${agentId}:${jid}`
   const isNew = (await redis.set(seenKey, "1", "EX", 86400, "NX")) === "OK"
 
-  if (isNew) {
+  if (isNew && enforceCap) {
     const key = newContactKey(agentId)
     const count = await redis.incr(key)
     if (count === 1) await redis.expire(key, 86400)

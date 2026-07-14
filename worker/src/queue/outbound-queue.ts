@@ -164,7 +164,13 @@ const worker = new Worker<OutboundJob>(
     // Rate limiting (human messages bypass — operator-initiated sends should never be blocked)
     if (source !== "human") {
       await checkAndIncrement(agentId, session.warmupTier)
-      await trackNewContact(agentId, toJid)
+      // An AI reply inside an existing conversation was initiated by the
+      // CUSTOMER (e.g. they messaged in from an ad) — it's not cold outreach,
+      // so it must not consume or enforce the 50/day new-contact cap. That cap
+      // is for genuinely-initiated sends (dev-API messages, ad-hoc sends
+      // without a conversation). The contact is still marked seen either way.
+      const isConversationReply = source === "ai" && !!conversationId
+      await trackNewContact(agentId, toJid, { enforceCap: !isConversationReply })
     }
 
     // Billing guardrails (AI sends only — human operator messages always go through)
