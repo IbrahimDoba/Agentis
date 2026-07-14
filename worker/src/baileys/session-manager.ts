@@ -30,6 +30,13 @@ interface ActiveSession {
   // then pairing-code back-to-back, so an immediate request races the handshake
   // and fails (the "worked once, never again" pairing bug).
   qrReady: boolean
+  // Baileys can emit TWO close events for one socket teardown (stream error +
+  // ws close). Both used to run onDisconnected concurrently, and the echo's
+  // generic status write could land AFTER the cap path's
+  // "max_reconnect_attempts_exceeded" marker — wiping the only reason the
+  // session-watchdog matches, leaving the session stranded until a human
+  // restarted it. Process exactly one close per socket.
+  disconnectHandled: boolean
 }
 
 const sessions = new Map<string, ActiveSession>()
@@ -102,7 +109,9 @@ export const sessionManager = {
     }
   },
 
-  // Disconnect: stops the socket and marks DISCONNECTED — preserves auth files + DB record
+  // Disconnect: stops the socket and marks DISCONNECTED — preserves auth files + DB record.
+  // Stamps 'user_disconnect' so the session-watchdog never auto-revives an
+  // intentional stop (it only revives crash-stranded sessions).
   async disconnect(agentId: string): Promise<void> {
     const active = sessions.get(agentId)
     if (active) {
@@ -111,7 +120,7 @@ export const sessionManager = {
       try { active.sock.end(undefined) } catch { /* ignore */ }
       sessions.delete(agentId)
     }
-    await updateSessionStatus(agentId, "DISCONNECTED")
+    await updateSessionStatus(agentId, "DISCONNECTED", { lastDisconnectReason: "user_disconnect" })
     logger.info({ agentId }, "Session disconnected (auth preserved)")
   },
 
@@ -216,6 +225,7 @@ async function startSession(agentId: string, reconnectAttempt = 0): Promise<void
     paused: false,
     stopRequested: false,
     qrReady: false,
+    disconnectHandled: false,
   }
   sessions.set(agentId, active)
 
@@ -274,6 +284,15 @@ async function startSession(agentId: string, reconnectAttempt = 0): Promise<void
         logger.info({ agentId, reason }, "Session close was intentional — skipping auto-reconnect")
         return
       }
+      // Baileys can fire a second close event for the same teardown. Handle
+      // exactly one — a late echo would otherwise overwrite the cap/logged-out
+      // reason markers below and blind the session-watchdog (seen live 07-14:
+      // Justfits stranded DISCONNECTED with the generic stream-error reason).
+      if (active.disconnectHandled) {
+        logger.debug({ agentId, reason }, "Duplicate close event for this socket — already handled")
+        return
+      }
+      active.disconnectHandled = true
 
       active.qrCallbacks.forEach((cb) => cb("", "disconnected"))
       await updateSessionStatus(agentId, "DISCONNECTED", { lastDisconnectReason: reason })
@@ -281,7 +300,9 @@ async function startSession(agentId: string, reconnectAttempt = 0): Promise<void
 
       if (!shouldReconnect) {
         // Logged out / replaced — purge stale auth (both stores) so the next
-        // connect starts fresh with a new QR.
+        // connect starts fresh with a new QR. Stamp a stable marker so the
+        // widened watchdog never tries to revive a genuinely logged-out session.
+        await updateSessionStatus(agentId, "DISCONNECTED", { lastDisconnectReason: "logged_out" })
         await purgeAuthFiles(agentId)
         await purgePgAuthKeys(agentId)
         sessions.delete(agentId)
