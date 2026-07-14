@@ -62,10 +62,29 @@ export async function getSessionByAgentId(agentId: string): Promise<BaileysSessi
 // intentionally-disconnected, logged-out (401) and banned (403) sessions —
 // those need a deliberate action / fresh QR, not an auto-restart.
 export async function getStuckSessions(): Promise<{ agentId: string }[]> {
+  // Two tiers of "stuck":
+  // 1. The explicit reconnect-cap marker — revive immediately.
+  // 2. Safety net: a session that was CONNECTED within the last 24h and has now
+  //    sat DISCONNECTED for 10+ minutes with a crash-family reason — i.e.
+  //    stranded mid-operation. Guards against reason-string races (Baileys
+  //    double-close events could overwrite the cap marker with a generic
+  //    stream-error reason — seen live 07-14: Justfits stranded until a manual
+  //    restart). The lastConnectedAt gate keeps the net away from the ~44
+  //    long-parked/abandoned sessions (some DISCONNECTED since April) that must
+  //    NOT be mass-revived on deploy; intentional stops ('user_disconnect') and
+  //    terminal logouts ('logged_out') are excluded by marker, and abandoned
+  //    QR links ('QR refs attempts ended') explicitly too.
   return sql<{ agentId: string }[]>`
     SELECT "agentId" FROM "BaileysSession"
     WHERE "status" = 'DISCONNECTED'
-      AND "lastDisconnectReason" = 'max_reconnect_attempts_exceeded'
+      AND (
+        "lastDisconnectReason" = 'max_reconnect_attempts_exceeded'
+        OR (
+          COALESCE("lastDisconnectReason", '') NOT IN ('user_disconnect', 'logged_out', 'QR refs attempts ended')
+          AND "updatedAt" < now() - interval '10 minutes'
+          AND "lastConnectedAt" > now() - interval '24 hours'
+        )
+      )
   `
 }
 
