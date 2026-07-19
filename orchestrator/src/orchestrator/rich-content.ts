@@ -108,6 +108,35 @@ function isPlainObject(v: unknown): v is Record<string, unknown> {
   return !!v && typeof v === "object" && !Array.isArray(v)
 }
 
+// Some vendors return prices as pre-formatted strings ("₦4,500", "$12.99",
+// "2 900,00") instead of numbers — which used to slip past the numeric-only
+// detection, so those products never became cards (seen with AVMall's search
+// API). Parse the amount out and return it in MINOR units (kobo/cents). A
+// formatted display price is always a MAJOR-unit amount, so we ×100. Returns
+// null for non-strings or unparseable input.
+function parseMoneyStringToMinor(v: unknown): number | null {
+  if (typeof v !== "string") return null
+  // Drop everything but digits and separators, then normalise: treat the LAST
+  // separator as the decimal point and strip the rest (handles "4,500",
+  // "4.500,00", "1,234.56"). No separator → whole number.
+  const trimmed = v.replace(/[^0-9.,]/g, "")
+  if (!/[0-9]/.test(trimmed)) return null
+  const lastSep = Math.max(trimmed.lastIndexOf("."), trimmed.lastIndexOf(","))
+  let normalised: string
+  if (lastSep === -1) {
+    normalised = trimmed
+  } else {
+    const intPart = trimmed.slice(0, lastSep).replace(/[.,]/g, "")
+    const fracPart = trimmed.slice(lastSep + 1).replace(/[.,]/g, "")
+    // A 3-digit group after the separator is a thousands group, not decimals
+    // (e.g. "4,500" → 4500, not 4.5). Decimals are 1–2 digits.
+    normalised = fracPart.length === 3 ? intPart + fracPart : `${intPart}.${fracPart}`
+  }
+  const major = Number.parseFloat(normalised)
+  if (!Number.isFinite(major)) return null
+  return Math.round(major * 100)
+}
+
 // Webhook executor wraps the upstream response:
 //   { ok: true, status, tool, body: "<stringified upstream JSON>" }
 // We unwrap once to get the outer envelope, then JSON-parse the body string.
@@ -128,12 +157,20 @@ function unwrapToolBody(raw: string): unknown {
 function looksLikeProduct(o: unknown): boolean {
   if (!isPlainObject(o)) return false
   const hasName = NAME_FIELDS.some((f) => typeof o[f] === "string" && (o[f] as string).trim())
-  const hasPrice = [
+  const hasNumericPrice = [
     ...PRICE_MINOR_FIELDS,
     ...PRICE_MAJOR_FIELDS,
     ...SALE_PRICE_MINOR_FIELDS,
     ...SALE_PRICE_MAJOR_FIELDS,
   ].some((f) => typeof o[f] === "number")
+  // Also accept a formatted price STRING ("₦4,500") — vendors like AVMall
+  // pre-format, and those products must still become cards.
+  const hasStringPrice = [
+    ...PRICE_MAJOR_FIELDS,
+    ...SALE_PRICE_MAJOR_FIELDS,
+    ...ORIGINAL_PRICE_MAJOR_FIELDS,
+  ].some((f) => parseMoneyStringToMinor(o[f]) !== null)
+  const hasPrice = hasNumericPrice || hasStringPrice
   const hasImage = IMAGE_FIELDS.some((f) => typeof o[f] === "string")
   // All three required — keeps order line-items and unrelated arrays from
   // accidentally becoming product cards.
@@ -187,13 +224,26 @@ function extractPrice(
   // Mapping override: caller named the price field explicitly.
   if (mapping?.fields?.price) {
     const raw = p[mapping.fields.price]
-    if (typeof raw !== "number") return null
-    const isMinor = mapping.fields.priceUnit !== "major"
-    const priceCents = isMinor ? raw : Math.round(raw * 100)
+    let priceCents: number
+    let priceMajor: number // for the originalPrice > price comparison
+    if (typeof raw === "number") {
+      const isMinor = mapping.fields.priceUnit !== "major"
+      priceCents = isMinor ? raw : Math.round(raw * 100)
+      priceMajor = raw
+    } else {
+      const parsed = parseMoneyStringToMinor(raw)
+      if (parsed == null) return null
+      priceCents = parsed
+      priceMajor = parsed
+    }
     let originalPriceCents: number | null = null
-    if (mapping.fields.originalPrice && typeof p[mapping.fields.originalPrice] === "number") {
-      const orig = p[mapping.fields.originalPrice] as number
-      if (orig > raw) originalPriceCents = isMinor ? orig : Math.round(orig * 100)
+    const origRaw = mapping.fields.originalPrice ? p[mapping.fields.originalPrice] : undefined
+    if (typeof origRaw === "number") {
+      const isMinor = mapping.fields.priceUnit !== "major"
+      if (origRaw > priceMajor) originalPriceCents = isMinor ? origRaw : Math.round(origRaw * 100)
+    } else {
+      const origParsed = parseMoneyStringToMinor(origRaw)
+      if (origParsed != null && origParsed > priceCents) originalPriceCents = origParsed
     }
     return { priceCents, originalPriceCents }
   }
@@ -236,6 +286,21 @@ function extractPrice(
       }
       return { priceCents: Math.round(list * 100), originalPriceCents: null }
     }
+  }
+  // String prices (e.g. "₦4,500" list + "₦2,900" sale) — the vendor
+  // pre-formatted them. Same list/sale/original precedence as the numeric pass.
+  for (const listField of PRICE_MAJOR_FIELDS) {
+    const list = parseMoneyStringToMinor(p[listField])
+    if (list == null) continue
+    for (const saleField of SALE_PRICE_MAJOR_FIELDS) {
+      const sale = parseMoneyStringToMinor(p[saleField])
+      if (sale != null && sale < list) return { priceCents: sale, originalPriceCents: list }
+    }
+    for (const origField of ORIGINAL_PRICE_MAJOR_FIELDS) {
+      const orig = parseMoneyStringToMinor(p[origField])
+      if (orig != null && orig > list) return { priceCents: list, originalPriceCents: orig }
+    }
+    return { priceCents: list, originalPriceCents: null }
   }
   return null
 }
