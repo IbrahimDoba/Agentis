@@ -7,7 +7,7 @@ import { Hero } from "@/components/landing/Hero"
 import { Features } from "@/components/landing/Features"
 import { HowItWorks } from "@/components/landing/HowItWorks"
 import { Footer } from "@/components/landing/Footer"
-import { PLAN_PRICES, formatNaira } from "@/lib/plans"
+import { PLAN_PRICES, CREDITS_NOTE, formatNaira } from "@/lib/plans"
 import { PAYG_DEFAULT_NGN_PER_CREDIT } from "@/lib/credits"
 
 const testimonials = [
@@ -88,6 +88,7 @@ export default async function LandingPage() {
             <p className={styles.sectionSubtitle}>
               Start with a 7-day free trial. No credit card required.
             </p>
+            <p className={styles.pricingCreditsNote}>{CREDITS_NOTE}</p>
           </div>
 
           <div className={styles.pricingGrid}>
@@ -103,7 +104,7 @@ export default async function LandingPage() {
               <ul className={styles.pricingFeatures}>
                 {[
                   "1 AI WhatsApp Agent",
-                  "60,000 credits/month (~900 conversations)",
+                  "60,000 credits/month (≈ 12,000 AI messages)",
                   "Text + image responses",
                   "Advanced FAQ handling",
                   "Conversation monitoring dashboard",
@@ -134,7 +135,7 @@ export default async function LandingPage() {
               <ul className={styles.pricingFeatures}>
                 {[
                   "2 AI WhatsApp Agents",
-                  "100,000 credits/month (~1,500 conversations)",
+                  "100,000 credits/month (≈ 20,000 AI messages)",
                   "Text + image + media sending",
                   "Automated follow-up messages",
                   "Multi-language support",

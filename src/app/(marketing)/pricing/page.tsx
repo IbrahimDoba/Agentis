@@ -3,7 +3,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { Navbar } from "@/components/landing/Navbar"
 import { Footer } from "@/components/landing/Footer"
-import { PLAN_PRICES, PLAN_CREDIT_LIMITS, formatNaira } from "@/lib/plans"
+import { PLAN_PRICES, PLAN_CREDIT_LIMITS, CREDITS_NOTE, estimatedAiMessages, formatNaira } from "@/lib/plans"
 import { PAYG_DEFAULT_NGN_PER_CREDIT } from "@/lib/credits"
 import styles from "./page.module.css"
 
@@ -34,9 +34,15 @@ const BASIC_CREDITS_FMT = PLAN_CREDIT_LIMITS.basic.toLocaleString("en-NG")
 const STARTER_CREDITS_FMT = PLAN_CREDIT_LIMITS.starter.toLocaleString("en-NG")
 const PRO_CREDITS_FMT = PLAN_CREDIT_LIMITS.pro.toLocaleString("en-NG")
 
+// Estimated AI-message counts (allowance ÷ ~5 credits per message), derived so
+// they can't drift from the credit limits above.
+const BASIC_MSGS_FMT = estimatedAiMessages(PLAN_CREDIT_LIMITS.basic)!.toLocaleString("en-NG")
+const STARTER_MSGS_FMT = estimatedAiMessages(PLAN_CREDIT_LIMITS.starter)!.toLocaleString("en-NG")
+const PRO_MSGS_FMT = estimatedAiMessages(PLAN_CREDIT_LIMITS.pro)!.toLocaleString("en-NG")
+
 const basicFeatures = [
   { text: "1 AI WhatsApp Agent", included: true },
-  { text: `${BASIC_CREDITS_FMT} credits/month (~500 text conversations)`, included: true },
+  { text: `${BASIC_CREDITS_FMT} credits/month (≈ ${BASIC_MSGS_FMT} AI messages)`, included: true },
   { text: "Text + image responses", included: true },
   { text: "FAQ handling", included: true },
   { text: "Business hours configuration", included: true },
@@ -51,7 +57,7 @@ const basicFeatures = [
 
 const starterFeatures = [
   { text: "1 AI WhatsApp Agent", included: true },
-  { text: `${STARTER_CREDITS_FMT} credits/month (~923 text convos @ 13 AI msgs)`, included: true },
+  { text: `${STARTER_CREDITS_FMT} credits/month (≈ ${STARTER_MSGS_FMT} AI messages)`, included: true },
   { text: "Text + image responses", included: true },
   { text: "Advanced FAQ handling", included: true },
   { text: "Business hours configuration", included: true },
@@ -69,7 +75,7 @@ const starterFeatures = [
 
 const proFeatures = [
   { text: "2 AI WhatsApp Agents", included: true },
-  { text: `${PRO_CREDITS_FMT} credits/month (~1,538 text convos @ 13 AI msgs)`, included: true },
+  { text: `${PRO_CREDITS_FMT} credits/month (≈ ${PRO_MSGS_FMT} AI messages)`, included: true },
   { text: "Text + image + media sending", included: true },
   { text: "Automated follow-up messages", included: true },
   { text: "Advanced AI with custom personality", included: true },
@@ -100,7 +106,7 @@ const faqs = [
   },
   {
     q: "Do you offer custom plans?",
-    a: "Yes! If your business needs more conversations, multiple agents, or custom integrations, we offer enterprise plans. Book a call with our team to discuss your requirements.",
+    a: "Yes! If your business needs a higher message volume, multiple agents, or custom integrations, we offer enterprise plans. Book a call with our team to discuss your requirements.",
   },
   {
     q: "What payment methods do you accept?",
@@ -236,6 +242,8 @@ export default function PricingPage() {
             </div>
           </div>
 
+          <p className={styles.creditsNote}>{CREDITS_NOTE}</p>
+
           {/* Pay-as-you-go */}
           <div className={styles.enterpriseCard}>
             <div className={styles.enterpriseLeft}>
@@ -257,7 +265,7 @@ export default function PricingPage() {
             <div className={styles.enterpriseLeft}>
               <div className={styles.enterpriseTitle}>Need more? Let&apos;s talk.</div>
               <div className={styles.enterpriseDesc}>
-                Custom conversation limits, multiple agents, dedicated support, and API access — built for high-volume businesses.
+                Custom message limits, multiple agents, dedicated support, and API access — built for high-volume businesses.
               </div>
             </div>
             <Link href="/contact" className={styles.enterpriseBtn}>
@@ -281,7 +289,7 @@ export default function PricingPage() {
                 <div className={`${styles.comparisonPlanCol} ${styles.comparisonPlanColPro}`}>Pro</div>
               </div>
               {[
-                ["Monthly Credits", `${BASIC_CREDITS_FMT} (~500 text convos)`, `${STARTER_CREDITS_FMT} (~923 text convos)`, `${PRO_CREDITS_FMT} (~1,538 text convos)`],
+                ["Monthly Credits", `${BASIC_CREDITS_FMT} (≈ ${BASIC_MSGS_FMT} AI messages)`, `${STARTER_CREDITS_FMT} (≈ ${STARTER_MSGS_FMT} AI messages)`, `${PRO_CREDITS_FMT} (≈ ${PRO_MSGS_FMT} AI messages)`],
                 ["Beyond your plan", "Pay-as-you-go", "Pay-as-you-go", "Pay-as-you-go"],
                 ["Response Type", "Text + Image", "Text + Image", "Text + Image + Media"],
                 ["Media Sending", "✓ Images", "✓ Images", "✓ Images, PDFs"],

@@ -5,7 +5,8 @@ import Link from "next/link"
 import { usePlanStats } from "@/hooks/usePlanStats"
 import {
   PLAN_LABELS, PLAN_PRICES, PLAN_CREDIT_LIMITS,
-  PLAN_FEATURES, PLAN_ORDER, PLAN_OVERAGE_RATE_PER_1K, formatNaira
+  PLAN_FEATURES, PLAN_ORDER, PLAN_OVERAGE_RATE_PER_1K,
+  CREDITS_NOTE, estimatedAiMessages, formatNaira
 } from "@/lib/plans"
 import { PAYG_DEFAULT_NGN_PER_CREDIT } from "@/lib/credits"
 import { useBrand } from "@/components/BrandProvider"
@@ -204,6 +205,9 @@ export default function SubscriptionPage() {
                     : <span className={styles.planPriceNum}>Free</span>}
                 </div>
                 <div className={styles.planCredits}>{unlimited ? "Unlimited credits" : `${(planLimit ?? 0).toLocaleString()} credits/mo`}</div>
+                <div className={styles.planMessages}>
+                  {unlimited ? "Unlimited AI messages" : `≈ ${estimatedAiMessages(planLimit ?? 0)!.toLocaleString()} AI messages/mo`}
+                </div>
                 {overageRate !== null && !isEnterprise && <div className={styles.planOverage}>Overage: {formatNaira(overageRate)} / 1k cr</div>}
               </div>
 
@@ -243,7 +247,7 @@ export default function SubscriptionPage() {
 
       <div className={styles.footer}>
         All plans include the {brand.appName} WhatsApp AI agent, conversation logs, and lead detection.
-        Credits are consumed on successful AI sends: 5 credits per AI text and 8 credits per AI image.
+        {" "}{CREDITS_NOTE}
       </div>
     </div>
   )

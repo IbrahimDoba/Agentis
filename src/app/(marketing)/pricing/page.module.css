@@ -140,6 +140,16 @@
   align-items: start;
 }
 
+/* How-credits-work explainer under the plan grid. */
+.creditsNote {
+  max-width: 760px;
+  margin: 0 auto 1.5rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  text-align: center;
+}
+
 .planCard {
   background: var(--bg-card);
   border: 1px solid var(--border);

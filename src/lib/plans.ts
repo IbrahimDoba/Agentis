@@ -70,6 +70,30 @@ export const AI_CREDIT_COSTS = {
   voiceMin: 15,
 } as const
 
+// Buyers reason in "messages", not raw credits, so pricing surfaces express each
+// plan's size as an estimated AI-message count: the allowance ÷ the cost of a
+// typical text reply. Real spend varies with message length (billing is
+// token-based, min 1 credit) and images/voice cost more, so this is a
+// deliberate, clearly-approximate figure. Returns null for unlimited (-1).
+export function estimatedAiMessages(creditLimit: number): number | null {
+  if (creditLimit < 0) return null
+  return Math.floor(creditLimit / AI_CREDIT_COSTS.text)
+}
+
+// "≈ 5,000 AI messages / month" label for a plan slug — the single source every
+// pricing surface (marketing + dashboard) uses so the numbers never drift.
+export function aiMessagesPerMonth(plan: string): string {
+  const n = estimatedAiMessages(PLAN_CREDIT_LIMITS[plan] ?? 0)
+  return n === null
+    ? "Unlimited AI messages"
+    : `≈ ${n.toLocaleString("en-NG")} AI messages / month`
+}
+
+// Plain-language explainer of the credit system, shared by the marketing pricing
+// pages and the dashboard so the wording stays consistent everywhere.
+export const CREDITS_NOTE =
+  "Credits are what your AI spends to reply — a typical AI message costs about 5 credits (longer replies, images and voice notes use a little more). Your monthly plan credits are used first, then any pay-as-you-go top-ups. When both run out your agent simply pauses until you renew or top up — no surprise charges."
+
 // Overage rate in Naira per 1,000 credits (null = no overage allowed)
 // Overage is REMOVED platform-wide: no plan overshoots its allowance. Every
 // plan now bills monthly allowance first, then the PAYG wallet, then STOPS.
@@ -98,6 +122,7 @@ export const PLAN_LABELS: Record<string, string> = {
 export const PLAN_FEATURES: Record<string, string[]> = {
   free: [
     "1,000 credits / month",
+    aiMessagesPerMonth("free"),
     "1 AI agent",
     "WhatsApp integration",
     "Conversation logs",
@@ -106,7 +131,7 @@ export const PLAN_FEATURES: Record<string, string[]> = {
   ],
   basic: [
     "25,000 credits / month",
-    "~500 conversations / month",
+    aiMessagesPerMonth("basic"),
     "1 AI agent",
     "WhatsApp integration",
     "Conversation logs",
@@ -116,25 +141,24 @@ export const PLAN_FEATURES: Record<string, string[]> = {
   ],
   starter: [
     "60,000 credits / month",
-    "700 – 900 conversations / month",
+    aiMessagesPerMonth("starter"),
     "1 AI agent",
     "WhatsApp integration",
     "Conversation logs & analytics",
     "Lead detection",
     "Customer memory & context",
-    `Overage: ₦1,000 / 1k credits`,
     "Email support",
   ],
   pro: [
     "100,000 credits / month",
-    "1,400 – 1,600 conversations / month",
+    aiMessagesPerMonth("pro"),
     "2 AI agents",
     "Everything in Starter",
     "Priority email support",
-    `Overage: ₦800 / 1k credits`,
   ],
   enterprise: [
     "Unlimited credits",
+    aiMessagesPerMonth("enterprise"),
     "Multiple AI agents",
     "Everything in Pro",
     "Dedicated account manager",

@@ -19,6 +19,7 @@ import {
   MegaphoneIcon,
   BookOpenIcon,
   CodeBracketIcon,
+  PresentationChartLineIcon,
 } from "@heroicons/react/24/outline"
 import { cn } from "@/lib/utils"
 import { useDashboardData } from "@/hooks/useDashboardData"
@@ -92,6 +93,7 @@ const baseNavItems: NavItem[] = [
   { href: "/dashboard/broadcasts", label: "Broadcasts", icon: MegaphoneIcon },
   { href: "/dashboard/team", label: "Team", icon: UsersIcon },
   { href: "/dashboard/channels/whatsapp-web", label: "Channels", icon: DevicePhoneMobileIcon },
+  { href: "/dashboard/analyst", label: "AI Analyst", icon: PresentationChartLineIcon },
   { href: "/dashboard/billing", label: "Billing", icon: CreditCardIcon },
 ]
 
