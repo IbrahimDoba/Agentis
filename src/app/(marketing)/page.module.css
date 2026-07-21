@@ -143,6 +143,15 @@
   line-height: 1.7;
 }
 
+/* Credits explainer under the pricing header — small, muted, readable width. */
+.pricingCreditsNote {
+  max-width: 620px;
+  margin: 12px auto 0;
+  font-size: 0.85rem;
+  color: var(--text-tertiary, var(--text-secondary));
+  line-height: 1.6;
+}
+
 .testimonialsGrid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

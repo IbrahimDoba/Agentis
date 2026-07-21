@@ -78,3 +78,10 @@ worker/auth_sessions/
 
 # dev-only test endpoints (payment sandbox, etc.) — never ship to prod
 src/app/api/test/
+
+# local agent config export / scratch dump — contains per-agent system prompts,
+# not read at runtime (runtime source is the DB)
+worker/.agents.json
+
+# generated client-facing docs (rendered locally, not source)
+/Dailzero-AI-Services-and-Pricing.pdf
