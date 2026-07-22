@@ -307,20 +307,27 @@ function sanitizeWhatsAppLinks(text: string): string {
 
 /**
  * Split a long reply into multiple WhatsApp messages.
- * Only splits if >800 chars and has paragraph breaks.
+ * Only splits if >1200 chars and has paragraph breaks. The old 800 threshold
+ * turned routine 800-1200ch replies (a plan list, a product rundown) into a
+ * message + an awkward stub — customers experienced it as message spam. A
+ * trailing fragment under 150 chars is merged into the previous part for the
+ * same reason: one slightly-long message beats a two-line orphan.
  */
+const SPLIT_THRESHOLD = 1200
+const MIN_TAIL_CHARS = 150
+
 function splitReply(text: string): string[] {
-  if (text.length <= 800) return [text]
+  if (text.length <= SPLIT_THRESHOLD) return [text]
 
   const paragraphs = text.split(/\n\n+/)
   if (paragraphs.length <= 1) return [text]
 
-  // Group paragraphs into chunks of ~800 chars
+  // Group paragraphs into chunks of ~SPLIT_THRESHOLD chars
   const parts: string[] = []
   let current = ""
 
   for (const para of paragraphs) {
-    if (current && (current.length + para.length + 2) > 800) {
+    if (current && (current.length + para.length + 2) > SPLIT_THRESHOLD) {
       parts.push(current.trim())
       current = para
     } else {
@@ -328,6 +335,12 @@ function splitReply(text: string): string[] {
     }
   }
   if (current.trim()) parts.push(current.trim())
+
+  // Never end on a stub: fold a tiny final part into the one before it.
+  if (parts.length > 1 && parts[parts.length - 1].length < MIN_TAIL_CHARS) {
+    const tail = parts.pop()!
+    parts[parts.length - 1] = `${parts[parts.length - 1]}\n\n${tail}`
+  }
 
   return parts.length > 0 ? parts : [text]
 }
