@@ -77,7 +77,8 @@ export function ProductMediaSection({ agentId }: ProductMediaSectionProps) {
         }
     }
 
-    const handleDelete = async (mediaId: string) => {
+    const handleDelete = async (mediaId: string, label: string) => {
+        if (!window.confirm(`Remove "${label}"? This deletes the file for good.`)) return
         setDeletingId(mediaId)
         setErrorMsg("")
         try {
@@ -162,8 +163,14 @@ export function ProductMediaSection({ agentId }: ProductMediaSectionProps) {
                                     <span>{m.filename}</span>
                                 </div>
                             </div>
-                            <button className={styles.deleteBtn} onClick={() => handleDelete(m.id)} disabled={deletingId === m.id} title="Delete">
-                                {deletingId === m.id ? <ArrowPathIcon width={14} height={14} className={styles.spin} /> : <TrashIcon width={14} height={14} />}
+                            <button
+                                onClick={() => handleDelete(m.id, m.description || m.filename)}
+                                disabled={deletingId === m.id}
+                                title="Remove this file"
+                                style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 8, border: "1px solid rgba(239,68,68,0.4)", background: "rgba(239,68,68,0.06)", color: "#ef4444", fontSize: 12, fontWeight: 600, cursor: deletingId === m.id ? "not-allowed" : "pointer", flexShrink: 0 }}
+                            >
+                                {deletingId === m.id ? <ArrowPathIcon width={13} height={13} className={styles.spin} /> : <TrashIcon width={13} height={13} />}
+                                Remove
                             </button>
                         </div>
                     ))}

@@ -79,7 +79,8 @@ export function DocumentsTab({ agentId }: DocumentsTabProps) {
         }
     }
 
-    const handleDelete = async (docId: string) => {
+    const handleDelete = async (docId: string, label: string) => {
+        if (!window.confirm(`Remove "${label}"? This deletes it for good.`)) return
         setDeletingId(docId)
         setErrorMsg("")
         try {
@@ -161,15 +162,16 @@ export function DocumentsTab({ agentId }: DocumentsTabProps) {
                                 </div>
                             </div>
                             <button
-                                className={styles.deleteBtn}
-                                onClick={() => handleDelete(doc.id)}
+                                onClick={() => handleDelete(doc.id, doc.filename)}
                                 disabled={deletingId === doc.id}
-                                title="Delete document"
+                                title="Remove this document"
+                                style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 8, border: "1px solid rgba(239,68,68,0.4)", background: "rgba(239,68,68,0.06)", color: "#ef4444", fontSize: 12, fontWeight: 600, cursor: deletingId === doc.id ? "not-allowed" : "pointer", flexShrink: 0 }}
                             >
                                 {deletingId === doc.id
-                                    ? <ArrowPathIcon width={14} height={14} className={styles.spin} />
-                                    : <TrashIcon width={14} height={14} />
+                                    ? <ArrowPathIcon width={13} height={13} className={styles.spin} />
+                                    : <TrashIcon width={13} height={13} />
                                 }
+                                Remove
                             </button>
                         </div>
                     ))}

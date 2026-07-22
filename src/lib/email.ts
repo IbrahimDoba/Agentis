@@ -1,4 +1,4 @@
-import { Resend } from "resend"
+import { Resend, type CreateEmailOptions } from "resend"
 
 const FROM_ADDRESS = "noreply@dailzero.com"
 const FROM = `D-Zero AI <${FROM_ADDRESS}>`
@@ -9,6 +9,15 @@ const APP_URL = process.env.NEXTAUTH_URL?.startsWith("http://localhost")
 
 function resend() {
   return new Resend(process.env.RESEND_API_KEY)
+}
+
+// Send + surface Resend API errors. The SDK returns `{ error }` rather than
+// throwing on API failures, so a bare `.send()` drops emails silently. Throwing
+// lets the notification poller leave notifiedAt null and retry next run.
+async function sendEmail(payload: CreateEmailOptions) {
+  const { data, error } = await resend().emails.send(payload)
+  if (error) throw new Error(`Resend send failed: ${error.message ?? JSON.stringify(error)}`)
+  return data
 }
 
 // Co-branding for white-label (reseller) tenants. Resend only sends from our
@@ -813,7 +822,7 @@ export async function sendQualifiedLeadEmail(data: {
 }, brand?: EmailBrand) {
   const appUrl = brand?.appUrl ?? APP_URL
   const who = esc(data.customerName) || esc(data.customerNumber) || "A customer"
-  await resend().emails.send({
+  return await sendEmail({
     from: senderFrom(brand),
     to: data.email,
     subject: `🔥 New qualified lead — ${who}`,
@@ -847,7 +856,7 @@ export async function sendHandoffRequestEmail(data: {
   const appUrl = brand?.appUrl ?? APP_URL
   const who = esc(data.customerName) || esc(data.customerNumber) || "A customer"
   const urgent = data.urgency === "high"
-  await resend().emails.send({
+  return await sendEmail({
     from: senderFrom(brand),
     to: data.email,
     subject: `${urgent ? "🚨 Urgent" : "🙋 "} Handoff needed — ${who}`,
@@ -890,7 +899,7 @@ export async function sendActivityDigestEmail(data: {
         <div style="color:#9ca3af;font-size:12px;margin-top:2px;">via ${esc(l.agentName)}</div>
       </td>
     </tr>`).join("")
-  await resend().emails.send({
+  return await sendEmail({
     from: senderFrom(brand),
     to: data.email,
     subject: `${title} — ${data.qualifiedLeads} qualified lead${data.qualifiedLeads === 1 ? "" : "s"}, ${data.handoffs} handoff${data.handoffs === 1 ? "" : "s"}`,
