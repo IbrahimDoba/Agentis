@@ -36,12 +36,25 @@ export default async function AdminAnalyticsPage() {
     db.user.count({ where: { agents: { some: {} } } }),
   ])
 
-  // ── Plan distribution ────────────────────────────────────────────────────
-  const planGroups = await db.user.groupBy({
-    by: ["plan"],
-    _count: { id: true },
-  })
-  const planData = planGroups.map((g) => ({ plan: g.plan, count: g._count.id }))
+  // ── Plans & billing states ───────────────────────────────────────────────
+  // Not just the raw plan string: a user whose plan lapsed but who is running
+  // on PAYG wallet credits shows as "payg", and a lapsed user with no usable
+  // wallet shows as "expired" — matching how the worker's send gate actually
+  // treats them. Resellers are their own bucket.
+  const billingGroups = await db.$queryRawUnsafe<Array<{ segment: string; count: number }>>(
+    `SELECT CASE
+       WHEN "plan" = 'reseller' THEN 'reseller'
+       WHEN "subscriptionExpiresAt" IS NOT NULL AND "subscriptionExpiresAt" < now()
+            AND "creditBalance" > 0 AND ("creditsExpireAt" IS NULL OR "creditsExpireAt" > now())
+         THEN 'payg'
+       WHEN "subscriptionExpiresAt" IS NOT NULL AND "subscriptionExpiresAt" < now()
+         THEN 'expired'
+       ELSE "plan"
+     END AS segment, COUNT(*)::int AS count
+     FROM "User"
+     GROUP BY 1`
+  )
+  const planData = billingGroups.map((g) => ({ plan: g.segment, count: Number(g.count) }))
 
   // ── Agent status distribution ────────────────────────────────────────────
   const agentStatusGroups = await db.agent.groupBy({
@@ -143,6 +156,53 @@ export default async function AdminAnalyticsPage() {
   const creditsAllTime = Number(creditsAllTimeRaw[0]?.total ?? 0)
   const creditsMonthly = Number(creditsMonthlyRaw[0]?.total ?? 0)
 
+  // ── July-era platform pulse: PAYG economics + reliability ────────────────
+  const sevenDaysAgo = new Date(now); sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+  const twoDaysAgo = new Date(now); twoDaysAgo.setDate(twoDaysAgo.getDate() - 2)
+  const [
+    aborts7d,
+    aborts30d,
+    bans30d,
+    churn48h,
+    fleetGroups,
+    paygPurchase30d,
+    walletOutstandingRaw,
+    walletBurn30dRaw,
+    walletHoldersRaw,
+  ] = await Promise.all([
+    db.workerEvent.count({ where: { category: "ai.reply_aborted", createdAt: { gte: sevenDaysAgo } } }),
+    db.workerEvent.count({ where: { category: "ai.reply_aborted", createdAt: { gte: thirtyDaysAgo } } }),
+    db.workerEvent.count({ where: { category: "session.banned", createdAt: { gte: thirtyDaysAgo } } }),
+    db.workerEvent.count({ where: { category: "session.closed", createdAt: { gte: twoDaysAgo } } }),
+    db.baileysSession.groupBy({ by: ["status"], _count: { id: true } }),
+    db.creditPurchase.aggregate({
+      where: { status: "PAID", createdAt: { gte: thirtyDaysAgo } },
+      _sum: { amountNaira: true, creditsAdded: true },
+      _count: { id: true },
+    }),
+    db.$queryRawUnsafe<Array<{ total: number }>>(
+      `SELECT COALESCE(SUM("creditBalance"), 0)::int AS total FROM "User"
+       WHERE "creditBalance" > 0 AND ("creditsExpireAt" IS NULL OR "creditsExpireAt" > now())`
+    ),
+    db.$queryRawUnsafe<Array<{ total: number }>>(
+      `SELECT COALESCE(SUM("creditsUsed"), 0)::int AS total FROM "CreditUsage"
+       WHERE "billedTo" = 'wallet' AND "createdAt" >= $1::timestamptz`,
+      thirtyDaysAgo.toISOString()
+    ),
+    db.$queryRawUnsafe<Array<{ total: number }>>(
+      `SELECT COUNT(*)::int AS total FROM "User"
+       WHERE "creditBalance" > 0 AND ("creditsExpireAt" IS NULL OR "creditsExpireAt" > now())`
+    ),
+  ])
+  const fleet: Record<string, number> = {}
+  for (const g of fleetGroups) fleet[g.status] = g._count.id
+  const walletOutstanding = Number(walletOutstandingRaw[0]?.total ?? 0)
+  const walletBurn30d = Number(walletBurn30dRaw[0]?.total ?? 0)
+  const walletHolders = Number(walletHoldersRaw[0]?.total ?? 0)
+  const paygRevenue30d = paygPurchase30d._sum.amountNaira ?? 0
+  const paygCreditsSold30d = paygPurchase30d._sum.creditsAdded ?? 0
+  const paygTopUps30d = paygPurchase30d._count.id
+
   // Fill in missing days with 0
   const dailyMap: Record<string, number> = {}
   for (let i = 29; i >= 0; i--) {
@@ -179,6 +239,9 @@ export default async function AdminAnalyticsPage() {
       status: true,
       plan: true,
       createdAt: true,
+      creditBalance: true,
+      creditsExpireAt: true,
+      subscriptionExpiresAt: true,
       _count: { select: { agents: true, leads: true } },
       agents: {
         select: {
@@ -199,6 +262,10 @@ export default async function AdminAnalyticsPage() {
     const aiSent = userAiSentMap[u.id] ?? 0
     const dzeroAgents = u.agents.filter((a) => a.agentRuntime === "orchestrator")
     const dzeroContacts = dzeroAgents.reduce((s, a) => s + a._count.conversations, 0)
+    // Wallet + PAYG state (mirrors the billing-segment query above): a lapsed
+    // plan funded by a usable wallet = running on pay-as-you-go.
+    const walletUsable = (u.creditBalance ?? 0) > 0 && (!u.creditsExpireAt || u.creditsExpireAt > now)
+    const lapsed = !!u.subscriptionExpiresAt && u.subscriptionExpiresAt < now
     return {
       id: u.id,
       name: u.name,
@@ -211,6 +278,8 @@ export default async function AdminAnalyticsPage() {
       conversations: aiSent,
       contacts,
       credits: userCreditsMap[u.id] ?? 0,
+      walletBalance: walletUsable ? u.creditBalance : 0,
+      payg: u.plan !== "reseller" && lapsed && walletUsable,
       dzeroAgentCount: dzeroAgents.length,
       dzeroConversations: aiSent,
       dzeroContacts,
@@ -275,6 +344,58 @@ export default async function AdminAnalyticsPage() {
           <span className={styles.statLabel}>Credits All Time</span>
           <span className={styles.statNum}>{creditsAllTime.toLocaleString()}</span>
           <span className={styles.statSub}>Platform total</span>
+        </div>
+      </div>
+
+      {/* Pay-as-you-go economics */}
+      <h2 className={styles.sectionTitle} style={{ marginBottom: "1rem" }}>Pay-as-you-go (Wallet)</h2>
+      <div className={styles.statsGrid} style={{ gridTemplateColumns: "repeat(4, 1fr)", marginBottom: "2rem" }}>
+        <div className={styles.statCard}>
+          <span className={styles.statLabel}>PAYG Revenue (30d)</span>
+          <span className={styles.statNum}>₦{paygRevenue30d.toLocaleString()}</span>
+          <span className={styles.statSub}>{paygTopUps30d} top-up{paygTopUps30d === 1 ? "" : "s"} · {paygCreditsSold30d.toLocaleString()} credits sold</span>
+        </div>
+        <div className={styles.statCard}>
+          <span className={styles.statLabel}>Wallet Holders</span>
+          <span className={styles.statNum}>{walletHolders}</span>
+          <span className={styles.statSub}>users with spendable credits</span>
+        </div>
+        <div className={styles.statCard}>
+          <span className={styles.statLabel}>Credits Outstanding</span>
+          <span className={styles.statNum}>{walletOutstanding.toLocaleString()}</span>
+          <span className={styles.statSub}>unspent wallet balance (liability)</span>
+        </div>
+        <div className={styles.statCard}>
+          <span className={styles.statLabel}>Wallet Burn (30d)</span>
+          <span className={styles.statNum}>{walletBurn30d.toLocaleString()}</span>
+          <span className={styles.statSub}>credits billed to wallets</span>
+        </div>
+      </div>
+
+      {/* Reliability & safety */}
+      <h2 className={styles.sectionTitle} style={{ marginBottom: "1rem" }}>Reliability &amp; Safety</h2>
+      <div className={styles.statsGrid} style={{ gridTemplateColumns: "repeat(4, 1fr)", marginBottom: "2rem" }}>
+        <div className={styles.statCard}>
+          <span className={styles.statLabel}>WhatsApp Fleet</span>
+          <span className={styles.statNum}>{fleet.CONNECTED ?? 0} live</span>
+          <span className={styles.statSub}>
+            {(fleet.DISCONNECTED ?? 0)} disconnected · {(fleet.BANNED ?? 0)} banned{fleet.QR_PENDING ? ` · ${fleet.QR_PENDING} linking` : ""}
+          </span>
+        </div>
+        <div className={styles.statCard}>
+          <span className={styles.statLabel}>Double-replies Avoided</span>
+          <span className={styles.statNum}>{aborts30d.toLocaleString()}</span>
+          <span className={styles.statSub}>last 30d · {aborts7d} this week (human-first aborts)</span>
+        </div>
+        <div className={styles.statCard}>
+          <span className={styles.statLabel}>Connection Drops (48h)</span>
+          <span className={styles.statNum}>{churn48h.toLocaleString()}</span>
+          <span className={styles.statSub}>auto-reconnected by the watchdogs</span>
+        </div>
+        <div className={styles.statCard}>
+          <span className={styles.statLabel}>Bans (30d)</span>
+          <span className={styles.statNum}>{bans30d}</span>
+          <span className={styles.statSub}>WhatsApp number bans</span>
         </div>
       </div>
 

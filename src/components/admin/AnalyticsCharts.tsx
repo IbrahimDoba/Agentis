@@ -8,9 +8,14 @@ import styles from "./AnalyticsCharts.module.css"
 
 const PLAN_COLORS: Record<string, string> = {
   free: "#4a6b56",
+  basic: "#2f855a",
   starter: "#00a862",
   pro: "#00dc82",
   enterprise: "#00f090",
+  reseller: "#7c3aed",
+  // Billing states (not plans): wallet-funded and lapsed accounts.
+  payg: "#f59e0b",
+  expired: "#b91c1c",
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -21,10 +26,14 @@ const STATUS_COLORS: Record<string, string> = {
 }
 
 const PLAN_LABELS: Record<string, string> = {
-  free: "Free",
+  free: "Free / Trial",
+  basic: "Basic",
   starter: "Starter",
   pro: "Pro",
   enterprise: "Enterprise",
+  reseller: "Reseller",
+  payg: "Pay-as-you-go",
+  expired: "Expired",
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -95,7 +104,7 @@ export function AnalyticsCharts({ userGrowthData, convGrowthData, planData, agen
 
       {/* Plan distribution */}
       <div className={styles.chartCard}>
-        <div className={styles.chartTitle}>Plan Distribution</div>
+        <div className={styles.chartTitle}>Plans &amp; Billing States</div>
         <div className={styles.pieWrap}>
           <ResponsiveContainer width="100%" height={200}>
             <PieChart>
