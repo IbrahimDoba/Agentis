@@ -1,4 +1,5 @@
 import { db } from "@/lib/db"
+import type { Prisma } from "@/generated/prisma/client"
 import { mapWithConcurrency } from "@/lib/concurrency"
 import { emailBrandOf } from "@/lib/tenant"
 import {
@@ -20,6 +21,19 @@ const EMAIL_CONCURRENCY = 5
 const DIGEST_TOP_LEADS = 5
 
 export type DigestPeriod = "day" | "week"
+
+// Who is eligible for notification emails: opted in AND a paying customer —
+// either on a paid plan (reseller tenants included, since their plan is
+// "reseller", not "free") OR holding a funded pay-as-you-go wallet. Free users
+// are excluded so we only email people who pay us. Shared by every query below
+// so the rule lives in exactly one place.
+const notifiableUserWhere: Prisma.UserWhereInput = {
+  leadNotificationsEnabled: true,
+  OR: [
+    { plan: { not: "free" } },
+    { creditBalance: { gt: 0 } },
+  ],
+}
 
 // ---------------------------------------------------------------------------
 // Pure helpers (unit-tested in lead-notifications-job.test.ts)
@@ -72,7 +86,7 @@ export async function runInstantNotifications(now: Date = new Date()): Promise<I
       aiDetected: false,
       notifiedAt: null,
       createdAt: { gte: since },
-      user: { leadNotificationsEnabled: true },
+      user: notifiableUserWhere,
     },
     select: {
       id: true,
@@ -125,7 +139,7 @@ export async function runInstantNotifications(now: Date = new Date()): Promise<I
     where: {
       handoffAt: { gte: since },
       handoffNotifiedAt: null,
-      agent: { user: { leadNotificationsEnabled: true } },
+      agent: { user: notifiableUserWhere },
     },
     select: {
       id: true,
@@ -193,7 +207,7 @@ export async function runActivityDigest(period: DigestPeriod, now: Date = new Da
     where: {
       aiDetected: false,
       createdAt: { gte: start },
-      user: { leadNotificationsEnabled: true },
+      user: notifiableUserWhere,
     },
     select: {
       userId: true,
@@ -208,7 +222,7 @@ export async function runActivityDigest(period: DigestPeriod, now: Date = new Da
   const handoffConvs = await db.conversation.findMany({
     where: {
       handoffAt: { gte: start },
-      agent: { user: { leadNotificationsEnabled: true } },
+      agent: { user: notifiableUserWhere },
     },
     select: { agent: { select: { userId: true } } },
   })
