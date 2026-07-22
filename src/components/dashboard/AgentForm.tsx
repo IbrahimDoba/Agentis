@@ -7,6 +7,7 @@ import styles from "./AgentForm.module.css"
 import { Textarea } from "@/components/ui/Input"
 import Button from "@/components/ui/Button"
 import { ProductsEditor } from "@/components/dashboard/ProductsEditor"
+import { ProductMediaSection } from "@/components/dashboard/ProductMediaSection"
 import { ArrowPathIcon } from "@heroicons/react/24/outline"
 import { useToast } from "@/context/ToastContext"
 import type { AgentPublic, Product } from "@/types"
@@ -221,6 +222,11 @@ export function AgentForm({ initialData, agentId, onDirtyChange }: AgentFormProp
           <div className={styles.sectionDesc}>Add individual products the AI can reference when customers ask about pricing or availability.</div>
         </div>
         <ProductsEditor value={products} onChange={setProducts} />
+        {agentId && (
+          <div style={{ marginTop: 16 }}>
+            <ProductMediaSection agentId={agentId} />
+          </div>
+        )}
       </div>
 
       {/* Product album */}

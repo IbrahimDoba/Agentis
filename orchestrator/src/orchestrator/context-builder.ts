@@ -54,6 +54,19 @@ Greet them with awareness of what brought them here. Do NOT ask a generic "how c
     logger.warn({ agentId: agent.agentId, err: err?.message }, "Failed to read product-album setting — defaulting to share-link")
   }
 
+  // Media library — product IMAGES are surfaced via the album/non-album logic
+  // below; VIDEOS & DOCUMENTS are always available (a separate section) so they
+  // work regardless of the catalogue-album setting.
+  let mediaImages: Awaited<ReturnType<typeof listMediaItems>> = []
+  let mediaDocs: Awaited<ReturnType<typeof listMediaItems>> = []
+  try {
+    const media = await listMediaItems(agent.agentId)
+    mediaImages = media.filter((m) => m.mimeType.startsWith("image/"))
+    mediaDocs = media.filter((m) => !m.mimeType.startsWith("image/"))
+  } catch (err: any) {
+    logger.warn({ agentId: agent.agentId, err: err.message }, "Failed to fetch media library")
+  }
+
   if (albumEnabled) {
     // Album feature ON: the AI shows products from the catalogue (productsData),
     // sending ALL of a product's photos as an album via send_product_photos.
@@ -68,22 +81,23 @@ Greet them with awareness of what brought them here. Do NOT ask a generic "how c
     } catch (err: any) {
       logger.warn({ agentId: agent.agentId, err: err.message }, "Failed to fetch product catalogue")
     }
-  } else {
-    // Album feature OFF: unchanged behaviour — the AI sends a single image from
-    // the media library via send_image.
-    try {
-      const media = await listMediaItems(agent.agentId)
-      if (media.length > 0) {
-        const kindOf = (mime: string) =>
-          mime.startsWith("image/") ? "image" : mime.startsWith("video/") ? "video" : "document"
-        const mediaList = media
-          .map((m) => `- ID: ${m.id} | Type: ${kindOf(m.mimeType)} | Description: "${m.description}"`)
-          .join("\n")
-        sections.push(`## Available media\nYou can send these items to the customer with the 'send_media' tool (pass the item's ID). Items may be a product **image**, a **video** (e.g. a demo clip), or a **document** (e.g. a brochure, price list, or catalogue PDF). Whenever a customer asks about or shows interest in a product, proactively send its image; when they ask for a video, brochure, price list, or document, send the matching item. Match by description and type. Only send items in this list — if what they want isn't here, tell them it's unavailable.\n\n${mediaList}`)
-      }
-    } catch (err: any) {
-      logger.warn({ agentId: agent.agentId, err: err.message }, "Failed to fetch media library")
-    }
+  } else if (mediaImages.length > 0) {
+    // Album feature OFF: the AI sends a single product image from the media
+    // library via send_media.
+    const mediaList = mediaImages
+      .map((m) => `- ID: ${m.id} | Description: "${m.description}"`)
+      .join("\n")
+    sections.push(`## Product images\nWhenever a customer asks about or shows interest in a product, proactively send its image with the 'send_media' tool (pass the item's ID) — do not wait for them to ask. Match by description. Only send an image that is in this list.\n\n${mediaList}`)
+  }
+
+  // Videos & documents — ALWAYS available regardless of the album setting. The
+  // AI sends them with send_media when a customer asks for a video, brochure,
+  // price list, spec sheet, etc.
+  if (mediaDocs.length > 0) {
+    const list = mediaDocs
+      .map((m) => `- ID: ${m.id} | Type: ${m.mimeType.startsWith("video/") ? "video" : "document"} | Description: "${m.description}"`)
+      .join("\n")
+    sections.push(`## Videos & documents\nWhen a customer asks for a video, brochure, price list, spec sheet, or any document, send the matching item below with the 'send_media' tool (pass its ID). Match by description. Only send items in this list; if what they want isn't here, tell them it's unavailable.\n\n${list}`)
   }
 
   // RAG: inject top-5 relevant chunks from the document knowledge base

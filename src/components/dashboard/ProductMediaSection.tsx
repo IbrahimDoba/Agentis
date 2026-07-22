@@ -3,7 +3,7 @@
 import { useState, useRef } from "react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import {
-    PhotoIcon, VideoCameraIcon, DocumentIcon, TrashIcon,
+    VideoCameraIcon, DocumentIcon, TrashIcon,
     ArrowUpTrayIcon, ArrowPathIcon, ExclamationCircleIcon,
 } from "@heroicons/react/24/outline"
 import styles from "./KnowledgeBaseTab.module.css"
@@ -16,24 +16,20 @@ interface MediaItem {
     createdAt: string
 }
 
-interface MediaLibraryTabProps {
+interface ProductMediaSectionProps {
     agentId: string
 }
 
-function kindOf(mime: string): "image" | "video" | "document" {
-    if (mime.startsWith("image/")) return "image"
-    if (mime.startsWith("video/")) return "video"
-    return "document"
-}
+const isImage = (mime: string) => mime.startsWith("image/")
+const isVideo = (mime: string) => mime.startsWith("video/")
 
-function KindIcon({ mime }: { mime: string }) {
-    const kind = kindOf(mime)
-    if (kind === "image") return <PhotoIcon width={16} height={16} />
-    if (kind === "video") return <VideoCameraIcon width={16} height={16} />
-    return <DocumentIcon width={16} height={16} />
-}
-
-export function MediaLibraryTab({ agentId }: MediaLibraryTabProps) {
+/**
+ * Videos & documents the AI can send about the catalogue — demo clips,
+ * brochures, price lists, spec sheets. Product PHOTOS are managed in the
+ * Product Catalogue editor above; this section only handles video/document
+ * items (it hides image items, which are product photos synced automatically).
+ */
+export function ProductMediaSection({ agentId }: ProductMediaSectionProps) {
     const queryClient = useQueryClient()
     const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -53,7 +49,9 @@ export function MediaLibraryTab({ agentId }: MediaLibraryTabProps) {
         staleTime: 30 * 1000,
     })
 
-    const items = data?.media ?? []
+    // Only videos & documents live here — product photos (images) are shown in
+    // the Product Catalogue editor.
+    const items = (data?.media ?? []).filter((m) => !isImage(m.mimeType))
     const invalidate = () => queryClient.invalidateQueries({ queryKey: ["media", agentId] })
 
     const handleUpload = async () => {
@@ -90,7 +88,7 @@ export function MediaLibraryTab({ agentId }: MediaLibraryTabProps) {
             }
             invalidate()
         } catch (err: any) {
-            setErrorMsg(err.message ?? "Failed to remove media")
+            setErrorMsg(err.message ?? "Failed to remove")
         } finally {
             setDeletingId(null)
         }
@@ -100,30 +98,25 @@ export function MediaLibraryTab({ agentId }: MediaLibraryTabProps) {
         <div className={styles.root}>
             <div className={styles.header}>
                 <div>
-                    <div className={styles.title}>Media library</div>
+                    <div className={styles.title}>Videos &amp; Documents</div>
                     <div className={styles.subtitle}>
-                        Upload images, videos, and documents (brochures, price lists, PDFs). The AI sends the matching
-                        item when a customer asks — so give each a clear description. Limits: image 5MB, video 16MB, document 25MB.
+                        Add demo videos, brochures, price lists, or spec sheets. The AI sends the matching one when a
+                        customer asks — give each a clear description. Limits: video 16MB, document 25MB.
                     </div>
                 </div>
             </div>
 
             {/* Add form */}
-            <div className={styles.list} style={{ marginBottom: 16 }}>
+            <div className={styles.list} style={{ marginBottom: 12 }}>
                 <div className={styles.docRow} style={{ flexWrap: "wrap", gap: 10 }}>
-                    <button
-                        className={styles.addBtn}
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={uploading}
-                        type="button"
-                    >
+                    <button className={styles.addBtn} onClick={() => fileInputRef.current?.click()} disabled={uploading} type="button">
                         <ArrowUpTrayIcon width={14} height={14} />
                         {file ? "Change file" : "Choose file"}
                     </button>
                     <input
                         ref={fileInputRef}
                         type="file"
-                        accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv"
+                        accept="video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv"
                         className={styles.hiddenInput}
                         onChange={(e) => setFile(e.target.files?.[0] ?? null)}
                     />
@@ -135,58 +128,42 @@ export function MediaLibraryTab({ agentId }: MediaLibraryTabProps) {
                         onChange={(e) => setDescription(e.target.value)}
                         style={{ flex: "2 1 240px", padding: "8px 10px", borderRadius: 8, border: "1px solid var(--border, #e5e7eb)", fontSize: 13 }}
                     />
-                    <button
-                        className={styles.addBtn}
-                        onClick={handleUpload}
-                        disabled={uploading || !file || !description.trim()}
-                        type="button"
-                    >
+                    <button className={styles.addBtn} onClick={handleUpload} disabled={uploading || !file || !description.trim()} type="button">
                         {uploading ? <ArrowPathIcon width={14} height={14} className={styles.spin} /> : <ArrowUpTrayIcon width={14} height={14} />}
-                        {uploading ? "Uploading…" : "Add to library"}
+                        {uploading ? "Uploading…" : "Add"}
                     </button>
                 </div>
             </div>
 
             {errorMsg && (
-                <div className={styles.error}>
-                    <ExclamationCircleIcon width={14} height={14} /> {errorMsg}
-                </div>
+                <div className={styles.error}><ExclamationCircleIcon width={14} height={14} /> {errorMsg}</div>
             )}
 
             {isLoading ? (
-                <div className={styles.loading}>
-                    <ArrowPathIcon width={18} height={18} className={styles.spin} /> Loading media…
-                </div>
+                <div className={styles.loading}><ArrowPathIcon width={18} height={18} className={styles.spin} /> Loading…</div>
             ) : items.length === 0 ? (
                 <div className={styles.empty}>
-                    <PhotoIcon width={32} height={32} className={styles.emptyIcon} />
-                    <div className={styles.emptyTitle}>No media yet</div>
-                    <div className={styles.emptyDesc}>
-                        Upload a product image, a demo video, or a brochure/price-list document — the AI will send it when a customer asks.
-                    </div>
+                    <DocumentIcon width={28} height={28} className={styles.emptyIcon} />
+                    <div className={styles.emptyTitle}>No videos or documents yet</div>
+                    <div className={styles.emptyDesc}>Add a demo video or a brochure/price-list — the AI sends it when a customer asks.</div>
                 </div>
             ) : (
                 <div className={styles.list}>
                     {items.map((m) => (
                         <div key={m.id} className={styles.docRow}>
-                            <div className={styles.docIcon}><KindIcon mime={m.mimeType} /></div>
+                            <div className={styles.docIcon}>
+                                {isVideo(m.mimeType) ? <VideoCameraIcon width={16} height={16} /> : <DocumentIcon width={16} height={16} />}
+                            </div>
                             <div className={styles.docInfo}>
                                 <div className={styles.docName}>{m.description || m.filename}</div>
                                 <div className={styles.docMeta} style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                                    <span style={{ textTransform: "capitalize" }}>{kindOf(m.mimeType)}</span>
+                                    <span>{isVideo(m.mimeType) ? "Video" : "Document"}</span>
                                     <span>•</span>
                                     <span>{m.filename}</span>
                                 </div>
                             </div>
-                            <button
-                                className={styles.deleteBtn}
-                                onClick={() => handleDelete(m.id)}
-                                disabled={deletingId === m.id}
-                                title="Delete media"
-                            >
-                                {deletingId === m.id
-                                    ? <ArrowPathIcon width={14} height={14} className={styles.spin} />
-                                    : <TrashIcon width={14} height={14} />}
+                            <button className={styles.deleteBtn} onClick={() => handleDelete(m.id)} disabled={deletingId === m.id} title="Delete">
+                                {deletingId === m.id ? <ArrowPathIcon width={14} height={14} className={styles.spin} /> : <TrashIcon width={14} height={14} />}
                             </button>
                         </div>
                     ))}
