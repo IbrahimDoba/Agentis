@@ -23,6 +23,10 @@ interface UserMetric {
   conversations: number
   contacts: number
   credits: number
+  // Spendable PAYG wallet balance (0 when empty or expired).
+  walletBalance: number
+  // True when the plan has lapsed and the wallet is what keeps the AI running.
+  payg: boolean
   dzeroAgentCount: number
   dzeroConversations: number
   dzeroContacts: number
@@ -106,6 +110,9 @@ export function UserMetricsTable({ users }: Props) {
               <th className={styles.th} onClick={() => toggleSort("credits")} style={{ cursor: "pointer" }}>
                 Credits <SortIcon col="credits" />
               </th>
+              <th className={styles.th} onClick={() => toggleSort("walletBalance")} style={{ cursor: "pointer" }}>
+                Wallet <SortIcon col="walletBalance" />
+              </th>
               <th className={styles.th} onClick={() => toggleSort("createdAt")} style={{ cursor: "pointer" }}>
                 Joined <SortIcon col="createdAt" />
               </th>
@@ -122,6 +129,11 @@ export function UserMetricsTable({ users }: Props) {
                   <span className={styles.planBadge} style={{ color: PLAN_COLORS[u.plan] ?? "var(--text-muted)" }}>
                     {u.plan.charAt(0).toUpperCase() + u.plan.slice(1)}
                   </span>
+                  {u.payg && (
+                    <span className={styles.planBadge} style={{ color: "#f59e0b", marginLeft: 6 }} title="Plan lapsed — running on pay-as-you-go wallet credits">
+                      💳 PAYG
+                    </span>
+                  )}
                 </td>
                 <td className={styles.td}><span className={styles.num}>{dzeroOnly ? u.dzeroAgentCount : u.agents}</span></td>
                 <td className={styles.td}><span className={styles.num}>{(dzeroOnly ? u.dzeroConversations : u.conversations).toLocaleString()}</span></td>
@@ -131,13 +143,18 @@ export function UserMetricsTable({ users }: Props) {
                   <span className={styles.num}>{u.credits > 0 ? u.credits.toLocaleString() : "—"}</span>
                 </td>
                 <td className={styles.td}>
+                  <span className={styles.num} style={u.walletBalance > 0 ? { color: "#f59e0b" } : undefined}>
+                    {u.walletBalance > 0 ? u.walletBalance.toLocaleString() : "—"}
+                  </span>
+                </td>
+                <td className={styles.td}>
                   <span className={styles.date}>{formatDate(u.createdAt)}</span>
                 </td>
               </tr>
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={8} className={styles.empty}>No users found</td>
+                <td colSpan={9} className={styles.empty}>No users found</td>
               </tr>
             )}
           </tbody>
