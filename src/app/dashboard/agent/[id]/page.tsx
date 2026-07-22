@@ -11,6 +11,7 @@ import { AgentProfileForm } from "@/components/dashboard/AgentProfileForm"
 import { KnowledgeBaseTab } from "@/components/dashboard/KnowledgeBaseTab"
 import { ToolsTab } from "@/components/dashboard/ToolsTab"
 import { DocumentsTab } from "@/components/dashboard/DocumentsTab"
+import { MediaLibraryTab } from "@/components/dashboard/MediaLibraryTab"
 import { AgentSettingsTab } from "@/components/dashboard/AgentSettingsTab"
 import { EmbedTab } from "@/components/dashboard/EmbedTab"
 import { StatusBadge } from "@/components/ui/Badge"
@@ -25,14 +26,14 @@ const TABS = (agentRuntime: string) => [
   { id: "profile", label: "Profile" },
   { id: "configuration", label: "Configuration" },
   ...(agentRuntime === "orchestrator"
-    ? [{ id: "documents", label: "Documents" }]
+    ? [{ id: "documents", label: "Documents" }, { id: "media", label: "Media" }]
     : [{ id: "knowledge-base", label: "Knowledge Base" }]),
   { id: "tools", label: "Tools" },
   { id: "embed", label: "Embed" },
   { id: "settings", label: "Settings" },
 ]
 
-const VALID_TABS = new Set(["profile", "configuration", "documents", "knowledge-base", "tools", "embed", "settings"])
+const VALID_TABS = new Set(["profile", "configuration", "documents", "media", "knowledge-base", "tools", "embed", "settings"])
 
 function Skeleton({ height, width }: { height: number; width?: string }) {
   return (
@@ -203,6 +204,9 @@ export default function AgentDetailPage() {
         )}
         {activeTab === "documents" && (
           <DocumentsTab agentId={agent.id} />
+        )}
+        {activeTab === "media" && (
+          <MediaLibraryTab agentId={agent.id} />
         )}
         {activeTab === "tools" && (
           <ToolsTab

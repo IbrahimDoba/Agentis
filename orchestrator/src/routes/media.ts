@@ -34,16 +34,36 @@ export async function mediaRoutes(app: FastifyInstance) {
             return reply.status(400).send({ error: "agentId, filename, mimeType, description, contentBase64 are required" })
         }
 
-        if (!body.mimeType.startsWith("image/")) {
-            return reply.status(400).send({ error: "Only image uploads are supported" })
+        // Accept images, videos, and documents. Per-type size caps sized to
+        // WhatsApp's send limits (and to keep base64-in-JSON bodies sane).
+        const mime = body.mimeType
+        const isImage = mime.startsWith("image/")
+        const isVideo = mime.startsWith("video/")
+        const DOC_MIMES = new Set([
+            "application/pdf",
+            "application/msword",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/vnd.ms-excel",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "application/vnd.ms-powerpoint",
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            "text/plain",
+            "text/csv",
+        ])
+        const isDocument = DOC_MIMES.has(mime)
+        if (!isImage && !isVideo && !isDocument) {
+            return reply.status(400).send({ error: "Unsupported file type. Allowed: images, videos, and documents (PDF, Word, Excel, PowerPoint, txt, csv)." })
         }
 
         const buffer = Buffer.from(body.contentBase64, "base64")
         const sizeBytes = buffer.byteLength
 
-        const MAX_SIZE = 5 * 1024 * 1024  // 5MB
+        // WhatsApp caps: image ~5MB, video ~16MB, documents up to ~100MB (we cap
+        // at 25MB here since the payload is base64-in-JSON).
+        const MAX_SIZE = isVideo ? 16 * 1024 * 1024 : isDocument ? 25 * 1024 * 1024 : 5 * 1024 * 1024
         if (sizeBytes > MAX_SIZE) {
-            return reply.status(400).send({ error: "File too large — max 5MB" })
+            const mb = Math.round(MAX_SIZE / 1024 / 1024)
+            return reply.status(400).send({ error: `File too large — max ${mb}MB for this type.` })
         }
 
         const mediaId = randomUUID()

@@ -458,7 +458,7 @@ export async function getMonthlyCreditsUsedForUser(userId: string, monthStart: D
 export async function insertCreditUsage(entry: {
   agentId: string
   conversationId?: string
-  messageType: "text" | "image"
+  messageType: "text" | "image" | "video" | "document"
   source?: "ai" | "human" | "api"
   creditsUsed: number
   // PAYG audit (added in 20260525000000_add_payg_credits):

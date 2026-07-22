@@ -124,6 +124,101 @@ export async function sendImageWithPacing(
 }
 
 /**
+ * Send a VIDEO with human-like pacing. Baileys streams the file from `videoUrl`
+ * and WhatsApp transcodes it — keep source files within WhatsApp's ~16MB video
+ * limit (enforced at upload time).
+ */
+export async function sendVideoWithPacing(
+  sock: WASocket,
+  jid: string,
+  videoUrl: string,
+  caption: string,
+  warmupTier: number
+): Promise<string | undefined> {
+  // FAIL CLOSED on a full auth volume — see sendWithPacing.
+  await assertStorageWritable()
+
+  const tier = getTierConfig(warmupTier)
+
+  try {
+    await sock.sendPresenceUpdate("composing", jid)
+  } catch (err) {
+    logger.debug({ err }, "Failed to send composing presence")
+  }
+
+  // Videos are heavier than images — a slightly longer "uploading" beat.
+  await sleep(2500)
+
+  const sent = await sock.sendMessage(jid, {
+    video: { url: videoUrl },
+    caption: caption || undefined,
+  })
+  const msgId = sent?.key?.id ?? undefined
+  if (msgId) markSentByUs(msgId)
+
+  try {
+    await sock.sendPresenceUpdate("paused", jid)
+  } catch {
+    // Non-critical
+  }
+
+  const delay = truncatedNormal(tier.minDelayMs, tier.maxDelayMs)
+  logger.debug({ jid, delay, tier: warmupTier }, "Pacing delay applied after video send")
+  await sleep(delay)
+
+  return msgId
+}
+
+/**
+ * Send a DOCUMENT (PDF, docx, etc.) with human-like pacing. `fileName` is what
+ * the recipient sees and is REQUIRED by WhatsApp for documents; `mimetype`
+ * tells WhatsApp how to preview it.
+ */
+export async function sendDocumentWithPacing(
+  sock: WASocket,
+  jid: string,
+  documentUrl: string,
+  fileName: string,
+  mimetype: string,
+  caption: string,
+  warmupTier: number
+): Promise<string | undefined> {
+  // FAIL CLOSED on a full auth volume — see sendWithPacing.
+  await assertStorageWritable()
+
+  const tier = getTierConfig(warmupTier)
+
+  try {
+    await sock.sendPresenceUpdate("composing", jid)
+  } catch (err) {
+    logger.debug({ err }, "Failed to send composing presence")
+  }
+
+  await sleep(1500)
+
+  const sent = await sock.sendMessage(jid, {
+    document: { url: documentUrl },
+    mimetype,
+    fileName,
+    caption: caption || undefined,
+  })
+  const msgId = sent?.key?.id ?? undefined
+  if (msgId) markSentByUs(msgId)
+
+  try {
+    await sock.sendPresenceUpdate("paused", jid)
+  } catch {
+    // Non-critical
+  }
+
+  const delay = truncatedNormal(tier.minDelayMs, tier.maxDelayMs)
+  logger.debug({ jid, delay, tier: warmupTier }, "Pacing delay applied after document send")
+  await sleep(delay)
+
+  return msgId
+}
+
+/**
  * Send a set of images as a single WhatsApp **album** (grouped media), the way a
  * human sends a gallery multi-select. Mechanism (Baileys): send a parent
  * `album` message declaring the image count, then send each image linked to it

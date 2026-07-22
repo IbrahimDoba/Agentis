@@ -12,7 +12,11 @@ const sendSchema = z.object({
   to: z.string(), // E.164 digits or JID
   text: z.string().default(""),
   mediaUrl: z.string().url().optional(),
-  type: z.enum(["text", "image"]).default("text"),
+  type: z.enum(["text", "image", "video", "document"]).default("text"),
+  // Documents need a filename (what the recipient sees) + mimetype; videos may
+  // carry a mimetype too. Optional for text/image.
+  mediaMimeType: z.string().optional(),
+  mediaFileName: z.string().optional(),
   conversationId: z.string().optional(),
   source: z.enum(["ai", "human", "api"]).default("ai"),
   // The orchestrator-persisted Message row backing this send. If the queue
@@ -39,6 +43,8 @@ export const messageRoutes: FastifyPluginAsync = async (app) => {
       text: body.text,
       mediaUrl: body.mediaUrl,
       type: body.type,
+      mediaMimeType: body.mediaMimeType,
+      mediaFileName: body.mediaFileName,
       conversationId: body.conversationId,
       source: body.source,
       messageId: body.messageId,

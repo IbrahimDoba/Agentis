@@ -5,9 +5,13 @@
 export const AI_CREDIT_COSTS = {
   text: 5,
   image: 8,
+  video: 12, // heavier media — WhatsApp transcodes + larger transfer
+  document: 8, // priced like an image (a single file attachment)
   voicePerSec: 3,
   voiceMin: 15, // minimum credits charged per voice note regardless of length
 } as const
+
+export type MessageBillingType = "text" | "image" | "video" | "document"
 
 // Token-weighted accounting. Mirrors src/lib/credits.ts (Next.js) — kept in
 // sync intentionally; both must agree on the credit unit. See PAYG_ANALYSIS.md
@@ -67,8 +71,13 @@ export const PLAN_OVERAGE_RATE_PER_1K: Record<string, number | null> = {
   reseller: null,
 }
 
-export function creditsForMessageType(type?: "text" | "image"): number {
-  return type === "image" ? AI_CREDIT_COSTS.image : AI_CREDIT_COSTS.text
+export function creditsForMessageType(type?: MessageBillingType): number {
+  switch (type) {
+    case "image": return AI_CREDIT_COSTS.image
+    case "video": return AI_CREDIT_COSTS.video
+    case "document": return AI_CREDIT_COSTS.document
+    default: return AI_CREDIT_COSTS.text
+  }
 }
 
 export function creditsForVoice(durationSeconds: number): number {

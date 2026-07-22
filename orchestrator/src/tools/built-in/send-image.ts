@@ -4,13 +4,22 @@ import { getSignedDownloadUrl } from "../../storage/r2.js"
 import { dispatchMedia } from "../../orchestrator/response-dispatcher.js"
 import { logger as rootLogger } from "../../lib/logger.js"
 
-const logger = rootLogger.child({ module: "tool:send_image" })
+const logger = rootLogger.child({ module: "tool:send_media" })
 
-export const SEND_IMAGE_TOOL: ToolDefinition = {
+// Classify a media item by its stored mimeType so the worker sends it as the
+// right WhatsApp message kind. Anything that isn't an image or video is sent as
+// a document (PDF, docx, spec sheet, etc.).
+export function mediaKindFromMime(mimeType: string): "image" | "video" | "document" {
+    if (mimeType.startsWith("image/")) return "image"
+    if (mimeType.startsWith("video/")) return "video"
+    return "document"
+}
+
+export const SEND_MEDIA_TOOL: ToolDefinition = {
     type: "function",
     function: {
-        name: "send_image",
-        description: "Send a SINGLE product's image from the media library. Use this whenever a customer asks about or shows interest in a SPECIFIC product (by name, type, colour, or by tagging/quoting a photo) — send just that one product's image, NOT the whole catalogue. Match the product name/description to the 'Available media' list in your system prompt. Only send a product that is actually in that list (= available); if they ask for something not in your catalogue, tell them it's unavailable instead of sending a random image.",
+        name: "send_media",
+        description: "Send a SINGLE item from the media library to the customer on WhatsApp — a product photo, a VIDEO (e.g. a demo/unboxing clip), or a DOCUMENT (e.g. a brochure, price list, spec sheet, catalogue PDF). Use this whenever a customer asks to SEE a product or asks for a video/brochure/document, OR when you proactively want to show a specific product. Match their request to the 'Available media' list in your system prompt (each item shows its type) and pass that item's ID. Only send items that are actually in that list; if they ask for something not there, say it's unavailable instead of sending something unrelated. Send one item per call.",
         parameters: {
             type: "object",
             properties: {
@@ -20,7 +29,7 @@ export const SEND_IMAGE_TOOL: ToolDefinition = {
                 },
                 caption: {
                     type: "string",
-                    description: "Optional text to send along with the image.",
+                    description: "Optional short text sent along with the media (e.g. the product name, or a note about the document).",
                 },
             },
             required: ["media_id"],
@@ -28,7 +37,11 @@ export const SEND_IMAGE_TOOL: ToolDefinition = {
     },
 }
 
-export async function executeSendImage(args: Record<string, unknown>, opts: {
+// Backward-compatible alias: some agents' prompts still say "send_image". The
+// registration + dispatch accept both names, pointing at the same executor.
+export const SEND_IMAGE_TOOL = SEND_MEDIA_TOOL
+
+export async function executeSendMedia(args: Record<string, unknown>, opts: {
     agentId: string
     conversationId: string
     toJid: string
@@ -43,23 +56,31 @@ export async function executeSendImage(args: Record<string, unknown>, opts: {
         return JSON.stringify({ error: `Media ID ${mediaId} not found in library` })
     }
 
+    const kind = mediaKindFromMime(item.mimeType)
+
     try {
-        // Generate signed URL valid for 1 hour
+        // Signed URL valid for 1 hour — the worker streams the file from here.
         const url = await getSignedDownloadUrl(item.r2Key, 3600)
 
-        // Dispatch to worker
         await dispatchMedia({
             agentId: opts.agentId,
             conversationId: opts.conversationId,
             toJid: opts.toJid,
             mediaUrl: url,
             caption,
+            type: kind,
+            // Documents need a filename the recipient sees; harmless for others.
+            fileName: item.filename,
+            mimeType: item.mimeType,
         })
 
-        logger.info({ mediaId, agentId: opts.agentId }, "send_image executed successfully")
-        return JSON.stringify({ success: true, message: `Image '${item.filename}' sent to customer.` })
+        logger.info({ mediaId, kind, agentId: opts.agentId }, "send_media executed successfully")
+        return JSON.stringify({ success: true, message: `${kind} '${item.filename}' sent to customer.` })
     } catch (err: any) {
-        logger.error({ mediaId, err: err.message }, "send_image failed")
-        return JSON.stringify({ error: `Failed to send image: ${err.message}` })
+        logger.error({ mediaId, err: err.message }, "send_media failed")
+        return JSON.stringify({ error: `Failed to send media: ${err.message}` })
     }
 }
+
+// Backward-compatible export name.
+export const executeSendImage = executeSendMedia

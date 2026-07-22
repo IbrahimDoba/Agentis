@@ -4,7 +4,7 @@ import { getRedis } from "./redis.js"
 import { isLeader } from "../lib/leader.js"
 import { sessionManager } from "../baileys/session-manager.js"
 import { blockSendReason } from "../baileys/auth-health.js"
-import { sendWithPacing, sendImageWithPacing, businessHoursCheck } from "../anti-ban/pacing.js"
+import { sendWithPacing, sendImageWithPacing, sendVideoWithPacing, sendDocumentWithPacing, businessHoursCheck } from "../anti-ban/pacing.js"
 import {
   checkAndIncrement,
   trackNewContact,
@@ -40,7 +40,11 @@ export interface OutboundJob {
   toJid: string
   text: string
   mediaUrl?: string
-  type?: "text" | "image"
+  type?: "text" | "image" | "video" | "document"
+  // Documents require a filename shown to the recipient; videos/documents may
+  // carry a mimetype. Ignored for text/image.
+  mediaMimeType?: string
+  mediaFileName?: string
   conversationId?: string
   // "api" = developer-initiated outbound via the public API. Billed like "ai"
   // (flat per-message), counts toward warmup/anti-ban like any non-human send.
@@ -71,7 +75,7 @@ const queue = new Queue<OutboundJob>(QUEUE_NAME, {
 const worker = new Worker<OutboundJob>(
   QUEUE_NAME,
   async (job: Job<OutboundJob>) => {
-    const { agentId, toJid, text, mediaUrl, type, conversationId, source, messageId, tokensInput, tokensOutput } = job.data
+    const { agentId, toJid, text, mediaUrl, type, mediaMimeType, mediaFileName, conversationId, source, messageId, tokensInput, tokensOutput } = job.data
 
     // Only the leader instance holds WhatsApp sockets. A standby has no session
     // for this agent — if it processed the job it would grab the per-agent lock
@@ -174,7 +178,8 @@ const worker = new Worker<OutboundJob>(
     }
 
     // Billing guardrails (AI sends only — human operator messages always go through)
-    const messageType: "text" | "image" = type === "image" ? "image" : "text"
+    const messageType: "text" | "image" | "video" | "document" =
+      type === "image" || type === "video" || type === "document" ? type : "text"
     // Token-weighted when the orchestrator passed real OpenAI token counts;
     // otherwise fall back to the legacy flat per-type rate (broadcasts,
     // follow-ups, any non-orchestrator AI path that doesn't know tokens).
@@ -243,6 +248,18 @@ const worker = new Worker<OutboundJob>(
       // reflection arriving back at our event handler.
       if (type === "image" && mediaUrl) {
         await sendImageWithPacing(sock, toJid, mediaUrl, text, session.warmupTier)
+      } else if (type === "video" && mediaUrl) {
+        await sendVideoWithPacing(sock, toJid, mediaUrl, text, session.warmupTier)
+      } else if (type === "document" && mediaUrl) {
+        await sendDocumentWithPacing(
+          sock,
+          toJid,
+          mediaUrl,
+          mediaFileName || "document",
+          mediaMimeType || "application/octet-stream",
+          text,
+          session.warmupTier
+        )
       } else {
         await sendWithPacing(sock, toJid, text, session.warmupTier)
       }

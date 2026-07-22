@@ -134,6 +134,12 @@ export interface DispatchMediaOptions {
   toJid: string
   mediaUrl: string
   caption?: string
+  // Media kind for the worker's WhatsApp send. Defaults to "image" for
+  // backward compatibility (product-image sends). "document" also carries a
+  // filename + mimetype the recipient sees.
+  type?: "image" | "video" | "document"
+  mimeType?: string
+  fileName?: string
 }
 
 /**
@@ -153,7 +159,9 @@ export async function dispatchMedia(opts: DispatchMediaOptions): Promise<void> {
       to: opts.toJid,
       text: opts.caption || "",
       mediaUrl: opts.mediaUrl,
-      type: "image",
+      type: opts.type ?? "image",
+      mediaMimeType: opts.mimeType,
+      mediaFileName: opts.fileName,
       conversationId: opts.conversationId,
       source: "ai",
     }),

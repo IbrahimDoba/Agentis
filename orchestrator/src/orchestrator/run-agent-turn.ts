@@ -154,7 +154,7 @@ export async function runAgentTurn(
       for (const tc of result.tool_calls) {
         let toolResult: string
 
-        if (tc.name === "send_image") {
+        if (tc.name === "send_media" || tc.name === "send_image") {
           toolResult = await executeSendImage(tc.arguments, {
             agentId,
             conversationId,

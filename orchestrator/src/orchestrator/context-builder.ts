@@ -74,10 +74,12 @@ Greet them with awareness of what brought them here. Do NOT ask a generic "how c
     try {
       const media = await listMediaItems(agent.agentId)
       if (media.length > 0) {
+        const kindOf = (mime: string) =>
+          mime.startsWith("image/") ? "image" : mime.startsWith("video/") ? "video" : "document"
         const mediaList = media
-          .map((m) => `- ID: ${m.id} | Description: "${m.description}"`)
+          .map((m) => `- ID: ${m.id} | Type: ${kindOf(m.mimeType)} | Description: "${m.description}"`)
           .join("\n")
-        sections.push(`## Available media\nYou have access to the following product images. Whenever a customer asks about or shows interest in a product, proactively send its image using the 'send_image' tool — do not wait for them to ask for a picture. Match by product name or description.\n\n${mediaList}`)
+        sections.push(`## Available media\nYou can send these items to the customer with the 'send_media' tool (pass the item's ID). Items may be a product **image**, a **video** (e.g. a demo clip), or a **document** (e.g. a brochure, price list, or catalogue PDF). Whenever a customer asks about or shows interest in a product, proactively send its image; when they ask for a video, brochure, price list, or document, send the matching item. Match by description and type. Only send items in this list — if what they want isn't here, tell them it's unavailable.\n\n${mediaList}`)
       }
     } catch (err: any) {
       logger.warn({ agentId: agent.agentId, err: err.message }, "Failed to fetch media library")
