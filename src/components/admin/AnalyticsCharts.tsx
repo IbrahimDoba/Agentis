@@ -49,7 +49,17 @@ interface Props {
   planData: { plan: string; count: number }[]
   agentStatusData: { status: string; count: number }[]
   dailyCreditsData?: { day: string; total: number }[]
+  // Daily credits stacked by top accounts (+ Others): data rows keyed by the
+  // series names. Replaces the flat daily chart when provided.
+  dailyByAccount?: { data: Array<Record<string, string | number>>; series: string[] }
+  // 30d credit share by account (top N + Others).
+  creditsByAccountPie?: { name: string; value: number }[]
 }
+
+// Distinct hues for per-account series; "Others" always renders muted.
+const ACCOUNT_COLORS = ["#00dc82", "#38bdf8", "#f59e0b", "#a78bfa", "#f472b6", "#facc15", "#fb7185", "#34d399"]
+const OTHERS_COLOR = "#4a6b56"
+const accountColor = (name: string, i: number) => (name === "Others" ? OTHERS_COLOR : ACCOUNT_COLORS[i % ACCOUNT_COLORS.length])
 
 const tooltipStyle = {
   backgroundColor: "#0f1e15",
@@ -59,7 +69,8 @@ const tooltipStyle = {
   fontSize: "13px",
 }
 
-export function AnalyticsCharts({ userGrowthData, convGrowthData, planData, agentStatusData, dailyCreditsData }: Props) {
+export function AnalyticsCharts({ userGrowthData, convGrowthData, planData, agentStatusData, dailyCreditsData, dailyByAccount, creditsByAccountPie }: Props) {
+  const accountPieData = (creditsByAccountPie ?? []).map((d, i) => ({ ...d, color: accountColor(d.name, i) }))
   const planPieData = planData.map((d) => ({
     name: PLAN_LABELS[d.plan] ?? d.plan,
     value: d.count,
@@ -154,8 +165,52 @@ export function AnalyticsCharts({ userGrowthData, convGrowthData, planData, agen
         </div>
       </div>
 
-      {/* Daily credits — full width */}
-      {dailyCreditsData && dailyCreditsData.length > 0 && (
+      {/* Credit share by account (30d) */}
+      {accountPieData.length > 0 && (
+        <div className={styles.chartCard}>
+          <div className={styles.chartTitle}>Credits by Account (last 30 days)</div>
+          <div className={styles.pieWrap}>
+            <ResponsiveContainer width="100%" height={200}>
+              <PieChart>
+                <Pie data={accountPieData} cx="50%" cy="50%" innerRadius={55} outerRadius={80} paddingAngle={3} dataKey="value">
+                  {accountPieData.map((entry, i) => (
+                    <Cell key={i} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip contentStyle={tooltipStyle} formatter={(v) => [Number(v).toLocaleString() + " cr", ""]} />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className={styles.pieLegend}>
+              {accountPieData.map((d) => (
+                <div key={d.name} className={styles.legendRow}>
+                  <span className={styles.legendDot} style={{ background: d.color }} />
+                  <span className={styles.legendLabel}>{d.name}</span>
+                  <span className={styles.legendVal}>{d.value.toLocaleString()}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Daily credits — full width, stacked by account when available */}
+      {dailyByAccount && dailyByAccount.data.length > 0 ? (
+        <div className={`${styles.chartCard} ${styles.chartCardWide}`}>
+          <div className={styles.chartTitle}>Daily Credits by Account (last 30 days)</div>
+          <ResponsiveContainer width="100%" height={240}>
+            <BarChart data={dailyByAccount.data} margin={{ top: 8, right: 8, left: -10, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1e3a26" />
+              <XAxis dataKey="day" tick={{ fill: "#4a6b56", fontSize: 11 }} axisLine={false} tickLine={false} interval={4} />
+              <YAxis tick={{ fill: "#4a6b56", fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
+              <Tooltip contentStyle={tooltipStyle} formatter={(v) => [Number(v).toLocaleString(), "Credits"]} />
+              <Legend wrapperStyle={{ fontSize: 12 }} />
+              {dailyByAccount.series.map((s, i) => (
+                <Bar key={s} dataKey={s} stackId="credits" fill={accountColor(s, i)} radius={i === dailyByAccount.series.length - 1 ? [3, 3, 0, 0] : [0, 0, 0, 0]} />
+              ))}
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      ) : dailyCreditsData && dailyCreditsData.length > 0 && (
         <div className={`${styles.chartCard} ${styles.chartCardWide}`}>
           <div className={styles.chartTitle}>Daily Credits Used (last 30 days)</div>
           <ResponsiveContainer width="100%" height={220}>

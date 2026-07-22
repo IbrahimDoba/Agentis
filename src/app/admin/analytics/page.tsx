@@ -219,6 +219,64 @@ export default async function AdminAnalyticsPage() {
     total,
   }))
 
+  // ── Credits by ACCOUNT (who is burning what) ─────────────────────────────
+  // Daily per-account rows for the last 30d, pivoted into a stacked daily
+  // chart (top accounts + Others) and a 30d share pie.
+  const perUserDailyRaw = await db.$queryRawUnsafe<Array<{ day: string; userId: string; label: string; total: number }>>(
+    `SELECT DATE(cu."createdAt") AS day, a."userId",
+            COALESCE(NULLIF(u."businessName", ''), u."name", u."email") AS label,
+            COALESCE(SUM(cu."creditsUsed"), 0)::int AS total
+     FROM "CreditUsage" cu
+     JOIN "Agent" a ON a."id" = cu."agentId"
+     JOIN "User" u ON u."id" = a."userId"
+     WHERE cu."createdAt" >= $1::timestamptz
+     GROUP BY 1, 2, 3`,
+    thirtyDaysAgo.toISOString()
+  )
+  // Totals per account → top accounts get their own series/slice, rest = Others.
+  const accountTotals = new Map<string, { label: string; total: number }>()
+  for (const r of perUserDailyRaw) {
+    const cur = accountTotals.get(r.userId)
+    if (cur) cur.total += Number(r.total)
+    else accountTotals.set(r.userId, { label: r.label, total: Number(r.total) })
+  }
+  const ranked = [...accountTotals.entries()].sort((a, b) => b[1].total - a[1].total)
+  // Dedupe display labels (two "John's Store"s) by suffixing.
+  const labelFor = new Map<string, string>()
+  const seenLabels = new Set<string>()
+  for (const [uid, { label }] of ranked) {
+    let l = (label ?? "Unknown").slice(0, 22)
+    while (seenLabels.has(l)) l = `${l.slice(0, 20)}·2`
+    seenLabels.add(l)
+    labelFor.set(uid, l)
+  }
+  const TOP_STACK = 5
+  const topIds = ranked.slice(0, TOP_STACK).map(([uid]) => uid)
+  const stackSeries = [...topIds.map((uid) => labelFor.get(uid)!), "Others"]
+  // Pivot into { day, <account>: credits, ..., Others } rows for all 30 days.
+  const dayRows = new Map<string, Record<string, string | number>>()
+  for (const day of Object.keys(dailyMap)) {
+    const row: Record<string, string | number> = { day: new Date(day).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) }
+    for (const s of stackSeries) row[s] = 0
+    dayRows.set(day, row)
+  }
+  for (const r of perUserDailyRaw) {
+    const key = typeof r.day === "string" ? r.day.split("T")[0] : new Date(r.day).toISOString().split("T")[0]
+    const row = dayRows.get(key)
+    if (!row) continue
+    const series = topIds.includes(r.userId) ? labelFor.get(r.userId)! : "Others"
+    row[series] = (Number(row[series]) || 0) + Number(r.total)
+  }
+  const dailyByAccount = { data: [...dayRows.values()], series: stackSeries }
+  // 30d share pie: top 8 accounts + Others.
+  const PIE_TOP = 8
+  const creditsByAccountPie = [
+    ...ranked.slice(0, PIE_TOP).map(([uid, v]) => ({ name: labelFor.get(uid)!, value: v.total })),
+    ...(ranked.length > PIE_TOP
+      ? [{ name: "Others", value: ranked.slice(PIE_TOP).reduce((s, [, v]) => s + v.total, 0) }]
+      : []),
+  ]
+
   const userCreditsMap: Record<string, number> = {}
   for (const row of userCreditsRaw as Array<{ userId: string; total: number }>) {
     userCreditsMap[row.userId] = Number(row.total)
@@ -406,6 +464,8 @@ export default async function AdminAnalyticsPage() {
         planData={planData}
         agentStatusData={agentStatusData}
         dailyCreditsData={dailyCreditsData}
+        dailyByAccount={dailyByAccount}
+        creditsByAccountPie={creditsByAccountPie}
       />
 
       {/* Per-user metrics table */}
