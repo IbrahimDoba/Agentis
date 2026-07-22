@@ -75,6 +75,9 @@ model User {
   referralsEnabled    Boolean    @default(false)
   historySyncEnabled  Boolean    @default(false)
   developerModeEnabled Boolean   @default(false)
+  // Opt-in (default ON) for the account owner's lead/handoff email alerts and
+  // the daily/weekly activity digests. See src/lib/lead-notifications-job.ts.
+  leadNotificationsEnabled Boolean @default(true)
   createdAt           DateTime   @default(now())
   updatedAt          DateTime   @updatedAt
   agents             Agent[]
@@ -462,6 +465,9 @@ model Conversation {
   handoffReason        String?
   handoffAt            DateTime?
   handoffUrgency       String?
+  // When the owner was emailed about this handoff request. Reset implicitly by
+  // a newer handoffAt so a fresh handoff on the same conversation re-notifies.
+  handoffNotifiedAt    DateTime?
   leadQualifiedAt      DateTime?
   leadIntent           String?
   // Set when the full product album was last sent to this conversation. Used to
@@ -531,6 +537,9 @@ model Lead {
   status         LeadStatus @default(NEW)
   notes          String?    @db.Text
   aiDetected     Boolean    @default(false)
+  // When the owner was emailed about this lead (instant alert). Null = not yet
+  // notified; the poller only emails high-intent leads (aiDetected = false).
+  notifiedAt     DateTime?
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
   agent          Agent      @relation(fields: [agentId], references: [id], onDelete: Cascade)
@@ -538,6 +547,8 @@ model Lead {
 
   @@unique([conversationId, userId])
   @@index([userId, createdAt])
+  // Poller lookup: unnotified, high-intent leads by recency.
+  @@index([aiDetected, notifiedAt, createdAt])
 }
 
 model ConversationRead {

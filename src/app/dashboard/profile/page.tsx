@@ -43,6 +43,9 @@ export default function ProfilePage() {
   const [developerModeEnabled, setDeveloperModeEnabled] = useState(false)
   const [togglingDeveloper, setTogglingDeveloper] = useState(false)
 
+  const [leadNotificationsEnabled, setLeadNotificationsEnabled] = useState(true)
+  const [togglingLeadNotifications, setTogglingLeadNotifications] = useState(false)
+
   const [messagingEnabled, setMessagingEnabled] = useState(true)
   const [togglingMessaging, setTogglingMessaging] = useState(false)
   const [messagingError, setMessagingError] = useState("")
@@ -72,6 +75,7 @@ export default function ProfilePage() {
     if (data?.user) {
       setReferralsEnabled(data.user.referralsEnabled ?? false)
       setDeveloperModeEnabled(data.user.developerModeEnabled ?? false)
+      setLeadNotificationsEnabled(data.user.leadNotificationsEnabled ?? true)
     }
   }, [data?.user])
 
@@ -161,6 +165,23 @@ export default function ProfilePage() {
       setDeveloperModeEnabled(!enabled) // revert on failure
     } finally {
       setTogglingDeveloper(false)
+    }
+  }
+
+  const handleToggleLeadNotifications = async (enabled: boolean) => {
+    setLeadNotificationsEnabled(enabled)
+    setTogglingLeadNotifications(true)
+    try {
+      await fetch("/api/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ leadNotificationsEnabled: enabled }),
+      })
+      queryClient.invalidateQueries({ queryKey: ["me"] })
+    } catch {
+      setLeadNotificationsEnabled(!enabled) // revert on failure
+    } finally {
+      setTogglingLeadNotifications(false)
     }
   }
 
@@ -568,6 +589,35 @@ export default function ProfilePage() {
                 checked={developerModeEnabled}
                 disabled={togglingDeveloper}
                 onChange={(e) => handleToggleDeveloper(e.target.checked)}
+              />
+              <span className={styles.toggleTrack} />
+            </label>
+          </div>
+        </div>
+
+        {/* Lead & handoff email alerts */}
+        <div className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <div className={styles.sectionTitle}>Email notifications</div>
+            <div className={styles.sectionDesc}>Get emailed when your agents bring in a hot lead or need a human — plus daily & weekly summaries.</div>
+          </div>
+          <div className={styles.toggleRow}>
+            <div className={styles.toggleInfo}>
+              <div className={styles.toggleLabel}>
+                {leadNotificationsEnabled ? "Lead & handoff alerts on" : "Lead & handoff alerts off"}
+              </div>
+              <div className={styles.toggleDesc}>
+                {leadNotificationsEnabled
+                  ? "We email you the moment a qualified lead comes in or a chat needs a human, and send daily & weekly activity summaries."
+                  : "Turn this on to get emailed about qualified leads and handoffs, plus daily & weekly summaries."}
+              </div>
+            </div>
+            <label className={styles.toggle}>
+              <input
+                type="checkbox"
+                checked={leadNotificationsEnabled}
+                disabled={togglingLeadNotifications}
+                onChange={(e) => handleToggleLeadNotifications(e.target.checked)}
               />
               <span className={styles.toggleTrack} />
             </label>

@@ -53,14 +53,14 @@ export async function executeMarkQualifiedLead(
     return JSON.stringify({ error: "productOrService and intent are both required" })
   }
 
-  // Read the convo's phoneNumber + contactName for the Lead row, plus the
-  // agent's pauseOnQualifiedLead setting.
+  // Read the convo's phoneNumber for the Lead row, plus the agent's
+  // pauseOnQualifiedLead setting. (The customer's display name lives on the
+  // Conversation — the Lead table has no name column — so notifiers join it in.)
   const ctxRows = await sql<{
     phoneNumber: string
-    contactName: string | null
     pauseOnQualifiedLead: boolean
   }[]>`
-    SELECT c."phoneNumber", c."contactName", a."pauseOnQualifiedLead"
+    SELECT c."phoneNumber", a."pauseOnQualifiedLead"
     FROM "Conversation" c
     JOIN "Agent" a ON a."id" = c."agentId"
     WHERE c."id" = ${opts.conversationId}
@@ -70,7 +70,8 @@ export async function executeMarkQualifiedLead(
   if (!ctx) return JSON.stringify({ error: "Conversation not found" })
   const shouldPause = ctx.pauseOnQualifiedLead
 
-  // Compose the Lead row's notes from the AI's structured args.
+  // A one-line summary for lead lists + email alerts; full detail goes in notes.
+  const leadSummary = [productOrService, intent].filter(Boolean).join(" — ")
   const notesBits = [
     `Product/service: ${productOrService}`,
     `Intent: ${intent}`,
@@ -79,21 +80,24 @@ export async function executeMarkQualifiedLead(
   ].filter(Boolean)
   const leadNotes = notesBits.join("\n")
 
-  // Insert Lead. Schema requires userId for ownership; we pulled it from the
-  // agent's owner via handle-inbound passthrough. Status defaults to NEW.
+  // Insert Lead using the real columns (callerNumber + summary — matching the
+  // background-scan and manual paths). aiDetected defaults to false, marking
+  // this a high-intent inline capture (vs the scan's aiDetected=true) — the
+  // signal the email notifier keys off. Status defaults to NEW.
   const leadId = randomUUID()
   await sql`
     INSERT INTO "Lead" (
       "id", "userId", "agentId", "conversationId",
-      "contactName", "phoneNumber", "notes", "status",
+      "callerNumber", "summary", "notes", "status",
       "createdAt", "updatedAt"
     )
     VALUES (
       ${leadId}, ${opts.userId}, ${opts.agentId}, ${opts.conversationId},
-      ${ctx.contactName}, ${ctx.phoneNumber}, ${leadNotes}, 'NEW',
+      ${ctx.phoneNumber}, ${leadSummary}, ${leadNotes}, 'NEW',
       NOW(), NOW()
     )
     ON CONFLICT ("conversationId", "userId") DO UPDATE SET
+      "summary" = EXCLUDED."summary",
       "notes" = EXCLUDED."notes",
       "updatedAt" = NOW()
   `

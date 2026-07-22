@@ -55,7 +55,10 @@ export async function executeRequestHumanHandoff(
     UPDATE "Conversation"
     SET "handoffReason"  = ${reason},
         "handoffUrgency" = ${urgency},
-        "handoffAt"      = NOW()
+        "handoffAt"      = NOW(),
+        -- Clear the notification stamp so this fresh handoff re-arms the
+        -- owner's email alert (the poller emails when handoffNotifiedAt IS NULL).
+        "handoffNotifiedAt" = NULL
         ${shouldPause ? sql`, "mode" = 'human'` : sql``}
     WHERE "id" = ${opts.conversationId}
   `

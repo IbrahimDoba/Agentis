@@ -42,6 +42,7 @@ export async function GET() {
       onboardingCompleted: user.onboardingCompleted,
       referralsEnabled: user.referralsEnabled,
       developerModeEnabled: user.developerModeEnabled,
+      leadNotificationsEnabled: user.leadNotificationsEnabled,
       hasPassword: Boolean(user.passwordHash),
     },
     agent: agent ? {
@@ -89,6 +90,15 @@ export async function PATCH(req: NextRequest) {
       data: { developerModeEnabled: body.developerModeEnabled },
     })
     return NextResponse.json({ developerModeEnabled: user.developerModeEnabled })
+  }
+
+  // Lead & handoff email alerts toggle — same single-boolean patch shape.
+  if (typeof body.leadNotificationsEnabled === "boolean" && Object.keys(body).length === 1) {
+    const user = await db.user.update({
+      where: { id: session.user.id },
+      data: { leadNotificationsEnabled: body.leadNotificationsEnabled },
+    })
+    return NextResponse.json({ leadNotificationsEnabled: user.leadNotificationsEnabled })
   }
 
   const parsed = profileUpdateSchema.safeParse(body)

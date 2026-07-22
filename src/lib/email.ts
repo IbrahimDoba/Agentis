@@ -787,3 +787,137 @@ export async function sendSubscriptionCancelledEmail(data: {
     `),
   })
 }
+
+// ---------------------------------------------------------------------------
+// Lead & handoff notifications — sent to the account owner (see
+// src/lib/lead-notifications-job.ts). White-label aware via `brand`.
+// ---------------------------------------------------------------------------
+
+// Escape user-authored strings (customer names, AI summaries, handoff reasons)
+// before dropping them into the HTML template — they come from live chats.
+function esc(s: string | null | undefined): string {
+  return (s ?? "")
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+}
+
+// A new high-intent lead (the AI's mark_qualified_lead — confirmed product +
+// budget/quantity/timeline). Deliberately NOT sent for background-scan leads.
+export async function sendQualifiedLeadEmail(data: {
+  ownerName: string
+  email: string
+  agentName: string
+  customerName?: string | null
+  customerNumber?: string | null
+  summary?: string | null
+}, brand?: EmailBrand) {
+  const appUrl = brand?.appUrl ?? APP_URL
+  const who = esc(data.customerName) || esc(data.customerNumber) || "A customer"
+  await resend().emails.send({
+    from: senderFrom(brand),
+    to: data.email,
+    subject: `🔥 New qualified lead — ${who}`,
+    html: baseTemplate(`
+      <h2 style="margin:0 0 8px;font-size:22px;color:#111111;">You've got a qualified lead</h2>
+      <p style="margin:0 0 20px;color:#4b5563;">
+        Hi ${esc(data.ownerName)}, your <strong>${esc(data.agentName)}</strong> agent just flagged a
+        customer with real buying intent. Reach out while it's hot.
+      </p>
+      <table cellpadding="0" cellspacing="0" style="width:100%;">
+        ${infoRow("Customer", who)}
+        ${data.customerNumber ? infoRow("WhatsApp", esc(data.customerNumber)) : ""}
+        ${data.summary ? infoRow("What they want", esc(data.summary)) : ""}
+        ${infoRow("Agent", esc(data.agentName))}
+      </table>
+      ${btn("View lead", `${appUrl}/dashboard/leads`)}
+    `, brand),
+  })
+}
+
+// A human-handoff request the AI raised (any urgency). The customer is waiting.
+export async function sendHandoffRequestEmail(data: {
+  ownerName: string
+  email: string
+  agentName: string
+  customerName?: string | null
+  customerNumber?: string | null
+  reason: string
+  urgency: "normal" | "high"
+}, brand?: EmailBrand) {
+  const appUrl = brand?.appUrl ?? APP_URL
+  const who = esc(data.customerName) || esc(data.customerNumber) || "A customer"
+  const urgent = data.urgency === "high"
+  await resend().emails.send({
+    from: senderFrom(brand),
+    to: data.email,
+    subject: `${urgent ? "🚨 Urgent" : "🙋 "} Handoff needed — ${who}`,
+    html: baseTemplate(`
+      <h2 style="margin:0 0 8px;font-size:22px;color:#111111;">A customer needs a human</h2>
+      <p style="margin:0 0 20px;color:#4b5563;">
+        Hi ${esc(data.ownerName)}, your <strong>${esc(data.agentName)}</strong> agent handed a
+        conversation over for a person to take.${urgent ? " It's marked <strong>high urgency</strong>." : ""}
+      </p>
+      <table cellpadding="0" cellspacing="0" style="width:100%;">
+        ${infoRow("Customer", who)}
+        ${data.customerNumber ? infoRow("WhatsApp", esc(data.customerNumber)) : ""}
+        ${infoRow("Reason", esc(data.reason))}
+        ${infoRow("Urgency", urgent ? "High" : "Normal")}
+        ${infoRow("Agent", esc(data.agentName))}
+      </table>
+      ${btn("Open conversation", `${appUrl}/dashboard/chats`)}
+    `, brand),
+  })
+}
+
+// Daily / weekly activity digest. One `period` label drives both; only sent to
+// owners who had activity in the window (the job filters empty digests out).
+export async function sendActivityDigestEmail(data: {
+  ownerName: string
+  email: string
+  period: "day" | "week"
+  qualifiedLeads: number
+  handoffs: number
+  topLeads: Array<{ agentName: string; who: string; summary?: string | null }>
+}, brand?: EmailBrand) {
+  const appUrl = brand?.appUrl ?? APP_URL
+  const window = data.period === "day" ? "today" : "this week"
+  const title = data.period === "day" ? "Your daily summary" : "Your weekly summary"
+  const leadRows = data.topLeads.map((l) => `
+    <tr>
+      <td style="padding:10px 0;border-top:1px solid #e5e7eb;">
+        <div style="color:#111111;font-size:14px;font-weight:600;">${esc(l.who)}</div>
+        ${l.summary ? `<div style="color:#6b7280;font-size:13px;margin-top:2px;">${esc(l.summary)}</div>` : ""}
+        <div style="color:#9ca3af;font-size:12px;margin-top:2px;">via ${esc(l.agentName)}</div>
+      </td>
+    </tr>`).join("")
+  await resend().emails.send({
+    from: senderFrom(brand),
+    to: data.email,
+    subject: `${title} — ${data.qualifiedLeads} qualified lead${data.qualifiedLeads === 1 ? "" : "s"}, ${data.handoffs} handoff${data.handoffs === 1 ? "" : "s"}`,
+    html: baseTemplate(`
+      <h2 style="margin:0 0 8px;font-size:22px;color:#111111;">${title}</h2>
+      <p style="margin:0 0 24px;color:#4b5563;">
+        Hi ${esc(data.ownerName)}, here's what your AI agents brought in ${window}.
+      </p>
+      <table cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 8px;">
+        <tr>
+          <td style="width:50%;background:#f4f4f5;border-radius:12px;padding:20px;text-align:center;">
+            <div style="font-size:34px;font-weight:800;color:#00a862;">${data.qualifiedLeads}</div>
+            <div style="font-size:13px;color:#6b7280;margin-top:2px;">Qualified leads</div>
+          </td>
+          <td style="width:12px;"></td>
+          <td style="width:50%;background:#f4f4f5;border-radius:12px;padding:20px;text-align:center;">
+            <div style="font-size:34px;font-weight:800;color:#111111;">${data.handoffs}</div>
+            <div style="font-size:13px;color:#6b7280;margin-top:2px;">Handoffs</div>
+          </td>
+        </tr>
+      </table>
+      ${data.topLeads.length > 0 ? `
+        ${divider()}
+        <p style="margin:0 0 4px;font-size:13px;font-weight:700;color:#111111;text-transform:uppercase;letter-spacing:0.5px;">Recent qualified leads</p>
+        <table cellpadding="0" cellspacing="0" style="width:100%;">${leadRows}</table>
+      ` : ""}
+      ${btn("Open dashboard", `${appUrl}/dashboard/leads`)}
+    `, brand),
+  })
+}
