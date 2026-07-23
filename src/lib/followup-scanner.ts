@@ -20,6 +20,10 @@ interface ClassifyResult {
 }
 
 const BATCH_CONCURRENCY = 10
+// Overall time budget for the LLM scan. Kept safely under the route's
+// maxDuration so the scan always finalizes to "review" (with whatever it
+// processed) instead of being hard-killed mid-run and left stuck on "scanning".
+const SCAN_DEADLINE_MS = 240_000
 // Safety bound on one scan (not truly unlimited — an unbounded scan of every
 // conversation could rack up OpenAI cost + take a long time). Covers the
 // up-to-2000 range; raise if needed.
@@ -108,19 +112,6 @@ Respond ONLY with valid JSON: {"reason": "one sentence context", "message": "the
   }
 }
 
-async function runBatch<T, R>(
-  items: T[],
-  concurrency: number,
-  fn: (item: T) => Promise<R>
-): Promise<R[]> {
-  const results: R[] = []
-  for (let i = 0; i < items.length; i += concurrency) {
-    const batch = items.slice(i, i + concurrency)
-    const batchResults = await Promise.all(batch.map(fn))
-    results.push(...batchResults)
-  }
-  return results
-}
 
 export async function runFollowUpScan(opts: ScanOptions): Promise<{
   scanned: number
@@ -172,11 +163,8 @@ export async function runFollowUpScan(opts: ScanOptions): Promise<{
     c.messages.some((m) => m.direction === "inbound")
   )
 
-  // Update totalScanned on the campaign
-  await db.followUpCampaign.update({
-    where: { id: campaignId },
-    data: { totalScanned: eligible.length },
-  })
+  // totalScanned is updated incrementally by the scan loop below (so progress
+  // climbs); no pre-loop write here, which would otherwise jump the counter.
 
   if (eligible.length === 0) {
     await db.followUpCampaign.update({
@@ -186,54 +174,70 @@ export async function runFollowUpScan(opts: ScanOptions): Promise<{
     return { scanned: 0, found: 0 }
   }
 
-  // Run AI classification in batches
-  const results = await runBatch(eligible, BATCH_CONCURRENCY, async (conv) => {
-    const daysSince = conv.lastActivityAt
-      ? Math.floor((now.getTime() - new Date(conv.lastActivityAt).getTime()) / (1000 * 60 * 60 * 24))
-      : 999
-
-    const orderedMessages = [...conv.messages].reverse()
-    const result = await classifyAndGenerate(
-      orderedMessages,
-      conv.contactName,
-      businessDescription,
-      daysSince,
-      includeAll
-    )
-
-    return { conv, result }
-  })
-
-  // Save found messages to DB
+  // Run AI classification in batches, SAVING INCREMENTALLY and under an overall
+  // time budget. A large agent (thousands of cold chats) used to blow past the
+  // serverless limit and leave the campaign stuck on "scanning" forever; now the
+  // scan always finalizes to "review" with whatever it processed in the window,
+  // and each batch's results are persisted as they complete (so nothing is lost
+  // if the function is killed near the end).
+  const deadline = Date.now() + SCAN_DEADLINE_MS
   let found = 0
-  for (const { conv, result } of results) {
-    if (!result?.needed || !result.message) continue
+  let processed = 0
 
-    const digits = conv.phoneNumber.replace(/\D/g, "")
-    const jid = `${digits}@s.whatsapp.net`
+  for (let i = 0; i < eligible.length; i += BATCH_CONCURRENCY) {
+    if (Date.now() > deadline) {
+      console.warn(`[followup-scan] time budget hit — finalizing after ${processed}/${eligible.length} conversations`)
+      break
+    }
 
-    await db.followUpMessage.create({
-      data: {
-        campaignId,
-        conversationId: conv.id,
-        phoneNumber: conv.phoneNumber,
-        jid,
-        contactName: conv.contactName,
-        aiReason: result.reason,
-        generatedMessage: result.message,
-        status: "pending",
-      },
-    })
-    found++
+    const batch = eligible.slice(i, i + BATCH_CONCURRENCY)
+    const batchResults = await Promise.all(
+      batch.map(async (conv) => {
+        try {
+          const daysSince = conv.lastActivityAt
+            ? Math.floor((now.getTime() - new Date(conv.lastActivityAt).getTime()) / (1000 * 60 * 60 * 24))
+            : 999
+          const orderedMessages = [...conv.messages].reverse()
+          const result = await classifyAndGenerate(orderedMessages, conv.contactName, businessDescription, daysSince, includeAll)
+          return { conv, result }
+        } catch (err) {
+          // One conversation's LLM failure must not sink the whole batch.
+          console.error("[followup-scan] classify error:", (err as Error)?.message)
+          return { conv, result: null as ClassifyResult | null }
+        }
+      })
+    )
+    processed += batch.length
+
+    for (const { conv, result } of batchResults) {
+      if (!result?.needed || !result.message) continue
+      const digits = conv.phoneNumber.replace(/\D/g, "")
+      const jid = `${digits}@s.whatsapp.net`
+      await db.followUpMessage.create({
+        data: {
+          campaignId,
+          conversationId: conv.id,
+          phoneNumber: conv.phoneNumber,
+          jid,
+          contactName: conv.contactName,
+          aiReason: result.reason,
+          generatedMessage: result.message,
+          status: "pending",
+        },
+      }).catch((err) => console.error("[followup-scan] save error:", err?.message))
+      found++
+    }
+
+    // Keep the UI's progress counters moving batch-by-batch.
+    await db.followUpCampaign
+      .update({ where: { id: campaignId }, data: { totalScanned: processed, totalFound: found } })
+      .catch(() => {})
   }
 
   await db.followUpCampaign.update({
     where: { id: campaignId },
-    data: {
-      totalFound: found,
-      status: "review",
-    },
+    data: { totalScanned: processed, totalFound: found, status: "review" },
   })
 
-  return { scanned: eligible.length, found }
+  return { scanned: processed, found }
 }

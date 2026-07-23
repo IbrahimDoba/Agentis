@@ -1,10 +1,20 @@
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest, NextResponse, after } from "next/server"
 import { runFollowUpScan } from "@/lib/followup-scanner"
 import { getWorkspaceContext } from "@/lib/workspace"
 
 interface Params { params: Promise<{ id: string }> }
+
+// Give the async scan room to finish AFTER the response (via after()) instead
+// of being frozen the instant we return — the root cause of campaigns stuck
+// forever on "scanning". Vercel clamps this to the plan's max.
+export const maxDuration = 300
+
+// A campaign that's been "scanning" longer than this never will finish (the
+// serverless run that owned it is long gone) — surface it as failed so the UI
+// recovers and the operator can retry, instead of spinning indefinitely.
+const STUCK_SCAN_MS = 10 * 60 * 1000
 
 export async function GET(req: NextRequest, { params }: Params) {
   const session = await auth()
@@ -14,6 +24,13 @@ export async function GET(req: NextRequest, { params }: Params) {
 
   const agent = await db.agent.findFirst({ where: { id: agentId, userId: ownerId } })
   if (!agent) return NextResponse.json({ error: "Not found" }, { status: 404 })
+
+  // Watchdog: recover any campaign wedged on "scanning" (its serverless run died
+  // mid-scan). Marking it failed lets the panel stop spinning and offer a retry.
+  await db.followUpCampaign.updateMany({
+    where: { agentId, status: "scanning", createdAt: { lt: new Date(Date.now() - STUCK_SCAN_MS) } },
+    data: { status: "failed" },
+  }).catch(() => {})
 
   const campaigns = await db.followUpCampaign.findMany({
     where: { agentId },
@@ -47,13 +64,20 @@ export async function POST(req: NextRequest, { params }: Params) {
     data: { agentId, mode, minDaysSince, status: "scanning" },
   })
 
-  // Run scan async — do not await, let the client poll for status
-  runFollowUpScan({ agentId, campaignId: campaign.id, minDaysSince, includeAll }).catch(async (err) => {
-    console.error("[followup-scan] error:", err)
-    await db.followUpCampaign.update({
-      where: { id: campaign.id },
-      data: { status: "failed" },
-    }).catch(() => {})
+  // Run the scan AFTER the response is sent — after() keeps the serverless
+  // function alive for it (up to maxDuration), instead of the platform freezing
+  // execution the moment we return and killing an un-awaited promise (which is
+  // why scans got stuck on "scanning"). The client polls the campaign status.
+  after(async () => {
+    try {
+      await runFollowUpScan({ agentId, campaignId: campaign.id, minDaysSince, includeAll })
+    } catch (err) {
+      console.error("[followup-scan] error:", err)
+      await db.followUpCampaign.update({
+        where: { id: campaign.id },
+        data: { status: "failed" },
+      }).catch(() => {})
+    }
   })
 
   return NextResponse.json({ campaign }, { status: 201 })
