@@ -190,6 +190,13 @@ export async function runFollowUpScan(opts: ScanOptions): Promise<{
       break
     }
 
+    // Stop early if the operator cancelled the campaign mid-scan (cheap PK read).
+    const current = await db.followUpCampaign.findUnique({ where: { id: campaignId }, select: { status: true } })
+    if (current?.status !== "scanning") {
+      console.warn("[followup-scan] campaign no longer scanning (cancelled) — stopping")
+      return { scanned: processed, found }
+    }
+
     const batch = eligible.slice(i, i + BATCH_CONCURRENCY)
     const batchResults = await Promise.all(
       batch.map(async (conv) => {
@@ -234,8 +241,10 @@ export async function runFollowUpScan(opts: ScanOptions): Promise<{
       .catch(() => {})
   }
 
-  await db.followUpCampaign.update({
-    where: { id: campaignId },
+  // Finalize to "review" ONLY if still scanning — never clobber a cancel that
+  // landed while this background run was finishing.
+  await db.followUpCampaign.updateMany({
+    where: { id: campaignId, status: "scanning" },
     data: { totalScanned: processed, totalFound: found, status: "review" },
   })
 

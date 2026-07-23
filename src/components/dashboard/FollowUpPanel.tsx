@@ -88,6 +88,13 @@ function SetupModal({ onStart, onClose }: {
   const [minDays, setMinDays] = useState(1)
   const [includeAll, setIncludeAll] = useState(false)
 
+  // Lock the page behind the modal so a scroll gesture scrolls the modal, not
+  // the page underneath it.
+  useEffect(() => {
+    document.body.style.overflow = "hidden"
+    return () => { document.body.style.overflow = "" }
+  }, [])
+
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
@@ -217,6 +224,12 @@ function CampaignDetailModal({ campaign, agentId, onClose, onRefresh }: {
     load()
   }, [load])
 
+  // Lock the page behind the modal so scrolling scrolls the modal, not the page.
+  useEffect(() => {
+    document.body.style.overflow = "hidden"
+    return () => { document.body.style.overflow = "" }
+  }, [])
+
   // Poll only while the campaign is actively working AND the tab is visible.
   const detailActive = detail?.status === "scanning" || detail?.status === "sending"
   useVisibleInterval(load, 3000, detailActive)
@@ -336,6 +349,13 @@ function CampaignDetailModal({ campaign, agentId, onClose, onRefresh }: {
               <div className={styles.scanTitle}>AI is scanning your conversations…</div>
               <div className={styles.scanSub}>This usually takes 15–60 seconds.</div>
             </div>
+            <button
+              onClick={handleCancel}
+              disabled={cancelling}
+              style={{ marginTop: 12, padding: "8px 16px", borderRadius: 8, border: "1px solid var(--border)", background: "none", color: "var(--text-muted)", fontSize: 13, fontWeight: 600, cursor: cancelling ? "not-allowed" : "pointer" }}
+            >
+              {cancelling ? "Cancelling…" : "Cancel scan"}
+            </button>
           </div>
         )}
 
