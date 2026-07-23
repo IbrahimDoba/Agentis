@@ -543,15 +543,38 @@ export async function saveHumanOutboundMessage(
   customerPhone: string,
   text: string
 ): Promise<void> {
-  // Find existing conversation — don't create one; if there's no conversation the
-  // operator is texting someone who never messaged in, which is unusual.
   const convRows = await sql<{ id: string }[]>`
     SELECT "id" FROM "Conversation"
     WHERE "agentId" = ${agentId} AND "phoneNumber" = ${customerPhone}
     LIMIT 1
   `
-  const conversationId = convRows[0]?.id
-  if (!conversationId) return
+  let conversationId = convRows[0]?.id
+  if (!conversationId) {
+    // The operator is INITIATING a chat with a new number from their own
+    // phone. Create the conversation NOW — in human mode (honoring
+    // autoPauseOnHumanReply, default ON) — so (a) the opener shows in the
+    // dashboard and (b) the customer's reply lands in this human-mode
+    // conversation instead of a fresh mode='ai' one that would let the AI
+    // hijack a manual outreach. The auto-resume timer (or a manual toggle)
+    // hands the chat back to the AI later, as with any human takeover.
+    const agentRows = await sql<{ autoPauseOnHumanReply: boolean }[]>`
+      SELECT "autoPauseOnHumanReply" FROM "Agent" WHERE "id" = ${agentId} LIMIT 1
+    `
+    if (agentRows.length === 0) return // agent gone — nothing to attach to
+    const startMode = agentRows[0].autoPauseOnHumanReply === false ? "ai" : "human"
+    const newConvId = randomUUID()
+    // Race-safe vs a simultaneous inbound creating the same conversation:
+    // on conflict, refresh activity and return the existing row's id.
+    const created = await sql<{ id: string }[]>`
+      INSERT INTO "Conversation" ("id", "agentId", "phoneNumber", "mode", "lastActivityAt")
+      VALUES (${newConvId}, ${agentId}, ${customerPhone}, ${startMode}, NOW())
+      ON CONFLICT ("agentId", "phoneNumber")
+      DO UPDATE SET "lastActivityAt" = NOW()
+      RETURNING "id"
+    `
+    conversationId = created[0]?.id
+    if (!conversationId) return
+  }
 
   const id = randomUUID()
   await sql`
