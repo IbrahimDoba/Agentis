@@ -459,6 +459,11 @@ model Conversation {
   orchestratorAgent    OrchestratorAgent?  @relation(fields: [orchestratorAgentId], references: [id], onDelete: SetNull)
   phoneNumber          String
   contactName          String?
+  // Raw WhatsApp chat JID (e.g. "<lid>@lid" or "<phone>@s.whatsapp.net") from the
+  // inbound message. Bridges to ChatLabel.chatJid so label features (AI-off,
+  // follow-up-by-label) join reliably despite the LID↔phone duality that
+  // phoneNumber alone can't. Backfilled as each customer messages.
+  senderJid            String?
   mode                 String              @default("ai")
   // When true, this conversation stays human forever — the auto-resume-AI
   // sweep skips it, so the timer never flips it back to AI.
@@ -493,6 +498,7 @@ model Conversation {
 
   @@unique([agentId, phoneNumber])
   @@index([agentId, visitorId])
+  @@index([agentId, senderJid])
   @@index([agentId, lastActivityAt])
 }
 

@@ -65,6 +65,8 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
       contactName: pushName,
       channel,
       visitorId: payload.visitorId,
+      // Store the raw chat JID for label matching (WhatsApp only — @lid/@s.whatsapp.net).
+      senderJid: channel === "whatsapp" ? senderJid : undefined,
     }
   )
 

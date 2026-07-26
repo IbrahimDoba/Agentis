@@ -122,16 +122,20 @@ export async function runFollowUpScan(opts: ScanOptions): Promise<{
 }> {
   const { agentId, campaignId, minDaysSince, includeAll = false, targetLabelId } = opts
 
-  // Label targeting: restrict to the phone numbers tagged with this label.
+  // Label targeting: restrict to chats tagged with this label. We match on BOTH
+  // the resolved phone AND the raw chat JID (bridged via Conversation.senderJid)
+  // so LID-keyed labels still join — phone alone misses most of them.
   let labelPhones: string[] | null = null
+  let labelJids: string[] | null = null
   if (targetLabelId) {
     const tagged = await db.chatLabel.findMany({
       where: { agentId, waLabelId: targetLabelId },
-      select: { phoneNumber: true },
+      select: { phoneNumber: true, chatJid: true },
     })
     labelPhones = tagged.map((t) => t.phoneNumber).filter((p): p is string => !!p)
+    labelJids = tagged.map((t) => t.chatJid).filter((j): j is string => !!j)
     // No chats carry the label → nothing to scan.
-    if (labelPhones.length === 0) {
+    if (labelPhones.length === 0 && labelJids.length === 0) {
       await db.followUpCampaign.update({
         where: { id: campaignId },
         data: { status: "review", totalScanned: 0, totalFound: 0 },
@@ -158,12 +162,13 @@ export async function runFollowUpScan(opts: ScanOptions): Promise<{
       mode: "ai", // not in human handoff
       // Last activity was more than minDaysSince ago (went cold)
       lastActivityAt: { lte: cutoff },
-      // Label targeting: only chats carrying the selected label.
-      ...(labelPhones ? { phoneNumber: { in: labelPhones } } : {}),
-      // Not followed up recently
-      OR: [
-        { lastFollowedUpAt: null },
-        { lastFollowedUpAt: { lte: cooldownCutoff } },
+      AND: [
+        // Not followed up recently
+        { OR: [{ lastFollowedUpAt: null }, { lastFollowedUpAt: { lte: cooldownCutoff } }] },
+        // Label targeting: chats carrying the selected label (by phone OR chat JID).
+        ...(targetLabelId
+          ? [{ OR: [{ phoneNumber: { in: labelPhones ?? [] } }, { senderJid: { in: labelJids ?? [] } }] }]
+          : []),
       ],
     },
     select: {

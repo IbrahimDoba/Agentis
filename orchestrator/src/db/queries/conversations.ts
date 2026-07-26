@@ -43,6 +43,8 @@ export interface CreateConversationOptions {
   defaultMode?: "ai" | "human"
   channel?: "whatsapp" | "embed" | "api"
   visitorId?: string
+  // Raw WhatsApp chat JID for the label-matching bridge (see Conversation.senderJid).
+  senderJid?: string
 }
 
 export async function getOrCreateConversation(
@@ -62,6 +64,7 @@ export async function getOrCreateConversation(
   const defaultMode = opts.defaultMode ?? "ai"
   const channel = opts.channel ?? "whatsapp"
   const visitorId = opts.visitorId ?? null
+  const senderJid = opts.senderJid ?? null
 
   // Try to find existing
   const existing = await sql<Conversation[]>`
@@ -76,7 +79,8 @@ export async function getOrCreateConversation(
       UPDATE "Conversation"
       SET "lastActivityAt" = NOW(),
           "orchestratorAgentId" = COALESCE(${orchestratorAgentId}, "orchestratorAgentId"),
-          "contactName" = COALESCE(${contactName ?? null}, "contactName")
+          "contactName" = COALESCE(${contactName ?? null}, "contactName"),
+          "senderJid" = COALESCE(${senderJid}, "senderJid")
       WHERE "id" = ${existing[0].id}
     `
     return {
@@ -89,9 +93,9 @@ export async function getOrCreateConversation(
   const id = randomUUID()
   const rows = await sql<Conversation[]>`
     INSERT INTO "Conversation" ("id", "agentId", "orchestratorAgentId", "phoneNumber",
-      "contactName", "mode", "channel", "visitorId", "lastActivityAt", "createdAt")
+      "contactName", "senderJid", "mode", "channel", "visitorId", "lastActivityAt", "createdAt")
     VALUES (${id}, ${agentId}, ${orchestratorAgentId}, ${phoneNumber},
-      ${contactName ?? null}, ${defaultMode}, ${channel}, ${visitorId}, NOW(), NOW())
+      ${contactName ?? null}, ${senderJid}, ${defaultMode}, ${channel}, ${visitorId}, NOW(), NOW())
     RETURNING "id", "agentId", "orchestratorAgentId", "phoneNumber", "mode",
               "lastActivityAt", "adContext", "channel", "visitorId"
   `
