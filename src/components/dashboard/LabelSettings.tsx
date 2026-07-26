@@ -9,6 +9,7 @@ interface LabelRow {
   isStage: boolean
   stageOrder: number | null
   applyRule: string | null
+  aiDisabled: boolean
 }
 
 // Self-contained chat-tagging config: the master toggle + per-label "mix" setup
@@ -57,6 +58,7 @@ export function LabelSettings({ agentId }: { agentId: string }) {
             isStage: l.isStage,
             stageOrder: l.isStage ? l.stageOrder ?? 0 : null,
             applyRule: l.applyRule?.trim() ? l.applyRule.trim() : null,
+            aiDisabled: l.aiDisabled,
           })),
         }),
       })
@@ -73,11 +75,13 @@ export function LabelSettings({ agentId }: { agentId: string }) {
 
   return (
     <div style={{ borderTop: "1px solid var(--border, #e4e4e7)", paddingTop: 24, marginTop: 8 }}>
-      <h2 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 4px" }}>Chat tagging (WhatsApp labels)</h2>
+      <h2 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 4px" }}>WhatsApp labels</h2>
       <p style={{ ...labelStyle, margin: "0 0 16px" }}>
         Let the AI categorise chats with your WhatsApp Business labels. Mark labels as a
         <strong> stage</strong> (a funnel — one active at a time, the AI swaps it) or leave them as an additive
         <strong> tag</strong>. Optionally give a label a rule for when to apply it; otherwise the AI infers from its name.
+        Turn <strong>AI off</strong> for a label to have the AI stay silent on those chats (e.g. cold leads you handle
+        manually) — remove the label and the AI resumes.
       </p>
 
       {/* Master toggle */}
@@ -112,8 +116,9 @@ export function LabelSettings({ agentId }: { agentId: string }) {
             <div
               key={l.waLabelId}
               style={{
-                display: "grid", gridTemplateColumns: "1.2fr 0.8fr 0.6fr 2fr", gap: 10, alignItems: "center",
+                display: "grid", gridTemplateColumns: "1.1fr 0.75fr 0.5fr 1.6fr auto", gap: 10, alignItems: "center",
                 border: "1px solid var(--border, #e4e4e7)", borderRadius: 10, padding: "10px 12px",
+                ...(l.aiDisabled ? { borderColor: "rgba(239,68,68,0.4)", background: "rgba(239,68,68,0.04)" } : {}),
               }}
             >
               <span style={{ fontSize: 14, fontWeight: 600 }}>{l.name}</span>
@@ -140,6 +145,17 @@ export function LabelSettings({ agentId }: { agentId: string }) {
                 value={l.applyRule ?? ""}
                 onChange={(e) => patchLabel(l.waLabelId, { applyRule: e.target.value })}
               />
+              <label
+                title="When on, the AI won't reply to chats with this label — they wait for a human."
+                style={{ display: "inline-flex", alignItems: "center", gap: 6, whiteSpace: "nowrap", cursor: "pointer", fontSize: 12, fontWeight: 600, color: l.aiDisabled ? "#ef4444" : "var(--text-secondary, #6b7280)" }}
+              >
+                <input
+                  type="checkbox"
+                  checked={l.aiDisabled}
+                  onChange={(e) => patchLabel(l.waLabelId, { aiDisabled: e.target.checked })}
+                />
+                AI off
+              </label>
             </div>
           ))}
         </div>

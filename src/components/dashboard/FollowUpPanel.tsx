@@ -29,6 +29,7 @@ interface FollowUpCampaign {
   totalSkipped: number
   createdAt: string
   completedAt: string | null
+  targetLabelName?: string | null
   messages?: FollowUpMessage[]
   _count?: { messages: number }
 }
@@ -80,13 +81,16 @@ function CampaignBadge({ status }: { status: CampaignStatus }) {
 
 // ─── Setup Modal ────────────────────────────────────────────────────────────
 
-function SetupModal({ onStart, onClose }: {
-  onStart: (mode: "auto" | "review", minDays: number, includeAll: boolean) => void
+function SetupModal({ agentId, onStart, onClose }: {
+  agentId: string
+  onStart: (mode: "auto" | "review", minDays: number, includeAll: boolean, targetLabelId?: string, targetLabelName?: string) => void
   onClose: () => void
 }) {
   const [mode, setMode] = useState<"auto" | "review">("review")
   const [minDays, setMinDays] = useState(1)
   const [includeAll, setIncludeAll] = useState(false)
+  const [labels, setLabels] = useState<{ waLabelId: string; name: string }[]>([])
+  const [labelId, setLabelId] = useState<string>("") // "" = all conversations
 
   // Lock the page behind the modal so a scroll gesture scrolls the modal, not
   // the page underneath it.
@@ -94,6 +98,14 @@ function SetupModal({ onStart, onClose }: {
     document.body.style.overflow = "hidden"
     return () => { document.body.style.overflow = "" }
   }, [])
+
+  // Load the agent's WhatsApp labels so the operator can target one.
+  useEffect(() => {
+    fetch(`/api/agents/${agentId}/labels`)
+      .then((r) => r.json())
+      .then((d) => { if (Array.isArray(d.labels)) setLabels(d.labels.map((l: { waLabelId: string; name: string }) => ({ waLabelId: l.waLabelId, name: l.name }))) })
+      .catch(() => {})
+  }, [agentId])
 
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
@@ -121,6 +133,23 @@ function SetupModal({ onStart, onClose }: {
             ))}
           </div>
         </div>
+
+        {labels.length > 0 && (
+          <div className={styles.setupSection}>
+            <label className={styles.setupLabel}>Target a label <span style={{ fontWeight: 400, opacity: 0.7 }}>(optional)</span></label>
+            <p className={styles.setupDesc}>Only follow up with chats carrying this WhatsApp label — e.g. just your warm leads.</p>
+            <select
+              value={labelId}
+              onChange={(e) => setLabelId(e.target.value)}
+              style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid var(--border, #e5e7eb)", fontSize: 14 }}
+            >
+              <option value="">All conversations</option>
+              {labels.map((l) => (
+                <option key={l.waLabelId} value={l.waLabelId}>{l.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <div className={styles.setupSection}>
           <label className={styles.setupLabel}>Who to message</label>
@@ -182,7 +211,7 @@ function SetupModal({ onStart, onClose }: {
 
         <div className={styles.modalFooter}>
           <button className={styles.cancelBtn} onClick={onClose}>Cancel</button>
-          <button className={styles.startBtn} onClick={() => onStart(includeAll ? "review" : mode, minDays, includeAll)}>
+          <button className={styles.startBtn} onClick={() => onStart(includeAll ? "review" : mode, minDays, includeAll, labelId || undefined, labelId ? labels.find((l) => l.waLabelId === labelId)?.name : undefined)}>
             Start Scanning →
           </button>
         </div>
@@ -321,6 +350,7 @@ function CampaignDetailModal({ campaign, agentId, onClose, onRefresh }: {
               {isScanning
                 ? `Scanning conversations…`
                 : `${c.totalScanned} scanned · ${c.totalFound} found · ${c.totalSent} sent`}
+              {c.targetLabelName ? ` · 🏷 ${c.targetLabelName}` : ""}
             </p>
           </div>
           <button className={styles.closeBtn} onClick={onClose}>✕</button>
@@ -556,7 +586,7 @@ export function FollowUpPanel({ agentId, isConnected }: Props) {
   )
   useVisibleInterval(loadCampaigns, 5000, hasActiveCampaign)
 
-  const handleStart = async (mode: "auto" | "review", minDays: number, includeAll: boolean) => {
+  const handleStart = async (mode: "auto" | "review", minDays: number, includeAll: boolean, targetLabelId?: string, targetLabelName?: string) => {
     setCreating(true)
     setError("")
     setShowSetup(false)
@@ -564,7 +594,7 @@ export function FollowUpPanel({ agentId, isConnected }: Props) {
       const res = await fetch(`/api/agents/${agentId}/followup-campaigns`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode, minDaysSince: minDays, includeAll }),
+        body: JSON.stringify({ mode, minDaysSince: minDays, includeAll, targetLabelId, targetLabelName }),
       })
       if (!res.ok) throw new Error("Failed to start")
       const data = await res.json()
@@ -646,7 +676,7 @@ export function FollowUpPanel({ agentId, isConnected }: Props) {
       )}
 
       {showSetup && (
-        <SetupModal onStart={handleStart} onClose={() => setShowSetup(false)} />
+        <SetupModal agentId={agentId} onStart={handleStart} onClose={() => setShowSetup(false)} />
       )}
 
       {activeCampaign && (

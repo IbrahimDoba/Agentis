@@ -11,6 +11,9 @@ interface ScanOptions {
   // personalized re-engagement message for EVERY eligible contact, for the
   // operator to review and pick from.
   includeAll?: boolean
+  // Restrict the scan to chats carrying this WhatsApp label (waLabelId), e.g.
+  // only "warm leads". Undefined = all eligible conversations.
+  targetLabelId?: string
 }
 
 interface ClassifyResult {
@@ -117,7 +120,25 @@ export async function runFollowUpScan(opts: ScanOptions): Promise<{
   scanned: number
   found: number
 }> {
-  const { agentId, campaignId, minDaysSince, includeAll = false } = opts
+  const { agentId, campaignId, minDaysSince, includeAll = false, targetLabelId } = opts
+
+  // Label targeting: restrict to the phone numbers tagged with this label.
+  let labelPhones: string[] | null = null
+  if (targetLabelId) {
+    const tagged = await db.chatLabel.findMany({
+      where: { agentId, waLabelId: targetLabelId },
+      select: { phoneNumber: true },
+    })
+    labelPhones = tagged.map((t) => t.phoneNumber).filter((p): p is string => !!p)
+    // No chats carry the label → nothing to scan.
+    if (labelPhones.length === 0) {
+      await db.followUpCampaign.update({
+        where: { id: campaignId },
+        data: { status: "review", totalScanned: 0, totalFound: 0 },
+      })
+      return { scanned: 0, found: 0 }
+    }
+  }
 
   // Get the agent's business description for context
   const agent = await db.agent.findUnique({
@@ -137,6 +158,8 @@ export async function runFollowUpScan(opts: ScanOptions): Promise<{
       mode: "ai", // not in human handoff
       // Last activity was more than minDaysSince ago (went cold)
       lastActivityAt: { lte: cutoff },
+      // Label targeting: only chats carrying the selected label.
+      ...(labelPhones ? { phoneNumber: { in: labelPhones } } : {}),
       // Not followed up recently
       OR: [
         { lastFollowedUpAt: null },

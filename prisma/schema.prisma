@@ -275,6 +275,9 @@ model WhatsAppLabel {
   isStage      Boolean  @default(false)     // part of the stage funnel vs additive tag
   stageOrder   Int?                         // funnel position (lower = earlier)
   applyRule    String?                      // optional "when to apply" criteria
+  // When true, the AI does NOT reply to any chat carrying this label — it stays
+  // silent for a human to handle (dynamic: remove the label and the AI resumes).
+  aiDisabled   Boolean  @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -320,6 +323,10 @@ model FollowUpCampaign {
   status       String    @default("scanning") // scanning | review | scheduled | sending | completed | cancelled | failed
   mode         String    @default("auto")     // auto | review
   minDaysSince Int       @default(1)
+  // Optional: restrict the scan to chats carrying this WhatsApp label
+  // (e.g. only "warm leads"). null = all eligible conversations.
+  targetLabelId   String?
+  targetLabelName String?
   totalScanned Int       @default(0)
   totalFound   Int       @default(0)
   totalSent    Int       @default(0)

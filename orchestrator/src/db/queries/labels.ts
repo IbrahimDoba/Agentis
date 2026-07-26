@@ -32,6 +32,32 @@ export async function getChatStageLabelIds(agentId: string, chatJid: string): Pr
   return rows.map((r) => r.waLabelId)
 }
 
+// True when the chat carries any label the operator set to "AI off" — the AI
+// then stays silent for a human to handle. Matched on BOTH the resolved phone
+// number and the raw chat JID to survive the LID/phone-number duality.
+export async function chatHasAiDisabledLabel(
+  agentId: string,
+  phoneNumber: string | null,
+  chatJid: string | null
+): Promise<boolean> {
+  if (!phoneNumber && !chatJid) return false
+  try {
+    const rows = await sql<{ one: number }[]>`
+      SELECT 1 AS one
+      FROM "ChatLabel" c
+      JOIN "WhatsAppLabel" l ON l."agentId" = c."agentId" AND l."waLabelId" = c."waLabelId"
+      WHERE c."agentId" = ${agentId}
+        AND l."aiDisabled" = true AND l."deleted" = false
+        AND (c."phoneNumber" = ${phoneNumber ?? ""} OR c."chatJid" = ${chatJid ?? ""})
+      LIMIT 1
+    `
+    return rows.length > 0
+  } catch {
+    // If the column isn't there yet (pre-migration), fail OPEN (AI replies).
+    return false
+  }
+}
+
 // Gate for the tag_conversation tool. Defaults to off if the column isn't there
 // yet (orchestrator deployed before the migration).
 export async function isChatTaggingEnabled(agentId: string): Promise<boolean> {

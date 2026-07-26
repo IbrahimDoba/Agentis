@@ -14,7 +14,7 @@ import { publishSseEvent } from "../lib/sse-publish.js"
 import { stripImageUrls } from "../lib/strip-image-urls.js"
 import { runAgentTurn } from "./run-agent-turn.js"
 import { guardReply } from "./reply-guard.js"
-import { getChatTaggingFlags } from "../db/queries/labels.js"
+import { getChatTaggingFlags, chatHasAiDisabledLabel } from "../db/queries/labels.js"
 import { classifyAndTagInBackground } from "./background-tagger.js"
 import { logger as rootLogger } from "../lib/logger.js"
 
@@ -136,6 +136,15 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
   if (await isAiRepliesPaused(agentId)) {
     await maybeBackgroundTag()
     logger.info({ agentId, conversationId: conversation.id }, "AI replies disabled for agent — skipping AI reply")
+    return
+  }
+
+  // 4c. Per-label AI-off — stay silent on chats carrying a label the operator
+  // set to "AI off" (e.g. cold leads they handle manually). Dynamic: remove the
+  // label and the AI resumes. WhatsApp only (labels don't exist on the widget).
+  if (channel === "whatsapp" && await chatHasAiDisabledLabel(agentId, conversation.phoneNumber, senderJid)) {
+    await maybeBackgroundTag()
+    logger.info({ agentId, conversationId: conversation.id }, "Chat has an AI-off label — skipping AI reply")
     return
   }
 

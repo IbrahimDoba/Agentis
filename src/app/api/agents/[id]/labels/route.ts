@@ -23,7 +23,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
   const labels = await db.whatsAppLabel.findMany({
     where: { agentId: id, deleted: false },
     orderBy: [{ isStage: "desc" }, { stageOrder: "asc" }, { name: "asc" }],
-    select: { waLabelId: true, name: true, color: true, isStage: true, stageOrder: true, applyRule: true },
+    select: { waLabelId: true, name: true, color: true, isStage: true, stageOrder: true, applyRule: true, aiDisabled: true },
   })
 
   return NextResponse.json({
@@ -41,6 +41,7 @@ const patchSchema = z.object({
     isStage: z.boolean().optional(),
     stageOrder: z.number().int().nullable().optional(),
     applyRule: z.string().max(300).nullable().optional(),
+    aiDisabled: z.boolean().optional(),
   })).optional(),
 })
 
@@ -73,6 +74,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
           ...(l.isStage !== undefined ? { isStage: l.isStage } : {}),
           ...(l.stageOrder !== undefined ? { stageOrder: l.stageOrder } : {}),
           ...(l.applyRule !== undefined ? { applyRule: l.applyRule } : {}),
+          ...(l.aiDisabled !== undefined ? { aiDisabled: l.aiDisabled } : {}),
         },
       })
     ))

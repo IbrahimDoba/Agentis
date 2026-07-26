@@ -58,10 +58,12 @@ export async function POST(req: NextRequest, { params }: Params) {
     ? "review"
     : body.mode === "review" ? "review" : "auto"
   const minDaysSince: number = Math.max(1, Number(body.minDaysSince) || 1)
+  const targetLabelId: string | undefined = typeof body.targetLabelId === "string" && body.targetLabelId ? body.targetLabelId : undefined
+  const targetLabelName: string | undefined = typeof body.targetLabelName === "string" && body.targetLabelName ? body.targetLabelName : undefined
 
   // Create the campaign record immediately
   const campaign = await db.followUpCampaign.create({
-    data: { agentId, mode, minDaysSince, status: "scanning" },
+    data: { agentId, mode, minDaysSince, status: "scanning", targetLabelId, targetLabelName },
   })
 
   // Run the scan AFTER the response is sent — after() keeps the serverless
@@ -70,7 +72,7 @@ export async function POST(req: NextRequest, { params }: Params) {
   // why scans got stuck on "scanning"). The client polls the campaign status.
   after(async () => {
     try {
-      await runFollowUpScan({ agentId, campaignId: campaign.id, minDaysSince, includeAll })
+      await runFollowUpScan({ agentId, campaignId: campaign.id, minDaysSince, includeAll, targetLabelId })
     } catch (err) {
       console.error("[followup-scan] error:", err)
       await db.followUpCampaign.update({
