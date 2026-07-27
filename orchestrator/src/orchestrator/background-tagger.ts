@@ -76,10 +76,16 @@ export async function classifyAndTagInBackground(opts: {
     .map((l) => `- ${l.waLabelId}: ${l.name}${l.isStage ? " (stage)" : ""}${l.applyRule ? ` — ${l.applyRule}` : ""}`)
     .join("\n")
   const system =
-    `Categorise this WhatsApp chat with AT MOST ONE label. Reply with ONLY the label id from the list ` +
-    `(exactly as written), or "none" if none clearly applies. No explanation.\n\nLabels:\n${labelList}`
+    `You label WhatsApp sales chats, and you are STRICT. Most chats should get NO label. ` +
+    `Only output a label id when the conversation CLEARLY and SPECIFICALLY satisfies that label's rule below — ` +
+    `a general inquiry, price question, greeting, or someone just browsing is NOT enough. ` +
+    `When in any doubt, reply "none".\n\n` +
+    `Reply with ONLY the label id (exactly as written) or "none". No explanation.\n\nLabels:\n${labelList}`
 
-  const recent = await getRecentMessages(conversationId, 4)
+  // Use a wider window than a single turn so the rule can be judged against the
+  // actual funnel state (e.g. a quote + delivery total + account details were
+  // already shared), not just the latest one-liner.
+  const recent = await getRecentMessages(conversationId, 8)
   const tail: ChatMessage[] = recent.map((m) => ({
     role: m.direction === "inbound" ? "user" : "assistant",
     content: m.content,
