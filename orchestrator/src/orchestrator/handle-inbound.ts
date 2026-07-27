@@ -14,7 +14,7 @@ import { publishSseEvent } from "../lib/sse-publish.js"
 import { stripImageUrls } from "../lib/strip-image-urls.js"
 import { runAgentTurn } from "./run-agent-turn.js"
 import { guardReply } from "./reply-guard.js"
-import { getChatTaggingFlags, chatHasAiDisabledLabel } from "../db/queries/labels.js"
+import { isChatTaggingEnabled, chatHasAiDisabledLabel } from "../db/queries/labels.js"
 import { classifyAndTagInBackground } from "./background-tagger.js"
 import { logger as rootLogger } from "../lib/logger.js"
 
@@ -105,14 +105,17 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
     direction: "inbound",
   })
 
-  // When the AI won't reply (human handling, or AI globally paused), still keep
-  // the chat's labels current — a cheap, throttled classify-only pass (no reply,
-  // no credit charge). WhatsApp only; gated by both per-agent tagging toggles.
+  // Keep the chat's WhatsApp labels current — a cheap, throttled, classify-only
+  // pass (no reply, no credit charge). Runs on EVERY inbound: the no-reply
+  // branches below (human handling / AI paused / AI-off label) AND after a normal
+  // AI reply. The in-reply tag_conversation tool only fires when the model
+  // volunteers it — in practice almost never — so this classify pass is what
+  // actually keeps chats tagged. WhatsApp only; gated by the chatTaggingEnabled
+  // master switch. Best-effort: a failure here must never affect the reply.
   const maybeBackgroundTag = async () => {
     if (channel !== "whatsapp") return
     try {
-      const flags = await getChatTaggingFlags(agentId)
-      if (flags.tagging && flags.background) {
+      if (await isChatTaggingEnabled(agentId)) {
         await classifyAndTagInBackground({
           agentId,
           model: agent.model,
@@ -266,6 +269,10 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
       tokensOutput: totalOutputTokens,
     }).catch((err) => logger.error({ err, agentId, conversationId: conversation.id }, "Failed to charge embed turn"))
   }
+
+  // Tag after the reply is dispatched, so classification never adds latency to
+  // the customer's reply and never affects this turn's reply decision.
+  await maybeBackgroundTag()
 
   const duration = Date.now() - startMs
   logger.info({

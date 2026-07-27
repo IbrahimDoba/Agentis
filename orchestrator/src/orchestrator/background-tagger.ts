@@ -11,6 +11,18 @@ const logger = rootLogger.child({ module: "background-tagger" })
 // At most one background classification per conversation per this window.
 const THROTTLE_TTL = 120 // seconds
 
+// WhatsApp chat FILTERS ("Unread", "Groups", "Favourites", "Broadcast Lists")
+// sync in as labels but are organisational, not sales/CRM tags — never let the
+// AI apply them. Matched case-insensitively by name.
+const NON_TAGGABLE_LABEL_NAMES = new Set([
+  "unread",
+  "groups",
+  "favourites",
+  "favorites",
+  "broadcast lists",
+  "broadcast",
+])
+
 // Cheap pre-filter (no I/O): skip acks / very short messages that rarely move a
 // stage. Short messages that mention money/numbers (e.g. "paid 5k") are kept.
 function isTrivial(text: string): boolean {
@@ -19,9 +31,11 @@ function isTrivial(text: string): boolean {
 }
 
 /**
- * Background tagging — runs when a HUMAN is handling the chat (or the AI is
- * globally paused), so no AI reply is generated. It occasionally classifies the
- * conversation and applies/swaps a label without replying.
+ * Classify-only tagging — runs on every inbound message (after any AI reply is
+ * dispatched, or on the no-reply branches when a human handles the chat / the AI
+ * is paused). It classifies the conversation and applies/swaps a label without
+ * replying, so it's the reliable tagger — unlike the in-reply tag_conversation
+ * tool, which only fires when the model volunteers it.
  *
  * Deliberately cheap, in order:
  *   1. trivial-message filter (no I/O),
@@ -45,7 +59,9 @@ export async function classifyAndTagInBackground(opts: {
   const claimed = await redis.set(`bgtag:throttle:${conversationId}`, "1", "EX", THROTTLE_TTL, "NX")
   if (claimed !== "OK") return
 
-  const labels = await listAgentLabels(agentId)
+  const labels = (await listAgentLabels(agentId)).filter(
+    (l) => !NON_TAGGABLE_LABEL_NAMES.has(l.name.trim().toLowerCase())
+  )
   if (labels.length === 0) return
 
   // Stop once the funnel is at its terminal stage — nothing left to advance to.
