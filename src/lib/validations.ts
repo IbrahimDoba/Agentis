@@ -91,6 +91,9 @@ export const agentSchema = z.object({
   pauseOnQualifiedLead: z.boolean().optional(),
   // Minutes of inactivity before a human-mode chat auto-resumes to AI. null = off.
   autoResumeAiAfterMinutes: z.coerce.number().int().min(0).max(1440).nullable().optional(),
+  // Seconds to wait before replying; also the window in which rapid messages are
+  // batched into one reply. 0 = instant. Capped at 60s to bound the queue delay.
+  replyDelaySeconds: z.coerce.number().int().min(0).max(60).optional(),
   agentRuntime: z.enum(["elevenlabs", "orchestrator"]).optional(),
   productsData: z.array(z.object({
     id: z.string(),

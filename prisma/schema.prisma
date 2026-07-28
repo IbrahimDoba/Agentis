@@ -204,6 +204,10 @@ model Agent {
   // Minutes of inactivity after which a human-mode conversation auto-switches
   // back to AI. null = off (the AI stays paused until a human resumes it).
   autoResumeAiAfterMinutes Int?
+  // Seconds to wait before the AI replies. Doubles as a debounce window: rapid
+  // messages within it are batched into a single combined reply instead of one
+  // reply each. 0 = reply instantly (no batching).
+  replyDelaySeconds    Int         @default(0)
   isVerified           Boolean     @default(false)
   autoConfigStatus     String?
   autoConfigInputs     Json?

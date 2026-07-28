@@ -71,6 +71,21 @@ export async function getOrchestratorAgent(agentId: string): Promise<Orchestrato
   return rows[0] ?? null
 }
 
+// Seconds to wait before replying, as milliseconds. Doubles as the debounce
+// window: rapid messages within it are batched into one reply. 0 = reply
+// instantly. Fails safe to 0 (instant) if the column isn't there yet.
+export async function getReplyDelayMs(agentId: string): Promise<number> {
+  try {
+    const rows = await sql<{ replyDelaySeconds: number }[]>`
+      SELECT "replyDelaySeconds" FROM "Agent" WHERE "id" = ${agentId} LIMIT 1
+    `
+    const secs = rows[0]?.replyDelaySeconds ?? 0
+    return secs > 0 ? secs * 1000 : 0
+  } catch {
+    return 0
+  }
+}
+
 // True when the agent's global "AI replies" master switch is OFF — the
 // orchestrator should skip the AI for every conversation of this agent.
 export async function isAiRepliesPaused(agentId: string): Promise<boolean> {

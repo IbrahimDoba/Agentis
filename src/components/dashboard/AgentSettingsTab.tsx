@@ -21,6 +21,7 @@ export function AgentSettingsTab({ agent, onDirtyChange }: AgentSettingsTabProps
   const initialPauseOnHandoff = agent.pauseOnAiHandoff ?? true
   const initialPauseOnLead = agent.pauseOnQualifiedLead ?? true
   const initialAutoResume = agent.autoResumeAiAfterMinutes ?? 0 // 0 = off in the UI
+  const initialReplyDelay = agent.replyDelaySeconds ?? 0 // 0 = instant, no batching
   const initialAiReplies = agent.aiRepliesEnabled ?? true
   const initialReplyGuard = agent.replyGuardEnabled ?? false // off by default
   const [aiRepliesEnabled, setAiRepliesEnabled] = useState(initialAiReplies)
@@ -29,6 +30,7 @@ export function AgentSettingsTab({ agent, onDirtyChange }: AgentSettingsTabProps
   const [pauseOnAiHandoff, setPauseOnAiHandoff] = useState(initialPauseOnHandoff)
   const [pauseOnQualifiedLead, setPauseOnQualifiedLead] = useState(initialPauseOnLead)
   const [autoResumeAiAfterMinutes, setAutoResumeAiAfterMinutes] = useState(initialAutoResume)
+  const [replyDelaySeconds, setReplyDelaySeconds] = useState(initialReplyDelay)
   const [saving, setSaving] = useState(false)
 
   const isDirty =
@@ -37,7 +39,8 @@ export function AgentSettingsTab({ agent, onDirtyChange }: AgentSettingsTabProps
     autoPauseOnHumanReply !== initialAutoPause ||
     pauseOnAiHandoff !== initialPauseOnHandoff ||
     pauseOnQualifiedLead !== initialPauseOnLead ||
-    autoResumeAiAfterMinutes !== initialAutoResume
+    autoResumeAiAfterMinutes !== initialAutoResume ||
+    replyDelaySeconds !== initialReplyDelay
 
   useEffect(() => {
     onDirtyChange?.(isDirty)
@@ -57,6 +60,7 @@ export function AgentSettingsTab({ agent, onDirtyChange }: AgentSettingsTabProps
           pauseOnAiHandoff,
           pauseOnQualifiedLead,
           autoResumeAiAfterMinutes: autoResumeAiAfterMinutes || null,
+          replyDelaySeconds,
         }),
       })
       if (!res.ok) {
@@ -190,6 +194,30 @@ export function AgentSettingsTab({ agent, onDirtyChange }: AgentSettingsTabProps
               <option value={60}>After 1 hour</option>
               <option value={120}>After 2 hours</option>
               <option value={240}>After 4 hours</option>
+            </select>
+          </div>
+        </div>
+
+        <div className={styles.row}>
+          <div className={styles.rowText}>
+            <label className={styles.rowTitle} htmlFor="replyDelay">Wait before replying</label>
+            <p className={styles.rowDesc}>
+              Hold each reply for a few seconds so the AI feels less robotic — and if the customer
+              fires several messages in a row within that window, the AI waits for them to finish and
+              answers them all in <strong>one</strong> combined reply instead of one reply per message.
+              Choose <strong>Off</strong> to reply instantly.
+            </p>
+            <select
+              id="replyDelay"
+              className={styles.select}
+              value={replyDelaySeconds}
+              onChange={(e) => setReplyDelaySeconds(Number(e.target.value))}
+            >
+              <option value={0}>Off (reply instantly)</option>
+              <option value={5}>5 seconds</option>
+              <option value={10}>10 seconds</option>
+              <option value={15}>15 seconds</option>
+              <option value={30}>30 seconds</option>
             </select>
           </div>
         </div>
