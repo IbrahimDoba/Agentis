@@ -102,6 +102,20 @@ export async function getOrCreateConversation(
   return rows[0]
 }
 
+// Fetch a conversation by id — used by the debounced reply job, which runs in a
+// separate invocation from the ingest that created/loaded it and so must reload
+// current state (mode, adContext) at reply time.
+export async function getConversationById(conversationId: string): Promise<Conversation | null> {
+  const rows = await sql<Conversation[]>`
+    SELECT "id", "agentId", "orchestratorAgentId", "phoneNumber", "mode",
+           "lastActivityAt", "adContext", "channel", "visitorId"
+    FROM "Conversation"
+    WHERE "id" = ${conversationId}
+    LIMIT 1
+  `
+  return rows[0] ?? null
+}
+
 // Persist ad referral context on a conversation the FIRST time it appears.
 // Sticky-first: never overwrites an existing value, so a later ad click
 // doesn't clobber the original context the AI used to greet the customer.

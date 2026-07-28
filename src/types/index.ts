@@ -100,6 +100,7 @@ export interface AgentPublic {
   pauseOnAiHandoff?: boolean
   pauseOnQualifiedLead?: boolean
   autoResumeAiAfterMinutes?: number | null
+  replyDelaySeconds?: number
   isVerified?: boolean
   autoConfigStatus?: string | null
   category?: string | null
