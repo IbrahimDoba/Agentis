@@ -21,6 +21,26 @@ export interface DispatchOptions {
 }
 
 /**
+ * Pre-generation credit gate. Asks the worker (the single source of billing
+ * truth) whether the account can afford an AI reply, so we can skip the LLM call
+ * for out-of-credits accounts instead of generating a reply that then gets
+ * blocked at send. Fails OPEN: any error → true, so a billing/worker hiccup
+ * never silently halts replies for paying customers.
+ */
+export async function canAffordReply(agentId: string): Promise<boolean> {
+  try {
+    const url = `${config.WA_WORKER_URL}/v1/billing/can-afford?agentId=${encodeURIComponent(agentId)}`
+    const res = await fetch(url, { headers: { Authorization: `Bearer ${config.WORKER_API_KEY}` } })
+    if (!res.ok) return true // fail open — never block a reply on a check failure
+    const body = (await res.json()) as { canAfford?: boolean }
+    return body.canAfford !== false
+  } catch (err) {
+    logger.warn({ agentId, err: String(err) }, "canAffordReply check failed — allowing reply (fail-open)")
+    return true
+  }
+}
+
+/**
  * Dispatch a reply through the Baileys worker's send endpoint.
  * The worker handles anti-ban pacing, typing indicators, etc.
  */

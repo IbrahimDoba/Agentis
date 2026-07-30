@@ -305,6 +305,27 @@ const worker = new Worker<OutboundJob>(
       webhookEmitter.emit("message.failed", { agentId, toJid, conversationId, error: msg })
       throw err
     }
+    } catch (err) {
+      // Out of credits: the orchestrator already generated + persisted this reply,
+      // but the account can't fund the send. Delete the persisted row so the
+      // dashboard matches what WhatsApp actually got (mirrors the human-intervention
+      // abort above), and DON'T retry — a retry can't conjure credits. The
+      // orchestrator's pre-generation gate stops most of these before the LLM runs;
+      // this catches the residual (e.g. a near-empty wallet that covered the
+      // pre-check but not this message's exact cost).
+      if (err instanceof RateLimitError) {
+        logger.info({ agentId, toJid, conversationId, reason: err.message }, "Outbound send blocked — insufficient credits; dropping undelivered reply")
+        void recordEvent({
+          level: "warn",
+          category: "ai.reply_blocked_credits",
+          agentId,
+          message: "AI reply blocked — insufficient credits",
+          detail: { conversationId, reason: err.message },
+        })
+        if (messageId) await deleteMessageById(messageId).catch(() => {})
+        return
+      }
+      throw err
     } finally {
       // Release the per-agent lock so the next message for this number can send.
       await lockRedis.del(lockKey).catch(() => {})
