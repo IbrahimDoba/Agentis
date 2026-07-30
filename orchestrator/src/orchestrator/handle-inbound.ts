@@ -10,7 +10,7 @@ import {
   type Conversation,
 } from "../db/queries/conversations.js"
 import { buildSystemPrompt, buildMessages } from "./context-builder.js"
-import { dispatchReply, chargeEmbedTurn } from "./response-dispatcher.js"
+import { dispatchReply, chargeEmbedTurn, canAffordReply } from "./response-dispatcher.js"
 import { buildRichContent } from "./rich-content.js"
 import { publishSseEvent } from "../lib/sse-publish.js"
 import { stripImageUrls } from "../lib/strip-image-urls.js"
@@ -268,6 +268,25 @@ async function generateReply(agent: OrchestratorAgent, conversation: Conversatio
   if (channel === "whatsapp" && await chatHasAiDisabledLabel(agentId, conversation.phoneNumber, senderJid)) {
     await maybeBackgroundTag()
     logger.info({ agentId, conversationId }, "Chat has an AI-off label — skipping AI reply")
+    return
+  }
+
+  // Don't waste tokens on a reply for a chat that's already been handled. If a
+  // human answered this customer (dashboard or their own phone) during the queue
+  // / debounce wait, skip generation entirely — for EVERY plan, paid included.
+  // (A second check after generation still catches a human who replies WHILE the
+  // LLM is running.)
+  if (await humanIntervenedSince(conversationId, inboundSavedAt)) {
+    logger.info({ agentId, conversationId }, "Human already replied — skipping AI generation (no LLM call)")
+    return
+  }
+
+  // Credit gate BEFORE the LLM call. If the account is out of funds the worker
+  // would block the send anyway, so don't burn tokens generating (or persist) an
+  // undelivered reply. WhatsApp only (embed bills post-delivery and never blocks);
+  // fail-open so a check hiccup never halts a paying customer's replies.
+  if (channel === "whatsapp" && !(await canAffordReply(agentId))) {
+    logger.info({ agentId, conversationId }, "Account out of credits — skipping AI reply (no LLM call, no send)")
     return
   }
 

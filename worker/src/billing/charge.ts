@@ -1,7 +1,41 @@
 import { getAgentBillingInfo, getMonthlyCreditsUsedForUser, insertCreditUsage } from "../db/queries.js"
 import { PLAN_CREDIT_LIMITS, effectiveCreditLimit, allowsOverage, creditsForTokens, creditsForMessageType } from "./credits.js"
-import { routeMessageCharge, deductFromWallet } from "./wallet.js"
+import { routeMessageCharge, deductFromWallet, getWalletBalance } from "./wallet.js"
 import { getBillingPeriod } from "./billing-period.js"
+
+/**
+ * Cheap pre-check: does this agent's account have ANY credit headroom for an AI
+ * reply right now? Mirrors the send-time gate's routing (see chargeAiCredits and
+ * the outbound queue) but WITHOUT a specific cost — it answers "can we afford to
+ * generate + send at all", so the orchestrator can skip the LLM call entirely
+ * when the account is out of funds (no wasted tokens, no undelivered reply row).
+ *
+ * Conservative by design: returns false ONLY when the account definitively can't
+ * pay, so it never blocks a reply the send-gate would have allowed.
+ */
+export async function hasCreditHeadroom(agentId: string): Promise<boolean> {
+  const billing = await getAgentBillingInfo(agentId)
+  if (!billing) return false // no billing profile → the send-gate blocks too
+
+  const wallet = await getWalletBalance(billing.userId)
+
+  const subscriptionExpired = billing.subscriptionExpiresAt
+    ? new Date() > new Date(billing.subscriptionExpiresAt)
+    : false
+  if (subscriptionExpired) return wallet > 0 // plan void — only the wallet can pay
+
+  const monthlyLimit = effectiveCreditLimit(
+    PLAN_CREDIT_LIMITS[billing.plan] ?? PLAN_CREDIT_LIMITS.free,
+    billing.carryoverCredits,
+    billing.carryoverExpiresAt
+  )
+  if (monthlyLimit === -1) return true // enterprise — unlimited
+
+  const { start, end } = getBillingPeriod(billing.subscriptionExpiresAt)
+  const used = await getMonthlyCreditsUsedForUser(billing.userId, start, end)
+  if (used < monthlyLimit) return true // plan allowance still has room
+  return wallet > 0 // plan exhausted → the wallet must cover the overflow
+}
 
 /**
  * Charge an AI send of `credits` to the agent's plan/wallet and record a
