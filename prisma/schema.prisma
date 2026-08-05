@@ -78,10 +78,18 @@ model User {
   // Opt-in (default ON) for the account owner's lead/handoff email alerts and
   // the daily/weekly activity digests. See src/lib/lead-notifications-job.ts.
   leadNotificationsEnabled Boolean @default(true)
+  // Account-wide defaults for appointment reminders (lead minutes before the
+  // appointment). Every new Appointment copies these; each one is then editable
+  // per-appointment. Reminder 2 can be disabled per-appointment (null). See
+  // src/lib/appointment-reminders-job.ts.
+  appointmentReminder1Minutes Int  @default(60)
+  // Nullable so an account can default new appointments to a single reminder.
+  appointmentReminder2Minutes Int? @default(15)
   createdAt           DateTime   @default(now())
   updatedAt          DateTime   @updatedAt
   agents             Agent[]
   leads              Lead[]
+  appointments       Appointment[]
   conversationReads  ConversationRead[]
   referralCode       String?    @unique
   referralsMade      Referral[] @relation("ReferralsMade")
@@ -233,6 +241,10 @@ model Agent {
   // cheap, throttled classify-only pass (no reply). Off by default; only matters
   // when chatTaggingEnabled is also on.
   backgroundTaggingEnabled Boolean @default(false)
+  // Gates the AI's schedule_appointment tool. Off by default so only agents
+  // whose business actually books appointments/inspections get it. Manual
+  // (human) appointment creation works regardless of this flag.
+  appointmentSchedulingEnabled Boolean @default(false)
   toolsData            Json?
   openaiApiKey         String?
   transportType        String      @default("waba")
@@ -241,6 +253,7 @@ model Agent {
   createdAt            DateTime    @default(now())
   updatedAt            DateTime    @updatedAt
   leads                Lead[]
+  appointments         Appointment[]
   conversationLogs     ConversationLog[]
   customers            Customer[]
   templates            MessageTemplate[]
@@ -602,6 +615,49 @@ enum LeadStatus {
   NEW
   CONTACTED
   CLOSED
+}
+
+// An appointment/meeting/inspection the AI (schedule_appointment tool) or a
+// human (dashboard "New appointment") booked with a customer. The reminder cron
+// (src/lib/appointment-reminders-job.ts) emails the owner + accepted team
+// members ahead of `scheduledAt`, at up to two independent lead times.
+model Appointment {
+  id             String            @id @default(cuid())
+  agentId        String
+  userId         String            // workspace owner — the reminder recipient scope
+  // Null for a purely-manual appointment not tied to a chat. When set, links
+  // back to the conversation it was booked in.
+  conversationId String?
+  customerName   String?
+  customerNumber String?
+  title          String            // what it is: "Property inspection", "Consultation"…
+  notes          String?           @db.Text
+  scheduledAt    DateTime          @db.Timestamptz()   // the appointment instant (UTC)
+  status         AppointmentStatus @default(SCHEDULED)
+  createdBy      String            @default("ai")       // "ai" | "human"
+  // Two independent reminders. `reminderNMinutes` = lead time (minutes before
+  // scheduledAt); `reminderNSentAt` is the idempotency stamp (null until sent).
+  // Reminder 2 is disabled when its minutes are null. A reschedule clears both
+  // stamps so the reminders re-fire for the new time.
+  reminder1Minutes Int             @default(60)
+  reminder1SentAt  DateTime?
+  reminder2Minutes Int?            @default(15)
+  reminder2SentAt  DateTime?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  agent          Agent             @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, scheduledAt])
+  // Reminder cron scan: upcoming, still-SCHEDULED appointments by time.
+  @@index([status, scheduledAt])
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
 }
 
 model Customer {

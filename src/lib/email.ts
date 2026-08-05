@@ -930,3 +930,43 @@ export async function sendActivityDigestEmail(data: {
     `, brand),
   })
 }
+
+// An appointment reminder — sent to the owner + accepted team members ahead of
+// an appointment/inspection the AI or a human booked. `leadLabel` is the human
+// phrase for how far out it is ("in about 1 hour"); `whenLabel` is the absolute
+// date/time. See src/lib/appointment-reminders-job.ts.
+export async function sendAppointmentReminderEmail(data: {
+  recipientName?: string | null
+  email: string
+  agentName: string
+  title: string
+  whenLabel: string
+  leadLabel: string
+  customerName?: string | null
+  customerNumber?: string | null
+  notes?: string | null
+}, brand?: EmailBrand) {
+  const appUrl = brand?.appUrl ?? APP_URL
+  const who = esc(data.customerName) || esc(data.customerNumber) || "a customer"
+  return await sendEmail({
+    from: senderFrom(brand),
+    to: data.email,
+    subject: `⏰ Reminder: ${esc(data.title)} — ${esc(data.leadLabel)}`,
+    html: baseTemplate(`
+      <h2 style="margin:0 0 8px;font-size:22px;color:#111111;">Upcoming appointment ${esc(data.leadLabel)}</h2>
+      <p style="margin:0 0 20px;color:#4b5563;">
+        Hi ${esc(data.recipientName) || "there"}, a reminder that you have
+        <strong>${esc(data.title)}</strong> with ${who} coming up.
+      </p>
+      <table cellpadding="0" cellspacing="0" style="width:100%;">
+        ${infoRow("When", esc(data.whenLabel))}
+        ${infoRow("What", esc(data.title))}
+        ${infoRow("Customer", who)}
+        ${data.customerNumber ? infoRow("WhatsApp", esc(data.customerNumber)) : ""}
+        ${data.notes ? infoRow("Notes", esc(data.notes)) : ""}
+        ${infoRow("Agent", esc(data.agentName))}
+      </table>
+      ${btn("View appointments", `${appUrl}/dashboard/appointments`)}
+    `, brand),
+  })
+}

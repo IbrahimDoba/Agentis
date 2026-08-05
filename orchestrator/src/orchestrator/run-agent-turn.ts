@@ -6,6 +6,7 @@ import { SEND_PRODUCT_ALBUM_TOOL, executeSendProductAlbum } from "../tools/built
 import { SEND_PRODUCT_PHOTOS_TOOL, executeSendProductPhotos } from "../tools/built-in/send-product-photos.js"
 import { REQUEST_HUMAN_HANDOFF_TOOL, executeRequestHumanHandoff } from "../tools/built-in/request-human-handoff.js"
 import { MARK_QUALIFIED_LEAD_TOOL, executeMarkQualifiedLead } from "../tools/built-in/mark-qualified-lead.js"
+import { SCHEDULE_APPOINTMENT_TOOL, executeScheduleAppointment } from "../tools/built-in/schedule-appointment.js"
 import { TAG_CONVERSATION_TOOL, executeTagConversation } from "../tools/built-in/tag-conversation.js"
 import { isChatTaggingEnabled } from "../db/queries/labels.js"
 import { buildWebhookToolDefinitions, executeWebhookTool } from "../tools/external/webhook-tools.js"
@@ -80,8 +81,10 @@ export async function runAgentTurn(
   // attributed correctly. Fetch it once here rather than per-tool-call.
   const provider = resolveProvider(agent.model)
   const externalTools = await getAgentTools(agentId)
-  const ownerRows = await sql<{ userId: string }[]>`SELECT "userId" FROM "Agent" WHERE "id" = ${agentId} LIMIT 1`
+  const ownerRows = await sql<{ userId: string; appointmentSchedulingEnabled: boolean }[]>`
+    SELECT "userId", "appointmentSchedulingEnabled" FROM "Agent" WHERE "id" = ${agentId} LIMIT 1`
   const ownerUserId = ownerRows[0]?.userId ?? ""
+  const appointmentEnabled = ownerRows[0]?.appointmentSchedulingEnabled ?? false
   const albumEnabled = await isProductAlbumEnabled(agentId)
   // Chat tagging needs a WhatsApp chat to act on (senderJid), so it's gated by
   // includeSendImage (the dev API omits it) as well as the per-agent toggle.
@@ -100,6 +103,9 @@ export async function runAgentTurn(
     ...(includeSendImage && taggingEnabled ? [TAG_CONVERSATION_TOOL] : []),
     REQUEST_HUMAN_HANDOFF_TOOL,
     MARK_QUALIFIED_LEAD_TOOL,
+    // Appointment booking: offered only to agents whose business does it
+    // (per-agent flag). Not tied to a WhatsApp JID, so it also works on embed.
+    ...(appointmentEnabled ? [SCHEDULE_APPOINTMENT_TOOL] : []),
     ...buildWebhookToolDefinitions(externalTools),
   ]
   const currentMessages: ChatMessage[] = [...history]
@@ -191,6 +197,12 @@ export async function runAgentTurn(
           })
         } else if (tc.name === "mark_qualified_lead") {
           toolResult = await executeMarkQualifiedLead(tc.arguments, {
+            agentId,
+            conversationId,
+            userId: ownerUserId,
+          })
+        } else if (tc.name === "schedule_appointment") {
+          toolResult = await executeScheduleAppointment(tc.arguments, {
             agentId,
             conversationId,
             userId: ownerUserId,

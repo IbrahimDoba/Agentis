@@ -43,6 +43,8 @@ export async function GET() {
       referralsEnabled: user.referralsEnabled,
       developerModeEnabled: user.developerModeEnabled,
       leadNotificationsEnabled: user.leadNotificationsEnabled,
+      appointmentReminder1Minutes: user.appointmentReminder1Minutes,
+      appointmentReminder2Minutes: user.appointmentReminder2Minutes,
       hasPassword: Boolean(user.passwordHash),
     },
     agent: agent ? {
@@ -99,6 +101,32 @@ export async function PATCH(req: NextRequest) {
       data: { leadNotificationsEnabled: body.leadNotificationsEnabled },
     })
     return NextResponse.json({ leadNotificationsEnabled: user.leadNotificationsEnabled })
+  }
+
+  // Default appointment-reminder lead times (minutes before the appointment).
+  // 1..10080 min (up to a week); reminder 2 may be null to default new
+  // appointments to a single reminder. Each field is patched independently.
+  if (body.appointmentReminder1Minutes !== undefined || body.appointmentReminder2Minutes !== undefined) {
+    const remWindow = 7 * 24 * 60
+    const inRange = (n: unknown) => typeof n === "number" && Number.isInteger(n) && n >= 1 && n <= remWindow
+    const data: { appointmentReminder1Minutes?: number; appointmentReminder2Minutes?: number | null } = {}
+    if (body.appointmentReminder1Minutes !== undefined) {
+      if (!inRange(body.appointmentReminder1Minutes)) {
+        return NextResponse.json({ error: "appointmentReminder1Minutes must be 1–10080 minutes" }, { status: 400 })
+      }
+      data.appointmentReminder1Minutes = body.appointmentReminder1Minutes
+    }
+    if (body.appointmentReminder2Minutes !== undefined) {
+      if (body.appointmentReminder2Minutes !== null && !inRange(body.appointmentReminder2Minutes)) {
+        return NextResponse.json({ error: "appointmentReminder2Minutes must be 1–10080 minutes or null" }, { status: 400 })
+      }
+      data.appointmentReminder2Minutes = body.appointmentReminder2Minutes
+    }
+    const user = await db.user.update({ where: { id: session.user.id }, data })
+    return NextResponse.json({
+      appointmentReminder1Minutes: user.appointmentReminder1Minutes,
+      appointmentReminder2Minutes: user.appointmentReminder2Minutes,
+    })
   }
 
   const parsed = profileUpdateSchema.safeParse(body)

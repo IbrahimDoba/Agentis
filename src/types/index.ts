@@ -24,6 +24,8 @@ export interface UserPublic {
   referralsEnabled?: boolean
   developerModeEnabled?: boolean
   leadNotificationsEnabled?: boolean
+  appointmentReminder1Minutes?: number
+  appointmentReminder2Minutes?: number | null
   hasPassword?: boolean
 }
 

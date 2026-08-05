@@ -1,6 +1,7 @@
 {
   "crons": [
     { "path": "/api/cron/notifications?job=instant", "schedule": "*/2 * * * *" },
+    { "path": "/api/cron/notifications?job=appointment-reminders", "schedule": "*/5 * * * *" },
     { "path": "/api/cron/notifications?job=daily", "schedule": "0 7 * * *" },
     { "path": "/api/cron/notifications?job=weekly", "schedule": "0 7 * * 1" }
   ]

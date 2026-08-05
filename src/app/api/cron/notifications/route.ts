@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { runInstantNotifications, runActivityDigest } from "@/lib/lead-notifications-job"
+import { runAppointmentReminders } from "@/lib/appointment-reminders-job"
 
 // Digests do real Resend round-trips across the whole base; give them headroom.
 export const maxDuration = 300
@@ -44,8 +45,12 @@ export async function GET(req: NextRequest) {
       const result = await runActivityDigest("week")
       return NextResponse.json({ ok: true, job, durationMs: Date.now() - startedAt, result })
     }
+    case "appointment-reminders": {
+      const result = await runAppointmentReminders()
+      return NextResponse.json({ ok: true, job, durationMs: Date.now() - startedAt, result })
+    }
     default:
-      return NextResponse.json({ error: `Unknown job "${job}" — use instant | daily | weekly` }, { status: 400 })
+      return NextResponse.json({ error: `Unknown job "${job}" — use instant | daily | weekly | appointment-reminders` }, { status: 400 })
   }
 }
 

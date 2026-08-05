@@ -20,6 +20,7 @@ import {
   BookOpenIcon,
   CodeBracketIcon,
   PresentationChartLineIcon,
+  CalendarDaysIcon,
 } from "@heroicons/react/24/outline"
 import { cn } from "@/lib/utils"
 import { useDashboardData } from "@/hooks/useDashboardData"
@@ -90,6 +91,7 @@ const baseNavItems: NavItem[] = [
   { href: "/dashboard", label: "Overview", icon: Squares2X2Icon },
   { href: "/dashboard/agents", label: "Agents", icon: CpuChipIcon },
   { href: "/dashboard/chats", label: "Conversations", icon: ChatBubbleLeftRightIcon },
+  { href: "/dashboard/appointments", label: "Appointments", icon: CalendarDaysIcon },
   { href: "/dashboard/broadcasts", label: "Broadcasts", icon: MegaphoneIcon },
   { href: "/dashboard/team", label: "Team", icon: UsersIcon },
   { href: "/dashboard/channels/whatsapp-web", label: "Channels", icon: DevicePhoneMobileIcon },
