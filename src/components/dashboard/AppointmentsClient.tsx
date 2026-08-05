@@ -271,6 +271,7 @@ function AiBookingAgents({ agents }: { agents: AgentOption[] }) {
     () => Object.fromEntries(agents.map((a) => [a.id, a.appointmentSchedulingEnabled])),
   )
   const [busy, setBusy] = useState<string | null>(null)
+  const [open, setOpen] = useState(false) // collapsed by default — keep it compact
 
   const toggle = async (agentId: string, next: boolean) => {
     setBusy(agentId)
@@ -285,30 +286,39 @@ function AiBookingAgents({ agents }: { agents: AgentOption[] }) {
   }
 
   if (agents.length === 0) return null
+  const onCount = agents.filter((a) => flags[a.id]).length
 
   return (
     <div className={styles.aiBooking}>
-      <div className={styles.aiBookingHead}>
-        <strong>AI auto-booking</strong>
-        <span>Pick which agents can book appointments with customers on their own. Manual booking always works, whatever you choose here.</span>
-      </div>
-      <div className={styles.agentRows}>
-        {agents.map((a) => (
-          <div key={a.id} className={styles.agentRow}>
-            <span className={styles.agentRowName}>{a.businessName}</span>
-            <label className={styles.switch}>
-              <input
-                type="checkbox"
-                checked={!!flags[a.id]}
-                disabled={busy === a.id}
-                onChange={(e) => toggle(a.id, e.target.checked)}
-              />
-              <span className={styles.slider} />
-              <span className={styles.switchLabel}>{flags[a.id] ? "On" : "Off"}</span>
-            </label>
-          </div>
-        ))}
-      </div>
+      <button className={styles.aiBookingBar} onClick={() => setOpen((v) => !v)} aria-expanded={open}>
+        <span className={styles.aiBookingTitle}>🤖 AI auto-booking</span>
+        <span className={styles.aiBookingSummary}>
+          {onCount} of {agents.length} {agents.length === 1 ? "agent" : "agents"} on
+        </span>
+        <span className={styles.chevron} data-open={open}>▾</span>
+      </button>
+      {open && (
+        <div className={styles.agentRows}>
+          <p className={styles.aiBookingHint}>
+            Pick which agents can book appointments with customers on their own. Manual booking always works.
+          </p>
+          {agents.map((a) => (
+            <div key={a.id} className={styles.agentRow}>
+              <span className={styles.agentRowName}>{a.businessName}</span>
+              <label className={styles.switch}>
+                <input
+                  type="checkbox"
+                  checked={!!flags[a.id]}
+                  disabled={busy === a.id}
+                  onChange={(e) => toggle(a.id, e.target.checked)}
+                />
+                <span className={styles.slider} />
+                <span className={styles.switchLabel}>{flags[a.id] ? "On" : "Off"}</span>
+              </label>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
