@@ -643,6 +643,10 @@ model Appointment {
   reminder1SentAt  DateTime?
   reminder2Minutes Int?            @default(15)
   reminder2SentAt  DateTime?
+  // Instant "appointment booked" email to owner + team, sent once just after
+  // creation (idempotency stamp; null = not yet notified). Distinct from the
+  // reminder stamps above.
+  bookedNotifiedAt DateTime?
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
   agent          Agent             @relation(fields: [agentId], references: [id], onDelete: Cascade)
@@ -651,6 +655,8 @@ model Appointment {
   @@index([userId, scheduledAt])
   // Reminder cron scan: upcoming, still-SCHEDULED appointments by time.
   @@index([status, scheduledAt])
+  // Instant "booked" scan: newly-created, not-yet-notified appointments.
+  @@index([bookedNotifiedAt, createdAt])
 }
 
 enum AppointmentStatus {

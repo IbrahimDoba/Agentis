@@ -970,3 +970,43 @@ export async function sendAppointmentReminderEmail(data: {
     `, brand),
   })
 }
+
+// Instant "appointment booked" email — sent to owner + team the moment an
+// appointment is created (by the AI or a human), before any reminders. `bookedBy`
+// is how it was created. See src/lib/appointment-reminders-job.ts.
+export async function sendAppointmentBookedEmail(data: {
+  recipientName?: string | null
+  email: string
+  agentName: string
+  title: string
+  whenLabel: string
+  bookedBy: "ai" | "human"
+  customerName?: string | null
+  customerNumber?: string | null
+  notes?: string | null
+}, brand?: EmailBrand) {
+  const appUrl = brand?.appUrl ?? APP_URL
+  const who = esc(data.customerName) || esc(data.customerNumber) || "a customer"
+  const how = data.bookedBy === "ai" ? "Your AI agent just booked" : "A new appointment was added:"
+  return await sendEmail({
+    from: senderFrom(brand),
+    to: data.email,
+    subject: `📅 New appointment booked — ${esc(data.title)} with ${who}`,
+    html: baseTemplate(`
+      <h2 style="margin:0 0 8px;font-size:22px;color:#111111;">New appointment booked</h2>
+      <p style="margin:0 0 20px;color:#4b5563;">
+        Hi ${esc(data.recipientName) || "there"}, ${how} <strong>${esc(data.title)}</strong> with ${who}.
+        We'll remind you and your team before it's due.
+      </p>
+      <table cellpadding="0" cellspacing="0" style="width:100%;">
+        ${infoRow("When", esc(data.whenLabel))}
+        ${infoRow("What", esc(data.title))}
+        ${infoRow("Customer", who)}
+        ${data.customerNumber ? infoRow("WhatsApp", esc(data.customerNumber)) : ""}
+        ${data.notes ? infoRow("Notes", esc(data.notes)) : ""}
+        ${infoRow("Agent", esc(data.agentName))}
+      </table>
+      ${btn("View appointments", `${appUrl}/dashboard/appointments`)}
+    `, brand),
+  })
+}
