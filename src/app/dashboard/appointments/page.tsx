@@ -16,7 +16,7 @@ export default async function AppointmentsPage() {
   const [agents, owner] = await Promise.all([
     db.agent.findMany({
       where: { userId: ownerId },
-      select: { id: true, businessName: true },
+      select: { id: true, businessName: true, appointmentSchedulingEnabled: true },
       orderBy: { createdAt: "asc" },
     }),
     db.user.findUnique({

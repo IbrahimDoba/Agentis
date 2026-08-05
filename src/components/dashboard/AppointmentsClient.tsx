@@ -23,8 +23,14 @@ interface Appointment {
   agent: { businessName: string; profileImageUrl: string | null }
 }
 
+interface AgentOption {
+  id: string
+  businessName: string
+  appointmentSchedulingEnabled: boolean
+}
+
 interface Props {
-  agents: { id: string; businessName: string }[]
+  agents: AgentOption[]
   defaultReminder1: number
   defaultReminder2: number | null
 }
@@ -127,6 +133,8 @@ export function AppointmentsClient({ agents, defaultReminder1, defaultReminder2 
           {newOpen ? "Close" : "+ New appointment"}
         </button>
       </div>
+
+      <AiBookingAgents agents={agents} />
 
       <ReminderDefaults
         defaultReminder1={defaultReminder1}
@@ -251,6 +259,55 @@ function ReminderDefaults({ defaultReminder1, defaultReminder2 }: { defaultRemin
         <button className={styles.saveBtn} onClick={save} disabled={saving || !dirty}>
           {saving ? "Saving…" : saved ? "Saved ✓" : "Save"}
         </button>
+      </div>
+    </div>
+  )
+}
+
+// --- AI auto-booking per agent ---------------------------------------------
+
+function AiBookingAgents({ agents }: { agents: AgentOption[] }) {
+  const [flags, setFlags] = useState<Record<string, boolean>>(
+    () => Object.fromEntries(agents.map((a) => [a.id, a.appointmentSchedulingEnabled])),
+  )
+  const [busy, setBusy] = useState<string | null>(null)
+
+  const toggle = async (agentId: string, next: boolean) => {
+    setBusy(agentId)
+    setFlags((f) => ({ ...f, [agentId]: next })) // optimistic
+    const res = await fetch(`/api/agents/${agentId}/appointment-settings`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ enabled: next }),
+    })
+    if (!res.ok) setFlags((f) => ({ ...f, [agentId]: !next })) // revert on failure
+    setBusy(null)
+  }
+
+  if (agents.length === 0) return null
+
+  return (
+    <div className={styles.aiBooking}>
+      <div className={styles.aiBookingHead}>
+        <strong>AI auto-booking</strong>
+        <span>Pick which agents can book appointments with customers on their own. Manual booking always works, whatever you choose here.</span>
+      </div>
+      <div className={styles.agentRows}>
+        {agents.map((a) => (
+          <div key={a.id} className={styles.agentRow}>
+            <span className={styles.agentRowName}>{a.businessName}</span>
+            <label className={styles.switch}>
+              <input
+                type="checkbox"
+                checked={!!flags[a.id]}
+                disabled={busy === a.id}
+                onChange={(e) => toggle(a.id, e.target.checked)}
+              />
+              <span className={styles.slider} />
+              <span className={styles.switchLabel}>{flags[a.id] ? "On" : "Off"}</span>
+            </label>
+          </div>
+        ))}
       </div>
     </div>
   )
