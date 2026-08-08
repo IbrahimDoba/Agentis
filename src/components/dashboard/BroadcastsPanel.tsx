@@ -76,6 +76,12 @@ export function BroadcastsPanel({ agentId, isConnected, warmupTier }: Broadcasts
   const [message, setMessage] = useState("")
   const [selectedPhones, setSelectedPhones] = useState<string[]>([])
   const [serverMessage, setServerMessage] = useState<string | null>(null)
+  // Send window: how long to spread the whole broadcast over. Minimum 24h.
+  const [spreadHoursMode, setSpreadHoursMode] = useState<"24" | "48" | "72" | "custom">("24")
+  const [customHours, setCustomHours] = useState(48)
+  const spreadHours = spreadHoursMode === "custom"
+    ? Math.max(24, Math.min(168, Math.floor(customHours) || 24))
+    : Number(spreadHoursMode)
 
   const contactsQuery = useQuery({
     queryKey: ["broadcast-contacts", agentId, search],
@@ -126,7 +132,7 @@ export function BroadcastsPanel({ agentId, isConnected, warmupTier }: Broadcasts
       const res = await fetch(`/api/agents/${agentId}/broadcasts`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message, phoneNumbers: selectedPhones }),
+        body: JSON.stringify({ message, phoneNumbers: selectedPhones, spreadHours }),
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(data.error ?? "Failed to create broadcast")
@@ -306,6 +312,43 @@ export function BroadcastsPanel({ agentId, isConnected, warmupTier }: Broadcasts
             maxLength={1000}
             hint="Use {name} to personalize the message and reduce identical-message patterns."
           />
+
+          <div style={{ marginTop: 14 }}>
+            <label htmlFor="bc-window" style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6 }}>
+              Send over
+            </label>
+            <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+              <select
+                id="bc-window"
+                value={spreadHoursMode}
+                onChange={(event) => { setServerMessage(null); setSpreadHoursMode(event.target.value as typeof spreadHoursMode) }}
+                style={{ padding: "8px 10px", borderRadius: 8, border: "1px solid var(--border, #d4d4d8)", fontSize: 14, background: "var(--surface, #fff)", color: "inherit" }}
+              >
+                <option value="24">24 hours</option>
+                <option value="48">48 hours</option>
+                <option value="72">72 hours</option>
+                <option value="custom">Custom…</option>
+              </select>
+              {spreadHoursMode === "custom" && (
+                <>
+                  <input
+                    type="number"
+                    min={24}
+                    max={168}
+                    step={1}
+                    value={customHours}
+                    onChange={(event) => setCustomHours(Math.max(24, Math.min(168, Number(event.target.value) || 24)))}
+                    aria-label="Custom send window in hours"
+                    style={{ width: 90, padding: "8px 10px", borderRadius: 8, border: "1px solid var(--border, #d4d4d8)", fontSize: 14, background: "var(--surface, #fff)", color: "inherit" }}
+                  />
+                  <span style={{ fontSize: 13, opacity: 0.7 }}>hours (min 24)</span>
+                </>
+              )}
+            </div>
+            <p style={{ fontSize: 12, opacity: 0.7, marginTop: 6, lineHeight: 1.4 }}>
+              Messages are spread evenly across this window so they go out gradually — never all at once.
+            </p>
+          </div>
 
           <div className={styles.statsGrid}>
             <div className={styles.statCard}>

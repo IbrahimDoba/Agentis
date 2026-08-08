@@ -166,6 +166,7 @@ export const baileysClient = {
     agentId: string
     message: string
     phoneNumbers: string[]
+    spreadHours?: number
   }): Promise<{
     broadcast: WorkerBroadcastCampaign
     eligibleCount?: number

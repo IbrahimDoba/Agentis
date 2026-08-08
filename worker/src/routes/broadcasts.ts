@@ -28,6 +28,9 @@ const CreateSchema = z.object({
   agentId: z.string().min(1),
   message: z.string().min(1).max(1000),
   phoneNumbers: z.array(z.string().min(7)).min(1).max(MAX_BROADCAST_RECIPIENTS),
+  // Hours to spread the whole send over (paced evenly, like AI follow-ups).
+  // Minimum 24h — never blast faster than that. Omitted → default 24h.
+  spreadHours: z.number().int().min(24).max(168).optional(),
 })
 
 async function resolveDeliverableJid(sock: WASocket, rawPhone: string): Promise<string | null> {
@@ -128,7 +131,8 @@ export const broadcastRoutes: FastifyPluginAsync = async (app) => {
     const campaign = await createBroadcast(
       body.agentId,
       body.message,
-      cappedRecipients
+      cappedRecipients,
+      body.spreadHours ?? null
     )
 
     // Start enqueuing asynchronously — don't block the HTTP response
