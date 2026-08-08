@@ -12,6 +12,7 @@ export interface BroadcastCampaign {
   totalCount: number
   sentCount: number
   failedCount: number
+  spreadHours: number | null
   createdAt: string
   startedAt: string | null
   completedAt: string | null
@@ -41,13 +42,14 @@ function normalizePhone(value: string): string {
 export async function createBroadcast(
   agentId: string,
   message: string,
-  recipients: { phoneNumber: string; jid: string; contactName: string | null }[]
+  recipients: { phoneNumber: string; jid: string; contactName: string | null }[],
+  spreadHours: number | null = null
 ): Promise<BroadcastCampaign> {
   const id = randomUUID()
 
   const rows = await sql<BroadcastCampaign[]>`
-    INSERT INTO "BroadcastCampaign" ("id", "agentId", "message", "status", "totalCount", "sentCount", "failedCount", "createdAt")
-    VALUES (${id}, ${agentId}, ${message}, 'pending', ${recipients.length}, 0, 0, NOW())
+    INSERT INTO "BroadcastCampaign" ("id", "agentId", "message", "status", "totalCount", "sentCount", "failedCount", "spreadHours", "createdAt")
+    VALUES (${id}, ${agentId}, ${message}, 'pending', ${recipients.length}, 0, 0, ${spreadHours}, NOW())
     RETURNING *
   `
   const campaign = rows[0]

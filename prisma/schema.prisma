@@ -386,6 +386,10 @@ model BroadcastCampaign {
   totalCount  Int                  @default(0)
   sentCount   Int                  @default(0)
   failedCount Int                  @default(0)
+  // How many hours to spread the whole send over. The recipients are paced
+  // evenly across this window (like AI follow-ups) so messages go out gradually,
+  // not all at once. null = the default 24h. Minimum 24h is enforced on write.
+  spreadHours Int?
   createdAt   DateTime             @default(now())
   startedAt   DateTime?
   completedAt DateTime?

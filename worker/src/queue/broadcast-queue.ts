@@ -198,13 +198,23 @@ export async function enqueueBroadcast(broadcastId: string): Promise<void> {
 
   await updateBroadcastStatus(broadcastId, "running", { startedAt: true })
 
+  // Spread the whole send evenly over the campaign's window (default 24h, min
+  // 24h enforced on create), like AI follow-ups. Each message is paced by
+  // whichever is LARGER: the natural anti-ban gap, or the even-spacing slot
+  // (window ÷ recipients). So a small list still looks human, and a big list is
+  // stretched across the full window instead of going out all at once.
+  const clampedHours = Math.min(168, Math.max(24, broadcast.spreadHours ?? 24))
+  const windowMs = clampedHours * 60 * 60 * 1000
+  const minSpacingMs = Math.floor(windowMs / recipients.length)
+
   let cumulativeDelayMs = 0
 
   for (let i = 0; i < recipients.length; i++) {
     const r = recipients[i]
 
-    // Add inter-message delay
-    cumulativeDelayMs += truncatedNormal(8_000, 20_000)
+    // Pace: larger of the natural anti-ban delay and the even-spacing slot.
+    const naturalDelay = truncatedNormal(8_000, 20_000)
+    cumulativeDelayMs += Math.max(naturalDelay, minSpacingMs)
 
     // Every 10 messages: add a batch break
     if (i > 0 && i % 10 === 0) {

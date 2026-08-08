@@ -82,10 +82,22 @@ export async function POST(req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: "Select at least one existing contact" }, { status: 400 })
     }
 
+    // Optional send window (hours) to spread the campaign over. Floor at 24h —
+    // never send faster than that — and cap at 168h (7 days).
+    let spreadHours: number | undefined
+    if (body.spreadHours !== undefined && body.spreadHours !== null) {
+      const n = Math.floor(Number(body.spreadHours))
+      if (!Number.isFinite(n) || n < 24) {
+        return NextResponse.json({ error: "Send window must be at least 24 hours" }, { status: 400 })
+      }
+      spreadHours = Math.min(168, n)
+    }
+
     const data = await baileysClient.createBroadcast({
       agentId: id,
       message: message.trim(),
       phoneNumbers,
+      ...(spreadHours !== undefined ? { spreadHours } : {}),
     })
 
     return NextResponse.json(data, { status: 201 })
