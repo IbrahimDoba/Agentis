@@ -212,8 +212,15 @@ NEVER use any of these — WhatsApp cannot render them and they appear as broken
   // §7: Summaries, facts — added in later PRs
   sections.push(`## Conversation memory\nYou have access to the full conversation history with this contact shown in the messages below. You CAN and DO remember everything said in this conversation. Reference previous messages naturally when relevant. Never claim you cannot remember the conversation.`)
 
-  const now = new Date().toLocaleString("en-US", { timeZone: timezone })
-  sections.push(`## Current time\n${now}`)
+  // Include the weekday explicitly — gpt-4o-mini can't reliably derive the day
+  // of week from a bare date, which broke "are you open now / today?" answers
+  // for agents whose hours vary by day.
+  const now = new Date().toLocaleString("en-US", {
+    timeZone: timezone,
+    weekday: "long", year: "numeric", month: "long", day: "numeric",
+    hour: "numeric", minute: "2-digit",
+  })
+  sections.push(`## Current time\n${now} (${timezone})`)
 
   return sections.join("\n\n")
 }
