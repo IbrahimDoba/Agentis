@@ -911,3 +911,21 @@ model WorkerEvent {
   @@index([agentId, createdAt(sort: Desc)])
   @@index([createdAt(sort: Desc)])
 }
+
+// Isolated message log for the Meta Cloud API test harness (branch:
+// meta-integration). Deliberately SEPARATE from Conversation/Message so the
+// official-API screencast demo never bleeds into real dashboard data. One row
+// per inbound/outbound message on the test number, keyed by the customer's
+// wa_id. `raw` backs the on-camera event log (raw webhook value / send response).
+model MetaTestMessage {
+  id          String   @id @default(cuid())
+  waId        String                                  // customer WhatsApp id — E.164 digits, no "+"
+  direction   String                                  // "inbound" | "outbound"
+  text        String   @db.Text
+  waMessageId String?                                 // Meta wamid, for dedup + status matching
+  raw         Json?
+  createdAt   DateTime @default(now()) @db.Timestamptz()
+
+  @@index([waId, createdAt])
+  @@index([createdAt(sort: Desc)])
+}
