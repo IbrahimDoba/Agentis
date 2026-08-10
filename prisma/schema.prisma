@@ -929,3 +929,29 @@ model MetaTestMessage {
   @@index([waId, createdAt])
   @@index([createdAt(sort: Desc)])
 }
+
+// A WhatsApp Business Account connected through Embedded Signup (branch:
+// meta-integration). One row per connected phone number — the harness routes
+// each inbound webhook to a row by phoneNumberId, which is what makes the flow
+// multi-tenant rather than the single number pinned in env.
+//
+// `accessToken` is the business token from the code exchange, encrypted at rest
+// with AES-256-GCM (see src/lib/meta/crypto.ts) — it grants messaging rights on
+// someone else's number, so it never sits in plaintext.
+model MetaTestConnection {
+  id                 String    @id @default(cuid())
+  wabaId             String
+  phoneNumberId      String    @unique
+  displayPhoneNumber String?
+  verifiedName       String?
+  businessId         String?
+  accessToken        Bytes
+  // Null until the number is registered / the app subscribed — the two Graph
+  // calls that finish the handshake, each of which can fail independently.
+  registeredAt       DateTime? @db.Timestamptz()
+  subscribedAt       DateTime? @db.Timestamptz()
+  createdAt          DateTime  @default(now()) @db.Timestamptz()
+  updatedAt          DateTime  @updatedAt @db.Timestamptz()
+
+  @@index([wabaId])
+}

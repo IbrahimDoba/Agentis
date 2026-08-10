@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
+import { ConnectPanel } from "./ConnectPanel"
 import styles from "./page.module.css"
 
 interface StoredMessage {
@@ -271,6 +272,8 @@ export function MetaTestClient() {
           </div>
         </aside>
       </div>
+
+      <ConnectPanel />
 
       {/* whatsapp_business_management — read-only WABA config straight from Graph */}
       <section className={`${styles.panel} ${styles.businessPanel}`}>
