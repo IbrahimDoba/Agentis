@@ -535,16 +535,13 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
     filtered = filtered.filter((c) => (c.labels ?? []).some((l) => l.waLabelId === labelFilter))
   }
 
-  // Sort: unread by the operator first, then most-recent activity. We sort a
-  // shallow copy so we don't mutate the React-Query cache. Needs-human
-  // conversations are flagged with a badge (not pinned to the top), so they
-  // stay in their natural activity order with everything else.
-  filtered = [...filtered].sort((a, b) => {
-    const aUnread = isUnread(a) ? 1 : 0
-    const bUnread = isUnread(b) ? 1 : 0
-    if (aUnread !== bUnread) return bUnread - aUnread
-    return (b.lastActivityAt ?? "").localeCompare(a.lastActivityAt ?? "")
-  })
+  // Sort strictly by most-recent activity, exactly like WhatsApp — read state
+  // never changes a row's position, so opening a chat doesn't make it jump. We
+  // sort a shallow copy so we don't mutate the React-Query cache. Unread and
+  // needs-human are shown as badges only, not by reordering.
+  filtered = [...filtered].sort((a, b) =>
+    (b.lastActivityAt ?? "").localeCompare(a.lastActivityAt ?? "")
+  )
 
   const handoffCount = conversations.filter(needsHumanNow).length
   const availableLabels = useMemo(() => {
