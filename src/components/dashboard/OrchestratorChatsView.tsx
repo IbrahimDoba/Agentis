@@ -957,7 +957,21 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
                   {msg.direction === "outbound" && msg.senderRole === "human" && (
                     <div className={styles.bubbleSenderTag}>Human</div>
                   )}
-                  <div className={styles.bubbleContent}>{msg.content}</div>
+                  <div className={styles.bubbleContent}>
+                    {msg.mediaUrl && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={`/api/conversations/${selectedId}/media/${msg.id}`}
+                        alt="attachment"
+                        loading="lazy"
+                        onClick={() => window.open(`/api/conversations/${selectedId}/media/${msg.id}`, "_blank")}
+                        style={{ maxWidth: 240, maxHeight: 320, borderRadius: 10, display: "block", objectFit: "cover", cursor: "pointer" }}
+                      />
+                    )}
+                    {msg.content && !(msg.mediaUrl && msg.content === "[Image]") && (
+                      <span style={{ display: "block", marginTop: msg.mediaUrl ? 6 : 0 }}>{msg.content}</span>
+                    )}
+                  </div>
                   <div className={styles.bubbleTime}>{formatFullTime(msg.createdAt)}</div>
                 </div>
               ))}

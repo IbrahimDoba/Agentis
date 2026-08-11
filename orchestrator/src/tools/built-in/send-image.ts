@@ -2,6 +2,7 @@ import type { ToolDefinition } from "../../providers/types.js"
 import { getMediaItem } from "../../db/queries/media.js"
 import { getSignedDownloadUrl } from "../../storage/r2.js"
 import { dispatchMedia } from "../../orchestrator/response-dispatcher.js"
+import { insertMessage } from "../../db/queries/conversations.js"
 import { logger as rootLogger } from "../../lib/logger.js"
 
 const logger = rootLogger.child({ module: "tool:send_media" })
@@ -73,6 +74,19 @@ export async function executeSendMedia(args: Record<string, unknown>, opts: {
             fileName: item.filename,
             mimeType: item.mimeType,
         })
+
+        // Record an image in the conversation so it shows in the dashboard
+        // thread (mediaUrl holds the R2 key; the dashboard signs it on view).
+        // Images only for now — videos/documents don't render as chat images.
+        if (kind === "image") {
+          await insertMessage({
+            conversationId: opts.conversationId,
+            direction: "outbound",
+            senderRole: "ai",
+            content: caption ?? "",
+            mediaUrl: item.r2Key,
+          }).catch((e: any) => logger.warn({ mediaId, err: e?.message }, "Failed to persist outbound image message"))
+        }
 
         logger.info({ mediaId, kind, agentId: opts.agentId }, "send_media executed successfully")
         return JSON.stringify({ success: true, message: `${kind} '${item.filename}' sent to customer.` })
