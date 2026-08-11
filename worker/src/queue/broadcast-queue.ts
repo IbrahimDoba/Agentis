@@ -13,6 +13,7 @@ import {
   incrementBroadcastFailed,
   getPendingRecipients,
   getRecipient,
+  saveBroadcastOutboundMessage,
 } from "../db/queries/broadcasts.js"
 import { RateLimitError } from "../lib/errors.js"
 import { truncatedNormal } from "../anti-ban/distribution.js"
@@ -130,6 +131,16 @@ const worker = new Worker<BroadcastJob>(
       await sendWithPacing(sock, sendJid, personalizedMessage, session.warmupTier)
       await updateRecipientStatus(recipientId, "sent")
       await incrementBroadcastSent(broadcastId)
+
+      // Surface the broadcast in the recipient's inbox thread. Best-effort —
+      // a persistence hiccup must never fail the actual send. Keeps the
+      // conversation in 'ai' mode so replies still route to the AI.
+      try {
+        const phoneNumber = toJid.split("@")[0].split(":")[0]
+        await saveBroadcastOutboundMessage(agentId, phoneNumber, contactName, personalizedMessage)
+      } catch (err: any) {
+        logger.warn({ broadcastId, recipientId, err: err?.message }, "Failed to persist broadcast message to inbox")
+      }
 
       // Reset consecutive failure counter on success
       const redis = getRedis()
