@@ -1,11 +1,18 @@
+import OpenAI from "openai"
 import { db } from "@/lib/db"
 import { mapWithConcurrency } from "@/lib/concurrency"
 import { emailBrandOf } from "@/lib/tenant"
 import { sendAppointmentReminderEmail, sendAppointmentBookedEmail, type EmailBrand } from "@/lib/email"
+import { baileysClient } from "@/lib/baileys-client"
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
 // Cap per run so one scan can't fan out to an unbounded email burst.
 const MAX_PER_RUN = 200
 const EMAIL_CONCURRENCY = 5
+// How many recent messages to feed the WhatsApp reminder generator for context.
+const REMINDER_CONTEXT_MESSAGES = 14
+const REMINDER_MODEL = "gpt-4o-mini"
 // Only look at appointments starting within this window — bounds the scan and
 // matches the largest reminder lead time the UI allows (1 week + a day buffer).
 const MAX_LEAD_WINDOW_MS = 8 * 24 * 60 * 60 * 1000
@@ -98,17 +105,150 @@ async function loadRecipients(ownerIds: string[]) {
 }
 
 // ---------------------------------------------------------------------------
+// WhatsApp reminder to the CUSTOMER — an AI-written, chat-aware nudge sent into
+// the same conversation the appointment was booked in. Separate from the
+// owner/team email above; for a due stage BOTH fire. Only chat-linked
+// appointments (a conversationId + a customer number) can get one — a purely
+// manual appointment has no thread to post into.
+// ---------------------------------------------------------------------------
+
+interface WaReminderAppt {
+  agentId: string
+  conversationId: string
+  customerNumber: string
+  customerName: string | null
+  title: string
+  notes: string | null
+  scheduledAt: Date
+  agent: { businessName: string; businessDescription: string | null }
+}
+
+// Ask the model for a short reminder in the business's voice, grounded in the
+// recent transcript. Returns the text + token counts (so the send can be metered
+// on real usage) or null if generation failed — the caller then skips the nudge.
+async function generateWaReminder(
+  appt: WaReminderAppt,
+  transcript: string,
+  lead: string,
+  when: string,
+): Promise<{ message: string; tokensInput: number; tokensOutput: number } | null> {
+  const business = [appt.agent.businessName, appt.agent.businessDescription].filter(Boolean).join(" — ")
+  const prompt = `You are the WhatsApp assistant for this business, sending a short appointment reminder to a customer you have already been chatting with.
+
+Business: ${business}
+Customer: ${appt.customerName ?? "Unknown"}
+Appointment: ${appt.title}
+When: ${when} (${lead})
+${appt.notes ? `Notes: ${appt.notes}\n` : ""}Recent conversation:
+${transcript || "(no earlier messages)"}
+
+Write a friendly, natural WhatsApp reminder (1-2 sentences) that:
+- Reminds them of the appointment (${appt.title}) and the time (${when})
+- Uses their first name if known and matches the tone of the chat above
+- Sounds like a real person from the business, not a bot — no placeholders like [name]
+
+Respond ONLY with valid JSON: {"message": "the reminder text"}`
+
+  try {
+    const res = await openai.chat.completions.create({
+      model: REMINDER_MODEL,
+      messages: [{ role: "user", content: prompt }],
+      response_format: { type: "json_object" },
+      temperature: 0.5,
+      max_tokens: 200,
+    })
+    const raw = res.choices[0]?.message?.content
+    if (!raw) return null
+    const message = (JSON.parse(raw) as { message?: string }).message?.trim()
+    if (!message) return null
+    return {
+      message,
+      tokensInput: res.usage?.prompt_tokens ?? 0,
+      tokensOutput: res.usage?.completion_tokens ?? 0,
+    }
+  } catch (err) {
+    console.error("[appointment-reminders] wa generation failed", { conversationId: appt.conversationId }, err)
+    return null
+  }
+}
+
+// Generate → persist → send the customer's WhatsApp reminder. The Message row is
+// written BEFORE the send (carrying its id) so the outbound queue can meter it,
+// pace it, and delete it if a human takes over mid-send — the same contract the
+// live reply path uses. If the send can't even be queued we drop the orphan row
+// so a never-delivered reminder doesn't linger in the thread. Best-effort: the
+// caller treats a false/throw as "email still went", never blocking on this.
+async function sendWaReminder(appt: WaReminderAppt, remainingMin: number): Promise<boolean> {
+  // Address the conversation's real routing JID when known — the same target the
+  // live reply path uses. A bare phone would be naively turned into
+  // "<phone>@s.whatsapp.net" by the worker, which doesn't reliably reach
+  // LID-addressed contacts; senderJid does. Fall back to the phone otherwise.
+  const convo = await db.conversation.findUnique({
+    where: { id: appt.conversationId },
+    select: { senderJid: true, phoneNumber: true },
+  })
+  const to = convo?.senderJid || convo?.phoneNumber || appt.customerNumber
+
+  const recent = await db.message.findMany({
+    where: { conversationId: appt.conversationId },
+    orderBy: { createdAt: "desc" },
+    take: REMINDER_CONTEXT_MESSAGES,
+    select: { direction: true, content: true },
+  })
+  const transcript = recent
+    .reverse()
+    .map((m) => `${m.direction === "inbound" ? "Customer" : "Business"}: ${m.content}`)
+    .join("\n")
+
+  const gen = await generateWaReminder(appt, transcript, leadLabel(remainingMin), whenLabel(appt.scheduledAt))
+  if (!gen) return false
+
+  const msg = await db.message.create({
+    data: {
+      conversationId: appt.conversationId,
+      direction: "outbound",
+      senderRole: "ai",
+      content: gen.message,
+      tokensInput: gen.tokensInput,
+      tokensOutput: gen.tokensOutput,
+      modelUsed: REMINDER_MODEL,
+    },
+    select: { id: true },
+  })
+
+  try {
+    await baileysClient.sendMessage({
+      agentId: appt.agentId,
+      to,
+      text: gen.message,
+      conversationId: appt.conversationId,
+      source: "ai",
+      messageId: msg.id,
+      tokensInput: gen.tokensInput,
+      tokensOutput: gen.tokensOutput,
+    })
+    return true
+  } catch (err) {
+    // Couldn't even queue the send — remove the row we just wrote so the thread
+    // doesn't show a reminder the customer never received.
+    await db.message.delete({ where: { id: msg.id } }).catch(() => {})
+    throw err
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Job
 // ---------------------------------------------------------------------------
 
 export interface ReminderSummary {
   remindersSent: number    // stages successfully claimed + emailed to ≥1 recipient
   emailsSent: number       // individual recipient emails delivered
+  waRemindersSent: number  // customer WhatsApp reminders sent into the chat
   errors: Array<{ appointmentId: string; stage: number; message: string }>
 }
 
 export async function runAppointmentReminders(now: Date = new Date()): Promise<ReminderSummary> {
-  const summary: ReminderSummary = { remindersSent: 0, emailsSent: 0, errors: [] }
+  const summary: ReminderSummary = { remindersSent: 0, emailsSent: 0, waRemindersSent: 0, errors: [] }
   const windowEnd = new Date(now.getTime() + MAX_LEAD_WINDOW_MS)
 
   // Upcoming, still-scheduled appointments with at least one unsent reminder.
@@ -119,12 +259,12 @@ export async function runAppointmentReminders(now: Date = new Date()): Promise<R
       OR: [{ reminder1SentAt: null }, { reminder2SentAt: null }],
     },
     select: {
-      id: true, userId: true, agentId: true,
+      id: true, userId: true, agentId: true, conversationId: true,
       title: true, notes: true, customerName: true, customerNumber: true,
       scheduledAt: true,
       reminder1Minutes: true, reminder1SentAt: true,
       reminder2Minutes: true, reminder2SentAt: true,
-      agent: { select: { businessName: true } },
+      agent: { select: { businessName: true, businessDescription: true } },
     },
     orderBy: { scheduledAt: "asc" },
     take: MAX_PER_RUN,
@@ -186,6 +326,35 @@ export async function runAppointmentReminders(now: Date = new Date()): Promise<R
       }
     }
     if (anyDelivered) summary.remindersSent++
+
+    // Customer WhatsApp reminder — only for chat-linked appointments. Shares the
+    // stage claim above, so it fires exactly once alongside the email. Failures
+    // are logged, never thrown, so they can't undo the already-sent email.
+    if (appt.conversationId && appt.customerNumber) {
+      try {
+        const sent = await sendWaReminder(
+          {
+            agentId: appt.agentId,
+            conversationId: appt.conversationId,
+            customerNumber: appt.customerNumber,
+            customerName: appt.customerName,
+            title: appt.title,
+            notes: appt.notes,
+            scheduledAt: appt.scheduledAt,
+            agent: appt.agent,
+          },
+          remainingMin,
+        )
+        if (sent) summary.waRemindersSent++
+      } catch (err) {
+        console.error("[appointment-reminders] wa reminder failed", { appointmentId: appt.id, stage }, err)
+        summary.errors.push({
+          appointmentId: appt.id,
+          stage,
+          message: err instanceof Error ? err.message : String(err),
+        })
+      }
+    }
   })
 
   return summary

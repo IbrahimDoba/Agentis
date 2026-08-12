@@ -142,6 +142,12 @@ export const baileysClient = {
     text: string
     conversationId?: string
     source?: "ai" | "human" | "api"
+    // When the caller has already persisted the outbound Message row, pass its
+    // id + token counts so the outbound queue meters on real usage and can
+    // delete the row if a human takes over before it sends.
+    messageId?: string
+    tokensInput?: number
+    tokensOutput?: number
   }): Promise<{ jobId: string; status: string }> {
     const res = await fetch(`${WORKER_URL}/v1/messages/send`, {
       method: "POST",

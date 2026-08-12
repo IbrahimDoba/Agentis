@@ -179,12 +179,13 @@ export function AppointmentsClient({ agents, defaultReminder1, defaultReminder2 
               </div>
 
               <div className={styles.meta}>
-                {(a.customerName || a.customerNumber) && (
-                  <span>👤 {a.customerName ?? a.customerNumber}</span>
+                {(a.customerNumber || a.customerName) && (
+                  <span>📱 {a.customerNumber ?? a.customerName}</span>
                 )}
                 <span>🤖 {a.agent.businessName}</span>
                 <span className={styles.reminderMeta}>
                   🔔 {reminderLabel(a.reminder1Minutes)}{a.reminder2Minutes != null ? ` + ${reminderLabel(a.reminder2Minutes)}` : ""}
+                  {a.conversationId ? " · sent to the customer on WhatsApp" : " · reminds you by email"}
                 </span>
                 <span className={styles.source}>{a.createdBy === "ai" ? "Booked by AI" : "Added manually"}</span>
               </div>
@@ -412,6 +413,9 @@ function NewAppointmentForm({ agents, defaultReminder1, defaultReminder2, onCrea
           <span>Notes</span>
           <input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Location, what to bring, product of interest…" maxLength={1000} />
         </label>
+        <p className={`${styles.aiBookingHint} ${styles.fieldWide}`}>
+          🔔 At each reminder time, appointments booked in a WhatsApp chat send the customer an AI-written reminder on WhatsApp. Manually added appointments (with no linked chat) remind you by email instead.
+        </p>
       </div>
       {err && <div className={styles.formError}>{err}</div>}
       <div className={styles.formActions}>
