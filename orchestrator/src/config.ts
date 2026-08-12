@@ -8,6 +8,11 @@ const schema = z.object({
 
   ORCHESTRATOR_API_KEY: z.string().min(16),
 
+  // HMAC secret for browser SSE stream tickets (must match the Next.js app's
+  // STREAM_TOKEN_SECRET). Optional so the orchestrator still boots before the
+  // streaming feature is rolled out — the /v1/stream routes 503 until it's set.
+  STREAM_TOKEN_SECRET: z.string().min(16).optional().or(z.literal("").transform(() => undefined)),
+
   DATABASE_URL: z.string().min(1),
   REDIS_URL: z.string().min(1),
 

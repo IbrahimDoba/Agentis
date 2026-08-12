@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react"
+import { openAgentStream } from "@/lib/stream-client"
 
 /**
  * Subscribe to an agent's server-sent event stream and invoke `onMessage`
@@ -7,7 +8,9 @@ import { useEffect, useRef } from "react"
  *
  * The dashboard uses this to invalidate its React Query caches on push, so the
  * polling fallback can drop to a slow safety-net interval instead of hammering
- * the DB every 30s.
+ * the DB every 30s. The connection is opened via `openAgentStream`, which points
+ * at the orchestrator (with a fresh ticket) when NEXT_PUBLIC_STREAM_URL is set,
+ * or the in-app route otherwise — so each reconnect re-mints its ticket.
  */
 export function useAgentEventStream(
   agentId: string | null | undefined,
@@ -27,20 +30,33 @@ export function useAgentEventStream(
     let reconnectTimer: ReturnType<typeof setTimeout> | null = null
     let closed = false
 
-    const connect = () => {
-      source = new EventSource(`/api/agents/${agentId}/stream`)
-      source.addEventListener("message", () => savedOnMessage.current())
-      source.onerror = () => {
-        // EventSource auto-reconnects on some errors, but on a hard close we
-        // re-create it after a short delay.
-        source?.close()
-        source = null
-        if (!closed && reconnectTimer === null) {
-          reconnectTimer = setTimeout(() => {
-            reconnectTimer = null
-            if (!closed) connect()
-          }, 5000)
+    const scheduleReconnect = () => {
+      if (closed || reconnectTimer !== null) return
+      reconnectTimer = setTimeout(() => {
+        reconnectTimer = null
+        if (!closed) connect()
+      }, 5000)
+    }
+
+    const connect = async () => {
+      try {
+        const es = await openAgentStream(agentId)
+        if (closed) {
+          es.close()
+          return
         }
+        source = es
+        es.addEventListener("message", () => savedOnMessage.current())
+        es.onerror = () => {
+          // EventSource auto-reconnects on some errors, but on a hard close (or
+          // an expired ticket) we re-create it — re-minting a fresh ticket.
+          es.close()
+          source = null
+          scheduleReconnect()
+        }
+      } catch {
+        // Ticket mint or connection setup failed — retry on the same backoff.
+        scheduleReconnect()
       }
     }
 

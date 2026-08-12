@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { Cog6ToothIcon, MegaphoneIcon, SparklesIcon, TrashIcon } from "@heroicons/react/24/outline"
 import styles from "./OrchestratorChatsView.module.css"
 import { useAgentEventStream } from "@/lib/useAgentEventStream"
+import { openAgentStream } from "@/lib/stream-client"
 import { useBrand } from "@/components/BrandProvider"
 import { useToast } from "@/context/ToastContext"
 
@@ -329,10 +330,12 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
   )
 
   // SSE: subscribe to live message events while the drawer is open. The stream
-  // WILL drop periodically (serverless caps a connection's lifetime), so we
-  // reconnect with backoff instead of closing for good — otherwise real-time
-  // silently stops after the first drop. On each (re)connect we also refetch to
-  // catch anything that landed while we were disconnected.
+  // can drop (network blips, or a serverless connection-lifetime cap on the
+  // fallback route), so we reconnect with backoff instead of closing for good —
+  // otherwise real-time silently stops after the first drop. On each (re)connect
+  // we also refetch to catch anything that landed while we were disconnected.
+  // Opened via openAgentStream (orchestrator + fresh ticket, or the in-app
+  // fallback); it's agent-scoped, and refetch keys off the selected conversation.
   useEffect(() => {
     if (!selectedId) return
     let es: EventSource | null = null
@@ -345,28 +348,40 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
       qc.invalidateQueries({ queryKey: ["orchestrator-chats", agentId] })
     }
 
-    const connect = () => {
+    const scheduleReconnect = () => {
+      if (stopped || reconnectTimer !== null) return
+      reconnectTimer = setTimeout(() => {
+        reconnectTimer = null
+        connect()
+      }, backoff)
+      backoff = Math.min(backoff * 2, 30000)
+    }
+
+    const connect = async () => {
       if (stopped) return
-      es = new EventSource(`/api/conversations/${selectedId}/stream`)
-      es.onopen = () => {
-        backoff = 3000
-        refetch() // catch up on anything missed before/while (re)connecting
-      }
-      es.addEventListener("message", () => {
-        // Orchestrator saves to DB async via BullMQ, so the row may not be in
-        // the DB the instant the event fires — give it a moment before refetch.
-        setTimeout(refetch, 1500)
-      })
-      es.onerror = () => {
-        es?.close()
-        es = null
-        if (!stopped && reconnectTimer === null) {
-          reconnectTimer = setTimeout(() => {
-            reconnectTimer = null
-            connect()
-          }, backoff)
-          backoff = Math.min(backoff * 2, 30000)
+      try {
+        const source = await openAgentStream(agentId)
+        if (stopped) {
+          source.close()
+          return
         }
+        es = source
+        source.onopen = () => {
+          backoff = 3000
+          refetch() // catch up on anything missed before/while (re)connecting
+        }
+        source.addEventListener("message", () => {
+          // Orchestrator saves to DB async via BullMQ, so the row may not be in
+          // the DB the instant the event fires — give it a moment before refetch.
+          setTimeout(refetch, 1500)
+        })
+        source.onerror = () => {
+          source.close()
+          es = null
+          scheduleReconnect()
+        }
+      } catch {
+        scheduleReconnect()
       }
     }
     connect()
