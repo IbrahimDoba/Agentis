@@ -13,6 +13,7 @@ import { buildSystemPrompt, buildMessages } from "./context-builder.js"
 import { dispatchReply, chargeEmbedTurn, canAffordReply } from "./response-dispatcher.js"
 import { buildRichContent } from "./rich-content.js"
 import { publishSseEvent } from "../lib/sse-publish.js"
+import { uploadFile } from "../storage/r2.js"
 import { stripImageUrls } from "../lib/strip-image-urls.js"
 import { runAgentTurn } from "./run-agent-turn.js"
 import { guardReply } from "./reply-guard.js"
@@ -74,6 +75,21 @@ interface ReplyContext {
  * reply so rapid messages batch into one. Called by the inbound BullMQ worker
  * (job name "inbound") after dedup.
  */
+// Persist an inbound WhatsApp image to R2 and return its object key (mediaUrl
+// stores the key, not a URL — the private bucket is signed on view by the
+// dashboard). Returns null for non-images or a malformed data URL.
+async function storeConversationImage(agentId: string, messageId: string, dataUrl: string): Promise<string | null> {
+  const m = dataUrl.match(/^data:([^;]+);base64,([\s\S]+)$/)
+  if (!m) return null
+  const mime = m[1]
+  if (!mime.startsWith("image/")) return null
+  const buffer = Buffer.from(m[2], "base64")
+  const ext = (mime.split("/")[1] || "jpg").split("+")[0]
+  const key = `conversation-media/${agentId}/${messageId}.${ext}`
+  await uploadFile(key, buffer, mime)
+  return key
+}
+
 export async function handleInbound(payload: InboundPayload): Promise<void> {
   const { agentId, fromPhone, senderJid, text, pushName, adContext: incomingAdContext } = payload
   const channel = payload.channel ?? "whatsapp"
@@ -117,10 +133,18 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
   // id matches the DB row exactly — prevents the double-bubble problem
   // when polling fetches the same content back. messageId is already
   // unique and is also our dedup key, so reusing it as a row id is safe.
+  // If the inbound message carried an image, store it so it shows in the
+  // dashboard thread. Best-effort — a storage hiccup must not drop the message.
+  let inboundMediaUrl: string | null = null
+  if (payload.imageDataUrl) {
+    inboundMediaUrl = await storeConversationImage(agentId, payload.messageId, payload.imageDataUrl)
+      .catch((err) => { logger.warn({ agentId, err: err?.message }, "Failed to store inbound image"); return null })
+  }
   await insertMessage({
     conversationId: conversation.id,
     direction: "inbound",
     content: text,
+    mediaUrl: inboundMediaUrl,
     id: payload.messageId,
   })
   // Anchor for the human-interjection check: any operator reply AFTER this

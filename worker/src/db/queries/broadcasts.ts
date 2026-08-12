@@ -231,3 +231,31 @@ export async function updateRecipientStatus(
     WHERE "id" = ${id}
   `
 }
+
+// Persist a broadcast message into the recipient's conversation so it shows in
+// the dashboard inbox. Deliberately UNLIKE saveHumanOutboundMessage: a broadcast
+// is automated outreach, so this must NOT flip the conversation to human mode —
+// the AI should still handle any reply. Creates the conversation in 'ai' mode if
+// it's new; otherwise appends the message and bumps activity, leaving mode (and
+// an existing contactName) untouched. Best-effort — callers must not let a
+// failure here fail the actual WhatsApp send.
+export async function saveBroadcastOutboundMessage(
+  agentId: string,
+  phoneNumber: string,
+  contactName: string | null,
+  text: string
+): Promise<void> {
+  const created = await sql<{ id: string }[]>`
+    INSERT INTO "Conversation" ("id", "agentId", "phoneNumber", "contactName", "mode", "lastActivityAt", "createdAt")
+    VALUES (${randomUUID()}, ${agentId}, ${phoneNumber}, ${contactName}, 'ai', NOW(), NOW())
+    ON CONFLICT ("agentId", "phoneNumber")
+    DO UPDATE SET "lastActivityAt" = NOW()
+    RETURNING "id"
+  `
+  const conversationId = created[0]?.id
+  if (!conversationId) return
+  await sql`
+    INSERT INTO "Message" ("id", "conversationId", "direction", "senderRole", "content", "createdAt")
+    VALUES (${randomUUID()}, ${conversationId}, 'outbound', 'human', ${text}, NOW())
+  `
+}

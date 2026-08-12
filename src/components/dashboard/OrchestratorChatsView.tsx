@@ -535,16 +535,13 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
     filtered = filtered.filter((c) => (c.labels ?? []).some((l) => l.waLabelId === labelFilter))
   }
 
-  // Sort: unread by the operator first, then most-recent activity. We sort a
-  // shallow copy so we don't mutate the React-Query cache. Needs-human
-  // conversations are flagged with a badge (not pinned to the top), so they
-  // stay in their natural activity order with everything else.
-  filtered = [...filtered].sort((a, b) => {
-    const aUnread = isUnread(a) ? 1 : 0
-    const bUnread = isUnread(b) ? 1 : 0
-    if (aUnread !== bUnread) return bUnread - aUnread
-    return (b.lastActivityAt ?? "").localeCompare(a.lastActivityAt ?? "")
-  })
+  // Sort strictly by most-recent activity, exactly like WhatsApp — read state
+  // never changes a row's position, so opening a chat doesn't make it jump. We
+  // sort a shallow copy so we don't mutate the React-Query cache. Unread and
+  // needs-human are shown as badges only, not by reordering.
+  filtered = [...filtered].sort((a, b) =>
+    (b.lastActivityAt ?? "").localeCompare(a.lastActivityAt ?? "")
+  )
 
   const handoffCount = conversations.filter(needsHumanNow).length
   const availableLabels = useMemo(() => {
@@ -960,7 +957,21 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
                   {msg.direction === "outbound" && msg.senderRole === "human" && (
                     <div className={styles.bubbleSenderTag}>Human</div>
                   )}
-                  <div className={styles.bubbleContent}>{msg.content}</div>
+                  <div className={styles.bubbleContent}>
+                    {msg.mediaUrl && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={`/api/conversations/${selectedId}/media/${msg.id}`}
+                        alt="attachment"
+                        loading="lazy"
+                        onClick={() => window.open(`/api/conversations/${selectedId}/media/${msg.id}`, "_blank")}
+                        style={{ maxWidth: 240, maxHeight: 320, borderRadius: 10, display: "block", objectFit: "cover", cursor: "pointer" }}
+                      />
+                    )}
+                    {msg.content && !(msg.mediaUrl && msg.content === "[Image]") && (
+                      <span style={{ display: "block", marginTop: msg.mediaUrl ? 6 : 0 }}>{msg.content}</span>
+                    )}
+                  </div>
                   <div className={styles.bubbleTime}>{formatFullTime(msg.createdAt)}</div>
                 </div>
               ))}

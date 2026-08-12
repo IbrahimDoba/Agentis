@@ -1,7 +1,7 @@
 import type { FastifyInstance } from "fastify"
 import { z } from "zod"
 import { randomUUID } from "crypto"
-import { uploadFile, deleteFile, r2Keys } from "../storage/r2.js"
+import { uploadFile, deleteFile, r2Keys, getSignedDownloadUrl } from "../storage/r2.js"
 import {
     insertMediaItem,
     listMediaItems,
@@ -96,6 +96,23 @@ export async function mediaRoutes(app: FastifyInstance) {
 
         const items = await listMediaItems(parsed.data.agentId)
         return reply.send({ media: items })
+    })
+
+    /**
+     * GET /v1/media/sign?key=<r2Key>
+     * Short-lived signed URL for a stored object, so the dashboard can display
+     * private conversation images. The caller (Next backend) has already verified
+     * the requester owns the message. Restricted to media key prefixes so it
+     * can't sign arbitrary bucket objects. Registered BEFORE /media/:id so "sign"
+     * isn't captured as an :id param.
+     */
+    app.get("/media/sign", async (req, reply) => {
+        const key = (req.query as { key?: string })?.key
+        if (!key || (!key.startsWith("conversation-media/") && !key.startsWith("media/"))) {
+            return reply.status(400).send({ error: "valid media key required" })
+        }
+        const url = await getSignedDownloadUrl(key, 3600)
+        return reply.send({ url })
     })
 
     /**
