@@ -10,6 +10,7 @@ import { inboundRoutes } from "./routes/inbound.js"
 import { chatRoutes } from "./routes/chat.js"
 import { documentsRoutes } from "./routes/documents.js"
 import { mediaRoutes } from "./routes/media.js"
+import { streamRoutes } from "./routes/stream.js"
 import { startInboundWorker } from "./queue/workers/inbound-worker.js"
 import { startEmbedWorker } from "./queue/workers/embed-worker.js"
 
@@ -32,9 +33,11 @@ await app.register(cors, { origin: true })
 //   },
 // })
 
-// Auth — validate ORCHESTRATOR_API_KEY on every non-health request
+// Auth — validate ORCHESTRATOR_API_KEY on every non-health request. The browser
+// SSE stream routes are exempt: they carry no server API key (EventSource can't
+// set headers) and self-authenticate with a short-lived HMAC ticket instead.
 app.addHook("onRequest", async (req, reply) => {
-  if (req.url === "/v1/health") return
+  if (req.url === "/v1/health" || req.url.startsWith("/v1/stream/")) return
   const header = req.headers.authorization ?? ""
   const token = header.startsWith("Bearer ") ? header.slice(7) : ""
   if (!token || token !== config.ORCHESTRATOR_API_KEY) {
@@ -47,6 +50,7 @@ await app.register(inboundRoutes, { prefix: "/v1" })
 await app.register(chatRoutes, { prefix: "/v1" })
 await app.register(documentsRoutes, { prefix: "/v1" })
 await app.register(mediaRoutes, { prefix: "/v1" })
+await app.register(streamRoutes, { prefix: "/v1" })
 
 // Start BullMQ workers
 const inboundWorker = startInboundWorker()
