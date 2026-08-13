@@ -132,11 +132,17 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
             _mOut?.extendedTextMessage?.text ||
             null
           if (text) {
-            await saveHumanOutboundMessage(agentId, phoneNumber, text).catch((err) => {
+            // Pass the WA message id so a duplicate delivery (notify + append,
+            // or a reconnect replay) of the SAME operator message is deduped and
+            // not saved twice. Only emit/log when a row was actually written.
+            const saved = await saveHumanOutboundMessage(agentId, phoneNumber, text, msgId).catch((err) => {
               logger.error({ err, agentId }, "Failed to save human operator message")
+              return false
             })
-            webhookEmitter.emit("message.sent", { agentId })
-            logger.info({ agentId, phoneNumber }, "Operator phone-sent message saved + AI paused")
+            if (saved) {
+              webhookEmitter.emit("message.sent", { agentId })
+              logger.info({ agentId, phoneNumber }, "Operator phone-sent message saved + AI paused")
+            }
           }
         }
         continue
