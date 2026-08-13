@@ -541,8 +541,9 @@ export async function getAgentIsHumanMode(agentId: string): Promise<boolean> {
 export async function saveHumanOutboundMessage(
   agentId: string,
   customerPhone: string,
-  text: string
-): Promise<void> {
+  text: string,
+  waMessageId?: string | null
+): Promise<boolean> {
   const convRows = await sql<{ id: string }[]>`
     SELECT "id" FROM "Conversation"
     WHERE "agentId" = ${agentId} AND "phoneNumber" = ${customerPhone}
@@ -560,7 +561,7 @@ export async function saveHumanOutboundMessage(
     const agentRows = await sql<{ autoPauseOnHumanReply: boolean }[]>`
       SELECT "autoPauseOnHumanReply" FROM "Agent" WHERE "id" = ${agentId} LIMIT 1
     `
-    if (agentRows.length === 0) return // agent gone — nothing to attach to
+    if (agentRows.length === 0) return false // agent gone — nothing to attach to
     const startMode = agentRows[0].autoPauseOnHumanReply === false ? "ai" : "human"
     const newConvId = randomUUID()
     // Race-safe vs a simultaneous inbound creating the same conversation:
@@ -573,14 +574,24 @@ export async function saveHumanOutboundMessage(
       RETURNING "id"
     `
     conversationId = created[0]?.id
-    if (!conversationId) return
+    if (!conversationId) return false
   }
 
-  const id = randomUUID()
-  await sql`
+  // Idempotent on the WhatsApp message id. Baileys delivers the same fromMe
+  // message as BOTH a `notify` and an `append` (and replays it on reconnect),
+  // so without dedup the operator's own-phone message gets saved twice, a few
+  // seconds apart. Reuse history-sync's deterministic id scheme so a duplicate
+  // delivery — and a later history-sync of the same message — collide on the
+  // primary key and no-op. Falls back to a random id when there's no WA id
+  // (can't dedup those, same as before).
+  const id = historyMessageId(conversationId, waMessageId ?? null)
+  const inserted = await sql<{ id: string }[]>`
     INSERT INTO "Message" ("id", "conversationId", "direction", "senderRole", "content", "createdAt")
     VALUES (${id}, ${conversationId}, 'outbound', 'human', ${text}, NOW())
+    ON CONFLICT ("id") DO NOTHING
+    RETURNING "id"
   `
+  if (inserted.length === 0) return false // duplicate delivery — already saved, skip the mode flip
   // Auto-pause AI: when the agent's autoPauseOnHumanReply setting is on,
   // flip the conversation to human mode so the orchestrator skips AI
   // replies for the customer's next inbound. The CASE condition is
@@ -597,6 +608,7 @@ export async function saveHumanOutboundMessage(
     WHERE c."id" = ${conversationId}
       AND a."id" = c."agentId"
   `
+  return true
 }
 
 // ── Customer / conversation lookup ───────────────────────────────────────────
