@@ -200,7 +200,11 @@ worker.on("completed", async (job) => {
  *   - Between messages: random 8–20s
  *   - Every 10 messages (batch break): +60–120s extra
  */
-export async function enqueueBroadcast(broadcastId: string): Promise<void> {
+export async function enqueueBroadcast(broadcastId: string, opts?: {
+  scheduledStartAt?: string   // ISO — hold the whole run until this instant
+  minSpacingMs?: number       // explicit random spacing (paired with maxSpacingMs)
+  maxSpacingMs?: number
+}): Promise<void> {
   const broadcast = await getBroadcast(broadcastId)
   if (!broadcast) throw new Error(`Broadcast ${broadcastId} not found`)
 
@@ -218,20 +222,34 @@ export async function enqueueBroadcast(broadcastId: string): Promise<void> {
   const windowMs = clampedHours * 60 * 60 * 1000
   const minSpacingMs = Math.floor(windowMs / recipients.length)
 
-  let cumulativeDelayMs = 0
+  // Optional scheduled start — hold the whole run until this instant (e.g. 6am
+  // tomorrow) by offsetting every job's delay. Past/absent = start now.
+  const startOffsetMs = opts?.scheduledStartAt
+    ? Math.max(0, new Date(opts.scheduledStartAt).getTime() - Date.now())
+    : 0
+  // Optional explicit random spacing (e.g. 5–10 min) overrides the even-spread
+  // pacing: the first message fires at the scheduled start, then each subsequent
+  // one is spaced by a random gap in [minSpacingMs, maxSpacingMs].
+  const customSpacing = opts?.minSpacingMs != null && opts?.maxSpacingMs != null
+
+  let cumulativeDelayMs = startOffsetMs
 
   for (let i = 0; i < recipients.length; i++) {
     const r = recipients[i]
 
-    // Pace: larger of the natural anti-ban delay and the even-spacing slot.
-    const naturalDelay = truncatedNormal(8_000, 20_000)
-    cumulativeDelayMs += Math.max(naturalDelay, minSpacingMs)
+    if (customSpacing) {
+      if (i > 0) cumulativeDelayMs += truncatedNormal(opts!.minSpacingMs!, opts!.maxSpacingMs!)
+    } else {
+      // Pace: larger of the natural anti-ban delay and the even-spacing slot.
+      const naturalDelay = truncatedNormal(8_000, 20_000)
+      cumulativeDelayMs += Math.max(naturalDelay, minSpacingMs)
 
-    // Every 10 messages: add a batch break
-    if (i > 0 && i % 10 === 0) {
-      const batchBreak = truncatedNormal(60_000, 120_000)
-      cumulativeDelayMs += batchBreak
-      logger.debug({ broadcastId, index: i, batchBreak }, "Batch break scheduled")
+      // Every 10 messages: add a batch break
+      if (i > 0 && i % 10 === 0) {
+        const batchBreak = truncatedNormal(60_000, 120_000)
+        cumulativeDelayMs += batchBreak
+        logger.debug({ broadcastId, index: i, batchBreak }, "Batch break scheduled")
+      }
     }
 
     await queue.add(

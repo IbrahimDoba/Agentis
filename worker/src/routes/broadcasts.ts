@@ -31,6 +31,13 @@ const CreateSchema = z.object({
   // Hours to spread the whole send over (paced evenly, like AI follow-ups).
   // Minimum 24h — never blast faster than that. Omitted → default 24h.
   spreadHours: z.number().int().min(24).max(168).optional(),
+  // Scheduled start: hold the run until this instant (ISO). Past/absent = now.
+  scheduledStartAt: z.string().datetime({ offset: true }).optional(),
+  // Explicit random spacing between messages (seconds). When BOTH are set they
+  // override spreadHours pacing — the first fires at scheduledStartAt, then each
+  // subsequent message after a random gap in [min, max]. E.g. 300–600 = 5–10 min.
+  minSpacingSeconds: z.number().int().min(1).max(3600).optional(),
+  maxSpacingSeconds: z.number().int().min(1).max(3600).optional(),
 })
 
 async function resolveDeliverableJid(sock: WASocket, rawPhone: string): Promise<string | null> {
@@ -136,7 +143,11 @@ export const broadcastRoutes: FastifyPluginAsync = async (app) => {
     )
 
     // Start enqueuing asynchronously — don't block the HTTP response
-    broadcastQueue.enqueueBroadcast(campaign.id).catch((err) => {
+    broadcastQueue.enqueueBroadcast(campaign.id, {
+      scheduledStartAt: body.scheduledStartAt,
+      minSpacingMs: body.minSpacingSeconds != null ? body.minSpacingSeconds * 1000 : undefined,
+      maxSpacingMs: body.maxSpacingSeconds != null ? body.maxSpacingSeconds * 1000 : undefined,
+    }).catch((err) => {
       logger.error({ broadcastId: campaign.id, err: err.message }, "Failed to enqueue broadcast")
     })
 
