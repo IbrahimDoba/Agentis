@@ -20,6 +20,7 @@ export default async function AdminUsersPage() {
     name: u.name,
     email: u.email,
     phone: u.phone ?? null,
+    referralSource: u.referralSource ?? null,
     businessName: u.businessName,
     role: u.role as any,
     status: u.status as any,

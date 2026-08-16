@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { BrandWordmark, useBrand } from "@/components/BrandProvider"
 import styles from "./page.module.css"
 import { Input } from "@/components/ui/Input"
+import fieldStyles from "@/components/ui/Input.module.css"
 import Button from "@/components/ui/Button"
 import { signupSchema } from "@/lib/validations"
 import { signIn } from "next-auth/react"
@@ -25,6 +26,7 @@ function SignupForm() {
     email: "",
     businessName: "",
     phone: "",
+    referralSource: "",
     password: "",
     confirmPassword: "",
   })
@@ -209,6 +211,32 @@ function SignupForm() {
             required
             autoComplete="new-password"
           />
+
+          {/* Optional attribution — reuses the Input CSS module so it matches. */}
+          <div className={fieldStyles.group}>
+            <label htmlFor="referralSource" className={fieldStyles.label}>
+              How did you hear about us?
+            </label>
+            <select
+              id="referralSource"
+              name="referralSource"
+              className={fieldStyles.input}
+              value={form.referralSource}
+              onChange={(e) => setForm((f) => ({ ...f, referralSource: e.target.value }))}
+            >
+              <option value="">Select an option (optional)</option>
+              <option value="Instagram">Instagram</option>
+              <option value="TikTok">TikTok</option>
+              <option value="Facebook">Facebook</option>
+              <option value="X (Twitter)">X (Twitter)</option>
+              <option value="WhatsApp">WhatsApp</option>
+              <option value="Google Search">Google Search</option>
+              <option value="YouTube">YouTube</option>
+              <option value="LinkedIn">LinkedIn</option>
+              <option value="Friend / Referral">Friend / Referral</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
 
           <div className={styles.checkboxWrapper}>
             <label className={styles.checkboxLabel}>

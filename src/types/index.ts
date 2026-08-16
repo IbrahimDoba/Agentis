@@ -7,6 +7,7 @@ export interface UserPublic {
   name: string
   email: string
   phone?: string | null
+  referralSource?: string | null
   businessName: string
   role: Role
   status: UserStatus

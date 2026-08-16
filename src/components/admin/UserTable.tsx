@@ -270,6 +270,10 @@ function UserDetailModal({ user, onClose, onStatusChange, loading }: {
                   <span className={styles.modalValue}>{user.phone ?? <span className={styles.empty}>—</span>}</span>
                 </div>
                 <div className={styles.modalRow}>
+                  <span className={styles.modalLabel}>Heard about us</span>
+                  <span className={styles.modalValue}>{user.referralSource ?? <span className={styles.empty}>—</span>}</span>
+                </div>
+                <div className={styles.modalRow}>
                   <span className={styles.modalLabel}>Status</span>
                   <span className={styles.modalValue}><StatusBadge status={user.status} /></span>
                 </div>

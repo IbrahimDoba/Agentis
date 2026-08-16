@@ -39,6 +39,9 @@ model User {
   businessAddress     String?
   businessEmail       String?
   businessWebsite     String?
+  // Optional "how did you hear about us?" answer captured at signup (Instagram,
+  // TikTok, Friend, etc.) — for attribution/analytics. Shown in admin.
+  referralSource      String?
   maxAgents               Int        @default(1)
   plan                    String     @default("free")
   subscriptionExpiresAt   DateTime?
