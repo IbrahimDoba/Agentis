@@ -40,6 +40,8 @@ export const signupSchema = z.object({
   businessName: z.string().min(2, "Business name required"),
   phone: z.string().min(7, "Invalid phone number").optional().or(z.literal("")),
   password: z.string().min(8, "Password must be at least 8 characters"),
+  // Optional "how did you hear about us?" — free-form string capped for safety.
+  referralSource: z.string().max(100).optional().or(z.literal("")),
 })
 
 export const profileUpdateSchema = z.object({

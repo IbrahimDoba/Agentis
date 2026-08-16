@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ errors }, { status: 400 })
     }
 
-    const { name, email, businessName, phone, password } = parsed.data
+    const { name, email, businessName, phone, password, referralSource } = parsed.data
     const refCode = typeof body.refCode === "string" ? body.refCode.trim() : null
 
     // Which tenant is this signup for? Resolved from the host the request came
@@ -69,6 +69,7 @@ export async function POST(req: NextRequest) {
         email,
         businessName,
         phone: phone || null,
+        referralSource: referralSource || null,
         passwordHash,
         resellerId,
         // Reseller-tenant signups start on the 0-allowance "reseller" plan (no
