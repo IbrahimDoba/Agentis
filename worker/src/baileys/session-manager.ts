@@ -298,6 +298,24 @@ async function startSession(agentId: string, reconnectAttempt = 0): Promise<void
       await updateSessionStatus(agentId, "DISCONNECTED", { lastDisconnectReason: reason })
       webhookEmitter.emit("session.disconnected", { agentId, reason })
 
+      // A QR/pairing session that exhausted its QR refs (nobody linked in time)
+      // has NO saved credentials — auto-reconnecting just regenerates a fresh QR
+      // every ~20s in an endless loop that hammers WhatsApp and gets the number
+      // THROTTLED ("Couldn't link device, try again later"). Stop and wait for a
+      // deliberate manual re-link from the dashboard instead. A logged-in session
+      // that drops is unaffected: it has registered creds and reconnects from
+      // them without ever showing a QR. The DISCONNECTED status + reason are set
+      // just above, and the session-watchdog already excludes this reason from
+      // revival (see getStuckSessions), so it stays stopped until a manual relink.
+      if (reason.includes("QR refs attempts ended") && !active.sock?.authState?.creds?.registered) {
+        logger.warn(
+          { agentId },
+          "QR link timed out with no credentials — NOT auto-reconnecting (avoids WhatsApp throttle); manual re-link needed"
+        )
+        sessions.delete(agentId)
+        return
+      }
+
       if (!shouldReconnect) {
         // Logged out / replaced — purge stale auth (both stores) so the next
         // connect starts fresh with a new QR. Stamp a stable marker so the
