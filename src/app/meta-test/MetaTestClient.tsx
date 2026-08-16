@@ -273,7 +273,11 @@ export function MetaTestClient() {
         </aside>
       </div>
 
-      <ConnectPanel />
+      {/* Hidden by default: Facebook Login is blocked app-side, so the button
+          only produces Meta's "Feature Unavailable" error — not something to
+          have on screen in an App Review recording. Flip the flag to test the
+          flow once Meta clears it. */}
+      {process.env.NEXT_PUBLIC_META_SHOW_CONNECT === "true" && <ConnectPanel />}
 
       {/* whatsapp_business_management — read-only WABA config straight from Graph */}
       <section className={`${styles.panel} ${styles.businessPanel}`}>

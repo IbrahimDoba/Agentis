@@ -74,14 +74,20 @@ export function ConnectPanel() {
       try {
         const payload = typeof event.data === "string" ? JSON.parse(event.data) : event.data
         if (payload?.type !== "WA_EMBEDDED_SIGNUP") return
-        if (payload.event === "FINISH" || payload.event === "FINISH_ONLY_WABA") {
+        // Meta has several success events (FINISH, FINISH_ONLY_WABA,
+        // FINISH_OBO_MIGRATION, FINISH_GRANT_ONLY_API_ACCESS, …) — match the
+        // prefix so a new one doesn't silently drop the selection.
+        if (typeof payload.event === "string" && payload.event.startsWith("FINISH")) {
           selectionRef.current = {
             wabaId: payload.data?.waba_id,
             phoneNumberId: payload.data?.phone_number_id,
             businessId: payload.data?.business_id,
           }
         } else if (payload.event === "CANCEL") {
-          setStatus("Signup cancelled before finishing.")
+          // data.current_step tells us where they dropped out.
+          setStatus(`Signup cancelled at step: ${payload.data?.current_step ?? "unknown"}`)
+        } else if (payload.event === "ERROR") {
+          setError(payload.data?.error_message ?? "Meta reported an error during signup.")
         }
       } catch {
         // Not a signup message — ignore.
@@ -158,7 +164,10 @@ export function ConnectPanel() {
         config_id: CONFIG_ID,
         response_type: "code",
         override_default_response_type: true,
-        extras: { setup: {}, featureType: "", sessionInfoVersion: "3" },
+        // Embedded Signup v4 takes only `setup` here. Older guides also passed
+        // featureType/sessionInfoVersion; featureType is for onboarding
+        // businesses off the WhatsApp Business *app*, which isn't our flow.
+        extras: { setup: {} },
       }
     )
   }
@@ -249,6 +258,15 @@ export function ConnectPanel() {
         </table>
       )}
 
+      {connections.length === 0 && (
+        <p className={styles.hint}>
+          No numbers connected yet. The button above opens Meta&apos;s hosted signup — you
+          pick your business and WhatsApp number there, so there is nothing to type in here.
+        </p>
+      )}
+
+      {/* Only relevant once something is connected but not yet activated. */}
+      {connections.some((c) => !c.subscribedAt) && (
       <div className={styles.field} style={{ marginTop: "1rem" }}>
         <label className={styles.label}>Two-step PIN for registration</label>
         <input
@@ -263,6 +281,7 @@ export function ConnectPanel() {
           this for a number you intend to connect.
         </span>
       </div>
+      )}
     </section>
   )
 }
