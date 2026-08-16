@@ -45,6 +45,21 @@ export function getMetaConfig(): MetaConfig {
   return { phoneNumberId: phoneNumberId!, accessToken: accessToken! }
 }
 
+// Numbers the harness may auto-reply to, as E.164 digits without "+".
+// The test number is reachable by anyone who knows it, and an unguarded
+// webhook answers every stranger with a business persona that isn't theirs —
+// so replies are opt-in per number rather than open by default.
+export function isAllowedRecipient(waId: string): boolean {
+  const allowed = (process.env.META_TEST_ALLOWED_RECIPIENTS || "")
+    .split(",")
+    .map((n) => n.replace(/\D/g, ""))
+    .filter(Boolean)
+  // Empty list = locked down, not wide open: a missing env var must never be
+  // the reason a stranger gets messaged.
+  if (allowed.length === 0) return false
+  return allowed.includes(waId.replace(/\D/g, ""))
+}
+
 export interface SendTextResult {
   waMessageId: string | null
   raw: unknown

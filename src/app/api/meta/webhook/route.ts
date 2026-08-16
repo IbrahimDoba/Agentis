@@ -3,6 +3,7 @@ import {
   verifyWebhookChallenge,
   verifyWebhookSignature,
   sendText,
+  isAllowedRecipient,
 } from "@/lib/meta/cloud-api"
 import { alreadySeen, appendMessage, getHistory, resolveTestPersona } from "@/lib/meta/store"
 import { generateAgentReply } from "@/lib/meta/reply"
@@ -69,6 +70,13 @@ async function handleInbound(msg: InboundText): Promise<void> {
     waMessageId: msg.wamid,
     raw: msg.value,
   })
+
+  // Recorded above so the inbound message is still visible in the feed, but we
+  // stop before generating or sending anything to a number we don't know.
+  if (!isAllowedRecipient(msg.from)) {
+    console.warn(`[meta/webhook] inbound from non-allowlisted ${msg.from} — logged, not replied`)
+    return
+  }
 
   const persona = await resolveTestPersona()
   if (!persona) {
