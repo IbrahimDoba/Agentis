@@ -33,13 +33,31 @@ async function getOwnedWabas(businessId: string): Promise<OwnedWaba[]> {
   return (res.data ?? []).map((w) => ({ id: w.id, name: w.name ?? "—" }))
 }
 
+interface RawBusiness {
+  id: string
+  name: string
+  verification_status?: string
+}
+
+// A system user token belongs to one business, so /me/businesses comes back
+// empty for it — unlike a user token, which enumerates every business the
+// person administers. Fall back to reading the configured business directly so
+// the panel works under both token types.
+async function listBusinesses(): Promise<RawBusiness[]> {
+  const fields = "id,name,verification_status"
+  const res = await graphGet<GraphList<RawBusiness>>("me/businesses", fields)
+  if (res.data?.length) return res.data
+
+  const businessId = process.env.META_TEST_BUSINESS_ID
+  if (!businessId) return []
+  return [await graphGet<RawBusiness>(businessId, fields)]
+}
+
 export async function getBusinessPortfolio(): Promise<BusinessPortfolioEntry[]> {
-  const businesses = await graphGet<
-    GraphList<{ id: string; name: string; verification_status?: string }>
-  >("me/businesses", "id,name,verification_status")
+  const businesses = await listBusinesses()
 
   return Promise.all(
-    (businesses.data ?? []).map(async (b) => {
+    businesses.map(async (b) => {
       const base = {
         id: b.id,
         name: b.name,

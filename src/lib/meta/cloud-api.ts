@@ -50,12 +50,18 @@ export function getMetaConfig(): MetaConfig {
 // webhook answers every stranger with a business persona that isn't theirs —
 // so replies are opt-in per number rather than open by default.
 export function isAllowedRecipient(waId: string): boolean {
-  const allowed = (process.env.META_TEST_ALLOWED_RECIPIENTS || "")
+  const raw = (process.env.META_TEST_ALLOWED_RECIPIENTS || "").trim()
+
+  // "*" opens replies to any number — needed during Meta App Review, when a
+  // reviewer messages from a phone we can't know in advance. Deliberately an
+  // explicit value rather than "unset means open": forgetting the var must
+  // fail closed, not spray a business persona at strangers.
+  if (raw === "*") return true
+
+  const allowed = raw
     .split(",")
     .map((n) => n.replace(/\D/g, ""))
     .filter(Boolean)
-  // Empty list = locked down, not wide open: a missing env var must never be
-  // the reason a stranger gets messaged.
   if (allowed.length === 0) return false
   return allowed.includes(waId.replace(/\D/g, ""))
 }
