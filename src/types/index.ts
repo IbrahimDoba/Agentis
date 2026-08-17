@@ -23,6 +23,7 @@ export interface UserPublic {
   onboardingCompleted?: boolean
   referralsEnabled?: boolean
   developerModeEnabled?: boolean
+  metaEnabled?: boolean
   leadNotificationsEnabled?: boolean
   hasPassword?: boolean
 }

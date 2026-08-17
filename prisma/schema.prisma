@@ -75,6 +75,10 @@ model User {
   referralsEnabled    Boolean    @default(false)
   historySyncEnabled  Boolean    @default(false)
   developerModeEnabled Boolean   @default(false)
+  // Gates the Meta tab — accounts provisioned on the official WhatsApp Cloud
+  // API. Off for everyone on the Baileys channel, for whom the WABA/template
+  // views have nothing to show.
+  metaEnabled         Boolean    @default(false)
   // Opt-in (default ON) for the account owner's lead/handoff email alerts and
   // the daily/weekly activity digests. See src/lib/lead-notifications-job.ts.
   leadNotificationsEnabled Boolean @default(true)
