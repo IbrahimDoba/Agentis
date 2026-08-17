@@ -111,10 +111,12 @@ export function Sidebar({ userName, businessName, currentUserId, currentWorkspac
   // Reseller-tenant users keep the Billing entry — but it's a read-only
   // plan/credits view (the page + the payment APIs block self-pay).
   const isResellerAdmin = data?.user?.role === "RESELLER_ADMIN"
+  // Meta leads for Cloud API accounts — it's their primary surface, so it sits
+  // above Overview rather than buried mid-list.
   const navItems = [
+    ...(data?.user?.metaEnabled ? [metaNavItem] : []),
     ...baseNavItems,
     ...(data?.user?.referralsEnabled ? [referralNavItem] : []),
-    ...(data?.user?.metaEnabled ? [metaNavItem] : []),
   ]
 
   const isActive = (href: string) => {
