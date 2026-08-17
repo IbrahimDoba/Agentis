@@ -24,6 +24,7 @@ export interface UserPublic {
   onboardingCompleted?: boolean
   referralsEnabled?: boolean
   developerModeEnabled?: boolean
+  metaEnabled?: boolean
   leadNotificationsEnabled?: boolean
   appointmentReminder1Minutes?: number
   appointmentReminder2Minutes?: number | null

@@ -78,6 +78,10 @@ model User {
   referralsEnabled    Boolean    @default(false)
   historySyncEnabled  Boolean    @default(false)
   developerModeEnabled Boolean   @default(false)
+  // Gates the Meta tab — accounts provisioned on the official WhatsApp Cloud
+  // API. Off for everyone on the Baileys channel, for whom the WABA/template
+  // views have nothing to show.
+  metaEnabled         Boolean    @default(false)
   // Opt-in (default ON) for the account owner's lead/handoff email alerts and
   // the daily/weekly activity digests. See src/lib/lead-notifications-job.ts.
   leadNotificationsEnabled Boolean @default(true)
@@ -979,4 +983,48 @@ model WorkerEvent {
   @@index([category, createdAt(sort: Desc)])
   @@index([agentId, createdAt(sort: Desc)])
   @@index([createdAt(sort: Desc)])
+}
+
+// Isolated message log for the Meta Cloud API test harness (branch:
+// meta-integration). Deliberately SEPARATE from Conversation/Message so the
+// official-API screencast demo never bleeds into real dashboard data. One row
+// per inbound/outbound message on the test number, keyed by the customer's
+// wa_id. `raw` backs the on-camera event log (raw webhook value / send response).
+model MetaTestMessage {
+  id          String   @id @default(cuid())
+  waId        String                                  // customer WhatsApp id — E.164 digits, no "+"
+  direction   String                                  // "inbound" | "outbound"
+  text        String   @db.Text
+  waMessageId String?                                 // Meta wamid, for dedup + status matching
+  raw         Json?
+  createdAt   DateTime @default(now()) @db.Timestamptz()
+
+  @@index([waId, createdAt])
+  @@index([createdAt(sort: Desc)])
+}
+
+// A WhatsApp Business Account connected through Embedded Signup (branch:
+// meta-integration). One row per connected phone number — the harness routes
+// each inbound webhook to a row by phoneNumberId, which is what makes the flow
+// multi-tenant rather than the single number pinned in env.
+//
+// `accessToken` is the business token from the code exchange, encrypted at rest
+// with AES-256-GCM (see src/lib/meta/crypto.ts) — it grants messaging rights on
+// someone else's number, so it never sits in plaintext.
+model MetaTestConnection {
+  id                 String    @id @default(cuid())
+  wabaId             String
+  phoneNumberId      String    @unique
+  displayPhoneNumber String?
+  verifiedName       String?
+  businessId         String?
+  accessToken        Bytes
+  // Null until the number is registered / the app subscribed — the two Graph
+  // calls that finish the handshake, each of which can fail independently.
+  registeredAt       DateTime? @db.Timestamptz()
+  subscribedAt       DateTime? @db.Timestamptz()
+  createdAt          DateTime  @default(now()) @db.Timestamptz()
+  updatedAt          DateTime  @updatedAt @db.Timestamptz()
+
+  @@index([wabaId])
 }

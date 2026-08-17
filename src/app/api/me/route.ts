@@ -42,6 +42,7 @@ export async function GET() {
       onboardingCompleted: user.onboardingCompleted,
       referralsEnabled: user.referralsEnabled,
       developerModeEnabled: user.developerModeEnabled,
+      metaEnabled: user.metaEnabled,
       leadNotificationsEnabled: user.leadNotificationsEnabled,
       appointmentReminder1Minutes: user.appointmentReminder1Minutes,
       appointmentReminder2Minutes: user.appointmentReminder2Minutes,

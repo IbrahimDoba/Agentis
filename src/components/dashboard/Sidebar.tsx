@@ -21,6 +21,7 @@ import {
   CodeBracketIcon,
   PresentationChartLineIcon,
   CalendarDaysIcon,
+  BuildingStorefrontIcon,
 } from "@heroicons/react/24/outline"
 import { cn } from "@/lib/utils"
 import { useDashboardData } from "@/hooks/useDashboardData"
@@ -100,6 +101,9 @@ const baseNavItems: NavItem[] = [
 ]
 
 const referralNavItem: NavItem = { href: "/dashboard/referrals", label: "Referrals", icon: GiftIcon }
+// Only for accounts on the official Cloud API — a Baileys user has no WhatsApp
+// Business Account, so the tab would open onto nothing.
+const metaNavItem: NavItem = { href: "/dashboard/meta", label: "Meta", icon: BuildingStorefrontIcon }
 
 export function Sidebar({ userName, businessName, currentUserId, currentWorkspaceId, isOpen, onClose, collapsed, onToggleCollapse }: SidebarProps) {
   const pathname = usePathname()
@@ -109,9 +113,13 @@ export function Sidebar({ userName, businessName, currentUserId, currentWorkspac
   // Reseller-tenant users keep the Billing entry — but it's a read-only
   // plan/credits view (the page + the payment APIs block self-pay).
   const isResellerAdmin = data?.user?.role === "RESELLER_ADMIN"
-  const navItems = data?.user?.referralsEnabled
-    ? [...baseNavItems, referralNavItem]
-    : [...baseNavItems]
+  // Meta leads for Cloud API accounts — it's their primary surface, so it sits
+  // above Overview rather than buried mid-list.
+  const navItems = [
+    ...(data?.user?.metaEnabled ? [metaNavItem] : []),
+    ...baseNavItems,
+    ...(data?.user?.referralsEnabled ? [referralNavItem] : []),
+  ]
 
   const isActive = (href: string) => {
     if (href === "/dashboard") return pathname === "/dashboard"
