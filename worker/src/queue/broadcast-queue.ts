@@ -20,6 +20,7 @@ import { truncatedNormal } from "../anti-ban/distribution.js"
 import { logger as rootLogger } from "../lib/logger.js"
 import { resolveSendJid } from "../baileys/resolve-jid.js"
 import { recordEvent } from "../lib/event-log.js"
+import { resolveSpreadHours } from "../anti-ban/spread-window.js"
 
 const logger = rootLogger.child({ module: "broadcast-queue" })
 const QUEUE_NAME = "broadcast-send"
@@ -218,7 +219,11 @@ export async function enqueueBroadcast(broadcastId: string, opts?: {
   // whichever is LARGER: the natural anti-ban gap, or the even-spacing slot
   // (window ÷ recipients). So a small list still looks human, and a big list is
   // stretched across the full window instead of going out all at once.
-  const clampedHours = Math.min(168, Math.max(24, broadcast.spreadHours ?? 24))
+  // Small lists may compress the window (or set 0 for "as soon as the anti-ban
+  // gap allows"); larger ones keep the 24h floor. Enforced here as well as in
+  // routes/broadcasts.ts because this is what actually paces the send, and a
+  // campaign row can be created by other paths.
+  const clampedHours = resolveSpreadHours(recipients.length, broadcast.spreadHours)
   const windowMs = clampedHours * 60 * 60 * 1000
   const minSpacingMs = Math.floor(windowMs / recipients.length)
 

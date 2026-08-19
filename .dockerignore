@@ -1,0 +1,16 @@
+# Keeps local dev artefacts out of the build context. Without this, a developer
+# with node_modules installed ships a ~1GB context to the daemon on every build
+# (all three Dockerfiles COPY whole workspace directories).
+node_modules
+**/node_modules
+.next
+.git
+.env*
+.vercel
+coverage
+src/generated
+
+# WhatsApp auth material and history dumps — must never enter an image layer.
+worker/auth_sessions
+worker/history_snapshots
+worker/.agents.json

@@ -12,6 +12,7 @@ import {
   resetSkippedToPending,
 } from "../db/queries/broadcasts.js"
 import { broadcastQueue } from "../queue/broadcast-queue.js"
+import { SMALL_LIST_MAX_RECIPIENTS } from "../anti-ban/spread-window.js"
 import { sessionManager } from "../baileys/session-manager.js"
 import { getTierConfig } from "../anti-ban/warmup.js"
 import { logger as rootLogger } from "../lib/logger.js"
@@ -29,8 +30,9 @@ const CreateSchema = z.object({
   message: z.string().min(1).max(1000),
   phoneNumbers: z.array(z.string().min(7)).min(1).max(MAX_BROADCAST_RECIPIENTS),
   // Hours to spread the whole send over (paced evenly, like AI follow-ups).
-  // Minimum 24h — never blast faster than that. Omitted → default 24h.
-  spreadHours: z.number().int().min(24).max(168).optional(),
+  // Omitted → default 24h. 0 disables even-spreading entirely, leaving only the
+  // anti-ban gap. Values under 24 are refined below against the recipient count.
+  spreadHours: z.number().int().min(0).max(168).optional(),
   // Scheduled start: hold the run until this instant (ISO). Past/absent = now.
   scheduledStartAt: z.string().datetime({ offset: true }).optional(),
   // Explicit random spacing between messages (seconds). When BOTH are set they
@@ -38,7 +40,13 @@ const CreateSchema = z.object({
   // subsequent message after a random gap in [min, max]. E.g. 300–600 = 5–10 min.
   minSpacingSeconds: z.number().int().min(1).max(3600).optional(),
   maxSpacingSeconds: z.number().int().min(1).max(3600).optional(),
-})
+}).refine(
+  (b) => b.spreadHours === undefined || b.spreadHours >= 24 || b.phoneNumbers.length <= SMALL_LIST_MAX_RECIPIENTS,
+  {
+    path: ["spreadHours"],
+    message: `A send window under 24 hours is only allowed for ${SMALL_LIST_MAX_RECIPIENTS} recipients or fewer.`,
+  }
+)
 
 async function resolveDeliverableJid(sock: WASocket, rawPhone: string): Promise<string | null> {
   const digits = rawPhone.replace(/\D/g, "")

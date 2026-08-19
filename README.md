@@ -136,6 +136,61 @@ Pro includes voice calls, image sending, follow-up messages, and higher conversa
 
 ---
 
+## Docker
+
+`Dockerfile.frontend` builds the Next.js app (alongside the existing
+`Dockerfile.orchestrator` and `Dockerfile.worker`). It uses Next's standalone
+output, so the runtime image carries only the traced dependencies (~307 MB).
+
+```bash
+# Build from the repo root — the build context is the whole workspace.
+docker build -f Dockerfile.frontend -t agentis-frontend .
+
+docker run -p 3000:3000 \
+  -e DATABASE_URL="postgresql://..." \
+  -e AUTH_SECRET="..." \
+  -e NEXTAUTH_URL="https://..." \
+  -e OPENAI_API_KEY="sk-..." \
+  -e RESEND_API_KEY="re_..." \
+  -e UPLOADTHING_TOKEN="..." \
+  agentis-frontend
+```
+
+Add `--platform linux/amd64` when building on an Apple Silicon machine for an
+x86 host.
+
+**Migrations are not part of the frontend image.** `pnpm run build` normally
+runs `prisma migrate deploy`, which needs a live database — unusable during an
+image build. `Dockerfile.migrate` is a one-shot job image that applies pending
+migrations and exits (~440 MB; it installs only the Prisma CLI, at the version
+pinned in `package.json`):
+
+```bash
+docker build -f Dockerfile.migrate -t agentis-migrate .
+docker run --rm -e DATABASE_URL="postgresql://..." agentis-migrate
+```
+
+Run it once per deploy, before starting the app. `prisma migrate deploy` only
+rolls forward and takes an advisory lock, so re-running it is safe and two
+concurrent deploys will not corrupt each other. Locally you can skip the image:
+
+```bash
+DIRECT_URL="postgresql://..." pnpm exec prisma migrate deploy
+```
+
+Do **not** copy the `prisma migrate resolve --applied 20240101000000_baseline`
+line out of the `build` script when setting up a new database. It exists to
+baseline a database whose tables predate that migration; on an empty database it
+marks the baseline applied without creating anything and the next migration fails
+with `relation "User" does not exist`.
+
+The build only needs `DATABASE_URL` and `OPENAI_API_KEY` to be *set* (several
+route modules construct clients at import time, which `next build` triggers
+while collecting page data). The Dockerfile supplies placeholders for both, so
+no real secrets are needed at build time and none end up in the image.
+
+---
+
 ## Project Structure
 
 ```
