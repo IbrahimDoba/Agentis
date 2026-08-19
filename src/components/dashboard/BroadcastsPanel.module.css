@@ -337,3 +337,50 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Send window control. The controls themselves come from the ui/Input
+   components, so they inherit --bg-secondary / --text-primary and stay legible
+   in both themes; the previous hand-rolled inline styles used a var(--surface)
+   token that does not exist in globals.css, so the background fell back to
+   hardcoded #fff while the text colour inherited the theme — white on white. */
+.sendWindow {
+  margin-top: 14px;
+}
+
+.sendWindowLabel {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.sendWindowRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Both are inline-sized: the ui/Input base class is width:100%, which would
+   otherwise stretch each control across the whole column. */
+.sendWindowSelect {
+  width: auto;
+  min-width: 11rem;
+}
+
+.sendWindowHours {
+  width: 6rem;
+}
+
+.sendWindowUnit {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.sendWindowHint {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 6px;
+  line-height: 1.4;
+}
