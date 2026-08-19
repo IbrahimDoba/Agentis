@@ -1,4 +1,4 @@
-import { statfs } from "fs/promises"
+import { mkdir, statfs } from "fs/promises"
 import path from "path"
 import { config } from "../config.js"
 import { logger as rootLogger } from "../lib/logger.js"
@@ -45,6 +45,31 @@ export function markAuthUnhealthy(agentId: string, reason: string): void {
 export function clearAuthUnhealthy(agentId: string): void {
   if (unhealthy.delete(agentId)) {
     logger.info({ agentId }, "Auth persistence recovered — sending re-enabled")
+  }
+}
+
+/**
+ * Create AUTH_BASE if it is missing, once per process.
+ *
+ * auth-store.ts only mkdirs the PER-AGENT subdirectory, and only on a file
+ * write — which never happens under AUTH_STORE=postgres (the default). So on a
+ * deployment without a volume mounted at AUTH_STORAGE_DIR the base directory
+ * never exists, statfs throws ENOENT, and the catch in readStorage() treats
+ * storage as writable — silently disabling the guard that stops sends during an
+ * ENOSPC condition. Creating it makes the check measure the filesystem Baileys
+ * would actually write to.
+ */
+let baseEnsured = false
+export async function ensureAuthBase(): Promise<void> {
+  if (baseEnsured) return
+  baseEnsured = true
+  try {
+    await mkdir(AUTH_BASE, { recursive: true })
+    logger.info({ path: AUTH_BASE }, "Auth base directory ready")
+  } catch (err) {
+    // Left as a warning, not a throw: the reactive per-agent breaker still
+    // catches real write failures, so an unwritable path must not stop boot.
+    logger.warn({ err, path: AUTH_BASE }, "Could not create auth base directory — storage floor check will be inert")
   }
 }
 

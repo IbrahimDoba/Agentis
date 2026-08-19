@@ -19,6 +19,7 @@ import { closeFollowUpQueue } from "./queue/followup-queue.js"
 import { labelRoutes } from "./routes/labels.js"
 import { billingRoutes } from "./routes/billing.js"
 import { becomeLeader, releaseLeadership } from "./lib/leader.js"
+import { ensureAuthBase } from "./baileys/auth-health.js"
 
 const app = Fastify({ logger: false }) // we use pino directly
 
@@ -77,6 +78,10 @@ process.on("unhandledRejection", (reason) => {
 })
 
 try {
+  // Before anything can send: make sure the auth volume path exists, or the
+  // storage floor check silently no-ops (see ensureAuthBase).
+  await ensureAuthBase()
+
   await app.listen({ port: config.PORT, host: "0.0.0.0" })
   logger.info({ port: config.PORT }, "Worker started")
 
