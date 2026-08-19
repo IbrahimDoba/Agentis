@@ -4,8 +4,8 @@
 #
 #   1. `pnpm run build` is not used. That script runs `prisma migrate deploy`
 #      first, which needs a live database — wrong for an image build. This
-#      Dockerfile only compiles the app; running migrations stays a deploy-time
-#      step (see "Docker" in README.md).
+#      Dockerfile only compiles the app; migrations are a separate deploy-time
+#      job, see Dockerfile.migrate and "Docker" in README.md.
 #
 #   2. The app shares a pnpm workspace with `orchestrator` and `worker`. Their
 #      manifests must exist for --frozen-lockfile to validate the lockfile, but

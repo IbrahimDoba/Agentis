@@ -159,13 +159,30 @@ docker run -p 3000:3000 \
 Add `--platform linux/amd64` when building on an Apple Silicon machine for an
 x86 host.
 
-**Migrations are not part of the image.** `pnpm run build` normally runs
-`prisma migrate deploy`, which needs a live database — unusable during an image
-build. Run it as a separate deploy step against the direct (unpooled) URL:
+**Migrations are not part of the frontend image.** `pnpm run build` normally
+runs `prisma migrate deploy`, which needs a live database — unusable during an
+image build. `Dockerfile.migrate` is a one-shot job image that applies pending
+migrations and exits (~440 MB; it installs only the Prisma CLI, at the version
+pinned in `package.json`):
 
 ```bash
-DIRECT_URL="postgresql://...unpooled..." pnpm exec prisma migrate deploy
+docker build -f Dockerfile.migrate -t agentis-migrate .
+docker run --rm -e DATABASE_URL="postgresql://..." agentis-migrate
 ```
+
+Run it once per deploy, before starting the app. `prisma migrate deploy` only
+rolls forward and takes an advisory lock, so re-running it is safe and two
+concurrent deploys will not corrupt each other. Locally you can skip the image:
+
+```bash
+DIRECT_URL="postgresql://..." pnpm exec prisma migrate deploy
+```
+
+Do **not** copy the `prisma migrate resolve --applied 20240101000000_baseline`
+line out of the `build` script when setting up a new database. It exists to
+baseline a database whose tables predate that migration; on an empty database it
+marks the baseline applied without creating anything and the next migration fails
+with `relation "User" does not exist`.
 
 The build only needs `DATABASE_URL` and `OPENAI_API_KEY` to be *set* (several
 route modules construct clients at import time, which `next build` triggers
