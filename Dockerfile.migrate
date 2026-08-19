@@ -38,7 +38,18 @@ RUN PRISMA_VERSION="$(node -p "require('/tmp/root-package.json').dependencies.pr
 COPY prisma.config.ts ./
 COPY prisma ./prisma
 
-# Reads DIRECT_URL, falling back to DATABASE_URL (see prisma.config.ts).
+# Environment: exactly one variable is required, a Postgres URL. Nothing else —
+# no AUTH_SECRET, no API keys.
+#
+# prisma.config.ts resolves it as `DIRECT_URL ?? DATABASE_URL`, so DIRECT_URL
+# WINS when both are set. A stale DIRECT_URL therefore silently overrides a
+# correct DATABASE_URL; with self-hosted Postgres there is no pooler, so either
+# set both to the same value or set only DATABASE_URL.
+#
+# A `.env` file is NOT read — Prisma 7 dropped automatic .env loading, and
+# prisma.config.ts explicitly loads `.env.local` only. Inside this image neither
+# exists (.dockerignore excludes .env*), so pass the URL as a container
+# environment variable. Verified against all five combinations.
 #
 # `migrate deploy` only rolls forward and takes a Postgres advisory lock, so it
 # is safe to re-run and safe if two deploys race.
