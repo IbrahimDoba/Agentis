@@ -1,0 +1,85 @@
+# Next.js frontend — the workspace *root* package, `d-zero-ai`.
+#
+# Three things here are deliberate and non-obvious:
+#
+#   1. `pnpm run build` is not used. That script runs `prisma migrate deploy`
+#      first, which needs a live database — wrong for an image build. This
+#      Dockerfile only compiles the app; running migrations stays a deploy-time
+#      step (see "Docker" in README.md).
+#
+#   2. The app shares a pnpm workspace with `orchestrator` and `worker`. Their
+#      manifests must exist for --frozen-lockfile to validate the lockfile, but
+#      --filter keeps their dependencies (Baileys, AWS SDK, …) out of the build.
+#
+#   3. `next build` imports every route module to collect page data, and several
+#      construct OpenAI/Prisma clients at module scope. Vercel builds see the
+#      real env; placeholders are equivalent here because nothing issues a
+#      request during the build. They are scoped to the RUN that needs them so
+#      they never enter an image layer.
+
+FROM node:20.19.0-slim AS builder
+
+WORKDIR /app
+
+# Prisma's installer probes for libssl and warns loudly without it. The runtime
+# here uses the driver adapter (WASM query compiler, no native engine), so this
+# only silences build noise — but leaving the warning invites a wrong "fix".
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends openssl \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN npm install -g pnpm@10.31.0
+
+# Manifests plus everything `postinstall` (prisma generate && patch-prisma)
+# reads, copied before the source tree so editing a component does not
+# reinstall dependencies.
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc prisma.config.ts ./
+COPY orchestrator/package.json ./orchestrator/
+COPY worker/package.json ./worker/
+COPY prisma ./prisma
+COPY scripts/patch-prisma.js ./scripts/
+
+# prisma.config.ts reads DIRECT_URL/DATABASE_URL; `prisma generate` only needs
+# the value to be present, it never opens a connection.
+# The `msgpackr-extract` node-gyp failure logged here is expected and harmless:
+# it is an optional native accelerator behind Prisma's @effect/platform
+# dependency and falls back to pure JS.
+RUN DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder \
+    pnpm install --frozen-lockfile --filter d-zero-ai
+
+COPY next.config.ts tsconfig.json eslint.config.mjs ./
+COPY src ./src
+COPY public ./public
+
+# NEXT_BUILD_STANDALONE switches next.config.ts to `output: "standalone"`, so the
+# runtime stage can ship without node_modules. Set only here — Vercel needs the
+# default output.
+ENV NEXT_BUILD_STANDALONE=1
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder \
+    OPENAI_API_KEY=placeholder-build-only \
+    pnpm exec next build
+
+
+FROM node:20.19.0-slim AS runner
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3000
+# standalone's server.js binds localhost without this, making the container
+# unreachable from outside.
+ENV HOSTNAME=0.0.0.0
+
+COPY --from=builder /app/public ./public
+COPY --from=builder --chown=node:node /app/.next/standalone ./
+COPY --from=builder --chown=node:node /app/.next/static ./.next/static
+
+# ISR and image-optimisation cache, written at runtime by the unprivileged user.
+RUN mkdir -p .next/cache && chown -R node:node .next/cache
+
+USER node
+EXPOSE 3000
+
+CMD ["node", "server.js"]

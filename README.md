@@ -136,6 +136,44 @@ Pro includes voice calls, image sending, follow-up messages, and higher conversa
 
 ---
 
+## Docker
+
+`Dockerfile.frontend` builds the Next.js app (alongside the existing
+`Dockerfile.orchestrator` and `Dockerfile.worker`). It uses Next's standalone
+output, so the runtime image carries only the traced dependencies (~307 MB).
+
+```bash
+# Build from the repo root — the build context is the whole workspace.
+docker build -f Dockerfile.frontend -t agentis-frontend .
+
+docker run -p 3000:3000 \
+  -e DATABASE_URL="postgresql://..." \
+  -e AUTH_SECRET="..." \
+  -e NEXTAUTH_URL="https://..." \
+  -e OPENAI_API_KEY="sk-..." \
+  -e RESEND_API_KEY="re_..." \
+  -e UPLOADTHING_TOKEN="..." \
+  agentis-frontend
+```
+
+Add `--platform linux/amd64` when building on an Apple Silicon machine for an
+x86 host.
+
+**Migrations are not part of the image.** `pnpm run build` normally runs
+`prisma migrate deploy`, which needs a live database — unusable during an image
+build. Run it as a separate deploy step against the direct (unpooled) URL:
+
+```bash
+DIRECT_URL="postgresql://...unpooled..." pnpm exec prisma migrate deploy
+```
+
+The build only needs `DATABASE_URL` and `OPENAI_API_KEY` to be *set* (several
+route modules construct clients at import time, which `next build` triggers
+while collecting page data). The Dockerfile supplies placeholders for both, so
+no real secrets are needed at build time and none end up in the image.
+
+---
+
 ## Project Structure
 
 ```

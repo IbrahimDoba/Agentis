@@ -1,6 +1,10 @@
 import type { NextConfig } from "next"
 
 const nextConfig: NextConfig = {
+  // Self-contained server bundle, so the Docker runtime stage can ship without
+  // node_modules. Set only by Dockerfile.frontend — Vercel needs the default
+  // output, so this must stay opt-in rather than unconditional.
+  output: process.env.NEXT_BUILD_STANDALONE === "1" ? "standalone" : undefined,
   images: {
     remotePatterns: [
       {
