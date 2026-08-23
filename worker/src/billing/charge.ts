@@ -50,8 +50,14 @@ export async function chargeAiCredits(opts: {
   credits: number
   messageType: "text" | "image"
   conversationId?: string
+  // What produced the charge, for CreditUsage accounting. Defaults to "ai"
+  // (the AI reply path). Bulk sends pass "broadcast" (plain broadcast) or
+  // "followup" (personalized AI follow-up) so marketing spend is reportable
+  // separately from conversational AI spend.
+  source?: "ai" | "broadcast" | "followup"
 }): Promise<void> {
   const { agentId, credits, messageType, conversationId } = opts
+  const source = opts.source ?? "ai"
   if (credits <= 0) return
 
   const billing = await getAgentBillingInfo(agentId)
@@ -67,7 +73,7 @@ export async function chargeAiCredits(opts: {
   if (subscriptionExpired) {
     const result = await deductFromWallet(billing.userId, credits)
     if (!result.ok) throw new Error("Subscription expired")
-    await insertCreditUsage({ agentId, conversationId, messageType, source: "ai", creditsUsed: credits, billedTo: "wallet" })
+    await insertCreditUsage({ agentId, conversationId, messageType, source, creditsUsed: credits, billedTo: "wallet" })
     return
   }
 
@@ -85,7 +91,7 @@ export async function chargeAiCredits(opts: {
     }
   }
 
-  await insertCreditUsage({ agentId, conversationId, messageType, source: "ai", creditsUsed: credits, billedTo })
+  await insertCreditUsage({ agentId, conversationId, messageType, source, creditsUsed: credits, billedTo })
 }
 
 /**
