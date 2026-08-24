@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import Link from "next/link"
-import { Squares2X2Icon, UsersIcon, CpuChipIcon, ArrowUturnLeftIcon, EnvelopeIcon, ChartBarIcon, GiftIcon, CreditCardIcon, SignalIcon, BuildingStorefrontIcon, ExclamationTriangleIcon, BanknotesIcon } from "@heroicons/react/24/outline"
+import { Squares2X2Icon, UsersIcon, CpuChipIcon, ArrowUturnLeftIcon, EnvelopeIcon, ChartBarIcon, GiftIcon, CreditCardIcon, SignalIcon, BuildingStorefrontIcon, ExclamationTriangleIcon, BanknotesIcon, ArrowTrendingUpIcon } from "@heroicons/react/24/outline"
 import { LogoIcon } from "@/components/landing/Logo"
 import { ToastProvider } from "@/context/ToastContext"
 import styles from "./layout.module.css"
@@ -17,6 +17,7 @@ const navItems = [
   { href: "/admin/referrals", label: "Referrals", icon: <GiftIcon width={16} height={16} /> },
   { href: "/admin/payments", label: "Payments", icon: <CreditCardIcon width={16} height={16} /> },
   { href: "/admin/finances", label: "Finances", icon: <BanknotesIcon width={16} height={16} /> },
+  { href: "/admin/revenue", label: "Revenue", icon: <ArrowTrendingUpIcon width={16} height={16} /> },
   { href: "/admin/newsletter", label: "Newsletter", icon: <EnvelopeIcon width={16} height={16} /> },
 ]
 
