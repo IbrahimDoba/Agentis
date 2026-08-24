@@ -217,7 +217,7 @@ describe("apiKey (real DB)", () => {
 
   describe("scope helpers", () => {
     it("knows the valid scopes", () => {
-      expect(API_KEY_SCOPES).toEqual(["chat", "manage"])
+      expect(API_KEY_SCOPES).toEqual(["chat", "manage", "messages"])
       expect(isApiKeyScope("chat")).toBe(true)
       expect(isApiKeyScope("manage")).toBe(true)
       expect(isApiKeyScope("admin")).toBe(false)
