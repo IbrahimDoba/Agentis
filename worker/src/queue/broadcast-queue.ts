@@ -20,6 +20,9 @@ import { truncatedNormal } from "../anti-ban/distribution.js"
 import { logger as rootLogger } from "../lib/logger.js"
 import { resolveSendJid } from "../baileys/resolve-jid.js"
 import { recordEvent } from "../lib/event-log.js"
+import { resolveSpreadHours } from "../anti-ban/spread-window.js"
+import { chargeAiCredits, hasCreditHeadroom } from "../billing/charge.js"
+import { creditsForMessageType } from "../billing/credits.js"
 
 const logger = rootLogger.child({ module: "broadcast-queue" })
 const QUEUE_NAME = "broadcast-send"
@@ -122,6 +125,18 @@ const worker = new Worker<BroadcastJob>(
       throw err
     }
 
+    // Credit gate — a broadcast send costs the same as a normal WhatsApp text.
+    // Out of funds → PAUSE (resumable), leaving the recipient pending, exactly
+    // like the daily-limit and session-down cases above. hasCreditHeadroom is a
+    // cheap conservative check ("can the account pay at all"); the exact charge
+    // runs after a confirmed send so only delivered messages are billed.
+    if (!(await hasCreditHeadroom(agentId))) {
+      logger.warn({ broadcastId, agentId }, "Insufficient credits — pausing broadcast (recipients stay pending)")
+      await updateBroadcastStatus(broadcastId, "paused")
+      void recordEvent({ level: "warn", category: "broadcast.paused_no_credits", agentId, message: "Broadcast paused — insufficient credits", detail: { broadcastId, recipientId } })
+      return
+    }
+
     // Personalize message — replace {name} with contact name if available
     const personalizedMessage = contactName
       ? message.replace(/\{name\}/gi, contactName.split(" ")[0])
@@ -131,6 +146,16 @@ const worker = new Worker<BroadcastJob>(
       await sendWithPacing(sock, sendJid, personalizedMessage, session.warmupTier)
       await updateRecipientStatus(recipientId, "sent")
       await incrementBroadcastSent(broadcastId)
+
+      // Bill the delivered message: 5 credits, same as a normal text send,
+      // tagged source "broadcast" for separate accounting. Best-effort — it
+      // already went out, so a billing hiccup must never fail the send (the
+      // headroom gate above already stopped broke accounts before sending).
+      try {
+        await chargeAiCredits({ agentId, credits: creditsForMessageType("text"), messageType: "text", source: "broadcast" })
+      } catch (err: any) {
+        logger.warn({ broadcastId, recipientId, err: err?.message }, "Broadcast credit charge failed after send")
+      }
 
       // Surface the broadcast in the recipient's inbox thread. Best-effort —
       // a persistence hiccup must never fail the actual send. Keeps the
@@ -218,7 +243,11 @@ export async function enqueueBroadcast(broadcastId: string, opts?: {
   // whichever is LARGER: the natural anti-ban gap, or the even-spacing slot
   // (window ÷ recipients). So a small list still looks human, and a big list is
   // stretched across the full window instead of going out all at once.
-  const clampedHours = Math.min(168, Math.max(24, broadcast.spreadHours ?? 24))
+  // Small lists may compress the window (or set 0 for "as soon as the anti-ban
+  // gap allows"); larger ones keep the 24h floor. Enforced here as well as in
+  // routes/broadcasts.ts because this is what actually paces the send, and a
+  // campaign row can be created by other paths.
+  const clampedHours = resolveSpreadHours(recipients.length, broadcast.spreadHours)
   const windowMs = clampedHours * 60 * 60 * 1000
   const minSpacingMs = Math.floor(windowMs / recipients.length)
 

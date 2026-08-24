@@ -82,13 +82,25 @@ export async function POST(req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: "Select at least one existing contact" }, { status: 400 })
     }
 
-    // Optional send window (hours) to spread the campaign over. Floor at 24h —
-    // never send faster than that — and cap at 168h (7 days).
+    // Optional send window (hours) to spread the campaign over, capped at 168h
+    // (7 days). The 24h floor applies to real broadcasts; a list of
+    // SMALL_LIST_MAX_RECIPIENTS or fewer may compress it, including 0 for "as
+    // soon as the anti-ban gap allows". Kept in step with the same rule in
+    // worker/src/queue/broadcast-queue.ts.
+    const SMALL_LIST_MAX_RECIPIENTS = 10
     let spreadHours: number | undefined
     if (body.spreadHours !== undefined && body.spreadHours !== null) {
       const n = Math.floor(Number(body.spreadHours))
-      if (!Number.isFinite(n) || n < 24) {
-        return NextResponse.json({ error: "Send window must be at least 24 hours" }, { status: 400 })
+      if (!Number.isFinite(n) || n < 0) {
+        return NextResponse.json({ error: "Send window must be zero or more hours" }, { status: 400 })
+      }
+      if (n < 24 && phoneNumbers.length > SMALL_LIST_MAX_RECIPIENTS) {
+        return NextResponse.json(
+          {
+            error: `A send window under 24 hours is only allowed for ${SMALL_LIST_MAX_RECIPIENTS} recipients or fewer. You selected ${phoneNumbers.length}.`,
+          },
+          { status: 400 }
+        )
       }
       spreadHours = Math.min(168, n)
     }

@@ -11,7 +11,7 @@ import {
   UsersIcon,
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline"
-import { Input, Textarea } from "@/components/ui/Input"
+import { Input, Select, Textarea } from "@/components/ui/Input"
 import styles from "./BroadcastsPanel.module.css"
 
 interface BroadcastContact {
@@ -70,18 +70,33 @@ function statusTone(status: BroadcastCampaign["status"]) {
   return styles.statusPending
 }
 
+// Mirrors SMALL_LIST_MAX_RECIPIENTS in worker/src/queue/broadcast-queue.ts.
+const SMALL_LIST_MAX_RECIPIENTS = 10
+
 export function BroadcastsPanel({ agentId, isConnected, warmupTier }: BroadcastsPanelProps) {
   const queryClient = useQueryClient()
   const [search, setSearch] = useState("")
   const [message, setMessage] = useState("")
   const [selectedPhones, setSelectedPhones] = useState<string[]>([])
   const [serverMessage, setServerMessage] = useState<string | null>(null)
-  // Send window: how long to spread the whole broadcast over. Minimum 24h.
-  const [spreadHoursMode, setSpreadHoursMode] = useState<"24" | "48" | "72" | "custom">("24")
-  const [customHours, setCustomHours] = useState(48)
+  // Send window: how long to spread the whole broadcast over. A list of
+  // SMALL_LIST_MAX_RECIPIENTS or fewer may compress it below 24h, including 0 —
+  // "0" means no even-spreading, so sends fall back to the anti-ban gap alone
+  // (roughly 8-20s apart). Larger lists keep the 24h floor. Same rule is
+  // enforced in the API route and in worker/src/queue/broadcast-queue.ts.
+  const [spreadHoursMode, setSpreadHoursMode] = useState<"0" | "24" | "48" | "72" | "custom">("24")
+  const [customHours, setCustomHours] = useState(12)
+  const isSmallList = selectedPhones.length > 0 && selectedPhones.length <= SMALL_LIST_MAX_RECIPIENTS
+  const minHours = isSmallList ? 0 : 24
   const spreadHours = spreadHoursMode === "custom"
-    ? Math.max(24, Math.min(168, Math.floor(customHours) || 24))
+    ? Math.max(minHours, Math.min(168, Math.floor(customHours) || minHours))
     : Number(spreadHoursMode)
+
+  // Selecting more contacts can invalidate a sub-24h window that was legal when
+  // it was chosen; snap back so the request is not rejected server-side.
+  useEffect(() => {
+    if (!isSmallList && spreadHoursMode === "0") setSpreadHoursMode("24")
+  }, [isSmallList, spreadHoursMode])
 
   const contactsQuery = useQuery({
     queryKey: ["broadcast-contacts", agentId, search],
@@ -313,40 +328,46 @@ export function BroadcastsPanel({ agentId, isConnected, warmupTier }: Broadcasts
             hint="Use {name} to personalize the message and reduce identical-message patterns."
           />
 
-          <div style={{ marginTop: 14 }}>
-            <label htmlFor="bc-window" style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 6 }}>
-              Send over
-            </label>
-            <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-              <select
+          <div className={styles.sendWindow}>
+            <span className={styles.sendWindowLabel}>Send over</span>
+            <div className={styles.sendWindowRow}>
+              <Select
                 id="bc-window"
+                aria-label="Send window"
+                className={styles.sendWindowSelect}
                 value={spreadHoursMode}
                 onChange={(event) => { setServerMessage(null); setSpreadHoursMode(event.target.value as typeof spreadHoursMode) }}
-                style={{ padding: "8px 10px", borderRadius: 8, border: "1px solid var(--border, #d4d4d8)", fontSize: 14, background: "var(--surface, #fff)", color: "inherit" }}
-              >
-                <option value="24">24 hours</option>
-                <option value="48">48 hours</option>
-                <option value="72">72 hours</option>
-                <option value="custom">Custom…</option>
-              </select>
+                options={[
+                  ...(isSmallList ? [{ value: "0", label: "As soon as possible" }] : []),
+                  { value: "24", label: "24 hours" },
+                  { value: "48", label: "48 hours" },
+                  { value: "72", label: "72 hours" },
+                  { value: "custom", label: "Custom…" },
+                ]}
+              />
               {spreadHoursMode === "custom" && (
                 <>
-                  <input
+                  <Input
                     type="number"
-                    min={24}
+                    min={minHours}
                     max={168}
                     step={1}
                     value={customHours}
-                    onChange={(event) => setCustomHours(Math.max(24, Math.min(168, Number(event.target.value) || 24)))}
+                    onChange={(event) => setCustomHours(Math.max(minHours, Math.min(168, Number(event.target.value) || minHours)))}
                     aria-label="Custom send window in hours"
-                    style={{ width: 90, padding: "8px 10px", borderRadius: 8, border: "1px solid var(--border, #d4d4d8)", fontSize: 14, background: "var(--surface, #fff)", color: "inherit" }}
+                    className={styles.sendWindowHours}
                   />
-                  <span style={{ fontSize: 13, opacity: 0.7 }}>hours (min 24)</span>
+                  <span className={styles.sendWindowUnit}>hours (min {minHours})</span>
                 </>
               )}
             </div>
-            <p style={{ fontSize: 12, opacity: 0.7, marginTop: 6, lineHeight: 1.4 }}>
-              Messages are spread evenly across this window so they go out gradually — never all at once.
+            <p className={styles.sendWindowHint}>
+              {spreadHours === 0
+                ? "No spreading — messages go out back to back, about 8-20 seconds apart."
+                : "Messages are spread evenly across this window so they go out gradually — never all at once."}
+              {!isSmallList && selectedPhones.length > SMALL_LIST_MAX_RECIPIENTS
+                ? ` Windows under 24 hours need ${SMALL_LIST_MAX_RECIPIENTS} recipients or fewer.`
+                : ""}
             </p>
           </div>
 
