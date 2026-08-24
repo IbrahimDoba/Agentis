@@ -16,7 +16,16 @@ const schema = z.object({
   DATABASE_URL: z.string().min(1),
   REDIS_URL: z.string().min(1),
 
-  WA_WORKER_URL: z.string().url().default("http://localhost:4000"),
+  // The Dokploy platform still injects the DECOMMISSIONED Railway worker URL via
+  // its (encrypted, hard-to-edit) env on every redeploy, which silently breaks
+  // all AI-reply dispatch until manually patched. The live worker is served at
+  // api.dailzero.com. Coerce the dead host to it here so a redeploy can never
+  // take the send path down again, regardless of what the env supplies.
+  WA_WORKER_URL: z
+    .string()
+    .url()
+    .default("http://localhost:4000")
+    .transform((u) => (u.includes("whatsapp-worker-production-143f.up.railway.app") ? "https://api.dailzero.com" : u)),
   WORKER_API_KEY: z.string().min(16),
 
   OPENAI_API_KEY: z.string().min(1),
