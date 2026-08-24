@@ -211,7 +211,7 @@ const worker = new Worker<OutboundJob>(
         const monthlyLimit = effectiveCreditLimit(baseLimit, billing.carryoverCredits, billing.carryoverExpiresAt)
         const overageAllowed = allowsOverage(billing.plan)
         if (monthlyLimit !== -1) {
-          const { start: monthStart, end: monthEnd } = getBillingPeriod(billing.subscriptionExpiresAt)
+          const { start: monthStart, end: monthEnd } = getBillingPeriod(billing.subscriptionExpiresAt, billing.currentPeriodStart)
           // Account-wide: sum ALL the user's agents against the shared plan limit.
           const used = await getMonthlyCreditsUsedForUser(billing.userId, monthStart, monthEnd)
           // Decide whether this charge lands on the plan allowance or the PAYG

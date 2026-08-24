@@ -44,6 +44,7 @@ export interface AgentBillingInfo {
   userId: string
   plan: string
   subscriptionExpiresAt: string | null
+  currentPeriodStart: string | null
   carryoverCredits: number
   carryoverExpiresAt: string | null
 }
@@ -418,7 +419,7 @@ export async function getAgent(agentId: string): Promise<Agent | null> {
 
 export async function getAgentBillingInfo(agentId: string): Promise<AgentBillingInfo | null> {
   const rows = await sql<AgentBillingInfo[]>`
-    SELECT a."id", a."userId", COALESCE(u."plan", 'free') as "plan", u."subscriptionExpiresAt",
+    SELECT a."id", a."userId", COALESCE(u."plan", 'free') as "plan", u."subscriptionExpiresAt", u."currentPeriodStart",
            COALESCE(u."carryoverCredits", 0) as "carryoverCredits", u."carryoverExpiresAt"
     FROM "Agent" a
     JOIN "User" u ON u."id" = a."userId"

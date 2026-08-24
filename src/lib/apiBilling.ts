@@ -44,6 +44,7 @@ export interface AgentBillingContext {
   userId: string
   plan: string
   subscriptionExpiresAt: Date | null
+  currentPeriodStart: Date | null
   carryoverCredits: number
   carryoverExpiresAt: Date | null
 }
@@ -54,13 +55,14 @@ export async function getAgentBillingContext(agentId: string): Promise<AgentBill
   if (!agent) return null
   const user = await db.user.findUnique({
     where: { id: agent.userId },
-    select: { plan: true, subscriptionExpiresAt: true, carryoverCredits: true, carryoverExpiresAt: true },
+    select: { plan: true, subscriptionExpiresAt: true, currentPeriodStart: true, carryoverCredits: true, carryoverExpiresAt: true },
   })
   if (!user) return null
   return {
     userId: agent.userId,
     plan: user.plan ?? "free",
     subscriptionExpiresAt: user.subscriptionExpiresAt ?? null,
+    currentPeriodStart: user.currentPeriodStart ?? null,
     carryoverCredits: user.carryoverCredits ?? 0,
     carryoverExpiresAt: user.carryoverExpiresAt ?? null,
   }
@@ -83,7 +85,7 @@ export async function preflightApiCharge(
   if (planLimit === -1) return { ok: true } // unlimited
   if (allowsOverage(ctx.plan)) return { ok: true } // starter/pro can overshoot
 
-  const { start, end } = getBillingPeriod(ctx.subscriptionExpiresAt)
+  const { start, end } = getBillingPeriod(ctx.subscriptionExpiresAt, ctx.currentPeriodStart)
   const used = await sumCreditsForUser(ctx.userId, start, end)
   if (used < planLimit) return { ok: true } // plan still has room
 
@@ -115,7 +117,7 @@ export async function chargeApiTurn(params: {
   let billedTo: "plan" | "wallet" = "plan"
 
   if (planLimit !== -1) {
-    const { start, end } = getBillingPeriod(ctx.subscriptionExpiresAt)
+    const { start, end } = getBillingPeriod(ctx.subscriptionExpiresAt, ctx.currentPeriodStart)
     const used = await sumCreditsForUser(ctx.userId, start, end)
     const decision = routeMessageCharge({
       creditsToCharge: credits,
@@ -153,7 +155,7 @@ export async function getRemainingCredits(
   const wallet = await getBalance(ctx.userId)
   const planLimit = effectiveCreditLimit(PLAN_CREDIT_LIMITS[ctx.plan] ?? PLAN_CREDIT_LIMITS.free, ctx.carryoverCredits, ctx.carryoverExpiresAt)
   if (planLimit === -1) return wallet.creditBalance
-  const { start, end } = getBillingPeriod(ctx.subscriptionExpiresAt)
+  const { start, end } = getBillingPeriod(ctx.subscriptionExpiresAt, ctx.currentPeriodStart)
   const used = await sumCreditsForUser(ctx.userId, start, end)
   const planRemaining = Math.max(0, planLimit - used)
   return planRemaining + wallet.creditBalance

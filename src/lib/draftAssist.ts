@@ -43,7 +43,7 @@ export async function chargeDraftAssist(params: {
   let billedTo: "plan" | "wallet" = "plan"
 
   if (planLimit !== -1) {
-    const { start, end } = getBillingPeriod(ctx.subscriptionExpiresAt)
+    const { start, end } = getBillingPeriod(ctx.subscriptionExpiresAt, ctx.currentPeriodStart)
     const used = await sumCreditsForUser(ctx.userId, start, end)
     const decision = routeMessageCharge({
       creditsToCharge: credits,

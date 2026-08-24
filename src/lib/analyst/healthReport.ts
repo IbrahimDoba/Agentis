@@ -59,7 +59,7 @@ export async function gatherAnalystFacts(ownerId: string): Promise<AnalystFacts 
   const user = await db.user.findUnique({
     where: { id: ownerId },
     select: {
-      plan: true, subscriptionExpiresAt: true, creditBalance: true, creditsExpireAt: true,
+      plan: true, subscriptionExpiresAt: true, currentPeriodStart: true, creditBalance: true, creditsExpireAt: true,
       carryoverCredits: true, carryoverExpiresAt: true,
     },
   })
@@ -84,7 +84,7 @@ export async function gatherAnalystFacts(ownerId: string): Promise<AnalystFacts 
   const plan = user.plan ?? "free"
   const baseLimit = PLAN_CREDIT_LIMITS[plan] ?? PLAN_CREDIT_LIMITS.free
   const limit = effectiveCreditLimit(baseLimit, user.carryoverCredits ?? 0, user.carryoverExpiresAt)
-  const { start, end } = getBillingPeriod(user.subscriptionExpiresAt)
+  const { start, end } = getBillingPeriod(user.subscriptionExpiresAt, user.currentPeriodStart)
   const usedThisCycle = agentIds.length ? await sumCreditsForUser(ownerId, start, end) : 0
   const used7d = agentIds.length ? await sumCreditsForUser(ownerId, d7, new Date(now)) : 0
   const subscriptionExpired = user.subscriptionExpiresAt ? new Date() > user.subscriptionExpiresAt : false

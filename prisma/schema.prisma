@@ -45,6 +45,12 @@ model User {
   maxAgents               Int        @default(1)
   plan                    String     @default("free")
   subscriptionExpiresAt   DateTime?
+  // Explicit start of the current billing cycle, stamped on every activation,
+  // renewal, and admin usage-reset. The credit-usage window is
+  // [currentPeriodStart, subscriptionExpiresAt]; null falls back to the legacy
+  // rolling-30-day inference (see lib/billing-period.ts). Anchoring the start
+  // fixes a lapsed resubscribe carrying the previous cycle's usage.
+  currentPeriodStart      DateTime?
   expiryWarningEmailSentAt DateTime?
   expiredEmailSentAt       DateTime?
   // Paystack recurring billing. Captured on the first successful subscription
