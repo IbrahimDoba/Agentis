@@ -24,7 +24,9 @@ export function AgentSettingsTab({ agent, onDirtyChange }: AgentSettingsTabProps
   const initialReplyDelay = agent.replyDelaySeconds ?? 0 // 0 = instant, no batching
   const initialAiReplies = agent.aiRepliesEnabled ?? true
   const initialReplyGuard = agent.replyGuardEnabled ?? false // off by default
+  const initialGroupChat = agent.groupChatEnabled ?? false // off by default
   const [aiRepliesEnabled, setAiRepliesEnabled] = useState(initialAiReplies)
+  const [groupChatEnabled, setGroupChatEnabled] = useState(initialGroupChat)
   const [replyGuardEnabled, setReplyGuardEnabled] = useState(initialReplyGuard)
   const [autoPauseOnHumanReply, setAutoPauseOnHumanReply] = useState(initialAutoPause)
   const [pauseOnAiHandoff, setPauseOnAiHandoff] = useState(initialPauseOnHandoff)
@@ -35,6 +37,7 @@ export function AgentSettingsTab({ agent, onDirtyChange }: AgentSettingsTabProps
 
   const isDirty =
     aiRepliesEnabled !== initialAiReplies ||
+    groupChatEnabled !== initialGroupChat ||
     replyGuardEnabled !== initialReplyGuard ||
     autoPauseOnHumanReply !== initialAutoPause ||
     pauseOnAiHandoff !== initialPauseOnHandoff ||
@@ -55,6 +58,7 @@ export function AgentSettingsTab({ agent, onDirtyChange }: AgentSettingsTabProps
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           aiRepliesEnabled,
+          groupChatEnabled,
           replyGuardEnabled,
           autoPauseOnHumanReply,
           pauseOnAiHandoff,
@@ -97,6 +101,24 @@ export function AgentSettingsTab({ agent, onDirtyChange }: AgentSettingsTabProps
             <label className={styles.rowTitle}>AI replies</label>
             <p className={styles.rowDesc}>
               Master switch for this agent. When <strong>on</strong>, the AI answers customers (per-conversation Human/AI toggles still apply). Turn it <strong>off</strong> to route <strong>every</strong> message to you — the AI won&apos;t reply to any conversation until you switch it back on.
+            </p>
+          </div>
+        </div>
+
+        <div className={styles.row}>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={groupChatEnabled}
+            className={`${styles.switch} ${groupChatEnabled ? styles.switchOn : ""}`}
+            onClick={() => setGroupChatEnabled((v) => !v)}
+          >
+            <span className={styles.switchKnob} />
+          </button>
+          <div className={styles.rowText}>
+            <label className={styles.rowTitle}>Group chats</label>
+            <p className={styles.rowDesc}>
+              Let this agent take part in WhatsApp groups it has been added to. It stays silent unless someone <strong>@mentions</strong> it or replies to one of its messages — it never answers ordinary group chatter. Manage individual groups on the Groups tab.
             </p>
           </div>
         </div>

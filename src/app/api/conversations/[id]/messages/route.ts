@@ -41,6 +41,7 @@ export async function GET(
         senderRole: "ai",
         content: m.content,
         mediaUrl: m.mediaUrl,
+        senderName: m.senderName,
         createdAt: m.createdAt.toISOString(),
       })),
       hasMore: page.hasMore,

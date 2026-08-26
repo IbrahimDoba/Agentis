@@ -1,4 +1,5 @@
 import { Queue, Worker, type Job } from "bullmq"
+import type { WAMessage } from "@whiskeysockets/baileys"
 import { randomUUID } from "crypto"
 import { getRedis } from "./redis.js"
 import { isLeader } from "../lib/leader.js"
@@ -60,6 +61,11 @@ export interface OutboundJob {
   // rate via creditsForMessageType().
   tokensInput?: number
   tokensOutput?: number
+  // Group replies quote the message that tagged us. quotedText is carried so
+  // the quote preview renders even on a client that hasn't cached the original.
+  quotedMessageId?: string
+  quotedParticipant?: string
+  quotedText?: string
 }
 
 const queue = new Queue<OutboundJob>(QUEUE_NAME, {
@@ -261,7 +267,20 @@ const worker = new Worker<OutboundJob>(
           session.warmupTier
         )
       } else {
-        await sendWithPacing(sock, toJid, text, session.warmupTier)
+        // Reconstruct just enough of the quoted message for Baileys to build
+        // the reply's contextInfo — it only needs the key and some content.
+        const quoted = job.data.quotedMessageId
+          ? ({
+              key: {
+                remoteJid: toJid,
+                id: job.data.quotedMessageId,
+                fromMe: false,
+                participant: job.data.quotedParticipant,
+              },
+              message: { conversation: job.data.quotedText ?? "" },
+            } as unknown as WAMessage)
+          : undefined
+        await sendWithPacing(sock, toJid, text, session.warmupTier, quoted)
       }
 
       // Only AI sends consume credits. Human operator replies — whether sent

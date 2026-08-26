@@ -160,6 +160,10 @@ export async function runFollowUpScan(opts: ScanOptions): Promise<{
     where: {
       agentId,
       mode: "ai", // not in human handoff
+      // Never follow up into a group. The AI only speaks in groups when tagged;
+      // an unprompted "just checking in" to 40 people is the unsolicited-send
+      // pattern that gets numbers banned.
+      channel: { not: "whatsapp_group" },
       // Last activity was more than minDaysSince ago (went cold)
       lastActivityAt: { lte: cutoff },
       AND: [

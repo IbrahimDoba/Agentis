@@ -99,6 +99,7 @@ export interface AgentPublic {
   agentRuntime?: string
   messagingEnabled?: boolean
   aiRepliesEnabled?: boolean
+  groupChatEnabled?: boolean
   replyGuardEnabled?: boolean
   autoPauseOnHumanReply?: boolean
   pauseOnAiHandoff?: boolean

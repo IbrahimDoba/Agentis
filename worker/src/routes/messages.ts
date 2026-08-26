@@ -29,6 +29,10 @@ const sendSchema = z.object({
   // avoid double-charging the same LLM turn.
   tokensInput: z.number().int().min(0).optional(),
   tokensOutput: z.number().int().min(0).optional(),
+  // Group replies quote the message that tagged us.
+  quotedMessageId: z.string().optional(),
+  quotedParticipant: z.string().optional(),
+  quotedText: z.string().optional(),
 })
 
 export const messageRoutes: FastifyPluginAsync = async (app) => {
@@ -50,6 +54,9 @@ export const messageRoutes: FastifyPluginAsync = async (app) => {
       messageId: body.messageId,
       tokensInput: body.tokensInput,
       tokensOutput: body.tokensOutput,
+      quotedMessageId: body.quotedMessageId,
+      quotedParticipant: body.quotedParticipant,
+      quotedText: body.quotedText,
     })
 
     if (!job) throw new RateLimitError("Daily or hourly cap reached")

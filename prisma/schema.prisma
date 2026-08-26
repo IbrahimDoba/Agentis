@@ -219,6 +219,9 @@ model Agent {
   // AI for ALL of this agent's conversations (every message goes to a human),
   // regardless of per-conversation mode. Default true.
   aiRepliesEnabled     Boolean     @default(true)
+  // Opt-in for WhatsApp group chats. While false the worker drops group
+  // messages at ingest exactly as before this feature existed.
+  groupChatEnabled     Boolean     @default(false)
   autoPauseOnHumanReply Boolean    @default(true)
   pauseOnAiHandoff     Boolean     @default(true)
   pauseOnQualifiedLead Boolean     @default(true)
@@ -278,6 +281,7 @@ model Agent {
   embedSite            EmbedSite?
   whatsappLabels       WhatsAppLabel[]
   chatLabels           ChatLabel[]
+  groupChats           GroupChat[]
   baileysAuthKeys      BaileysAuthKey[]
 
   // Postgres does not auto-index FKs. `userId` is the app's hottest filter
@@ -425,6 +429,26 @@ model BroadcastRecipient {
   @@index([broadcastId])
 }
 
+model GroupChat {
+  id             String        @id @default(cuid())
+  agentId        String
+  agent          Agent         @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  groupJid       String
+  subject        String?
+  // The Conversation carrying this group's thread. Null until the first
+  // addressed message creates it — we track a group from first sighting, but
+  // only open a thread once there is something to put in it.
+  conversationId String?       @unique
+  conversation   Conversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+  // 'mention' = reply only when addressed; 'off' = ingest and log, never reply.
+  replyMode      String        @default("mention")
+  joinedAt       DateTime      @default(now())
+  lastMessageAt  DateTime?
+
+  @@unique([agentId, groupJid])
+  @@index([agentId])
+}
+
 model OrchestratorAgent {
   id               String         @id @default(cuid())
   agentId          String
@@ -528,6 +552,7 @@ model Conversation {
   createdAt            DateTime            @default(now())
   messages             Message[]
   summary              ConversationSummary?
+  groupChat            GroupChat?
   followUpMessages     FollowUpMessage[]
 
   @@unique([agentId, phoneNumber])
@@ -542,6 +567,10 @@ model Message {
   conversation     Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   direction        String
   senderRole       String       @default("ai")  // "ai" | "human" (outbound only)
+  // Group inbound only — which participant spoke. Null on all 1:1 traffic,
+  // where the conversation itself identifies the sender.
+  senderJid        String?
+  senderName       String?
   content          String       @db.Text
   mediaUrl         String?
   mediaDescription String?      @db.Text
