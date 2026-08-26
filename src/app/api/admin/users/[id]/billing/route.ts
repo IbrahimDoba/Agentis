@@ -18,7 +18,7 @@ export async function GET(req: NextRequest, { params }: Params) {
 
   const user = await db.user.findUnique({
     where: { id },
-    select: { plan: true, subscriptionExpiresAt: true, creditBalance: true, creditsExpireAt: true, carryoverCredits: true, carryoverExpiresAt: true },
+    select: { plan: true, subscriptionExpiresAt: true, currentPeriodStart: true, creditBalance: true, creditsExpireAt: true, carryoverCredits: true, carryoverExpiresAt: true },
   })
 
   if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 })
@@ -40,7 +40,7 @@ export async function GET(req: NextRequest, { params }: Params) {
 
   const agentIds = agents.map((a) => a.id)
 
-  const { start: monthStart, end: monthEnd } = getBillingPeriod(user.subscriptionExpiresAt)
+  const { start: monthStart, end: monthEnd } = getBillingPeriod(user.subscriptionExpiresAt, user.currentPeriodStart)
 
   // Credit usage breakdown by messageType for this month
   const monthlyByType = agentIds.length

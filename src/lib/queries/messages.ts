@@ -13,6 +13,9 @@ export interface MessageRow {
   content: string
   mediaUrl: string | null
   createdAt: Date
+  // Group threads only — which participant sent this inbound. Null on 1:1,
+  // where the conversation header already names the sender.
+  senderName: string | null
 }
 
 export interface MessagePage {
@@ -53,6 +56,7 @@ export async function getConversationMessages(
       content: true,
       mediaUrl: true,
       createdAt: true,
+      senderName: true,
     },
   })
 

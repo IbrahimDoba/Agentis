@@ -31,7 +31,7 @@ export async function hasCreditHeadroom(agentId: string): Promise<boolean> {
   )
   if (monthlyLimit === -1) return true // enterprise — unlimited
 
-  const { start, end } = getBillingPeriod(billing.subscriptionExpiresAt)
+  const { start, end } = getBillingPeriod(billing.subscriptionExpiresAt, billing.currentPeriodStart)
   const used = await getMonthlyCreditsUsedForUser(billing.userId, start, end)
   if (used < monthlyLimit) return true // plan allowance still has room
   return wallet > 0 // plan exhausted → the wallet must cover the overflow
@@ -81,7 +81,7 @@ export async function chargeAiCredits(opts: {
   const monthlyLimit = effectiveCreditLimit(PLAN_CREDIT_LIMITS[billing.plan] ?? PLAN_CREDIT_LIMITS.free, billing.carryoverCredits, billing.carryoverExpiresAt)
   const overageAllowed = allowsOverage(billing.plan)
   if (monthlyLimit !== -1) {
-    const { start, end } = getBillingPeriod(billing.subscriptionExpiresAt)
+    const { start, end } = getBillingPeriod(billing.subscriptionExpiresAt, billing.currentPeriodStart)
     const used = await getMonthlyCreditsUsedForUser(billing.userId, start, end)
     const decision = routeMessageCharge({ creditsToCharge: credits, planLimit: monthlyLimit, used, overageAllowed })
     billedTo = decision.billedTo
@@ -128,7 +128,7 @@ export async function chargeAiTurn(opts: {
   const monthlyLimit = effectiveCreditLimit(PLAN_CREDIT_LIMITS[billing.plan] ?? PLAN_CREDIT_LIMITS.free, billing.carryoverCredits, billing.carryoverExpiresAt)
   const overageAllowed = allowsOverage(billing.plan)
   if (monthlyLimit !== -1) {
-    const { start, end } = getBillingPeriod(billing.subscriptionExpiresAt)
+    const { start, end } = getBillingPeriod(billing.subscriptionExpiresAt, billing.currentPeriodStart)
     const used = await getMonthlyCreditsUsedForUser(billing.userId, start, end)
     const decision = routeMessageCharge({ creditsToCharge: credits, planLimit: monthlyLimit, used, overageAllowed })
     billedTo = decision.billedTo

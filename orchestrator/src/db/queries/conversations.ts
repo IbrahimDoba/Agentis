@@ -19,7 +19,7 @@ export interface Conversation {
   mode: "ai" | "human"
   lastActivityAt: string | null
   adContext: AdContext | null
-  channel: "whatsapp" | "embed" | "api"
+  channel: "whatsapp" | "embed" | "api" | "whatsapp_group"
   visitorId: string | null
 }
 
@@ -41,7 +41,7 @@ export interface Message {
 export interface CreateConversationOptions {
   contactName?: string
   defaultMode?: "ai" | "human"
-  channel?: "whatsapp" | "embed" | "api"
+  channel?: "whatsapp" | "embed" | "api" | "whatsapp_group"
   visitorId?: string
   // Raw WhatsApp chat JID for the label-matching bridge (see Conversation.senderJid).
   senderJid?: string
@@ -184,20 +184,24 @@ export async function insertMessage(msg: {
   // local-render id in sync with the eventual DB row id so polling doesn't
   // double-render a message the visitor already sees in the UI.
   id?: string
+  // Group inbound only — which participant spoke. Null on 1:1, where the
+  // conversation itself identifies the sender.
+  senderJid?: string | null
+  senderName?: string | null
 }): Promise<string> {
   const id = msg.id ?? randomUUID()
   const senderRole = msg.senderRole ?? "ai"
   await sql`
     INSERT INTO "Message" ("id", "conversationId", "direction", "senderRole", "content",
       "mediaUrl", "mediaDescription", "toolCalls", "richContent",
-      "tokensInput", "tokensOutput", "modelUsed", "createdAt")
+      "tokensInput", "tokensOutput", "modelUsed", "senderJid", "senderName", "createdAt")
     VALUES (
       ${id}, ${msg.conversationId}, ${msg.direction}, ${senderRole}, ${msg.content},
       ${msg.mediaUrl ?? null}, ${msg.mediaDescription ?? null},
       ${msg.toolCalls ? JSON.stringify(msg.toolCalls) : null},
       ${msg.richContent ? JSON.stringify(msg.richContent) : null},
       ${msg.tokensInput ?? null}, ${msg.tokensOutput ?? null},
-      ${msg.modelUsed ?? null}, NOW()
+      ${msg.modelUsed ?? null}, ${msg.senderJid ?? null}, ${msg.senderName ?? null}, NOW()
     )
   `
   return id

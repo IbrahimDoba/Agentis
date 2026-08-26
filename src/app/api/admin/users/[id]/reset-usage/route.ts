@@ -7,9 +7,9 @@ interface Params {
 }
 
 // Admin-only "start a fresh subscription cycle for this user" action.
-// Pushes the user's subscriptionExpiresAt forward so the rolling 30-day
-// billing window (defined in src/lib/billing-period.ts) starts now and
-// closes 30 days out. Effect:
+// Stamps currentPeriodStart = now and pushes subscriptionExpiresAt 30 days out,
+// so the billing window (src/lib/billing-period.ts) becomes [now, now+30d].
+// Effect:
 //   - Current period credit usage drops to 0 (because previous CreditUsage
 //     rows fall outside the new window — they're preserved for analytics
 //     but excluded from the "monthly used" calculation)
@@ -32,12 +32,16 @@ export async function POST(_req: NextRequest, { params }: Params) {
   })
   if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 })
 
-  // 30 days from now — same window the billing-period helper expects.
-  const newExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+  // Start a fresh 30-day window NOW: currentPeriodStart anchors it so usage
+  // counts from this moment, and expiry closes it 30 days out. Previous
+  // CreditUsage rows fall outside [now, now+30d] and drop off "monthly used".
+  const now = new Date()
+  const newExpiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
 
   const updated = await db.user.update({
     where: { id },
     data: {
+      currentPeriodStart: now,
       subscriptionExpiresAt: newExpiresAt,
       expiryWarningEmailSentAt: null,
       expiredEmailSentAt: null,

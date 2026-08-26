@@ -18,12 +18,19 @@ import { stripImageUrls } from "../lib/strip-image-urls.js"
 import { runAgentTurn } from "./run-agent-turn.js"
 import { guardReply } from "./reply-guard.js"
 import { isChatTaggingEnabled, chatHasAiDisabledLabel } from "../db/queries/labels.js"
+import { getGroupChat, linkGroupConversation } from "../db/queries/groups.js"
 import { classifyAndTagInBackground } from "./background-tagger.js"
 import { getRedis } from "../queue/redis.js"
 import { inboundQueue } from "../queue/queues.js"
 import { logger as rootLogger } from "../lib/logger.js"
 
 const logger = rootLogger.child({ module: "handle-inbound" })
+
+// "whatsapp_group" behaves like whatsapp for transport but differs on the
+// 1:1-only steps (tagging, operator handoff). Use isWhatsApp() for "goes out
+// over Baileys" and an explicit === comparison for group-specific behaviour.
+export type Channel = "whatsapp" | "embed" | "whatsapp_group"
+const isWhatsApp = (c: Channel) => c === "whatsapp" || c === "whatsapp_group"
 
 export interface InboundPayload {
   agentId: string
@@ -37,8 +44,12 @@ export interface InboundPayload {
   // Embed-widget transport. When "embed", the orchestrator skips Baileys
   // dispatch and just persists the outbound reply — the visitor's widget
   // picks it up via polling.
-  channel?: "whatsapp" | "embed"
+  channel?: Channel
   visitorId?: string
+  // Group only: the group JID (also the conversation key) and the participant
+  // who spoke.
+  groupJid?: string
+  senderName?: string
   // Inbound image (data URL or https) for vision — attached to this turn only.
   imageDataUrl?: string
 }
@@ -51,11 +62,14 @@ export interface ReplyJobPayload {
   conversationId: string
   agentId: string
   senderJid: string
-  channel: "whatsapp" | "embed"
+  channel: Channel
   latestText: string
   imageDataUrl?: string
   inboundSavedAt: string // ISO — anchor for the human-interjection check
   seq: number
+  groupJid?: string
+  senderName?: string
+  triggerMessageId?: string
 }
 
 const seqKey = (conversationId: string) => `debounce:seq:${conversationId}`
@@ -63,10 +77,15 @@ const seqKey = (conversationId: string) => `debounce:seq:${conversationId}`
 // Everything generateReply needs that isn't on the agent/conversation.
 interface ReplyContext {
   senderJid: string
-  channel: "whatsapp" | "embed"
+  channel: Channel
   latestText: string
   imageDataUrl?: string
   inboundSavedAt: Date
+  groupJid?: string
+  senderName?: string
+  // The group message that tagged us. Dispatch quotes it — in a busy group an
+  // unquoted reply landing several messages later answers nobody visibly.
+  triggerMessageId?: string
 }
 
 /**
@@ -104,18 +123,31 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
   // 2. Get or create conversation. For embed channel we attach the visitorId
   // so the dashboard / queries can distinguish web from WhatsApp without
   // pattern-matching phoneNumber.
+  // For a group the thread is the GROUP, so the display name is the group
+  // subject and the stored JID is the group's — not the participant's, which
+  // changes with every message.
+  const group = channel === "whatsapp_group" && payload.groupJid
+    ? await getGroupChat(agentId, payload.groupJid)
+    : null
+
   const conversation = await getOrCreateConversation(
     agentId,
     fromPhone,
     agent.id,
     {
-      contactName: pushName,
+      contactName: channel === "whatsapp_group" ? (group?.subject ?? "WhatsApp group") : pushName,
       channel,
       visitorId: payload.visitorId,
       // Store the raw chat JID for label matching (WhatsApp only — @lid/@s.whatsapp.net).
-      senderJid: channel === "whatsapp" ? senderJid : undefined,
+      senderJid: isWhatsApp(channel) ? (payload.groupJid ?? senderJid) : undefined,
     }
   )
+
+  if (channel === "whatsapp_group" && payload.groupJid) {
+    await linkGroupConversation(agentId, payload.groupJid, conversation.id).catch((err) => {
+      logger.warn({ agentId, err: err?.message }, "Failed to link group conversation")
+    })
+  }
 
   // 2a. Persist CTWA ad context on first detection. Sticky-first — won't
   // overwrite an existing value, so a later ad click can't clobber the
@@ -146,6 +178,8 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
     content: text,
     mediaUrl: inboundMediaUrl,
     id: payload.messageId,
+    senderJid: channel === "whatsapp_group" ? senderJid : null,
+    senderName: channel === "whatsapp_group" ? (payload.senderName ?? null) : null,
   })
   // Anchor for the human-interjection check: any operator reply AFTER this
   // moment means a human answered this customer message first — the AI's
@@ -166,7 +200,7 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
   // whose token still matches proceeds (see handleReplyJob), so the burst yields
   // a single reply built from the full history. WhatsApp only — the embed widget
   // polls for replies and expects them promptly, so it never debounces.
-  const replyDelayMs = channel === "whatsapp" ? await getReplyDelayMs(agentId) : 0
+  const replyDelayMs = isWhatsApp(channel) ? await getReplyDelayMs(agentId) : 0
   if (replyDelayMs > 0) {
     const redis = getRedis()
     const seq = await redis.incr(seqKey(conversation.id))
@@ -182,6 +216,9 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
         imageDataUrl: payload.imageDataUrl,
         inboundSavedAt: inboundSavedAt.toISOString(),
         seq,
+        groupJid: payload.groupJid,
+        senderName: payload.senderName,
+        triggerMessageId: payload.messageId,
       } satisfies ReplyJobPayload,
       { delay: replyDelayMs }
     )
@@ -196,6 +233,9 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
     latestText: text,
     imageDataUrl: payload.imageDataUrl,
     inboundSavedAt,
+    groupJid: payload.groupJid,
+    senderName: payload.senderName,
+    triggerMessageId: payload.messageId,
   })
 }
 
@@ -233,6 +273,9 @@ export async function handleReplyJob(data: ReplyJobPayload): Promise<void> {
     latestText: data.latestText,
     imageDataUrl: data.imageDataUrl,
     inboundSavedAt: new Date(data.inboundSavedAt),
+    groupJid: data.groupJid,
+    senderName: data.senderName,
+    triggerMessageId: data.triggerMessageId,
   })
 }
 
@@ -245,7 +288,7 @@ export async function handleReplyJob(data: ReplyJobPayload): Promise<void> {
  */
 async function generateReply(agent: OrchestratorAgent, conversation: Conversation, ctx: ReplyContext): Promise<void> {
   const startMs = Date.now()
-  const { senderJid, channel, latestText, imageDataUrl, inboundSavedAt } = ctx
+  const { senderJid, channel, latestText, imageDataUrl, inboundSavedAt, groupJid, senderName } = ctx
   const agentId = agent.agentId
   const conversationId = conversation.id
 
@@ -255,7 +298,7 @@ async function generateReply(agent: OrchestratorAgent, conversation: Conversatio
   // volunteers it — almost never — so this classify pass is what actually keeps
   // chats tagged. WhatsApp only; gated by the chatTaggingEnabled master switch.
   const maybeBackgroundTag = async () => {
-    if (channel !== "whatsapp") return
+    if (channel !== "whatsapp") return  // 1:1 only — labels are a per-contact CRM concept
     try {
       if (await isChatTaggingEnabled(agentId)) {
         await classifyAndTagInBackground({
@@ -278,6 +321,19 @@ async function generateReply(agent: OrchestratorAgent, conversation: Conversatio
     return
   }
 
+  // Per-group silence. The worker already established we were addressed; this
+  // second gate lets an operator mute a group from the dashboard without
+  // waiting out the worker's 60s config cache.
+  let groupSubject: string | null = null
+  if (channel === "whatsapp_group" && groupJid) {
+    const group = await getGroupChat(agentId, groupJid)
+    if (!group || group.replyMode === "off") {
+      logger.info({ agentId, conversationId, groupJid }, "Group reply mode off — skipping AI reply")
+      return
+    }
+    groupSubject = group.subject
+  }
+
   // Global master switch — skip the AI for ALL conversations when the agent has
   // "AI replies" turned off (the inbound message is still saved during ingest).
   if (await isAiRepliesPaused(agentId)) {
@@ -289,7 +345,7 @@ async function generateReply(agent: OrchestratorAgent, conversation: Conversatio
   // Per-label AI-off — stay silent on chats carrying a label the operator set to
   // "AI off" (e.g. cold leads they handle manually). Dynamic: remove the label
   // and the AI resumes. WhatsApp only (labels don't exist on the widget).
-  if (channel === "whatsapp" && await chatHasAiDisabledLabel(agentId, conversation.phoneNumber, senderJid)) {
+  if (isWhatsApp(channel) && await chatHasAiDisabledLabel(agentId, conversation.phoneNumber, groupJid ?? senderJid)) {
     await maybeBackgroundTag()
     logger.info({ agentId, conversationId }, "Chat has an AI-off label — skipping AI reply")
     return
@@ -309,7 +365,7 @@ async function generateReply(agent: OrchestratorAgent, conversation: Conversatio
   // would block the send anyway, so don't burn tokens generating (or persist) an
   // undelivered reply. WhatsApp only (embed bills post-delivery and never blocks);
   // fail-open so a check hiccup never halts a paying customer's replies.
-  if (channel === "whatsapp" && !(await canAffordReply(agentId))) {
+  if (isWhatsApp(channel) && !(await canAffordReply(agentId))) {
     logger.info({ agentId, conversationId }, "Account out of credits — skipping AI reply (no LLM call, no send)")
     return
   }
@@ -319,7 +375,21 @@ async function generateReply(agent: OrchestratorAgent, conversation: Conversatio
   // unrelated questions.
   const messageCount = await getConversationMessageCount(conversationId)
   const adContextForPrompt = conversation.adContext && messageCount <= 6 ? conversation.adContext : null
-  const systemPrompt = await buildSystemPrompt(agent, "Africa/Lagos", latestText, adContextForPrompt)
+  let systemPrompt = await buildSystemPrompt(agent, "Africa/Lagos", latestText, adContextForPrompt)
+
+  // Without this the model writes a DM-shaped reply into a room of 40 people:
+  // over-familiar, too long, and addressed to nobody in particular.
+  if (channel === "whatsapp_group") {
+    systemPrompt += [
+      "",
+      `## Group chat`,
+      `You are in a WhatsApp group${groupSubject ? ` ("${groupSubject}")` : ""}, not a private conversation.`,
+      `${senderName ?? "Someone"} addressed you directly. Answer them, and only them.`,
+      "Everyone in the group sees your reply, so keep it short and on-topic.",
+      "Do not greet the group, do not summarise the conversation, and do not address anyone who did not ask you something.",
+      "You only see messages that tag you, not the surrounding chat. If a question depends on context you cannot see, ask for the missing detail instead of guessing.",
+    ].join("\n")
+  }
   const messages = await buildMessages(conversationId, agent.shortTermWindow)
 
   // Run the agent turn (LLM tool-calling loop). Extracted into runAgentTurn so
@@ -328,7 +398,9 @@ async function generateReply(agent: OrchestratorAgent, conversation: Conversatio
   const turn = await runAgentTurn(agent, systemPrompt, messages, {
     agentId,
     conversationId,
-    senderJid,
+    // Tools (send_image, send_product_album, …) dispatch to this JID. In a
+    // group that must be the group, not the participant who tagged us.
+    senderJid: groupJid ?? senderJid,
     imageDataUrl,
   })
   const totalInputTokens = turn.inputTokens
@@ -407,9 +479,16 @@ async function generateReply(agent: OrchestratorAgent, conversation: Conversatio
       await dispatchReply({
         agentId,
         conversationId,
-        toJid: senderJid,
+        // A group reply goes to the GROUP. senderJid is the participant who
+        // tagged us; sending there would DM them instead of answering in the room.
+        toJid: groupJid ?? senderJid,
         text: replyParts[i],
         source: "ai",
+        // Quote the triggering message on the first part only — quoting every
+        // part of a split reply is noise.
+        ...(channel === "whatsapp_group" && i === 0
+          ? { quotedMessageId: ctx.triggerMessageId, quotedParticipant: senderJid, quotedText: latestText }
+          : {}),
         // The persisted row backing this part — lets the worker delete it if it
         // aborts the send because a human replied while the job waited.
         messageId: partMessageIds[i],

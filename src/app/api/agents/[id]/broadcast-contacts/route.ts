@@ -46,6 +46,10 @@ export async function GET(req: NextRequest, { params }: Params) {
       db.conversation.findMany({
         where: {
           agentId: id,
+          // Group threads store the group JID in phoneNumber, so without this
+          // they surface as broadcast targets — and a broadcast into a group is
+          // exactly the unsolicited-send pattern that gets numbers banned.
+          channel: { not: "whatsapp_group" },
           ...(search
             ? {
                 OR: [

@@ -80,12 +80,12 @@ export async function computeRenewalAmount(userId: string, plan: string): Promis
   if (rate !== null && baseLimit !== -1) {
     const user = await db.user.findUnique({
       where: { id: userId },
-      select: { subscriptionExpiresAt: true, carryoverCredits: true },
+      select: { subscriptionExpiresAt: true, currentPeriodStart: true, carryoverCredits: true },
     })
     // Include the carryover that was active this cycle so the customer isn't
     // billed overage for usage the carryover already covered.
     const limit = baseLimit + (user?.carryoverCredits ?? 0)
-    const { start, end } = getBillingPeriod(user?.subscriptionExpiresAt ?? null)
+    const { start, end } = getBillingPeriod(user?.subscriptionExpiresAt ?? null, user?.currentPeriodStart ?? null)
     const agents = await db.agent.findMany({
       where: { userId, status: "ACTIVE" },
       select: { id: true },
@@ -125,7 +125,7 @@ export async function applySubscriptionCharge(args: {
       id: true, userId: true, status: true, plan: true, amountNaira: true, kind: true,
       user: {
         select: {
-          name: true, email: true, subscriptionExpiresAt: true,
+          name: true, email: true, subscriptionExpiresAt: true, currentPeriodStart: true,
           plan: true, carryoverCredits: true, carryoverExpiresAt: true,
           agents: { select: { id: true } },
         },
@@ -153,9 +153,18 @@ export async function applySubscriptionCharge(args: {
   })
   if (transition.count === 0) return { result: "race_lost" }
 
-  const newExpiry = args.resetCycle
-    ? addOneMonth(new Date())
-    : nextExpiry(charge.user.subscriptionExpiresAt)
+  // New cycle start: reset to now for upgrades and lapsed reactivations;
+  // continue from the current expiry when renewing early (no lost paid days).
+  // Stamped as currentPeriodStart so usage counts from HERE — not a rolling
+  // 30-day lookback that would drag the previous cycle back in (see
+  // billing-period.ts). Mirrors nextExpiry's base; newExpiry stays one calendar
+  // month past the start.
+  const now = new Date()
+  const cycleStart =
+    args.resetCycle || !(charge.user.subscriptionExpiresAt && charge.user.subscriptionExpiresAt > now)
+      ? now
+      : charge.user.subscriptionExpiresAt
+  const newExpiry = addOneMonth(cycleStart)
 
   // Roll unused plan allowance into the next cycle on every paid charge, expiring
   // at the end of that next cycle (one cycle). On a plan CHANGE (upgrade/downgrade)
@@ -169,7 +178,7 @@ export async function applySubscriptionCharge(args: {
   const oldBase = PLAN_CREDIT_LIMITS[oldPlan] ?? PLAN_CREDIT_LIMITS.free
   if ((PLAN_PRICES[oldPlan] ?? 0) > 0 && oldBase !== -1) {
     const oldLimit = effectiveCreditLimit(oldBase, charge.user.carryoverCredits, charge.user.carryoverExpiresAt)
-    const { start, end } = getBillingPeriod(charge.user.subscriptionExpiresAt ?? null)
+    const { start, end } = getBillingPeriod(charge.user.subscriptionExpiresAt ?? null, charge.user.currentPeriodStart ?? null)
     const agentIds = charge.user.agents.map((a) => a.id)
     const usedThisCycle = agentIds.length ? await sumCreditsForAgents(agentIds, start, end) : 0
     const isPlanChange = charge.plan !== oldPlan
@@ -191,6 +200,7 @@ export async function applySubscriptionCharge(args: {
     data: {
       plan: charge.plan,
       subscriptionExpiresAt: newExpiry,
+      currentPeriodStart: cycleStart,
       carryoverCredits,
       carryoverExpiresAt,
       subscriptionStatus: "active",
@@ -415,6 +425,8 @@ export async function downgradeToFree(userId: string): Promise<void> {
       // (Past timestamp = trial already expired.)
       subscriptionExpiresAt: new Date(Date.now() - 1000),
       subscriptionStatus: "none",
+      // Clear the cycle anchor so a re-subscribe starts a fresh window from now.
+      currentPeriodStart: null,
       // Drop any plan-change carryover — a lapsed account starts clean.
       carryoverCredits: 0,
       carryoverExpiresAt: null,

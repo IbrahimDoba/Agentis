@@ -1,4 +1,4 @@
-import type { WASocket, AnyMessageContent } from "@whiskeysockets/baileys"
+import type { WASocket, AnyMessageContent, WAMessage } from "@whiskeysockets/baileys"
 import { truncatedNormal } from "./distribution.js"
 import { getTierConfig } from "./warmup.js"
 import { markSentByUs } from "../baileys/sent-message-cache.js"
@@ -31,7 +31,10 @@ export async function sendWithPacing(
   sock: WASocket,
   jid: string,
   text: string,
-  warmupTier: number
+  warmupTier: number,
+  // Group replies quote the message that tagged us so the answer is
+  // attributable in a fast-moving room.
+  quoted?: WAMessage
 ): Promise<string | undefined> {
   // FAIL CLOSED: never send while the auth volume is full. A ratchet update we
   // can't persist corrupts the session and triggers the duplicate-delivery
@@ -50,7 +53,7 @@ export async function sendWithPacing(
   await sleep(typingDuration(text))
 
   // Send the actual message — capture key ID for dedup cache
-  const sent = await sock.sendMessage(jid, { text })
+  const sent = await sock.sendMessage(jid, { text }, quoted ? { quoted } : undefined)
   const msgId = sent?.key?.id ?? undefined
 
   // CRITICAL: register in dedup cache IMMEDIATELY after the send returns.

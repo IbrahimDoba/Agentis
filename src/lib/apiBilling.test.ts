@@ -91,7 +91,7 @@ describe("apiBilling — chargeApiTurn / remaining (real DB)", () => {
     await db.user.deleteMany({ where: { id: userId } })
   })
 
-  const ctx = (): AgentBillingContext => ({ userId, plan: "free", subscriptionExpiresAt: null, carryoverCredits: 0, carryoverExpiresAt: null })
+  const ctx = (): AgentBillingContext => ({ userId, plan: "free", subscriptionExpiresAt: null, currentPeriodStart: null, carryoverCredits: 0, carryoverExpiresAt: null })
 
   it("records a CreditUsage row with source='api' billed to plan when it fits", async () => {
     const inputTokens = 100
@@ -117,7 +117,7 @@ describe("apiBilling — chargeApiTurn / remaining (real DB)", () => {
     // Dedicated agent + a future subscription window so the seeded usage counts.
     const walletAgentId = await makeAgent()
     const future = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000)
-    const walletCtx: AgentBillingContext = { userId, plan: "free", subscriptionExpiresAt: future, carryoverCredits: 0, carryoverExpiresAt: null }
+    const walletCtx: AgentBillingContext = { userId, plan: "free", subscriptionExpiresAt: future, currentPeriodStart: null, carryoverCredits: 0, carryoverExpiresAt: null }
 
     // Exhaust the free plan (limit 1000) within the billing window.
     await db.creditUsage.create({
@@ -147,7 +147,7 @@ describe("apiBilling — chargeApiTurn / remaining (real DB)", () => {
 
   it("preflight blocks an expired subscription", async () => {
     const past = new Date(Date.now() - 1000)
-    const res = await preflightApiCharge({ userId, plan: "free", subscriptionExpiresAt: past, carryoverCredits: 0, carryoverExpiresAt: null })
+    const res = await preflightApiCharge({ userId, plan: "free", subscriptionExpiresAt: past, currentPeriodStart: null, carryoverCredits: 0, carryoverExpiresAt: null })
     expect(res.ok).toBe(false)
     expect(res.reason).toBe("SUBSCRIPTION_EXPIRED")
   })
@@ -158,7 +158,7 @@ describe("apiBilling — chargeApiTurn / remaining (real DB)", () => {
     const userAgents = await db.agent.findMany({ where: { userId }, select: { id: true } })
     await db.creditUsage.deleteMany({ where: { agentId: { in: userAgents.map((a) => a.id) } } })
     await db.user.update({ where: { id: userId }, data: { creditBalance: 50, creditsExpireAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) } })
-    const remaining = await getRemainingCredits({ userId, plan: "free", subscriptionExpiresAt: null, carryoverCredits: 0, carryoverExpiresAt: null })
+    const remaining = await getRemainingCredits({ userId, plan: "free", subscriptionExpiresAt: null, currentPeriodStart: null, carryoverCredits: 0, carryoverExpiresAt: null })
     // free plan limit 1000, no usage + 50 wallet
     expect(remaining).toBe(1000 + 50)
   })

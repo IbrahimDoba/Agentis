@@ -55,6 +55,7 @@ export async function checkAndEnforceAgentLimit(agentId: string): Promise<void> 
         select: {
           plan: true,
           subscriptionExpiresAt: true,
+          currentPeriodStart: true,
           carryoverCredits: true,
           carryoverExpiresAt: true,
         },
@@ -66,7 +67,7 @@ export async function checkAndEnforceAgentLimit(agentId: string): Promise<void> 
   if (!agent) return
   if (agent.status !== "ACTIVE") return
 
-  const { plan, subscriptionExpiresAt, carryoverCredits, carryoverExpiresAt } = agent.user
+  const { plan, subscriptionExpiresAt, currentPeriodStart, carryoverCredits, carryoverExpiresAt } = agent.user
   const overageAllowed = (PLAN_OVERAGE_RATE_PER_1K[plan] ?? null) !== null
 
   // Check 1: Subscription period expired
@@ -77,7 +78,7 @@ export async function checkAndEnforceAgentLimit(agentId: string): Promise<void> 
   let creditsExceeded = false
 
   if (creditLimit !== -1) {
-    const { start: monthStart, end: monthEnd } = getBillingPeriod(subscriptionExpiresAt)
+    const { start: monthStart, end: monthEnd } = getBillingPeriod(subscriptionExpiresAt, currentPeriodStart)
 
     const used = agent.elevenlabsAgentId
       ? (await db.conversationLog.aggregate({

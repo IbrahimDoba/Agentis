@@ -4,7 +4,13 @@ import { webhookEmitter } from "../dashboard/webhook-emitter.js"
 import { config } from "../config.js"
 import { logger as rootLogger } from "../lib/logger.js"
 import { resolvePhone, resolveContactName } from "./contacts-store.js"
-import { getConversationMode, saveHumanOutboundMessage } from "../db/queries.js"
+import {
+  getConversationMode,
+  saveHumanOutboundMessage,
+  isGroupChatEnabled,
+  recordGroupActivity,
+} from "../db/queries.js"
+import { isAddressedToUs } from "./group-mention.js"
 import { transcribeVoiceNote } from "../voice/transcribe.js"
 import { creditsForVoice } from "../billing/credits.js"
 import { wasSentByUs } from "./sent-message-cache.js"
@@ -90,10 +96,13 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
     if (type !== "notify" && type !== "append") return
 
     for (const msg of messages) {
-      // §9 — Ignore broadcasts and groups
+      // §9 — Ignore broadcasts. Groups are ingested only for agents opted in;
+      // without the flag this stays the hard skip it has always been.
       if (msg.key.remoteJid?.endsWith("@broadcast")) continue
-      if (msg.key.remoteJid?.endsWith("@g.us")) continue
       if (!msg.key.remoteJid) continue
+
+      const isGroup = msg.key.remoteJid.endsWith("@g.us")
+      if (isGroup && !(await isGroupChatEnabled(agentId))) continue
 
       // Replay protection — skip messages that arrived before this session started
       // Use a 5-minute window to catch delayed/queued messages without replaying old history
@@ -107,13 +116,29 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
       // is alive (used by the deaf-session watchdog).
       markInboundActivity(agentId)
 
-      const senderJid = msg.key.remoteJid
+      // In a group, remoteJid is the GROUP and key.participant is the human who
+      // spoke. The two must stay distinct — the conversation is keyed on the
+      // group, but attribution has to name the participant, or all 40 members
+      // collapse into one identity.
+      const groupJid = isGroup ? msg.key.remoteJid : null
+      const participantJid = isGroup
+        ? (((msg.key as Record<string, unknown>).participantAlt as string | undefined)
+          ?? msg.key.participant
+          ?? null)
+        : null
+
+      const senderJid = isGroup ? (participantJid ?? msg.key.remoteJid) : msg.key.remoteJid
       // remoteJidAlt is the PN (real phone JID) when remoteJid is a LID — available since Baileys 6.8.0
       const altJid = (msg.key as Record<string, unknown>).remoteJidAlt as string | undefined
-      const phoneNumber = altJid
-        ? altJid.split("@")[0].split(":")[0]
-        : resolvePhone(agentId, senderJid)
-      const pushName = msg.pushName ?? resolveContactName(agentId, phoneNumber) ?? undefined
+      // For a group the conversation key IS the group JID (see the plan's §3 —
+      // `phoneNumber` is the conversation key, not necessarily a phone).
+      const phoneNumber = isGroup
+        ? groupJid!
+        : altJid
+          ? altJid.split("@")[0].split(":")[0]
+          : resolvePhone(agentId, senderJid)
+      const pushName =
+        msg.pushName ?? (isGroup ? undefined : resolveContactName(agentId, phoneNumber)) ?? undefined
 
       // Operator replied to the customer directly from their own phone (not
       // via our dashboard). The wasSentByUs cache already excludes the AI's
@@ -124,6 +149,11 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
       // replying to the customer's next inbound (saveHumanOutboundMessage
       // handles the mode flip atomically with the message insert).
       if (msg.key.fromMe) {
+        // Groups don't take the operator-handoff path: saveHumanOutboundMessage
+        // keys on a real phone number and flips the chat to human mode, neither
+        // of which is meaningful for a 40-member group. The operator posting in
+        // a group should not silence the AI for everyone in it.
+        if (isGroup) continue
         const msgId = msg.key.id
         if (msgId && !wasSentByUs(msgId)) {
           const _mOut = msg.message as any
@@ -146,6 +176,27 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
           }
         }
         continue
+      }
+
+      // Group gate. Record the sighting (this is the ONLY trace an ignored
+      // group message leaves — no Message row, no credit spend), then drop
+      // anything that wasn't addressed to us.
+      //
+      // This sits ahead of text extraction on purpose: voice transcription and
+      // image download both cost money, and a busy group would otherwise pay
+      // them on every message before finding out nobody was talking to us.
+      let groupReplyMode: string | null = null
+      if (isGroup) {
+        const group = await recordGroupActivity(agentId, groupJid!, msg.pushName ?? null).catch((err) => {
+          logger.warn({ err, agentId, groupJid }, "Failed to record group activity")
+          return null
+        })
+        groupReplyMode = group?.replyMode ?? "mention"
+        if (groupReplyMode === "off") continue
+        if (!isAddressedToUs(msg, [sock.user?.id, (sock.user as { lid?: string } | undefined)?.lid], wasSentByUs)) {
+          continue
+        }
+        logger.info({ agentId, groupJid, participantJid }, "Addressed in group")
       }
 
       const _m = msg.message as any
@@ -260,6 +311,9 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
           extraCredits: voiceCredits || undefined,
           adContext: adContext ?? undefined,
           imageDataUrl: imageDataUrl ?? undefined,
+          channel: isGroup ? "whatsapp_group" : undefined,
+          groupJid: groupJid ?? undefined,
+          senderName: isGroup ? pushName : undefined,
         })
       } catch (err) {
         logger.error({ err, agentId, senderJid }, "Failed to forward to orchestrator")
@@ -383,6 +437,9 @@ async function forwardToOrchestrator(payload: {
   extraCredits?: number  // e.g. voice transcription cost, billed on top of the AI reply cost
   adContext?: AdContext
   imageDataUrl?: string  // inbound image (base64 data URL) for vision
+  channel?: "whatsapp_group"
+  groupJid?: string
+  senderName?: string  // group only — which participant spoke
 }): Promise<void> {
   const url = `${config.ORCHESTRATOR_URL}/v1/inbound`
 

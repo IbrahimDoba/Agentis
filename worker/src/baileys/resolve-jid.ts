@@ -16,6 +16,11 @@ export async function resolveSendJid(sock: WASocket | null, toJid: string): Prom
   // Already LID-addressed — send as-is.
   if (toJid.endsWith("@lid")) return toJid
 
+  // Group JIDs are fully-qualified already and are never LID-migrated. Without
+  // this they fall into the >=15-digit branch below (a group id is ~18 digits)
+  // and get rewritten to `<id>@lid`, so the send silently misdelivers.
+  if (toJid.endsWith("@g.us")) return toJid
+
   // A 15+ digit "number" is really an unresolved LID stored with the wrong
   // suffix — follow-ups/scanned contacts save `<id>@s.whatsapp.net` even when
   // <id> is a LID. Real phone numbers are <= 13 digits in practice, so route

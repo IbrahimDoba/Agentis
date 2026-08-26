@@ -46,10 +46,10 @@ export async function GET(req: NextRequest) {
 
     const user = await db.user.findUnique({
       where: { id: ownerId },
-      select: { plan: true, subscriptionExpiresAt: true, creditBalance: true, creditsExpireAt: true, resellerId: true, carryoverCredits: true, carryoverExpiresAt: true },
+      select: { plan: true, subscriptionExpiresAt: true, currentPeriodStart: true, creditBalance: true, creditsExpireAt: true, resellerId: true, carryoverCredits: true, carryoverExpiresAt: true },
     })
 
-    const { start: monthStart, end: monthEnd } = getBillingPeriod(user?.subscriptionExpiresAt)
+    const { start: monthStart, end: monthEnd } = getBillingPeriod(user?.subscriptionExpiresAt, user?.currentPeriodStart)
 
     const runtimeAgents = await db.agent.findMany({
       where: {

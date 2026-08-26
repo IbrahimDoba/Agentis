@@ -1,20 +1,35 @@
 /**
- * Returns the start and end of the current 30-day billing cycle.
+ * Returns the start and end of the current billing cycle.
  *
- * If a subscriptionExpiresAt exists, the period is anchored to it:
- *   start = subscriptionExpiresAt - 30 days
- *   end   = subscriptionExpiresAt
+ * Preferred path: an explicit `currentPeriodStart` anchor, stamped on every
+ * activation / renewal / admin reset. The window is simply
+ * [currentPeriodStart, subscriptionExpiresAt].
  *
- * This means credits reset on the user's subscription anniversary, not
- * the calendar month. For free/expired plans we fall back to a rolling
- * 30-day window ending now.
+ * Fallback (no anchor — free/expired plans, or a user last billed before the
+ * anchor existed): a rolling 30-day window anchored to expiry.
  */
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000
 
-export function getBillingPeriod(subscriptionExpiresAt: Date | null | undefined): {
+export function getBillingPeriod(
+  subscriptionExpiresAt: Date | null | undefined,
+  currentPeriodStart?: Date | null,
+): {
   start: Date
   end: Date
 } {
+  // Explicit anchor wins. Inferring the start from expiry is the bug this
+  // replaces: `nextExpiry` moves expiry by a calendar month (28–31d) while the
+  // fallback below steps a fixed 30 days, so on a 31-day month the inferred
+  // window walks ~30 days too far back and re-counts the previous cycle — a
+  // lapsed resubscribe never reset its usage to 0.
+  if (currentPeriodStart) {
+    const start = new Date(currentPeriodStart)
+    const end = subscriptionExpiresAt
+      ? new Date(subscriptionExpiresAt)
+      : new Date(start.getTime() + THIRTY_DAYS_MS)
+    return { start, end }
+  }
+
   if (subscriptionExpiresAt) {
     let end = new Date(subscriptionExpiresAt).getTime()
     const now = Date.now()
