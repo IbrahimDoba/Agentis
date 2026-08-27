@@ -176,8 +176,9 @@ Respond ONLY with valid JSON: {"message": "the reminder text"}`
 // written BEFORE the send (carrying its id) so the outbound queue can meter it,
 // pace it, and delete it if a human takes over mid-send — the same contract the
 // live reply path uses. If the send can't even be queued we drop the orphan row
-// so a never-delivered reminder doesn't linger in the thread. Best-effort: the
-// caller treats a false/throw as "email still went", never blocking on this.
+// so a never-delivered reminder doesn't linger in the thread. Returns false when
+// generation failed; the caller counts that as a failed nudge rather than
+// silently treating the stage as done.
 async function sendWaReminder(appt: WaReminderAppt, remainingMin: number): Promise<boolean> {
   // Address the conversation's real routing JID when known — the same target the
   // live reply path uses. A bare phone would be naively turned into
@@ -226,6 +227,11 @@ async function sendWaReminder(appt: WaReminderAppt, remainingMin: number): Promi
       messageId: msg.id,
       tokensInput: gen.tokensInput,
       tokensOutput: gen.tokensOutput,
+      // Fires on a schedule, so the queue's "a human answered first" abort must
+      // not swallow it — a chat an operator took over stays in human mode
+      // indefinitely (autoResumeAiAfterMinutes defaults to off), which silently
+      // dropped every reminder for that customer.
+      scheduledReminder: true,
     })
     return true
   } catch (err) {
@@ -244,11 +250,14 @@ export interface ReminderSummary {
   remindersSent: number    // stages successfully claimed + emailed to ≥1 recipient
   emailsSent: number       // individual recipient emails delivered
   waRemindersSent: number  // customer WhatsApp reminders sent into the chat
+  waRemindersFailed: number // claimed stages whose WhatsApp nudge never went out
   errors: Array<{ appointmentId: string; stage: number; message: string }>
 }
 
 export async function runAppointmentReminders(now: Date = new Date()): Promise<ReminderSummary> {
-  const summary: ReminderSummary = { remindersSent: 0, emailsSent: 0, waRemindersSent: 0, errors: [] }
+  const summary: ReminderSummary = {
+    remindersSent: 0, emailsSent: 0, waRemindersSent: 0, waRemindersFailed: 0, errors: [],
+  }
   const windowEnd = new Date(now.getTime() + MAX_LEAD_WINDOW_MS)
 
   // Upcoming, still-scheduled appointments with at least one unsent reminder.
@@ -277,11 +286,8 @@ export async function runAppointmentReminders(now: Date = new Date()): Promise<R
   const { recipientsFor, brandFor } = await loadRecipients(tasks.map((t) => t.appt.userId))
 
   await mapWithConcurrency(tasks, EMAIL_CONCURRENCY, async ({ appt, stage }) => {
-    const rcpt = recipientsFor(appt.userId)
-    if (!rcpt) return
-
     // Atomically claim this stage BEFORE sending — a guarded update so two
-    // overlapping cron runs can't both email the same reminder. If the claim
+    // overlapping cron runs can't both send the same reminder. If the claim
     // touches 0 rows, another run already took it.
     const stampField = stage === 1 ? "reminder1SentAt" : "reminder2SentAt"
     const claim = await db.appointment.updateMany({
@@ -293,43 +299,56 @@ export async function runAppointmentReminders(now: Date = new Date()): Promise<R
     // Label from the ACTUAL remaining time (the cron may fire a little after the
     // exact lead moment), not the configured lead minutes.
     const remainingMin = (appt.scheduledAt.getTime() - now.getTime()) / 60_000
-    const brand = brandFor(rcpt.owner.resellerId)
 
-    let anyDelivered = false
-    for (const r of rcpt.list) {
-      try {
-        await sendAppointmentReminderEmail(
-          {
-            recipientName: r.name,
-            email: r.email,
-            agentName: appt.agent.businessName,
-            title: appt.title,
-            whenLabel: whenLabel(appt.scheduledAt),
-            leadLabel: leadLabel(remainingMin),
-            customerName: appt.customerName,
-            customerNumber: appt.customerNumber,
-            notes: appt.notes,
-          },
-          brand,
-        )
-        anyDelivered = true
-        summary.emailsSent++
-      } catch (err) {
-        // The stage was already claimed (stamped) above, so this recipient
-        // won't be retried — log it so a Resend outage is diagnosable.
-        console.error("[appointment-reminders] send failed", { appointmentId: appt.id, stage, to: r.email }, err)
-        summary.errors.push({
-          appointmentId: appt.id,
-          stage,
-          message: err instanceof Error ? err.message : String(err),
-        })
+    // Owner/team email. Looked up after the claim rather than before it, so a
+    // missing owner row costs this email alone — it can no longer suppress the
+    // customer's WhatsApp nudge below.
+    const rcpt = recipientsFor(appt.userId)
+    if (rcpt) {
+      const brand = brandFor(rcpt.owner.resellerId)
+      let anyDelivered = false
+      for (const r of rcpt.list) {
+        try {
+          await sendAppointmentReminderEmail(
+            {
+              recipientName: r.name,
+              email: r.email,
+              agentName: appt.agent.businessName,
+              title: appt.title,
+              whenLabel: whenLabel(appt.scheduledAt),
+              leadLabel: leadLabel(remainingMin),
+              customerName: appt.customerName,
+              customerNumber: appt.customerNumber,
+              notes: appt.notes,
+            },
+            brand,
+          )
+          anyDelivered = true
+          summary.emailsSent++
+        } catch (err) {
+          // The stage was already claimed (stamped) above, so this recipient
+          // won't be retried — log it so a Resend outage is diagnosable.
+          console.error("[appointment-reminders] send failed", { appointmentId: appt.id, stage, to: r.email }, err)
+          summary.errors.push({
+            appointmentId: appt.id,
+            stage,
+            message: err instanceof Error ? err.message : String(err),
+          })
+        }
       }
+      if (anyDelivered) summary.remindersSent++
+    } else {
+      console.error("[appointment-reminders] no owner record", { appointmentId: appt.id, stage, userId: appt.userId })
+      summary.errors.push({
+        appointmentId: appt.id,
+        stage,
+        message: `No owner record for userId ${appt.userId} — reminder email skipped`,
+      })
     }
-    if (anyDelivered) summary.remindersSent++
 
     // Customer WhatsApp reminder — only for chat-linked appointments. Shares the
-    // stage claim above, so it fires exactly once alongside the email. Failures
-    // are logged, never thrown, so they can't undo the already-sent email.
+    // stage claim above, so it fires exactly once. Never throws: a failure here
+    // can't undo the email, but it is counted so it doesn't vanish silently.
     if (appt.conversationId && appt.customerNumber) {
       try {
         const sent = await sendWaReminder(
@@ -345,8 +364,21 @@ export async function runAppointmentReminders(now: Date = new Date()): Promise<R
           },
           remainingMin,
         )
-        if (sent) summary.waRemindersSent++
+        if (sent) {
+          summary.waRemindersSent++
+        } else {
+          // Generation failed. The stage is already stamped, so this nudge is
+          // gone for good — count it, or the run reports a clean `errors: []`
+          // while the customer silently never hears from us.
+          summary.waRemindersFailed++
+          summary.errors.push({
+            appointmentId: appt.id,
+            stage,
+            message: "WhatsApp reminder generation failed — nudge not sent",
+          })
+        }
       } catch (err) {
+        summary.waRemindersFailed++
         console.error("[appointment-reminders] wa reminder failed", { appointmentId: appt.id, stage }, err)
         summary.errors.push({
           appointmentId: appt.id,

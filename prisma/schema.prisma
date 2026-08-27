@@ -666,7 +666,8 @@ enum LeadStatus {
 // An appointment/meeting/inspection the AI (schedule_appointment tool) or a
 // human (dashboard "New appointment") booked with a customer. The reminder cron
 // (src/lib/appointment-reminders-job.ts) emails the owner + accepted team
-// members ahead of `scheduledAt`, at up to two independent lead times.
+// members ahead of `scheduledAt`, at up to two independent lead times, and — for
+// chat-linked appointments — also sends the customer a WhatsApp nudge in-thread.
 model Appointment {
   id             String            @id @default(cuid())
   agentId        String

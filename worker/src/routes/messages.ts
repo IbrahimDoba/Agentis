@@ -23,6 +23,9 @@ const sendSchema = z.object({
   // aborts the send (a human replied first), the worker deletes this row so
   // the dashboard doesn't show a message the customer never received.
   messageId: z.string().optional(),
+  // Time-triggered send (appointment reminder). Skips the human-interjection
+  // abort — see OutboundJob.scheduledReminder.
+  scheduledReminder: z.boolean().optional(),
   // PAYG: orchestrator passes real OpenAI token counts so the worker bills
   // by actual cost instead of the flat per-type rate. Only the FIRST part of
   // a split reply carries non-zero tokens — subsequent parts pass 0/0 to
@@ -52,6 +55,7 @@ export const messageRoutes: FastifyPluginAsync = async (app) => {
       conversationId: body.conversationId,
       source: body.source,
       messageId: body.messageId,
+      scheduledReminder: body.scheduledReminder,
       tokensInput: body.tokensInput,
       tokensOutput: body.tokensOutput,
       quotedMessageId: body.quotedMessageId,

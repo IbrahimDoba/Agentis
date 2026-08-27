@@ -148,6 +148,9 @@ export const baileysClient = {
     messageId?: string
     tokensInput?: number
     tokensOutput?: number
+    // Time-triggered send (appointment reminder). Tells the worker not to treat
+    // it as a live reply that an operator may have already answered.
+    scheduledReminder?: boolean
   }): Promise<{ jobId: string; status: string }> {
     const res = await fetch(`${WORKER_URL}/v1/messages/send`, {
       method: "POST",
