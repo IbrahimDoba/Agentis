@@ -44,6 +44,7 @@ export interface AgentBillingInfo {
   userId: string
   plan: string
   subscriptionExpiresAt: string | null
+  currentPeriodStart: string | null
   carryoverCredits: number
   carryoverExpiresAt: string | null
 }
@@ -418,7 +419,7 @@ export async function getAgent(agentId: string): Promise<Agent | null> {
 
 export async function getAgentBillingInfo(agentId: string): Promise<AgentBillingInfo | null> {
   const rows = await sql<AgentBillingInfo[]>`
-    SELECT a."id", a."userId", COALESCE(u."plan", 'free') as "plan", u."subscriptionExpiresAt",
+    SELECT a."id", a."userId", COALESCE(u."plan", 'free') as "plan", u."subscriptionExpiresAt", u."currentPeriodStart",
            COALESCE(u."carryoverCredits", 0) as "carryoverCredits", u."carryoverExpiresAt"
     FROM "Agent" a
     JOIN "User" u ON u."id" = a."userId"
@@ -459,7 +460,7 @@ export async function insertCreditUsage(entry: {
   agentId: string
   conversationId?: string
   messageType: "text" | "image" | "video" | "document"
-  source?: "ai" | "human" | "api"
+  source?: "ai" | "human" | "api" | "broadcast" | "followup"
   creditsUsed: number
   // PAYG audit (added in 20260525000000_add_payg_credits):
   tokensInput?: number | null
@@ -672,4 +673,61 @@ export async function upsertConversationLog(entry: {
       "status" = EXCLUDED."status",
       "creditsUsed" = EXCLUDED."creditsUsed"
   `
+}
+
+// ---------------------------------------------------------------------------
+// Group chats
+// ---------------------------------------------------------------------------
+
+const GROUP_ENABLED_CACHE_TTL_MS = 60_000
+const groupEnabledCacheKey = (agentId: string) => `group-chat-enabled:${agentId}`
+
+/**
+ * Is this agent opted in to WhatsApp group chats? Cached because it is checked
+ * on EVERY inbound group message — a busy group would otherwise put a DB round
+ * trip in front of each one.
+ */
+export async function isGroupChatEnabled(agentId: string): Promise<boolean> {
+  return cachedTtl(groupEnabledCacheKey(agentId), GROUP_ENABLED_CACHE_TTL_MS, async () => {
+    const rows = await sql<{ groupChatEnabled: boolean }[]>`
+      SELECT "groupChatEnabled" FROM "Agent" WHERE "id" = ${agentId} LIMIT 1
+    `
+    return rows[0]?.groupChatEnabled === true
+  })
+}
+
+export function invalidateGroupChatEnabled(agentId: string): void {
+  invalidateTtl(groupEnabledCacheKey(agentId))
+}
+
+export interface GroupChatRow {
+  id: string
+  groupJid: string
+  subject: string | null
+  replyMode: string
+}
+
+/**
+ * Record that we saw traffic in a group, creating the row on first sighting.
+ * Called for EVERY group message including ones we ignore — it is what drives
+ * the dashboard's last-activity column, and it is the only trace an unaddressed
+ * message leaves (no Message row, no credit spend).
+ *
+ * `subject` only overwrites when we actually have one, so a message that
+ * arrives without group metadata can't blank a name we already know.
+ */
+export async function recordGroupActivity(
+  agentId: string,
+  groupJid: string,
+  subject: string | null
+): Promise<GroupChatRow | null> {
+  const rows = await sql<GroupChatRow[]>`
+    INSERT INTO "GroupChat" ("id", "agentId", "groupJid", "subject", "lastMessageAt")
+    VALUES (${randomUUID()}, ${agentId}, ${groupJid}, ${subject}, NOW())
+    ON CONFLICT ("agentId", "groupJid") DO UPDATE
+      SET "lastMessageAt" = NOW(),
+          "subject" = COALESCE(EXCLUDED."subject", "GroupChat"."subject")
+    RETURNING "id", "groupJid", "subject", "replyMode"
+  `
+  return rows[0] ?? null
 }

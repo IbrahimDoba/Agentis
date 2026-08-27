@@ -165,7 +165,12 @@ describe("subscriptionBilling (real DB)", () => {
     await downgradeToFree(userId)
     const u = await db.user.findUnique({ where: { id: userId } })
     expect(u?.plan).toBe("free")
-    expect(u?.subscriptionExpiresAt).toBeNull()
+    // Lapsed accounts land on the "choose a plan" wall: expiry is set to a PAST
+    // timestamp (trial already expired), not null, and the cycle anchor clears
+    // so a re-subscribe starts a fresh window.
+    expect(u?.subscriptionExpiresAt).not.toBeNull()
+    expect(u!.subscriptionExpiresAt!.getTime()).toBeLessThan(Date.now())
+    expect(u?.currentPeriodStart).toBeNull()
     expect(u?.subscriptionStatus).toBe("none")
     expect(u?.autoRenew).toBe(false)
   })

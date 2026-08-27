@@ -13,6 +13,7 @@ import { ToolsTab } from "@/components/dashboard/ToolsTab"
 import { DocumentsTab } from "@/components/dashboard/DocumentsTab"
 import { LabelSettings } from "@/components/dashboard/LabelSettings"
 import { AgentSettingsTab } from "@/components/dashboard/AgentSettingsTab"
+import { GroupsTab } from "@/components/dashboard/GroupsTab"
 import { EmbedTab } from "@/components/dashboard/EmbedTab"
 import { StatusBadge } from "@/components/ui/Badge"
 import { TestAgentWidget } from "@/components/dashboard/TestAgentWidget"
@@ -30,11 +31,12 @@ const TABS = (agentRuntime: string) => [
     : [{ id: "knowledge-base", label: "Knowledge Base" }]),
   { id: "tools", label: "Tools" },
   { id: "labels", label: "Labels" },
+  { id: "groups", label: "Groups" },
   { id: "embed", label: "Embed" },
   { id: "settings", label: "Settings" },
 ]
 
-const VALID_TABS = new Set(["profile", "configuration", "documents", "knowledge-base", "tools", "labels", "embed", "settings"])
+const VALID_TABS = new Set(["profile", "configuration", "documents", "knowledge-base", "tools", "labels", "groups", "embed", "settings"])
 
 function Skeleton({ height, width }: { height: number; width?: string }) {
   return (
@@ -221,6 +223,7 @@ export default function AgentDetailPage() {
         {activeTab === "settings" && (
           <AgentSettingsTab agent={agent} onDirtyChange={handleSettingsDirty} />
         )}
+        {activeTab === "groups" && <GroupsTab agentId={agent.id} />}
         {activeTab === "embed" && (
           <EmbedTab agentId={agent.id} onDirtyChange={handleEmbedDirty} />
         )}

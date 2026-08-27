@@ -10,6 +10,8 @@ import { logger as rootLogger } from "../lib/logger.js"
 import { sql } from "../db/client.js"
 import { resolveSendJid } from "../baileys/resolve-jid.js"
 import { recordEvent } from "../lib/event-log.js"
+import { chargeAiCredits, hasCreditHeadroom } from "../billing/charge.js"
+import { creditsForMessageType } from "../billing/credits.js"
 
 const logger = rootLogger.child({ module: "followup-queue" })
 const QUEUE_NAME = "followup-send"
@@ -101,6 +103,19 @@ const worker = new Worker<FollowUpJob>(
     // Anti-ban rate limiting
     await checkAndIncrement(agentId, session.warmupTier)
 
+    // Credit gate — a follow-up send costs the same as a normal WhatsApp text.
+    // Out of funds → stop the campaign (status 'failed' is this feature's
+    // resumable-stop, recovered by resetForResume + re-enqueue). Leave THIS
+    // message 'scheduled' (return without marking sent) so the resume re-sends
+    // it. The exact charge runs after a confirmed send, so only delivered
+    // messages are billed. Mirrors the broadcast credit gate.
+    if (!(await hasCreditHeadroom(agentId))) {
+      logger.warn({ campaignId, messageId, agentId }, "Insufficient credits — stopping follow-up campaign (messages stay resumable)")
+      await sql`UPDATE "FollowUpCampaign" SET "status" = 'failed' WHERE "id" = ${campaignId}`
+      void recordEvent({ level: "warn", category: "followup.stopped_no_credits", agentId, message: "Follow-up campaign stopped — insufficient credits", detail: { campaignId, messageId } })
+      return
+    }
+
     // Personalize: replace {name} placeholder
     const firstName = contactName?.split(" ")[0]
     const personalizedMessage = firstName
@@ -126,6 +141,16 @@ const worker = new Worker<FollowUpJob>(
         SET "totalSent" = "totalSent" + 1
         WHERE "id" = ${campaignId}
       `
+
+      // Bill the delivered follow-up: 5 credits, same as a normal text send,
+      // tagged source "followup" for separate accounting. Best-effort — it
+      // already went out, so a billing hiccup must never fail the send (the
+      // gate above already stopped broke accounts before sending).
+      try {
+        await chargeAiCredits({ agentId, credits: creditsForMessageType("text"), messageType: "text", conversationId, source: "followup" })
+      } catch (err: any) {
+        logger.warn({ campaignId, messageId, err: err?.message }, "Follow-up credit charge failed after send")
+      }
 
       // Reset consecutive failure counter
       await getRedis().del(`fu:failures:${campaignId}`)

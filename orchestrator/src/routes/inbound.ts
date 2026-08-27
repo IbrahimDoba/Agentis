@@ -29,8 +29,11 @@ const inboundSchema = z.object({
   // Embed-widget specific. When channel === "embed" the orchestrator skips
   // the WhatsApp-only dispatch path and just persists the outbound reply —
   // the visitor's browser picks it up via polling on /api/embed/messages.
-  channel: z.enum(["whatsapp", "embed"]).optional(),
+  channel: z.enum(["whatsapp", "embed", "whatsapp_group"]).optional(),
   visitorId: z.string().min(1).optional(),
+  // Group only: the group JID (the conversation key) and the participant who spoke.
+  groupJid: z.string().min(1).optional(),
+  senderName: z.string().optional(),
   // Inbound image (data URL or https) for vision. Capped to keep the queue
   // payload sane; the worker only forwards reasonably-sized images.
   imageDataUrl: z.string().max(15_000_000).optional(),

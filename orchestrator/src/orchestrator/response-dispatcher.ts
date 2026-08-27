@@ -18,6 +18,12 @@ export interface DispatchOptions {
   // the same turn. Worker falls back to flat per-type rate when omitted.
   tokensInput?: number
   tokensOutput?: number
+  // Group only: the message that tagged us. The worker quotes it so the reply
+  // is attributable — in a busy group an unquoted answer landing several
+  // messages later reads as addressed to nobody.
+  quotedMessageId?: string
+  quotedParticipant?: string
+  quotedText?: string
 }
 
 /**
@@ -62,6 +68,9 @@ export async function dispatchReply(opts: DispatchOptions): Promise<void> {
       ...(opts.messageId ? { messageId: opts.messageId } : {}),
       ...(opts.tokensInput !== undefined ? { tokensInput: opts.tokensInput } : {}),
       ...(opts.tokensOutput !== undefined ? { tokensOutput: opts.tokensOutput } : {}),
+      ...(opts.quotedMessageId ? { quotedMessageId: opts.quotedMessageId } : {}),
+      ...(opts.quotedParticipant ? { quotedParticipant: opts.quotedParticipant } : {}),
+      ...(opts.quotedText ? { quotedText: opts.quotedText } : {}),
     }),
   })
 

@@ -31,7 +31,7 @@ export async function hasCreditHeadroom(agentId: string): Promise<boolean> {
   )
   if (monthlyLimit === -1) return true // enterprise — unlimited
 
-  const { start, end } = getBillingPeriod(billing.subscriptionExpiresAt)
+  const { start, end } = getBillingPeriod(billing.subscriptionExpiresAt, billing.currentPeriodStart)
   const used = await getMonthlyCreditsUsedForUser(billing.userId, start, end)
   if (used < monthlyLimit) return true // plan allowance still has room
   return wallet > 0 // plan exhausted → the wallet must cover the overflow
@@ -50,8 +50,14 @@ export async function chargeAiCredits(opts: {
   credits: number
   messageType: "text" | "image"
   conversationId?: string
+  // What produced the charge, for CreditUsage accounting. Defaults to "ai"
+  // (the AI reply path). Bulk sends pass "broadcast" (plain broadcast) or
+  // "followup" (personalized AI follow-up) so marketing spend is reportable
+  // separately from conversational AI spend.
+  source?: "ai" | "broadcast" | "followup"
 }): Promise<void> {
   const { agentId, credits, messageType, conversationId } = opts
+  const source = opts.source ?? "ai"
   if (credits <= 0) return
 
   const billing = await getAgentBillingInfo(agentId)
@@ -67,7 +73,7 @@ export async function chargeAiCredits(opts: {
   if (subscriptionExpired) {
     const result = await deductFromWallet(billing.userId, credits)
     if (!result.ok) throw new Error("Subscription expired")
-    await insertCreditUsage({ agentId, conversationId, messageType, source: "ai", creditsUsed: credits, billedTo: "wallet" })
+    await insertCreditUsage({ agentId, conversationId, messageType, source, creditsUsed: credits, billedTo: "wallet" })
     return
   }
 
@@ -75,7 +81,7 @@ export async function chargeAiCredits(opts: {
   const monthlyLimit = effectiveCreditLimit(PLAN_CREDIT_LIMITS[billing.plan] ?? PLAN_CREDIT_LIMITS.free, billing.carryoverCredits, billing.carryoverExpiresAt)
   const overageAllowed = allowsOverage(billing.plan)
   if (monthlyLimit !== -1) {
-    const { start, end } = getBillingPeriod(billing.subscriptionExpiresAt)
+    const { start, end } = getBillingPeriod(billing.subscriptionExpiresAt, billing.currentPeriodStart)
     const used = await getMonthlyCreditsUsedForUser(billing.userId, start, end)
     const decision = routeMessageCharge({ creditsToCharge: credits, planLimit: monthlyLimit, used, overageAllowed })
     billedTo = decision.billedTo
@@ -85,7 +91,7 @@ export async function chargeAiCredits(opts: {
     }
   }
 
-  await insertCreditUsage({ agentId, conversationId, messageType, source: "ai", creditsUsed: credits, billedTo })
+  await insertCreditUsage({ agentId, conversationId, messageType, source, creditsUsed: credits, billedTo })
 }
 
 /**
@@ -122,7 +128,7 @@ export async function chargeAiTurn(opts: {
   const monthlyLimit = effectiveCreditLimit(PLAN_CREDIT_LIMITS[billing.plan] ?? PLAN_CREDIT_LIMITS.free, billing.carryoverCredits, billing.carryoverExpiresAt)
   const overageAllowed = allowsOverage(billing.plan)
   if (monthlyLimit !== -1) {
-    const { start, end } = getBillingPeriod(billing.subscriptionExpiresAt)
+    const { start, end } = getBillingPeriod(billing.subscriptionExpiresAt, billing.currentPeriodStart)
     const used = await getMonthlyCreditsUsedForUser(billing.userId, start, end)
     const decision = routeMessageCharge({ creditsToCharge: credits, planLimit: monthlyLimit, used, overageAllowed })
     billedTo = decision.billedTo

@@ -47,7 +47,7 @@ interface OrchestratorConversation {
   contactName: string | null
   mode: string
   aiLocked?: boolean
-  channel?: "whatsapp" | "embed"
+  channel?: "whatsapp" | "embed" | "whatsapp_group"
   visitorId?: string | null
   lastActivityAt: string
   createdAt: string
@@ -83,6 +83,10 @@ function isEmbed(c: OrchestratorConversation): boolean {
   return c.channel === "embed"
 }
 
+function isGroup(c: OrchestratorConversation): boolean {
+  return c.channel === "whatsapp_group"
+}
+
 // Short, stable label for embed visitors who haven't identified themselves.
 // Shows the last 6 chars of the visitorId so the operator can at least
 // distinguish two anonymous visitors from each other.
@@ -98,6 +102,7 @@ interface Message {
   senderRole: "ai" | "human"
   content: string
   mediaUrl: string | null
+  senderName: string | null
   createdAt: string
 }
 
@@ -165,6 +170,7 @@ function formatPhone(raw: string) {
 
 function displayName(conv: OrchestratorConversation) {
   if (isEmbed(conv)) return embedLabel(conv)
+  if (isGroup(conv)) return conv.contactName?.trim() || "WhatsApp group"
   return conv.contactName?.trim() || "Unknown Contact"
 }
 
@@ -759,6 +765,8 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
                 <div className={styles.phoneSecondary}>
                   {isEmbed(conv)
                     ? <><span className={styles.channelTag}>🌐 Web</span> {conv.contactName ? embedLabel(conv) : ""}</>
+                    : isGroup(conv)
+                    ? <span className={styles.channelTag}>👥 Group</span>
                     : isLid(displayPhone(conv))
                       ? `ID: ${displayPhone(conv).replace(/@.*$/, "")}`
                       : formatPhone(displayPhone(conv))}
@@ -971,6 +979,9 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
                 >
                   {msg.direction === "outbound" && msg.senderRole === "human" && (
                     <div className={styles.bubbleSenderTag}>Human</div>
+                  )}
+                  {msg.direction === "inbound" && msg.senderName && (
+                    <div className={styles.bubbleSenderTag}>{msg.senderName}</div>
                   )}
                   <div className={styles.bubbleContent}>
                     {msg.mediaUrl && (
