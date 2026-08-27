@@ -16,7 +16,7 @@ const adContextSchema = z.object({
   capturedAt: z.string(),
 })
 
-const inboundSchema = z.object({
+export const inboundSchema = z.object({
   agentId: z.string().min(1),
   messageId: z.string().min(1),
   fromPhone: z.string().min(1),
@@ -46,7 +46,7 @@ export async function inboundRoutes(app: FastifyInstance) {
       return reply.code(400).send({ error: "Invalid payload", details: parsed.error.flatten() })
     }
 
-    const { agentId, messageId, fromPhone, senderJid, text, timestamp, pushName, adContext, channel, visitorId, imageDataUrl } = parsed.data
+    const { agentId, messageId, fromPhone, senderJid, text, timestamp, pushName, adContext, channel, visitorId, imageDataUrl, groupJid, senderName } = parsed.data
 
     // Dedup check
     if (await isDuplicate(messageId)) {
@@ -61,7 +61,11 @@ export async function inboundRoutes(app: FastifyInstance) {
     // Dedup on the STABLE phone identity (fromPhone), not senderJid — the same
     // message can arrive under both a @lid and a phone jid (WhatsApp LID
     // migration), which would otherwise leak past and cause a duplicate reply.
-    if (channel !== "embed" && (await isDuplicateContent(agentId, fromPhone, text))) {
+    // In a group, fromPhone is the GROUP, so two members sending the same short
+    // text ("hi") inside the replay window would dedup against each other and
+    // the second person would be silently ignored. Key on the participant too.
+    const dedupSender = channel === "whatsapp_group" ? `${fromPhone}:${senderJid}` : fromPhone
+    if (channel !== "embed" && (await isDuplicateContent(agentId, dedupSender, text))) {
       logger.info({ agentId, fromPhone, messageId }, "Duplicate content within replay window — skipping")
       return reply.code(200).send({ status: "duplicate" })
     }
@@ -79,6 +83,11 @@ export async function inboundRoutes(app: FastifyInstance) {
       channel,
       visitorId,
       imageDataUrl,
+      // Group replies are addressed to the GROUP. Dropping groupJid here makes
+      // the dispatcher fall back to the participant's JID, which DMs the person
+      // who tagged us instead of answering in the room.
+      groupJid,
+      senderName,
     })
 
     logger.info({ agentId, fromPhone, messageId }, "Inbound message enqueued")
