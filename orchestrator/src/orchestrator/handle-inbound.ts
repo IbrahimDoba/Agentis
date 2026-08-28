@@ -15,6 +15,7 @@ import { buildRichContent } from "./rich-content.js"
 import { publishSseEvent } from "../lib/sse-publish.js"
 import { uploadFile } from "../storage/r2.js"
 import { stripImageUrls } from "../lib/strip-image-urls.js"
+import { detachUrlPunctuation } from "../lib/detach-url-punctuation.js"
 import { runAgentTurn } from "./run-agent-turn.js"
 import { guardReply } from "./reply-guard.js"
 import { isChatTaggingEnabled, chatHasAiDisabledLabel } from "../db/queries/labels.js"
@@ -429,7 +430,7 @@ async function generateReply(agent: OrchestratorAgent, conversation: Conversatio
   // Output shaping — rewrite any markdown the model emitted into WhatsApp's own
   // formatting (**bold** → *bold*, headings, etc.), convert markdown links to
   // plain URLs, then split long replies into multiple messages.
-  const replyParts = splitReply(sanitizeWhatsAppLinks(sanitizeWhatsAppFormatting(stripImageUrls(effectiveReply))))
+  const replyParts = splitReply(detachUrlPunctuation(sanitizeWhatsAppLinks(sanitizeWhatsAppFormatting(stripImageUrls(effectiveReply)))))
 
   // Build structured payload (product cards etc.) from the tool results captured
   // during the LLM loop. Attaches only to the first part so the cards don't

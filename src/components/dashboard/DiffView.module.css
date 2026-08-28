@@ -1,0 +1,77 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.summary {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.hunk {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg, 10px);
+  overflow: hidden;
+  background: var(--bg-card);
+}
+
+.hunkHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.45rem 0.7rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.78rem;
+}
+
+.note {
+  font-weight: 600;
+}
+
+.line {
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* Long prompt lines scroll inside the hunk rather than stretching the page. */
+.body {
+  margin: 0;
+  padding: 0.6rem 0.7rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-x: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.context {
+  color: var(--text-muted);
+  opacity: 0.75;
+}
+
+.removedLine {
+  background: color-mix(in srgb, #d92d20 12%, transparent);
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, #d92d20 60%, transparent);
+}
+
+.addedLine {
+  background: color-mix(in srgb, #12b76a 14%, transparent);
+}
+
+.removedWord {
+  background: color-mix(in srgb, #d92d20 28%, transparent);
+  border-radius: 2px;
+}
+
+.addedWord {
+  background: color-mix(in srgb, #12b76a 32%, transparent);
+  border-radius: 2px;
+  font-weight: 600;
+}

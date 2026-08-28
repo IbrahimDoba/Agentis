@@ -54,6 +54,10 @@ export interface OutboundJob {
   // send is aborted (human replied first), the worker deletes this row so the
   // dashboard doesn't show a message the customer never received.
   messageId?: string
+  // A time-triggered send (appointment reminder), not a reply racing an
+  // operator. Exempt from the human-interjection abort below: an operator having
+  // taken the chat over is exactly when the customer still needs the reminder.
+  scheduledReminder?: boolean
   // PAYG: real OpenAI token counts from the orchestrator's chat completion.
   // Only carried on the FIRST part of a split reply; subsequent parts pass 0
   // so we don't double-charge the same LLM turn. When absent (broadcasts,
@@ -81,7 +85,7 @@ const queue = new Queue<OutboundJob>(QUEUE_NAME, {
 const worker = new Worker<OutboundJob>(
   QUEUE_NAME,
   async (job: Job<OutboundJob>) => {
-    const { agentId, toJid, text, mediaUrl, type, mediaMimeType, mediaFileName, conversationId, source, messageId, tokensInput, tokensOutput } = job.data
+    const { agentId, toJid, text, mediaUrl, type, mediaMimeType, mediaFileName, conversationId, source, messageId, tokensInput, tokensOutput, scheduledReminder } = job.data
 
     // Only the leader instance holds WhatsApp sockets. A standby has no session
     // for this agent — if it processed the job it would grab the per-agent lock
@@ -155,7 +159,9 @@ const worker = new Worker<OutboundJob>(
     // was switched to human mode), this AI reply is a stale double-answer:
     // drop it — no send, no rate-limit slot, no billing — and delete the
     // orchestrator-persisted row so the dashboard matches what WhatsApp got.
-    if (source === "ai" && conversationId) {
+    // Scheduled reminders opt out: they aren't answering anything, so an
+    // operator-held chat must not silence them.
+    if (source === "ai" && conversationId && !scheduledReminder) {
       const intervened = await humanIntervenedSince(conversationId, new Date(job.timestamp))
       if (intervened) {
         logger.info({ agentId, conversationId, messageId }, "Human replied first — aborting queued AI reply")

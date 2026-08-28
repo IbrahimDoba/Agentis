@@ -10,7 +10,7 @@ import {
   isGroupChatEnabled,
   recordGroupActivity,
 } from "../db/queries.js"
-import { isAddressedToUs } from "./group-mention.js"
+import { isAddressedToUs, resolveSelfJids, addressingDebug } from "./group-mention.js"
 import { transcribeVoiceNote } from "../voice/transcribe.js"
 import { creditsForVoice } from "../billing/credits.js"
 import { wasSentByUs } from "./sent-message-cache.js"
@@ -193,7 +193,15 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
         })
         groupReplyMode = group?.replyMode ?? "mention"
         if (groupReplyMode === "off") continue
-        if (!isAddressedToUs(msg, [sock.user?.id, (sock.user as { lid?: string } | undefined)?.lid], wasSentByUs)) {
+        const selfJids = await resolveSelfJids(sock)
+        if (!isAddressedToUs(msg, selfJids, wasSentByUs)) {
+          // Logged at info, not debug: a silent drop here is indistinguishable
+          // from a broken bot, and the mentionedJid form is the only way to tell
+          // "nobody tagged us" apart from "we failed to recognise our own id".
+          logger.info(
+            { agentId, groupJid, selfJids, ...addressingDebug(msg) },
+            "Group message not addressed to us — ignoring"
+          )
           continue
         }
         logger.info({ agentId, groupJid, participantJid }, "Addressed in group")

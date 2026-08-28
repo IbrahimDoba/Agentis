@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest"
 import type { WAMessage } from "@whiskeysockets/baileys"
-import { isAddressedToUs, bareUser } from "./group-mention.js"
+import { isAddressedToUs, bareUser, resolveSelfJids, addressingDebug } from "./group-mention.js"
 
 const SELF_PN = "2348031234567:12@s.whatsapp.net"
 const SELF_LID = "98765432109876@lid"
@@ -77,5 +77,52 @@ describe("isAddressedToUs", () => {
       message: { imageMessage: { caption: "look", contextInfo: { mentionedJid: [SELF_LID] } } },
     } as unknown as WAMessage
     expect(isAddressedToUs(msg, SELF, never)).toBe(true)
+  })
+})
+
+describe("resolveSelfJids", () => {
+  // The prod failure: sock.user.lid was absent, the group tagged us by LID, and
+  // the mention never matched — the bot ignored everyone with nothing in the log.
+  it("resolves our LID from the signal mapping when sock.user.lid is missing", async () => {
+    const sock = {
+      user: { id: "2348149113328:7@s.whatsapp.net" },
+      signalRepository: {
+        lidMapping: {
+          getLIDForPN: async (pn: string) =>
+            pn === "2348149113328@s.whatsapp.net" ? "98765432109876@lid" : null,
+        },
+      },
+    } as never
+
+    const jids = await resolveSelfJids(sock)
+    expect(jids).toContain("98765432109876@lid")
+
+    const tagged = {
+      key: { remoteJid: "120363043211234567@g.us", id: "X", fromMe: false },
+      message: { extendedTextMessage: { text: "hi", contextInfo: { mentionedJid: ["98765432109876@lid"] } } },
+    } as never
+    expect(isAddressedToUs(tagged, jids, () => false)).toBe(true)
+  })
+
+  it("survives a socket with no mapping available", async () => {
+    const sock = { user: { id: "2348149113328:7@s.whatsapp.net" } } as never
+    expect(await resolveSelfJids(sock)).toEqual(["2348149113328:7@s.whatsapp.net"])
+  })
+
+  it("does not cache an empty result", async () => {
+    const sock = { user: undefined } as never
+    expect(await resolveSelfJids(sock)).toEqual([])
+    ;(sock as { user?: unknown }).user = { id: "234@s.whatsapp.net" }
+    expect(await resolveSelfJids(sock)).toEqual(["234@s.whatsapp.net"])
+  })
+})
+
+describe("addressingDebug", () => {
+  it("surfaces the mention fields a drop was based on", () => {
+    const msg = {
+      key: { remoteJid: "120363043211234567@g.us", id: "X", fromMe: false },
+      message: { extendedTextMessage: { text: "hi", contextInfo: { mentionedJid: ["999@lid"] } } },
+    } as never
+    expect(addressingDebug(msg)).toMatchObject({ mentionedJid: ["999@lid"] })
   })
 })
