@@ -1,5 +1,6 @@
 import OpenAI from "openai"
 import { db } from "@/lib/db"
+import { writeAgentPromptField } from "@/lib/agentPromptWrite"
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
@@ -265,9 +266,14 @@ export async function activateAutoConfigDraft(agentId: string): Promise<void> {
     data: {
       // Only fill businessDescription if still empty (don't clobber dashboard edits)
       businessDescription: agent.businessDescription || draft.description,
-      responseGuidelines: combinedGuidelines,
       productsData: productsData as unknown as object,
       autoConfigStatus: "activated",
     },
   })
+
+  // responseGuidelines goes through the shared writer so OrchestratorAgent
+  // .systemPrompt is updated with it. Writing the column directly here meant an
+  // activated draft never reached the running agent until someone happened to
+  // re-save the Configuration tab.
+  await writeAgentPromptField(agentId, "responseGuidelines", combinedGuidelines)
 }
