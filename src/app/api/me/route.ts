@@ -44,6 +44,7 @@ export async function GET() {
       developerModeEnabled: user.developerModeEnabled,
       metaEnabled: user.metaEnabled,
       leadNotificationsEnabled: user.leadNotificationsEnabled,
+      handoffEmailsEnabled: user.handoffEmailsEnabled,
       appointmentReminder1Minutes: user.appointmentReminder1Minutes,
       appointmentReminder2Minutes: user.appointmentReminder2Minutes,
       hasPassword: Boolean(user.passwordHash),
@@ -95,13 +96,22 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ developerModeEnabled: user.developerModeEnabled })
   }
 
-  // Lead & handoff email alerts toggle — same single-boolean patch shape.
+  // Lead email alerts toggle — same single-boolean patch shape.
   if (typeof body.leadNotificationsEnabled === "boolean" && Object.keys(body).length === 1) {
     const user = await db.user.update({
       where: { id: session.user.id },
       data: { leadNotificationsEnabled: body.leadNotificationsEnabled },
     })
     return NextResponse.json({ leadNotificationsEnabled: user.leadNotificationsEnabled })
+  }
+
+  // Handoff email alerts toggle — independent of lead alerts.
+  if (typeof body.handoffEmailsEnabled === "boolean" && Object.keys(body).length === 1) {
+    const user = await db.user.update({
+      where: { id: session.user.id },
+      data: { handoffEmailsEnabled: body.handoffEmailsEnabled },
+    })
+    return NextResponse.json({ handoffEmailsEnabled: user.handoffEmailsEnabled })
   }
 
   // Default appointment-reminder lead times (minutes before the appointment).

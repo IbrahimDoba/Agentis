@@ -35,6 +35,16 @@ const notifiableUserWhere: Prisma.UserWhereInput = {
   ],
 }
 
+// Same paying-customer rule, but gated on the SEPARATE handoff toggle so an
+// owner can silence handoff emails without losing lead alerts / digests.
+const handoffNotifiableUserWhere: Prisma.UserWhereInput = {
+  handoffEmailsEnabled: true,
+  OR: [
+    { plan: { not: "free" } },
+    { creditBalance: { gt: 0 } },
+  ],
+}
+
 // ---------------------------------------------------------------------------
 // Pure helpers (unit-tested in lead-notifications-job.test.ts)
 // ---------------------------------------------------------------------------
@@ -139,7 +149,7 @@ export async function runInstantNotifications(now: Date = new Date()): Promise<I
     where: {
       handoffAt: { gte: since },
       handoffNotifiedAt: null,
-      agent: { user: notifiableUserWhere },
+      agent: { user: handoffNotifiableUserWhere },
     },
     select: {
       id: true,

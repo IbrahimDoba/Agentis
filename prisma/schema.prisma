@@ -91,6 +91,10 @@ model User {
   // Opt-in (default ON) for the account owner's lead/handoff email alerts and
   // the daily/weekly activity digests. See src/lib/lead-notifications-job.ts.
   leadNotificationsEnabled Boolean @default(true)
+  // Opt-in (default ON) for handoff-request email alerts specifically — split
+  // from leadNotificationsEnabled so owners can toggle handoff emails on their
+  // own. Existing rows backfill to their leadNotificationsEnabled value.
+  handoffEmailsEnabled Boolean @default(true)
   // Account-wide defaults for appointment reminders (lead minutes before the
   // appointment). Every new Appointment copies these; each one is then editable
   // per-appointment. Reminder 2 can be disabled per-appointment (null). See

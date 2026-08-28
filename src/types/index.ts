@@ -26,6 +26,7 @@ export interface UserPublic {
   developerModeEnabled?: boolean
   metaEnabled?: boolean
   leadNotificationsEnabled?: boolean
+  handoffEmailsEnabled?: boolean
   appointmentReminder1Minutes?: number
   appointmentReminder2Minutes?: number | null
   hasPassword?: boolean

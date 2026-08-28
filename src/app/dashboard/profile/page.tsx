@@ -45,6 +45,8 @@ export default function ProfilePage() {
 
   const [leadNotificationsEnabled, setLeadNotificationsEnabled] = useState(true)
   const [togglingLeadNotifications, setTogglingLeadNotifications] = useState(false)
+  const [handoffEmailsEnabled, setHandoffEmailsEnabled] = useState(true)
+  const [togglingHandoffEmails, setTogglingHandoffEmails] = useState(false)
 
   const [messagingEnabled, setMessagingEnabled] = useState(true)
   const [togglingMessaging, setTogglingMessaging] = useState(false)
@@ -76,6 +78,7 @@ export default function ProfilePage() {
       setReferralsEnabled(data.user.referralsEnabled ?? false)
       setDeveloperModeEnabled(data.user.developerModeEnabled ?? false)
       setLeadNotificationsEnabled(data.user.leadNotificationsEnabled ?? true)
+      setHandoffEmailsEnabled(data.user.handoffEmailsEnabled ?? true)
     }
   }, [data?.user])
 
@@ -182,6 +185,23 @@ export default function ProfilePage() {
       setLeadNotificationsEnabled(!enabled) // revert on failure
     } finally {
       setTogglingLeadNotifications(false)
+    }
+  }
+
+  const handleToggleHandoffEmails = async (enabled: boolean) => {
+    setHandoffEmailsEnabled(enabled)
+    setTogglingHandoffEmails(true)
+    try {
+      await fetch("/api/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ handoffEmailsEnabled: enabled }),
+      })
+      queryClient.invalidateQueries({ queryKey: ["me"] })
+    } catch {
+      setHandoffEmailsEnabled(!enabled) // revert on failure
+    } finally {
+      setTogglingHandoffEmails(false)
     }
   }
 
@@ -595,21 +615,21 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Lead & handoff email alerts */}
+        {/* Email notification toggles */}
         <div className={styles.section}>
           <div className={styles.sectionHeader}>
             <div className={styles.sectionTitle}>Email notifications</div>
-            <div className={styles.sectionDesc}>Get emailed when your agents bring in a hot lead or need a human — plus daily & weekly summaries.</div>
+            <div className={styles.sectionDesc}>Get emailed about hot leads, handoff requests, and daily &amp; weekly summaries.</div>
           </div>
           <div className={styles.toggleRow}>
             <div className={styles.toggleInfo}>
               <div className={styles.toggleLabel}>
-                {leadNotificationsEnabled ? "Lead & handoff alerts on" : "Lead & handoff alerts off"}
+                {leadNotificationsEnabled ? "Lead alerts on" : "Lead alerts off"}
               </div>
               <div className={styles.toggleDesc}>
                 {leadNotificationsEnabled
-                  ? "We email you the moment a qualified lead comes in or a chat needs a human, and send daily & weekly activity summaries."
-                  : "Turn this on to get emailed about qualified leads and handoffs, plus daily & weekly summaries."}
+                  ? "We email you when a qualified lead comes in, plus daily & weekly activity summaries."
+                  : "Turn this on to get emailed about qualified leads, plus daily & weekly summaries."}
               </div>
             </div>
             <label className={styles.toggle}>
@@ -618,6 +638,27 @@ export default function ProfilePage() {
                 checked={leadNotificationsEnabled}
                 disabled={togglingLeadNotifications}
                 onChange={(e) => handleToggleLeadNotifications(e.target.checked)}
+              />
+              <span className={styles.toggleTrack} />
+            </label>
+          </div>
+          <div className={styles.toggleRow}>
+            <div className={styles.toggleInfo}>
+              <div className={styles.toggleLabel}>
+                {handoffEmailsEnabled ? "Handoff alerts on" : "Handoff alerts off"}
+              </div>
+              <div className={styles.toggleDesc}>
+                {handoffEmailsEnabled
+                  ? "We email you the moment one of your chats is handed off to a human."
+                  : "Turn this on to get emailed when a chat needs a human to step in."}
+              </div>
+            </div>
+            <label className={styles.toggle}>
+              <input
+                type="checkbox"
+                checked={handoffEmailsEnabled}
+                disabled={togglingHandoffEmails}
+                onChange={(e) => handleToggleHandoffEmails(e.target.checked)}
               />
               <span className={styles.toggleTrack} />
             </label>
