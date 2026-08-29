@@ -178,6 +178,25 @@ Two tools are available for situations the AI shouldn't handle alone:
 
 Do NOT use either tool for routine questions you can answer from your system prompt or knowledge base. Try answering first. Only escalate when one of the above conditions is actually met.`)
 
+  // Per-agent overrides — when the owner has defined their own rules for WHEN a
+  // chat is a qualified lead / needs a human, those take precedence over the
+  // generic conditions above.
+  const leadRule = agent.leadCriteria?.trim()
+  const handoffRule = agent.handoffCriteria?.trim()
+  if (leadRule || handoffRule) {
+    const lines: string[] = [
+      "## THIS business's own lead & handoff rules (these OVERRIDE the generic conditions above)",
+    ]
+    if (handoffRule) {
+      lines.push(`\nCall **request_human_handoff** ONLY when: ${handoffRule}`)
+    }
+    if (leadRule) {
+      lines.push(`\nCall **mark_qualified_lead** ONLY when: ${leadRule}`)
+    }
+    lines.push(`\nWhere these business-specific rules differ from the generic list above, FOLLOW THESE. Do not qualify a lead or hand off on weaker signals than described here.`)
+    sections.push(lines.join("\n"))
+  }
+
   // Platform-level tool-use discipline. Applies to every agent, every call.
   // This addresses gpt-4o-mini's tendency to (1) quote stale prices/data
   // from earlier in the conversation instead of re-calling tools, (2) invent

@@ -27,6 +27,8 @@ export interface UserPublic {
   metaEnabled?: boolean
   leadNotificationsEnabled?: boolean
   handoffEmailsEnabled?: boolean
+  whatsappNotificationsEnabled?: boolean
+  notifyWhatsappNumber?: string | null
   appointmentReminder1Minutes?: number
   appointmentReminder2Minutes?: number | null
   hasPassword?: boolean
@@ -114,6 +116,8 @@ export interface AgentPublic {
   productsData?: Product[] | null
   productAlbumEnabled?: boolean
   productAlbumTitle?: string | null
+  leadCriteria?: string | null
+  handoffCriteria?: string | null
   toolsData?: AgentTool[] | null
   status: AgentStatus
   createdAt: string

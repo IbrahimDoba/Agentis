@@ -12,6 +12,10 @@ export interface OrchestratorAgent {
   shortTermWindow: number
   summarizeAfter: number
   isActive: boolean
+  // Owner-defined free-text overrides (on the parent Agent row) for WHEN to
+  // qualify a lead / hand off. Null = use the platform defaults.
+  leadCriteria: string | null
+  handoffCriteria: string | null
 }
 
 export interface AgentWithRuntime {
@@ -61,11 +65,13 @@ export async function getAgentRuntime(agentId: string): Promise<AgentWithRuntime
 
 export async function getOrchestratorAgent(agentId: string): Promise<OrchestratorAgent | null> {
   const rows = await sql<OrchestratorAgent[]>`
-    SELECT "id", "agentId", "name", "systemPrompt", "personality",
-           "model", "temperature", "maxOutputTokens", "shortTermWindow",
-           "summarizeAfter", "isActive"
-    FROM "OrchestratorAgent"
-    WHERE "agentId" = ${agentId}
+    SELECT o."id", o."agentId", o."name", o."systemPrompt", o."personality",
+           o."model", o."temperature", o."maxOutputTokens", o."shortTermWindow",
+           o."summarizeAfter", o."isActive",
+           a."leadCriteria", a."handoffCriteria"
+    FROM "OrchestratorAgent" o
+    JOIN "Agent" a ON a."id" = o."agentId"
+    WHERE o."agentId" = ${agentId}
     LIMIT 1
   `
   return rows[0] ?? null

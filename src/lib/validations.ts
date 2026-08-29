@@ -47,6 +47,7 @@ export const signupSchema = z.object({
 export const profileUpdateSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   phone: z.string().min(7, "Invalid phone number").optional().or(z.literal("")),
+  notifyWhatsappNumber: z.string().min(7, "Invalid WhatsApp number").optional().or(z.literal("")),
   businessName: z.string().min(2, "Business name required"),
   businessCategory: z.string().optional(),
   businessDescription: z.string().max(512, "Max 512 characters").optional(),
@@ -87,6 +88,8 @@ export const agentSchema = z.object({
   replyGuardEnabled: z.boolean().optional(),
   productAlbumEnabled: z.boolean().optional(),
   productAlbumTitle: z.string().max(700).optional(),
+  leadCriteria: z.string().max(2000).optional(),
+  handoffCriteria: z.string().max(2000).optional(),
   chatTaggingEnabled: z.boolean().optional(),
   backgroundTaggingEnabled: z.boolean().optional(),
   autoPauseOnHumanReply: z.boolean().optional(),

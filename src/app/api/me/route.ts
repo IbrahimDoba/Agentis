@@ -45,6 +45,8 @@ export async function GET() {
       metaEnabled: user.metaEnabled,
       leadNotificationsEnabled: user.leadNotificationsEnabled,
       handoffEmailsEnabled: user.handoffEmailsEnabled,
+      whatsappNotificationsEnabled: user.whatsappNotificationsEnabled,
+      notifyWhatsappNumber: user.notifyWhatsappNumber ?? null,
       appointmentReminder1Minutes: user.appointmentReminder1Minutes,
       appointmentReminder2Minutes: user.appointmentReminder2Minutes,
       hasPassword: Boolean(user.passwordHash),
@@ -114,6 +116,15 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ handoffEmailsEnabled: user.handoffEmailsEnabled })
   }
 
+  // Owner WhatsApp lead/handoff alerts toggle — independent of the email toggles.
+  if (typeof body.whatsappNotificationsEnabled === "boolean" && Object.keys(body).length === 1) {
+    const user = await db.user.update({
+      where: { id: session.user.id },
+      data: { whatsappNotificationsEnabled: body.whatsappNotificationsEnabled },
+    })
+    return NextResponse.json({ whatsappNotificationsEnabled: user.whatsappNotificationsEnabled })
+  }
+
   // Default appointment-reminder lead times (minutes before the appointment).
   // 1..10080 min (up to a week); reminder 2 may be null to default new
   // appointments to a single reminder. Each field is patched independently.
@@ -154,6 +165,7 @@ export async function PATCH(req: NextRequest) {
   const {
     name,
     phone,
+    notifyWhatsappNumber,
     businessName,
     businessCategory,
     businessDescription,
@@ -167,6 +179,7 @@ export async function PATCH(req: NextRequest) {
     data: {
       name,
       phone: phone || null,
+      notifyWhatsappNumber: notifyWhatsappNumber || null,
       businessName,
       businessCategory: businessCategory || null,
       businessDescription: businessDescription || null,
@@ -181,6 +194,7 @@ export async function PATCH(req: NextRequest) {
     name: user.name,
     email: user.email,
     phone: user.phone ?? null,
+    notifyWhatsappNumber: user.notifyWhatsappNumber ?? null,
     businessName: user.businessName,
     role: user.role,
     status: user.status,

@@ -8,6 +8,7 @@ import {
   sendActivityDigestEmail,
   type EmailBrand,
 } from "@/lib/email"
+import { sendLeadWhatsapp, sendHandoffWhatsapp } from "@/lib/lead-whatsapp"
 
 // The instant poller only looks back this far, so a first run (or a run after
 // downtime) can never blast a backlog of old leads/handoffs as if they were
@@ -35,14 +36,41 @@ const notifiableUserWhere: Prisma.UserWhereInput = {
   ],
 }
 
-// Same paying-customer rule, but gated on the SEPARATE handoff toggle so an
-// owner can silence handoff emails without losing lead alerts / digests.
-const handoffNotifiableUserWhere: Prisma.UserWhereInput = {
-  handoffEmailsEnabled: true,
-  OR: [
-    { plan: { not: "free" } },
-    { creditBalance: { gt: 0 } },
+// Paying-customer requirement, shared by the instant channel wheres below.
+const payingUserOr: Prisma.UserWhereInput["OR"] = [
+  { plan: { not: "free" } },
+  { creditBalance: { gt: 0 } },
+]
+
+// Instant LEAD alerts fire if EITHER channel is on (email lead alerts OR the
+// account-wide WhatsApp toggle). Which channel actually sends is decided
+// per-owner inside the loop.
+const leadInstantWhere: Prisma.UserWhereInput = {
+  AND: [
+    { OR: [{ leadNotificationsEnabled: true }, { whatsappNotificationsEnabled: true }] },
+    { OR: payingUserOr },
   ],
+}
+
+// Instant HANDOFF alerts fire if the handoff-email toggle OR WhatsApp is on.
+const handoffInstantWhere: Prisma.UserWhereInput = {
+  AND: [
+    { OR: [{ handoffEmailsEnabled: true }, { whatsappNotificationsEnabled: true }] },
+    { OR: payingUserOr },
+  ],
+}
+
+// A lead's/handoff's own agent session can WhatsApp the owner only when it's
+// connected and the notify number isn't the session's own number (a number
+// can't message itself). Falls back to email (if that channel is on) otherwise.
+function canWhatsappVia(
+  session: { status: string; phoneNumber: string | null } | null | undefined,
+  notifyNumber: string,
+): boolean {
+  if (!session || session.status !== "CONNECTED") return false
+  const digits = (v: string) => v.replace(/\D/g, "")
+  if (session.phoneNumber && digits(session.phoneNumber) === digits(notifyNumber)) return false
+  return true
 }
 
 // ---------------------------------------------------------------------------
@@ -96,15 +124,27 @@ export async function runInstantNotifications(now: Date = new Date()): Promise<I
       aiDetected: false,
       notifiedAt: null,
       createdAt: { gte: since },
-      user: notifiableUserWhere,
+      user: leadInstantWhere,
     },
     select: {
       id: true,
       callerNumber: true,
       summary: true,
       conversationId: true,
-      agent: { select: { businessName: true } },
-      user: { select: { name: true, email: true, resellerId: true } },
+      agent: {
+        select: {
+          id: true,
+          businessName: true,
+          baileysSession: { select: { status: true, phoneNumber: true } },
+        },
+      },
+      user: {
+        select: {
+          name: true, email: true, resellerId: true,
+          leadNotificationsEnabled: true,
+          whatsappNotificationsEnabled: true, notifyWhatsappNumber: true,
+        },
+      },
     },
     orderBy: { createdAt: "asc" },
     take: MAX_PER_RUN,
@@ -123,17 +163,31 @@ export async function runInstantNotifications(now: Date = new Date()): Promise<I
 
     await mapWithConcurrency(leads, EMAIL_CONCURRENCY, async (lead) => {
       try {
-        await sendQualifiedLeadEmail(
-          {
-            ownerName: lead.user.name,
-            email: lead.user.email,
+        const owner = lead.user
+        const customerName = nameByConv.get(lead.conversationId) ?? null
+        if (owner.leadNotificationsEnabled) {
+          await sendQualifiedLeadEmail(
+            {
+              ownerName: owner.name,
+              email: owner.email,
+              agentName: lead.agent.businessName,
+              customerName,
+              customerNumber: lead.callerNumber,
+              summary: lead.summary,
+            },
+            brandFor(owner.resellerId),
+          )
+        }
+        if (owner.whatsappNotificationsEnabled && owner.notifyWhatsappNumber && canWhatsappVia(lead.agent.baileysSession, owner.notifyWhatsappNumber)) {
+          await sendLeadWhatsapp({
+            agentId: lead.agent.id,
+            toNumber: owner.notifyWhatsappNumber,
             agentName: lead.agent.businessName,
-            customerName: nameByConv.get(lead.conversationId) ?? null,
+            customerName,
             customerNumber: lead.callerNumber,
             summary: lead.summary,
-          },
-          brandFor(lead.user.resellerId),
-        )
+          })
+        }
         await db.lead.update({ where: { id: lead.id }, data: { notifiedAt: now } })
         summary.leadsSent++
       } catch (err) {
@@ -149,7 +203,7 @@ export async function runInstantNotifications(now: Date = new Date()): Promise<I
     where: {
       handoffAt: { gte: since },
       handoffNotifiedAt: null,
-      agent: { user: handoffNotifiableUserWhere },
+      agent: { user: handoffInstantWhere },
     },
     select: {
       id: true,
@@ -159,8 +213,16 @@ export async function runInstantNotifications(now: Date = new Date()): Promise<I
       handoffUrgency: true,
       agent: {
         select: {
+          id: true,
           businessName: true,
-          user: { select: { name: true, email: true, resellerId: true } },
+          baileysSession: { select: { status: true, phoneNumber: true } },
+          user: {
+            select: {
+              name: true, email: true, resellerId: true,
+              handoffEmailsEnabled: true,
+              whatsappNotificationsEnabled: true, notifyWhatsappNumber: true,
+            },
+          },
         },
       },
     },
@@ -173,18 +235,34 @@ export async function runInstantNotifications(now: Date = new Date()): Promise<I
 
     await mapWithConcurrency(handoffs, EMAIL_CONCURRENCY, async (conv) => {
       try {
-        await sendHandoffRequestEmail(
-          {
-            ownerName: conv.agent.user.name,
-            email: conv.agent.user.email,
+        const owner = conv.agent.user
+        const reason = conv.handoffReason ?? "A customer needs a human."
+        const urgency = conv.handoffUrgency === "high" ? "high" : "normal"
+        if (owner.handoffEmailsEnabled) {
+          await sendHandoffRequestEmail(
+            {
+              ownerName: owner.name,
+              email: owner.email,
+              agentName: conv.agent.businessName,
+              customerName: conv.contactName,
+              customerNumber: conv.phoneNumber,
+              reason,
+              urgency,
+            },
+            brandFor(owner.resellerId),
+          )
+        }
+        if (owner.whatsappNotificationsEnabled && owner.notifyWhatsappNumber && canWhatsappVia(conv.agent.baileysSession, owner.notifyWhatsappNumber)) {
+          await sendHandoffWhatsapp({
+            agentId: conv.agent.id,
+            toNumber: owner.notifyWhatsappNumber,
             agentName: conv.agent.businessName,
             customerName: conv.contactName,
             customerNumber: conv.phoneNumber,
-            reason: conv.handoffReason ?? "A customer needs a human.",
-            urgency: conv.handoffUrgency === "high" ? "high" : "normal",
-          },
-          brandFor(conv.agent.user.resellerId),
-        )
+            reason,
+            urgency,
+          })
+        }
         await db.conversation.update({ where: { id: conv.id }, data: { handoffNotifiedAt: now } })
         summary.handoffsSent++
       } catch (err) {

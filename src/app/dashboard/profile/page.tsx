@@ -47,6 +47,8 @@ export default function ProfilePage() {
   const [togglingLeadNotifications, setTogglingLeadNotifications] = useState(false)
   const [handoffEmailsEnabled, setHandoffEmailsEnabled] = useState(true)
   const [togglingHandoffEmails, setTogglingHandoffEmails] = useState(false)
+  const [whatsappNotificationsEnabled, setWhatsappNotificationsEnabled] = useState(false)
+  const [togglingWhatsapp, setTogglingWhatsapp] = useState(false)
 
   const [messagingEnabled, setMessagingEnabled] = useState(true)
   const [togglingMessaging, setTogglingMessaging] = useState(false)
@@ -55,6 +57,7 @@ export default function ProfilePage() {
   const [form, setForm] = useState({
     name: "",
     phone: "",
+    notifyWhatsappNumber: "",
     businessName: "",
     businessCategory: "",
     businessDescription: "",
@@ -79,6 +82,7 @@ export default function ProfilePage() {
       setDeveloperModeEnabled(data.user.developerModeEnabled ?? false)
       setLeadNotificationsEnabled(data.user.leadNotificationsEnabled ?? true)
       setHandoffEmailsEnabled(data.user.handoffEmailsEnabled ?? true)
+      setWhatsappNotificationsEnabled(data.user.whatsappNotificationsEnabled ?? false)
     }
   }, [data?.user])
 
@@ -94,6 +98,7 @@ export default function ProfilePage() {
       setForm({
         name: u.name ?? "",
         phone: u.phone ?? "",
+        notifyWhatsappNumber: u.notifyWhatsappNumber ?? "",
         businessName: u.businessName ?? "",
         businessCategory: u.businessCategory ?? "",
         businessDescription: u.businessDescription ?? "",
@@ -202,6 +207,23 @@ export default function ProfilePage() {
       setHandoffEmailsEnabled(!enabled) // revert on failure
     } finally {
       setTogglingHandoffEmails(false)
+    }
+  }
+
+  const handleToggleWhatsapp = async (enabled: boolean) => {
+    setWhatsappNotificationsEnabled(enabled)
+    setTogglingWhatsapp(true)
+    try {
+      await fetch("/api/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ whatsappNotificationsEnabled: enabled }),
+      })
+      queryClient.invalidateQueries({ queryKey: ["me"] })
+    } catch {
+      setWhatsappNotificationsEnabled(!enabled) // revert on failure
+    } finally {
+      setTogglingWhatsapp(false)
     }
   }
 
@@ -662,6 +684,49 @@ export default function ProfilePage() {
               />
               <span className={styles.toggleTrack} />
             </label>
+          </div>
+        </div>
+
+        {/* WhatsApp notifications */}
+        <div className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <div className={styles.sectionTitle}>WhatsApp notifications</div>
+            <div className={styles.sectionDesc}>Also get lead &amp; handoff alerts as a WhatsApp message on your own number, sent from your agent&apos;s WhatsApp.</div>
+          </div>
+          <div className={styles.toggleRow}>
+            <div className={styles.toggleInfo}>
+              <div className={styles.toggleLabel}>
+                {whatsappNotificationsEnabled ? "WhatsApp alerts on" : "WhatsApp alerts off"}
+              </div>
+              <div className={styles.toggleDesc}>
+                {whatsappNotificationsEnabled
+                  ? "We WhatsApp the number below when a new lead comes in or a chat needs a human."
+                  : "Turn this on to also receive leads & handoffs on WhatsApp (independent of email)."}
+              </div>
+            </div>
+            <label className={styles.toggle}>
+              <input
+                type="checkbox"
+                checked={whatsappNotificationsEnabled}
+                disabled={togglingWhatsapp}
+                onChange={(e) => handleToggleWhatsapp(e.target.checked)}
+              />
+              <span className={styles.toggleTrack} />
+            </label>
+          </div>
+          <div style={{ marginTop: "1rem" }}>
+            <Input
+              label="Notification WhatsApp number"
+              name="notifyWhatsappNumber"
+              type="tel"
+              placeholder="+234 801 234 5678"
+              value={form.notifyWhatsappNumber}
+              onChange={handleChange}
+              error={errors.notifyWhatsappNumber}
+            />
+            <div className={styles.sectionDesc} style={{ marginTop: "0.4rem" }}>
+              Your own WhatsApp number for alerts. Use a different number than your agent&apos;s business line. Saved with the button below.
+            </div>
           </div>
         </div>
 

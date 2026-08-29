@@ -45,11 +45,20 @@ export function AgentForm({ initialData, agentId, onDirtyChange }: AgentFormProp
   const [savedAlbumEnabled, setSavedAlbumEnabled] = useState(initialAlbumEnabled)
   const [savedAlbumTitle, setSavedAlbumTitle] = useState(initialAlbumTitle)
 
+  const initialLeadCriteria = initialData?.leadCriteria ?? ""
+  const initialHandoffCriteria = initialData?.handoffCriteria ?? ""
+  const [leadCriteria, setLeadCriteria] = useState(initialLeadCriteria)
+  const [handoffCriteria, setHandoffCriteria] = useState(initialHandoffCriteria)
+  const [savedLeadCriteria, setSavedLeadCriteria] = useState(initialLeadCriteria)
+  const [savedHandoffCriteria, setSavedHandoffCriteria] = useState(initialHandoffCriteria)
+
   const isDirty =
     systemPrompt !== savedPrompt ||
     JSON.stringify(products) !== JSON.stringify(savedProducts) ||
     productAlbumEnabled !== savedAlbumEnabled ||
-    productAlbumTitle !== savedAlbumTitle
+    productAlbumTitle !== savedAlbumTitle ||
+    leadCriteria !== savedLeadCriteria ||
+    handoffCriteria !== savedHandoffCriteria
 
   useEffect(() => {
     onDirtyChange?.(isDirty)
@@ -126,7 +135,7 @@ export function AgentForm({ initialData, agentId, onDirtyChange }: AgentFormProp
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ responseGuidelines: systemPrompt, productsData: products, productAlbumEnabled, productAlbumTitle }),
+        body: JSON.stringify({ responseGuidelines: systemPrompt, productsData: products, productAlbumEnabled, productAlbumTitle, leadCriteria, handoffCriteria }),
       })
 
       const data = await res.json()
@@ -145,6 +154,8 @@ export function AgentForm({ initialData, agentId, onDirtyChange }: AgentFormProp
       setSavedProducts(nextProducts)
       setSavedAlbumEnabled(productAlbumEnabled)
       setSavedAlbumTitle(productAlbumTitle)
+      setSavedLeadCriteria(leadCriteria)
+      setSavedHandoffCriteria(handoffCriteria)
       queryClient.invalidateQueries({ queryKey: ["me"] })
       if (!agentId) {
         router.push(`/dashboard/agent/${data.id}`)
@@ -213,6 +224,30 @@ export function AgentForm({ initialData, agentId, onDirtyChange }: AgentFormProp
             )}
           </div>
         </div>
+      </div>
+
+      {/* Lead & handoff rules */}
+      <div className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <div className={styles.sectionTitle}>Lead &amp; handoff rules <span className={styles.optional}>(optional)</span></div>
+          <div className={styles.sectionDesc}>In your own words, tell the AI exactly when a chat is a qualified lead and when it should hand off to a human. Leave blank to use the smart defaults.</div>
+        </div>
+        <Textarea
+          label="When is this a qualified lead?"
+          name="leadCriteria"
+          placeholder="e.g. Only when the customer sends a payment screenshot or account number, or clearly says they're ready to pay — not just asking about price."
+          value={leadCriteria}
+          onChange={(e) => setLeadCriteria(e.target.value)}
+          style={{ minHeight: 90, fontSize: 13 }}
+        />
+        <Textarea
+          label="When should it hand off to a human?"
+          name="handoffCriteria"
+          placeholder="e.g. Only for refunds/complaints or when the customer explicitly asks for a person — answer everything else yourself."
+          value={handoffCriteria}
+          onChange={(e) => setHandoffCriteria(e.target.value)}
+          style={{ minHeight: 90, fontSize: 13 }}
+        />
       </div>
 
       {/* Products */}

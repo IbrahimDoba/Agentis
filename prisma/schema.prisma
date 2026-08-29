@@ -95,6 +95,11 @@ model User {
   // from leadNotificationsEnabled so owners can toggle handoff emails on their
   // own. Existing rows backfill to their leadNotificationsEnabled value.
   handoffEmailsEnabled Boolean @default(true)
+  // Opt-in (default OFF) to also receive lead/handoff alerts as a WhatsApp
+  // message on the owner's own number (sent from the relevant agent's session).
+  // Independent of the email toggles above. See src/lib/lead-whatsapp.ts.
+  whatsappNotificationsEnabled Boolean @default(false)
+  notifyWhatsappNumber String?
   // Account-wide defaults for appointment reminders (lead minutes before the
   // appointment). Every new Appointment copies these; each one is then editable
   // per-appointment. Reminder 2 can be disabled per-appointment (null). See
@@ -229,6 +234,11 @@ model Agent {
   autoPauseOnHumanReply Boolean    @default(true)
   pauseOnAiHandoff     Boolean     @default(true)
   pauseOnQualifiedLead Boolean     @default(true)
+  // Owner-defined, free-text criteria for WHEN the AI should treat a chat as a
+  // qualified lead / hand off to a human. When set, these are injected into the
+  // built system prompt (context-builder.ts) to override the generic defaults.
+  leadCriteria         String?
+  handoffCriteria      String?
   // Minutes of inactivity after which a human-mode conversation auto-switches
   // back to AI. null = off (the AI stays paused until a human resumes it).
   autoResumeAiAfterMinutes Int?
