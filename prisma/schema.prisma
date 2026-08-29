@@ -296,6 +296,7 @@ model Agent {
   whatsappLabels       WhatsAppLabel[]
   chatLabels           ChatLabel[]
   groupChats           GroupChat[]
+  promptEdits          PromptEdit[]
   baileysAuthKeys      BaileysAuthKey[]
 
   // Postgres does not auto-index FKs. `userId` is the app's hottest filter
@@ -461,6 +462,38 @@ model GroupChat {
 
   @@unique([agentId, groupJid])
   @@index([agentId])
+}
+
+model PromptEdit {
+  id                String    @id @default(cuid())
+  agentId           String
+  agent             Agent     @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  // Who clicked Apply — the viewer, which may not be the workspace owner.
+  userId            String
+  field             String
+  instruction       String    @db.Text
+  // The verified ops with their resolved offsets, so the history view can
+  // render exactly what changed without recomputing a diff.
+  ops               Json
+  // Full snapshots so a rollback is an exact restore. An inverse splice would
+  // rot the moment someone hand-edits the prompt in the Configuration tab.
+  // Null above SNAPSHOT_MAX (see snapshotTruncated), where ops + hashes are the
+  // fallback.
+  beforeValue       String?   @db.Text
+  afterValue        String?   @db.Text
+  // sha256. Doubles as optimistic concurrency on apply and drift detection on
+  // revert — without it two open tabs silently clobber each other.
+  beforeHash        String
+  afterHash         String
+  snapshotTruncated Boolean   @default(false)
+  model             String
+  promptTokens      Int       @default(0)
+  outputTokens      Int       @default(0)
+  revertedAt        DateTime?
+  revertedBy        String?
+  createdAt         DateTime  @default(now())
+
+  @@index([agentId, createdAt])
 }
 
 model OrchestratorAgent {

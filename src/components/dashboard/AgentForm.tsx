@@ -8,6 +8,8 @@ import { Textarea } from "@/components/ui/Input"
 import Button from "@/components/ui/Button"
 import { ProductsEditor } from "@/components/dashboard/ProductsEditor"
 import { ProductMediaSection } from "@/components/dashboard/ProductMediaSection"
+import { PromptEditPanel } from "@/components/dashboard/PromptEditPanel"
+import { PromptEditHistory } from "@/components/dashboard/PromptEditHistory"
 import { ArrowPathIcon } from "@heroicons/react/24/outline"
 import { useToast } from "@/context/ToastContext"
 import type { AgentPublic, Product } from "@/types"
@@ -173,6 +175,27 @@ export function AgentForm({ initialData, agentId, onDirtyChange }: AgentFormProp
 
       {/* System Prompt */}
       <div className={styles.section}>
+        {agentId && (
+          <PromptEditPanel
+            agentId={agentId}
+            formDirty={isDirty}
+            onApplied={(value) => {
+              // Set BOTH so the form neither goes falsely dirty nor loses the
+              // change: savedPrompt is the dirty-tracking baseline.
+              setSystemPrompt(value)
+              setSavedPrompt(value)
+            }}
+          />
+        )}
+        {agentId && (
+          <PromptEditHistory
+            agentId={agentId}
+            onReverted={(value) => {
+              setSystemPrompt(value)
+              setSavedPrompt(value)
+            }}
+          />
+        )}
         <div className={styles.sectionHeader}>
           <div className={styles.sectionTitle}>System Prompt</div>
           <div className={styles.sectionDesc}>

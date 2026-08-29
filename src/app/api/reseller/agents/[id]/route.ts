@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
+import { writeAgentPromptField } from "@/lib/agentPromptWrite"
 import { getResellerAdminContext } from "@/lib/resellerAdmin"
 
 interface Params { params: Promise<{ id: string }> }
@@ -56,6 +57,15 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
   if (Object.keys(data).length === 0) return NextResponse.json({ error: "Nothing to update" }, { status: 400 })
 
-  await db.agent.update({ where: { id }, data })
+  // responseGuidelines is split out so it goes through the shared writer, which
+  // also updates OrchestratorAgent.systemPrompt. Writing it here directly meant
+  // a reseller's prompt edits never reached the running agent.
+  const { responseGuidelines, ...rest } = data
+  if (Object.keys(rest).length > 0) {
+    await db.agent.update({ where: { id }, data: rest })
+  }
+  if (typeof responseGuidelines === "string") {
+    await writeAgentPromptField(id, "responseGuidelines", responseGuidelines)
+  }
   return NextResponse.json({ ok: true })
 }
