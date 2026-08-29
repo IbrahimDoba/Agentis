@@ -4,6 +4,7 @@ import { mapWithConcurrency } from "@/lib/concurrency"
 import { emailBrandOf } from "@/lib/tenant"
 import { sendAppointmentReminderEmail, sendAppointmentBookedEmail, type EmailBrand } from "@/lib/email"
 import { baileysClient } from "@/lib/baileys-client"
+import { sendAppointmentReminderWhatsapp } from "@/lib/lead-whatsapp"
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
@@ -68,6 +69,17 @@ export function whenLabel(date: Date): string {
   })
 }
 
+// Two phone numbers are the "same line" ignoring formatting (spaces, +, leading
+// zeros, country-code prefix). Used to stop the owner's WhatsApp alert from being
+// addressed to the agent's own business line — a session can't message itself.
+export function sameNumber(a?: string | null, b?: string | null): boolean {
+  const norm = (s?: string | null) => (s ?? "").replace(/\D/g, "").replace(/^0+/, "")
+  const na = norm(a)
+  const nb = norm(b)
+  if (!na || !nb) return false
+  return na === nb || na.endsWith(nb) || nb.endsWith(na)
+}
+
 // ---------------------------------------------------------------------------
 // Recipients — owner + accepted team members, plus each owner's email brand.
 // Shared by the reminder and "booked" scans. One batched query per relation.
@@ -78,7 +90,13 @@ interface Recipient { email: string; name: string | null }
 async function loadRecipients(ownerIds: string[]) {
   const ids = [...new Set(ownerIds)]
   const [owners, members] = await Promise.all([
-    db.user.findMany({ where: { id: { in: ids } }, select: { id: true, name: true, email: true, resellerId: true } }),
+    db.user.findMany({
+      where: { id: { in: ids } },
+      select: {
+        id: true, name: true, email: true, resellerId: true,
+        whatsappNotificationsEnabled: true, notifyWhatsappNumber: true,
+      },
+    }),
     db.workspaceMember.findMany({
       where: { workspaceId: { in: ids }, status: "ACCEPTED" },
       select: { workspaceId: true, email: true, user: { select: { name: true } } },
@@ -172,6 +190,24 @@ Respond ONLY with valid JSON: {"message": "the reminder text"}`
   }
 }
 
+// A manual appointment (booked in the dashboard, not from a chat) has no
+// conversationId, so there's no thread to persist/meter the customer reminder
+// in. Find-or-create the conversation for this agent+number — deduped by the
+// @@unique([agentId, phoneNumber]) — so the reminder threads into (and shows in)
+// the same place any future chat with this customer would.
+async function resolveCustomerConversationId(
+  appt: { conversationId: string | null; agentId: string; customerNumber: string; customerName: string | null },
+): Promise<string> {
+  if (appt.conversationId) return appt.conversationId
+  const convo = await db.conversation.upsert({
+    where: { agentId_phoneNumber: { agentId: appt.agentId, phoneNumber: appt.customerNumber } },
+    update: {},
+    create: { agentId: appt.agentId, phoneNumber: appt.customerNumber, contactName: appt.customerName },
+    select: { id: true },
+  })
+  return convo.id
+}
+
 // Generate → persist → send the customer's WhatsApp reminder. The Message row is
 // written BEFORE the send (carrying its id) so the outbound queue can meter it,
 // pace it, and delete it if a human takes over mid-send — the same contract the
@@ -251,12 +287,15 @@ export interface ReminderSummary {
   emailsSent: number       // individual recipient emails delivered
   waRemindersSent: number  // customer WhatsApp reminders sent into the chat
   waRemindersFailed: number // claimed stages whose WhatsApp nudge never went out
+  ownerWaSent: number      // owner WhatsApp alerts delivered to the notify number
+  ownerWaFailed: number    // owner WhatsApp alerts that couldn't be sent
   errors: Array<{ appointmentId: string; stage: number; message: string }>
 }
 
 export async function runAppointmentReminders(now: Date = new Date()): Promise<ReminderSummary> {
   const summary: ReminderSummary = {
-    remindersSent: 0, emailsSent: 0, waRemindersSent: 0, waRemindersFailed: 0, errors: [],
+    remindersSent: 0, emailsSent: 0, waRemindersSent: 0, waRemindersFailed: 0,
+    ownerWaSent: 0, ownerWaFailed: 0, errors: [],
   }
   const windowEnd = new Date(now.getTime() + MAX_LEAD_WINDOW_MS)
 
@@ -273,7 +312,13 @@ export async function runAppointmentReminders(now: Date = new Date()): Promise<R
       scheduledAt: true,
       reminder1Minutes: true, reminder1SentAt: true,
       reminder2Minutes: true, reminder2SentAt: true,
-      agent: { select: { businessName: true, businessDescription: true } },
+      agent: {
+        select: {
+          businessName: true, businessDescription: true,
+          // Only to self-guard the owner alert against the business's own line.
+          baileysSession: { select: { phoneNumber: true } },
+        },
+      },
     },
     orderBy: { scheduledAt: "asc" },
     take: MAX_PER_RUN,
@@ -346,15 +391,59 @@ export async function runAppointmentReminders(now: Date = new Date()): Promise<R
       })
     }
 
-    // Customer WhatsApp reminder — only for chat-linked appointments. Shares the
-    // stage claim above, so it fires exactly once. Never throws: a failure here
-    // can't undo the email, but it is counted so it doesn't vanish silently.
-    if (appt.conversationId && appt.customerNumber) {
+    // Owner WhatsApp alert — mirrors the reminder email onto the owner's own
+    // number when they've opted in (whatsappNotificationsEnabled + a notify
+    // number). Sent from the agent's session; skipped when that number is the
+    // business line itself, which a session can't message. Shares the stage
+    // claim, so it fires once per stage like the email. Best-effort: counted,
+    // never fatal to the rest of the iteration.
+    const owner = rcpt?.owner
+    if (
+      owner?.whatsappNotificationsEnabled &&
+      owner.notifyWhatsappNumber?.trim() &&
+      !sameNumber(owner.notifyWhatsappNumber, appt.agent.baileysSession?.phoneNumber)
+    ) {
       try {
+        await sendAppointmentReminderWhatsapp({
+          agentId: appt.agentId,
+          toNumber: owner.notifyWhatsappNumber.trim(),
+          agentName: appt.agent.businessName,
+          title: appt.title,
+          whenLabel: whenLabel(appt.scheduledAt),
+          leadLabel: leadLabel(remainingMin),
+          customerName: appt.customerName,
+          customerNumber: appt.customerNumber,
+          notes: appt.notes,
+        })
+        summary.ownerWaSent++
+      } catch (err) {
+        summary.ownerWaFailed++
+        console.error("[appointment-reminders] owner wa failed", { appointmentId: appt.id, stage }, err)
+        summary.errors.push({
+          appointmentId: appt.id,
+          stage,
+          message: err instanceof Error ? err.message : String(err),
+        })
+      }
+    }
+
+    // Customer WhatsApp reminder — for any appointment that carries a customer
+    // number, including a manual (dashboard-booked) one with no chat thread yet:
+    // we find-or-create the conversation so the nudge threads and shows up. Shares
+    // the stage claim above, so it fires exactly once. Never throws: a failure
+    // here can't undo the email, but it is counted so it doesn't vanish silently.
+    if (appt.customerNumber) {
+      try {
+        const conversationId = await resolveCustomerConversationId({
+          conversationId: appt.conversationId,
+          agentId: appt.agentId,
+          customerNumber: appt.customerNumber,
+          customerName: appt.customerName,
+        })
         const sent = await sendWaReminder(
           {
             agentId: appt.agentId,
-            conversationId: appt.conversationId,
+            conversationId,
             customerNumber: appt.customerNumber,
             customerName: appt.customerName,
             title: appt.title,

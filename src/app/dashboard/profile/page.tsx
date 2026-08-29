@@ -691,7 +691,7 @@ export default function ProfilePage() {
         <div className={styles.section}>
           <div className={styles.sectionHeader}>
             <div className={styles.sectionTitle}>WhatsApp notifications</div>
-            <div className={styles.sectionDesc}>Also get lead &amp; handoff alerts as a WhatsApp message on your own number, sent from your agent&apos;s WhatsApp.</div>
+            <div className={styles.sectionDesc}>Also get lead, handoff &amp; appointment-reminder alerts as a WhatsApp message on your own number, sent from your agent&apos;s WhatsApp.</div>
           </div>
           <div className={styles.toggleRow}>
             <div className={styles.toggleInfo}>
@@ -700,8 +700,8 @@ export default function ProfilePage() {
               </div>
               <div className={styles.toggleDesc}>
                 {whatsappNotificationsEnabled
-                  ? "We WhatsApp the number below when a new lead comes in or a chat needs a human."
-                  : "Turn this on to also receive leads & handoffs on WhatsApp (independent of email)."}
+                  ? "We WhatsApp the number below for a new lead, a chat that needs a human, or a due appointment reminder."
+                  : "Turn this on to also receive leads, handoffs & appointment reminders on WhatsApp (independent of email)."}
               </div>
             </div>
             <label className={styles.toggle}>

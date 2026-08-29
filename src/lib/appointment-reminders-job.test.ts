@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { dueStages, leadLabel, type ReminderRow } from "./appointment-reminders-job"
+import { dueStages, leadLabel, sameNumber, type ReminderRow } from "./appointment-reminders-job"
 
 const base = (over: Partial<ReminderRow>): ReminderRow => ({
   scheduledAt: new Date("2026-08-04T12:00:00.000Z"),
@@ -47,6 +47,22 @@ describe("dueStages", () => {
   it("does not re-fire a stage already sent", () => {
     const r = base({ reminder1SentAt: new Date(), reminder2SentAt: new Date() })
     expect(dueStages(r, at(1))).toEqual([])
+  })
+})
+
+describe("sameNumber", () => {
+  it("matches the same line across formatting differences", () => {
+    expect(sameNumber("+234 803 123 4567", "2348031234567")).toBe(true)
+    expect(sameNumber("08031234567", "2348031234567")).toBe(true) // local vs country-code
+    expect(sameNumber("234-803-123-4567", "+2348031234567")).toBe(true)
+  })
+  it("does not match different numbers", () => {
+    expect(sameNumber("2348031234567", "2348039999999")).toBe(false)
+  })
+  it("is false when either side is missing", () => {
+    expect(sameNumber(null, "2348031234567")).toBe(false)
+    expect(sameNumber("2348031234567", undefined)).toBe(false)
+    expect(sameNumber("", "")).toBe(false)
   })
 })
 
