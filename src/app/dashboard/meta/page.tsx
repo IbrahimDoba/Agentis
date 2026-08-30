@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
+import { MetaConnectPanel } from "@/components/dashboard/MetaConnectPanel"
 import { MetaChatPanel } from "@/components/dashboard/MetaChatPanel"
 import { MetaAccountClient } from "@/components/dashboard/MetaAccountClient"
 import styles from "./page.module.css"
@@ -43,6 +44,7 @@ export default async function MetaPage() {
         </div>
       )}
 
+      <MetaConnectPanel />
       <MetaChatPanel />
       <MetaAccountClient />
     </div>

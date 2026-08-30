@@ -1,0 +1,132 @@
+/* Matches MetaAccountClient's card styling so the two sit together on the
+   Meta tab as one surface rather than two visually different panels. */
+.panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+/* Kept as a no-op hook: the harness used it for spacing between stacked
+   panels, which the dashboard handles with .panel's own margin. */
+.businessPanel {
+  margin-top: 0;
+}
+
+.panelTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.9rem;
+}
+
+.scopeTag {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--text-primary) 7%, transparent);
+  padding: 0.18rem 0.5rem;
+  border-radius: 999px;
+}
+
+.refresh {
+  margin-left: auto;
+  padding: 0.45rem 0.9rem;
+  border: none;
+  border-radius: 9px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.83rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+.refresh:hover:not(:disabled) {
+  opacity: 0.9;
+}
+.refresh:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.field {
+  margin-bottom: 0.5rem;
+}
+
+.label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+  margin-bottom: 0.35rem;
+}
+
+.input {
+  width: 100%;
+  max-width: 220px;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 0.88rem;
+  transition: border-color 0.2s ease;
+}
+.input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.hint {
+  display: block;
+  margin-top: 0.4rem;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.error {
+  margin-top: 0.5rem;
+  color: #dc2626;
+  font-size: 0.83rem;
+}
+
+/* Own scroller so a long WABA id never widens the dashboard. */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.83rem;
+  display: block;
+  overflow-x: auto;
+}
+.table th {
+  text-align: left;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+  padding: 0.4rem 0.7rem 0.4rem 0;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.table td {
+  padding: 0.55rem 0.7rem 0.55rem 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.checkValue {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}

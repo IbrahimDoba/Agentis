@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
-import styles from "./page.module.css"
+import styles from "./MetaConnectPanel.module.css"
 
 // Embedded Signup panel — the flow a real customer uses to grant this app
 // access to THEIR WhatsApp Business Account. Meta's popup returns two things by
@@ -38,7 +38,7 @@ declare global {
 const APP_ID = process.env.NEXT_PUBLIC_META_APP_ID
 const CONFIG_ID = process.env.NEXT_PUBLIC_META_CONFIG_ID
 
-export function ConnectPanel() {
+export function MetaConnectPanel() {
   const [connections, setConnections] = useState<Connection[]>([])
   const [sdkReady, setSdkReady] = useState(false)
   const [busy, setBusy] = useState(false)
