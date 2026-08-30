@@ -5,10 +5,11 @@ import { Modal } from "@/components/ui/Modal"
 import Button from "@/components/ui/Button"
 import styles from "./MetaAccountClient.module.css"
 
-// Two cards, each opening a modal that fetches live from Graph on demand. One
-// card per Meta permission so the mapping stays one-to-one — App Review needs
-// each requested permission demonstrably in use, and a reviewer can click
-// exactly one thing per permission rather than hunting down a scrolling page.
+// One card per approved Meta permission, each opening a modal that fetches live
+// from Graph on demand — App Review needs each permission demonstrably in use,
+// and a reviewer can click exactly one thing per permission rather than hunting
+// down a scrolling page. (A business_management portfolio card lived here until
+// that permission was dropped from the submission; see git history.)
 
 interface BusinessOverview {
   account: { id: string; name: string; timezoneId: string | null }
@@ -28,20 +29,11 @@ interface BusinessOverview {
   }>
 }
 
-interface PortfolioEntry {
-  id: string
-  name: string
-  verificationStatus: string | null
-  wabas: Array<{ id: string; name: string }>
-  wabaError: string | null
-}
-
-type Panel = "account" | "portfolio" | null
+type Panel = "account" | null
 
 export function MetaAccountClient() {
   const [open, setOpen] = useState<Panel>(null)
   const [account, setAccount] = useState<BusinessOverview | null>(null)
-  const [portfolio, setPortfolio] = useState<PortfolioEntry[] | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -52,12 +44,10 @@ export function MetaAccountClient() {
     setError(null)
     setLoading(true)
     try {
-      const url = panel === "account" ? "/api/meta/business" : "/api/meta/portfolio"
-      const res = await fetch(url, { cache: "no-store" })
+      const res = await fetch("/api/meta/business", { cache: "no-store" })
       const data = await res.json()
       if (!res.ok) setError(data.error || "Lookup failed")
-      else if (panel === "account") setAccount(data as BusinessOverview)
-      else setPortfolio(data.businesses as PortfolioEntry[])
+      else setAccount(data as BusinessOverview)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Lookup failed")
     } finally {
@@ -78,18 +68,6 @@ export function MetaAccountClient() {
             <code className={styles.scope}>whatsapp_business_management</code>
           </div>
           <Button onClick={() => openPanel("account")}>View account details</Button>
-        </article>
-
-        <article className={styles.card}>
-          <div>
-            <h2 className={styles.cardTitle}>Business portfolios</h2>
-            <p className={styles.cardText}>
-              The business portfolios your account administers, their verification status,
-              and the WhatsApp Business Accounts each one owns.
-            </p>
-            <code className={styles.scope}>business_management</code>
-          </div>
-          <Button onClick={() => openPanel("portfolio")}>View business portfolios</Button>
         </article>
       </div>
 
@@ -161,47 +139,6 @@ export function MetaAccountClient() {
               </div>
             )}
           </>
-        )}
-      </Modal>
-
-      <Modal
-        open={open === "portfolio"}
-        onClose={() => setOpen(null)}
-        title="Business portfolios"
-      >
-        {loading && <p className={styles.muted}>Loading from the Meta Business API…</p>}
-        {error && <p className={styles.error}>{error}</p>}
-        {!loading && !error && portfolio && (
-          <div className={styles.tableWrap}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>Business</th>
-                  <th>Verification</th>
-                  <th>Owned WhatsApp accounts</th>
-                </tr>
-              </thead>
-              <tbody>
-                {portfolio.map((b) => (
-                  <tr key={b.id}>
-                    <td>
-                      {b.name}
-                      <br />
-                      <code className={styles.id}>{b.id}</code>
-                    </td>
-                    <td>{b.verificationStatus ?? "—"}</td>
-                    <td>
-                      {b.wabaError
-                        ? b.wabaError
-                        : b.wabas.length === 0
-                          ? "None"
-                          : b.wabas.map((w) => `${w.name} (${w.id})`).join(", ")}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
         )}
       </Modal>
     </>

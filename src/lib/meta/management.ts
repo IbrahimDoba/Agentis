@@ -4,8 +4,8 @@ import { graphGet } from "./graph"
 // permission, separate from the messaging path in cloud-api.ts. Meta's app
 // review expects every requested permission to be demonstrated on camera, so
 // the harness surfaces the WABA, its numbers, and its templates in one panel.
-// The `business_management` permission has its own module (portfolio.ts) so the
-// two permissions stay one-to-one with the panels the reviewer sees.
+// (A business_management module lived alongside this one until that permission
+// was dropped from the App Review submission — see git history.)
 
 export interface BusinessAccount {
   id: string

@@ -44,14 +44,6 @@ interface BusinessOverview {
   }>
 }
 
-interface PortfolioEntry {
-  id: string
-  name: string
-  verificationStatus: string | null
-  wabas: Array<{ id: string; name: string }>
-  wabaError: string | null
-}
-
 const POLL_MS = 1500
 
 export function MetaTestClient() {
@@ -66,9 +58,6 @@ export function MetaTestClient() {
   const [business, setBusiness] = useState<BusinessOverview | null>(null)
   const [businessError, setBusinessError] = useState<string | null>(null)
   const [loadingBusiness, setLoadingBusiness] = useState(false)
-  const [portfolio, setPortfolio] = useState<PortfolioEntry[] | null>(null)
-  const [portfolioError, setPortfolioError] = useState<string | null>(null)
-  const [loadingPortfolio, setLoadingPortfolio] = useState(false)
   const feedRef = useRef<HTMLDivElement>(null)
 
   // Pinned to light for screen recording — the app defaults to a very dark
@@ -125,25 +114,9 @@ export function MetaTestClient() {
     }
   }, [])
 
-  const loadPortfolio = useCallback(async () => {
-    setLoadingPortfolio(true)
-    setPortfolioError(null)
-    try {
-      const res = await fetch("/api/meta/portfolio", { cache: "no-store" })
-      const data = await res.json()
-      if (!res.ok) setPortfolioError(data.error || "Lookup failed")
-      else setPortfolio(data.businesses as PortfolioEntry[])
-    } catch (err) {
-      setPortfolioError(err instanceof Error ? err.message : "Lookup failed")
-    } finally {
-      setLoadingPortfolio(false)
-    }
-  }, [])
-
   useEffect(() => {
     loadBusiness()
-    loadPortfolio()
-  }, [loadBusiness, loadPortfolio])
+  }, [loadBusiness])
 
   // Keep the conversation pinned to the latest message.
   useEffect(() => {
@@ -355,55 +328,6 @@ export function MetaTestClient() {
               </table>
             )}
           </>
-        )}
-      </section>
-
-      {/* business_management — which businesses this account administers */}
-      <section className={`${styles.panel} ${styles.businessPanel}`}>
-        <h2 className={styles.panelTitle}>
-          Business portfolio
-          <span className={styles.scopeTag}>business_management</span>
-          <button
-            type="button"
-            className={styles.refresh}
-            onClick={loadPortfolio}
-            disabled={loadingPortfolio}
-          >
-            {loadingPortfolio ? "Loading…" : "Refresh"}
-          </button>
-        </h2>
-
-        {portfolioError && <p className={styles.error}>{portfolioError}</p>}
-
-        {portfolio && (
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>Business</th>
-                <th>Verification</th>
-                <th>Owned WhatsApp accounts</th>
-              </tr>
-            </thead>
-            <tbody>
-              {portfolio.map((b) => (
-                <tr key={b.id}>
-                  <td>
-                    {b.name}
-                    <br />
-                    <code className={styles.checkValue}>{b.id}</code>
-                  </td>
-                  <td>{b.verificationStatus ?? "—"}</td>
-                  <td>
-                    {b.wabaError
-                      ? b.wabaError
-                      : b.wabas.length === 0
-                        ? "None"
-                        : b.wabas.map((w) => `${w.name} (${w.id})`).join(", ")}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         )}
       </section>
     </div>

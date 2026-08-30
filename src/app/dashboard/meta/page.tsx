@@ -28,7 +28,7 @@ export default async function MetaPage() {
           <h1 className={styles.title}>Meta</h1>
           <p className={styles.subtitle}>
             Your official WhatsApp Business Platform connection — account status, phone
-            numbers, message templates, and the business portfolios you administer.
+            numbers, and approved message templates.
           </p>
         </div>
       </div>
