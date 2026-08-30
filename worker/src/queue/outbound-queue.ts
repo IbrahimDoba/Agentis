@@ -5,6 +5,7 @@ import { getRedis } from "./redis.js"
 import { isLeader } from "../lib/leader.js"
 import { sessionManager } from "../baileys/session-manager.js"
 import { blockSendReason } from "../baileys/auth-health.js"
+import { resolveSendJid } from "../baileys/resolve-jid.js"
 import { sendWithPacing, sendImageWithPacing, sendVideoWithPacing, sendDocumentWithPacing, businessHoursCheck } from "../anti-ban/pacing.js"
 import {
   checkAndIncrement,
@@ -177,6 +178,26 @@ const worker = new Worker<OutboundJob>(
       }
     }
 
+    // A scheduled reminder may be addressed by a bare phone number: a manual
+    // appointment for a customer who has never messaged in has no inbound JID to
+    // reply to. Sending to a phone JID silently fails for a LID-migrated contact
+    // (see resolve-jid.ts), so resolve it the way the broadcast/follow-up queues
+    // already do. Live replies keep the inbound address they arrived on, so their
+    // routing — and the per-send onWhatsApp() cost — is unchanged.
+    let sendJid = toJid
+    if (scheduledReminder && !toJid.endsWith("@lid")) {
+      const resolved = await resolveSendJid(sock, toJid)
+      if (!resolved) {
+        logger.warn(
+          { agentId, toJid, conversationId, messageId },
+          "Scheduled reminder recipient is not deliverable on WhatsApp — dropping"
+        )
+        if (messageId) await deleteMessageById(messageId).catch(() => {})
+        return
+      }
+      sendJid = resolved
+    }
+
     // Rate limiting (human messages bypass — operator-initiated sends should never be blocked)
     if (source !== "human") {
       await checkAndIncrement(agentId, session.warmupTier)
@@ -259,13 +280,13 @@ const worker = new Worker<OutboundJob>(
       // post-send pacing delay — so we don't race the WhatsApp fromMe
       // reflection arriving back at our event handler.
       if (type === "image" && mediaUrl) {
-        await sendImageWithPacing(sock, toJid, mediaUrl, text, session.warmupTier)
+        await sendImageWithPacing(sock, sendJid, mediaUrl, text, session.warmupTier)
       } else if (type === "video" && mediaUrl) {
-        await sendVideoWithPacing(sock, toJid, mediaUrl, text, session.warmupTier)
+        await sendVideoWithPacing(sock, sendJid, mediaUrl, text, session.warmupTier)
       } else if (type === "document" && mediaUrl) {
         await sendDocumentWithPacing(
           sock,
-          toJid,
+          sendJid,
           mediaUrl,
           mediaFileName || "document",
           mediaMimeType || "application/octet-stream",
@@ -278,7 +299,7 @@ const worker = new Worker<OutboundJob>(
         const quoted = job.data.quotedMessageId
           ? ({
               key: {
-                remoteJid: toJid,
+                remoteJid: sendJid,
                 id: job.data.quotedMessageId,
                 fromMe: false,
                 participant: job.data.quotedParticipant,
@@ -286,7 +307,7 @@ const worker = new Worker<OutboundJob>(
               message: { conversation: job.data.quotedText ?? "" },
             } as unknown as WAMessage)
           : undefined
-        await sendWithPacing(sock, toJid, text, session.warmupTier, quoted)
+        await sendWithPacing(sock, sendJid, text, session.warmupTier, quoted)
       }
 
       // Only AI sends consume credits. Human operator replies — whether sent

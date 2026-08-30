@@ -1,4 +1,5 @@
 import { baileysClient } from "@/lib/baileys-client"
+import { normalizePhone } from "@/lib/phone"
 
 // Owner WhatsApp alerts for new leads / handoffs / appointment reminders. Sent FROM the relevant agent's
 // own Baileys session TO the owner's personal number. `source: "human"` and no
@@ -25,7 +26,7 @@ export async function sendLeadWhatsapp(opts: {
   ]
   if (opts.summary?.trim()) lines.push("", opts.summary.trim())
   if (opts.customerNumber?.trim()) lines.push("", `📱 ${opts.customerNumber.trim()}`)
-  await baileysClient.sendMessage({ agentId: opts.agentId, to: opts.toNumber, text: lines.join("\n"), source: "human" })
+  await baileysClient.sendMessage({ agentId: opts.agentId, to: normalizePhone(opts.toNumber), text: lines.join("\n"), source: "human" })
 }
 
 export async function sendAppointmentReminderWhatsapp(opts: {
@@ -53,7 +54,7 @@ export async function sendAppointmentReminderWhatsapp(opts: {
   // it as a live reply an operator may have already answered.
   await baileysClient.sendMessage({
     agentId: opts.agentId,
-    to: opts.toNumber,
+    to: normalizePhone(opts.toNumber),
     text: lines.join("\n"),
     source: "human",
     scheduledReminder: true,
@@ -78,5 +79,5 @@ export async function sendHandoffWhatsapp(opts: {
     `📝 ${opts.reason}`,
   ]
   if (opts.customerNumber?.trim()) lines.push("", `📱 ${opts.customerNumber.trim()}`)
-  await baileysClient.sendMessage({ agentId: opts.agentId, to: opts.toNumber, text: lines.join("\n"), source: "human" })
+  await baileysClient.sendMessage({ agentId: opts.agentId, to: normalizePhone(opts.toNumber), text: lines.join("\n"), source: "human" })
 }

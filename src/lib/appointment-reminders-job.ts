@@ -5,6 +5,7 @@ import { emailBrandOf } from "@/lib/tenant"
 import { sendAppointmentReminderEmail, sendAppointmentBookedEmail, type EmailBrand } from "@/lib/email"
 import { baileysClient } from "@/lib/baileys-client"
 import { sendAppointmentReminderWhatsapp } from "@/lib/lead-whatsapp"
+import { normalizePhone } from "@/lib/phone"
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
@@ -73,7 +74,7 @@ export function whenLabel(date: Date): string {
 // zeros, country-code prefix). Used to stop the owner's WhatsApp alert from being
 // addressed to the agent's own business line — a session can't message itself.
 export function sameNumber(a?: string | null, b?: string | null): boolean {
-  const norm = (s?: string | null) => (s ?? "").replace(/\D/g, "").replace(/^0+/, "")
+  const norm = (s?: string | null) => normalizePhone(s).replace(/^0+/, "")
   const na = norm(a)
   const nb = norm(b)
   if (!na || !nb) return false
@@ -197,12 +198,16 @@ Respond ONLY with valid JSON: {"message": "the reminder text"}`
 // the same place any future chat with this customer would.
 async function resolveCustomerConversationId(
   appt: { conversationId: string | null; agentId: string; customerNumber: string; customerName: string | null },
-): Promise<string> {
+): Promise<string | null> {
   if (appt.conversationId) return appt.conversationId
+  // Key on digits only. A dashboard-typed "+234 802 792 9743" and the same
+  // customer's real thread ("2348027929743") must resolve to ONE conversation.
+  const phoneNumber = normalizePhone(appt.customerNumber)
+  if (!phoneNumber) return null
   const convo = await db.conversation.upsert({
-    where: { agentId_phoneNumber: { agentId: appt.agentId, phoneNumber: appt.customerNumber } },
+    where: { agentId_phoneNumber: { agentId: appt.agentId, phoneNumber } },
     update: {},
-    create: { agentId: appt.agentId, phoneNumber: appt.customerNumber, contactName: appt.customerName },
+    create: { agentId: appt.agentId, phoneNumber, contactName: appt.customerName },
     select: { id: true },
   })
   return convo.id
@@ -224,7 +229,7 @@ async function sendWaReminder(appt: WaReminderAppt, remainingMin: number): Promi
     where: { id: appt.conversationId },
     select: { senderJid: true, phoneNumber: true },
   })
-  const to = convo?.senderJid || convo?.phoneNumber || appt.customerNumber
+  const to = convo?.senderJid || normalizePhone(convo?.phoneNumber || appt.customerNumber)
 
   const recent = await db.message.findMany({
     where: { conversationId: appt.conversationId },
@@ -440,6 +445,17 @@ export async function runAppointmentReminders(now: Date = new Date()): Promise<R
           customerNumber: appt.customerNumber,
           customerName: appt.customerName,
         })
+        // No usable digits in the typed number — there is nothing to address, so
+        // record it rather than creating a junk conversation and "sending" into it.
+        if (!conversationId) {
+          summary.waRemindersFailed++
+          summary.errors.push({
+            appointmentId: appt.id,
+            stage,
+            message: `Customer number "${appt.customerNumber}" has no digits — WhatsApp reminder skipped`,
+          })
+          return
+        }
         const sent = await sendWaReminder(
           {
             agentId: appt.agentId,

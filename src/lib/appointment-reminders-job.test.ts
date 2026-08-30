@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest"
 import { dueStages, leadLabel, sameNumber, type ReminderRow } from "./appointment-reminders-job"
+import { normalizePhone } from "./phone"
 
 const base = (over: Partial<ReminderRow>): ReminderRow => ({
   scheduledAt: new Date("2026-08-04T12:00:00.000Z"),
@@ -47,6 +48,24 @@ describe("dueStages", () => {
   it("does not re-fire a stage already sent", () => {
     const r = base({ reminder1SentAt: new Date(), reminder2SentAt: new Date() })
     expect(dueStages(r, at(1))).toEqual([])
+  })
+})
+
+describe("normalizePhone", () => {
+  it("strips the formatting a dashboard-typed number carries", () => {
+    // The worker appends "@s.whatsapp.net" to a non-JID `to` verbatim, so
+    // anything but digits here produces a JID that can never deliver.
+    expect(normalizePhone("+234 802 792 9743")).toBe("2348027929743")
+    expect(normalizePhone("234-803-123-4567")).toBe("2348031234567")
+    expect(normalizePhone(" 2348031234567 ")).toBe("2348031234567")
+  })
+  it("returns empty for nothing addressable", () => {
+    expect(normalizePhone(null)).toBe("")
+    expect(normalizePhone(undefined)).toBe("")
+    expect(normalizePhone("n/a")).toBe("")
+  })
+  it("keys the same customer to one conversation regardless of how it was typed", () => {
+    expect(normalizePhone("+234 802 792 9743")).toBe(normalizePhone("2348027929743"))
   })
 })
 
