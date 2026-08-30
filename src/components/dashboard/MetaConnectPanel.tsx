@@ -35,10 +35,16 @@ declare global {
   }
 }
 
-const APP_ID = process.env.NEXT_PUBLIC_META_APP_ID
-const CONFIG_ID = process.env.NEXT_PUBLIC_META_CONFIG_ID
+// Passed in from the server component rather than read from NEXT_PUBLIC_*
+// here: those are inlined at BUILD time, and the production image is built
+// without them, so they arrive undefined no matter what the container's
+// runtime env says. The page reads process.env at request time instead.
+interface MetaConnectPanelProps {
+  appId: string | null
+  configId: string | null
+}
 
-export function MetaConnectPanel() {
+export function MetaConnectPanel({ appId, configId }: MetaConnectPanelProps) {
   const [connections, setConnections] = useState<Connection[]>([])
   const [sdkReady, setSdkReady] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -98,12 +104,12 @@ export function MetaConnectPanel() {
   }, [])
 
   useEffect(() => {
-    if (!APP_ID || window.FB) {
+    if (!appId || window.FB) {
       if (window.FB) setSdkReady(true)
       return
     }
     window.fbAsyncInit = () => {
-      window.FB?.init({ appId: APP_ID, cookie: true, xfbml: false, version: "v21.0" })
+      window.FB?.init({ appId, cookie: true, xfbml: false, version: "v21.0" })
       setSdkReady(true)
     }
     const script = document.createElement("script")
@@ -111,7 +117,7 @@ export function MetaConnectPanel() {
     script.async = true
     script.defer = true
     document.body.appendChild(script)
-  }, [])
+  }, [appId])
 
   const completeConnect = useCallback(
     async (code: string, sel: SignupSelection) => {
@@ -140,8 +146,8 @@ export function MetaConnectPanel() {
   )
 
   function handleConnect() {
-    if (!CONFIG_ID) {
-      setError("NEXT_PUBLIC_META_CONFIG_ID is not set — create a Facebook Login for Business configuration first.")
+    if (!configId) {
+      setError("No Facebook Login for Business configuration is set on the server.")
       return
     }
     setError(null)
@@ -161,7 +167,7 @@ export function MetaConnectPanel() {
         void completeConnect(code, selection)
       },
       {
-        config_id: CONFIG_ID,
+        config_id: configId,
         response_type: "code",
         override_default_response_type: true,
         // Embedded Signup v4 takes only `setup` here. Older guides also passed
@@ -205,14 +211,27 @@ export function MetaConnectPanel() {
           onClick={handleConnect}
           disabled={!sdkReady || busy}
         >
-          {busy ? "Connecting…" : "Connect your WhatsApp"}
+          {busy ? "Connecting…" : sdkReady ? "Connect your WhatsApp" : "Loading…"}
         </button>
       </h2>
 
-      {!CONFIG_ID && (
+      {/* A disabled button with no explanation is a dead end — say which piece
+          is missing rather than leaving it inert. */}
+      {!appId && (
+        <p className={styles.error}>
+          META_APP_ID is not set on the server, so the Facebook SDK can&apos;t load.
+        </p>
+      )}
+      {!configId && (
+        <p className={styles.error}>
+          META_CONFIG_ID is not set on the server — create a Facebook Login for Business
+          configuration and set its ID.
+        </p>
+      )}
+      {appId && !sdkReady && (
         <p className={styles.hint}>
-          Set <code>NEXT_PUBLIC_META_CONFIG_ID</code> to your Facebook Login for Business
-          configuration ID to enable the button.
+          Loading Facebook&apos;s SDK… if this doesn&apos;t clear, a browser extension or
+          content blocker is likely blocking connect.facebook.net.
         </p>
       )}
       {error && <p className={styles.error}>{error}</p>}
