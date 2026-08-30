@@ -23,7 +23,10 @@ interface Persona {
   businessName: string
 }
 
-const POLL_MS = 1500
+// Fast enough that a reply appears to land live, without hammering the API.
+// Polling pauses entirely when the tab is hidden — this panel used to keep
+// requesting every 1.5s in a background tab all day.
+const POLL_MS = 4000
 
 export function MetaChatPanel() {
   const [messages, setMessages] = useState<StoredMessage[]>([])
@@ -48,9 +51,28 @@ export function MetaChatPanel() {
   }, [])
 
   useEffect(() => {
-    poll()
-    const id = setInterval(poll, POLL_MS)
-    return () => clearInterval(id)
+    let id: ReturnType<typeof setInterval> | null = null
+
+    const start = () => {
+      if (id !== null) return
+      poll()
+      id = setInterval(poll, POLL_MS)
+    }
+    const stop = () => {
+      if (id === null) return
+      clearInterval(id)
+      id = null
+    }
+    // Poll only while the tab is actually being looked at; resume with an
+    // immediate fetch so returning to the tab shows current state at once.
+    const onVisibility = () => (document.hidden ? stop() : start())
+
+    if (!document.hidden) start()
+    document.addEventListener("visibilitychange", onVisibility)
+    return () => {
+      stop()
+      document.removeEventListener("visibilitychange", onVisibility)
+    }
   }, [poll])
 
   // Prefill the recipient from whoever last messaged in, so replying as a human

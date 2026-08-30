@@ -47,6 +47,7 @@ interface MetaConnectPanelProps {
 export function MetaConnectPanel({ appId, configId }: MetaConnectPanelProps) {
   const [connections, setConnections] = useState<Connection[]>([])
   const [sdkReady, setSdkReady] = useState(false)
+  const [sdkError, setSdkError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [status, setStatus] = useState<string | null>(null)
@@ -103,20 +104,49 @@ export function MetaConnectPanel({ appId, configId }: MetaConnectPanelProps) {
     return () => window.removeEventListener("message", onMessage)
   }, [])
 
+  // connect.facebook.net is a common target for content blockers, and a blocked
+  // script fails silently — which leaves the button stuck on "Loading…" forever
+  // with nothing to act on. Surface the failure instead of hanging.
   useEffect(() => {
-    if (!appId || window.FB) {
-      if (window.FB) setSdkReady(true)
+    if (!appId) return
+    if (window.FB) {
+      setSdkReady(true)
       return
     }
+
+    const SCRIPT_ID = "facebook-jssdk"
     window.fbAsyncInit = () => {
       window.FB?.init({ appId, cookie: true, xfbml: false, version: "v21.0" })
       setSdkReady(true)
     }
-    const script = document.createElement("script")
-    script.src = "https://connect.facebook.net/en_US/sdk.js"
-    script.async = true
-    script.defer = true
-    document.body.appendChild(script)
+
+    // Effects can re-run (StrictMode, prop changes); appending twice makes the
+    // SDK initialise twice.
+    let script = document.getElementById(SCRIPT_ID) as HTMLScriptElement | null
+    if (!script) {
+      script = document.createElement("script")
+      script.id = SCRIPT_ID
+      script.src = "https://connect.facebook.net/en_US/sdk.js"
+      script.async = true
+      script.defer = true
+      script.crossOrigin = "anonymous"
+      script.onerror = () =>
+        setSdkError(
+          "Couldn't load Facebook's SDK. An ad blocker or privacy extension is most likely blocking connect.facebook.net — disable it for this site, or try a private window."
+        )
+      document.body.appendChild(script)
+    }
+
+    // Blockers that stub the request rather than failing it never fire onerror,
+    // so fall back to a deadline.
+    const timeout = setTimeout(() => {
+      if (!window.FB) {
+        setSdkError(
+          "Facebook's SDK didn't load within 10 seconds — usually an ad blocker or privacy extension blocking connect.facebook.net."
+        )
+      }
+    }, 10_000)
+    return () => clearTimeout(timeout)
   }, [appId])
 
   const completeConnect = useCallback(
@@ -228,11 +258,9 @@ export function MetaConnectPanel({ appId, configId }: MetaConnectPanelProps) {
           configuration and set its ID.
         </p>
       )}
-      {appId && !sdkReady && (
-        <p className={styles.hint}>
-          Loading Facebook&apos;s SDK… if this doesn&apos;t clear, a browser extension or
-          content blocker is likely blocking connect.facebook.net.
-        </p>
+      {sdkError && <p className={styles.error}>{sdkError}</p>}
+      {appId && !sdkReady && !sdkError && (
+        <p className={styles.hint}>Loading Facebook&apos;s SDK…</p>
       )}
       {error && <p className={styles.error}>{error}</p>}
       {status && <p className={styles.hint}>{status}</p>}
