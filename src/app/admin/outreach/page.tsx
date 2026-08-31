@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
 import { OutreachReview } from "@/components/admin/OutreachReview"
+import { ProspectImport } from "@/components/admin/ProspectImport"
 import { OUTREACH_APP_URL } from "@/lib/outreach/render"
 import { WARMUP_DAYS } from "@/lib/outreach/warmup"
 import { effectiveDailyCap, warmupStatus, isRootSender } from "@/lib/outreach/send"
@@ -118,6 +119,8 @@ export default async function AdminOutreachPage() {
           At pilot volume one complaint is already above the rate Gmail enforces.
         </p>
       )}
+
+      <ProspectImport />
 
       <OutreachReview items={items} approved={approved} sentToday={sentToday} cap={cap} />
     </div>

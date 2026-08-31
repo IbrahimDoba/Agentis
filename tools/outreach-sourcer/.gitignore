@@ -1,0 +1,6 @@
+state.sqlite
+research/
+prospects*.csv
+.venv/
+__pycache__/
+fixtures/

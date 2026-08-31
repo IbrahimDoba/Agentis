@@ -1,0 +1,147 @@
+.wrap {
+  margin-bottom: 20px;
+}
+
+.toggle {
+  padding: 9px 16px;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.body {
+  margin-top: 12px;
+  padding: 20px;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 12px;
+}
+
+.hint {
+  margin: 0 0 16px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--muted, #6b7280);
+}
+
+.hint code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--surface-2, #f4f4f5);
+  font-size: 12px;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.file {
+  font-size: 13px;
+}
+
+.vertical,
+.textarea {
+  padding: 9px 12px;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: inherit;
+  background: transparent;
+  color: inherit;
+}
+
+.vertical {
+  flex: 1;
+  min-width: 200px;
+}
+
+.textarea {
+  width: 100%;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.counter {
+  margin: 6px 0 14px;
+  font-size: 12px;
+  color: var(--muted, #6b7280);
+}
+
+.submit {
+  padding: 9px 20px;
+  border: none;
+  border-radius: 8px;
+  background: #0a0a0a;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.submit:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.error {
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #991b1b;
+  font-size: 13px;
+}
+
+.result {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border, #e5e7eb);
+}
+
+.summary {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.detailsTitle {
+  margin: 14px 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted, #6b7280);
+}
+
+.details {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 240px;
+  overflow-y: auto;
+  font-size: 12px;
+}
+
+.details li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border, #f0f0f0);
+}
+
+.detailEmail {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  word-break: break-all;
+}
+
+.detailReason {
+  flex-shrink: 0;
+  color: var(--muted, #6b7280);
+}

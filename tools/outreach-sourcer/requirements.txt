@@ -1,0 +1,5 @@
+# Pure-Python only: system Python on macOS is 3.9 and nothing here should need
+# to compile.
+requests>=2.31
+beautifulsoup4>=4.12
+tldextract>=5.1
