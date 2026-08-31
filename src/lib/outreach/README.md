@@ -118,23 +118,36 @@ Sourcing is deliberately a spreadsheet, not a scraper. Instagram's terms forbid
 automated collection, and Google Places reprices a search to $40 per 1,000 calls
 once reviews are requested. Automate it after the message is proven, not before.
 
-## Scheduling (Dokploy, not Vercel)
+## Scheduling (host cron on dailzero-server)
 
-Prod runs on Dokploy. The `crons` array in `vercel.json` does not fire, so these
-must be created as **Dokploy Schedules** or sending silently never happens.
+Prod runs on Dokploy, so the `crons` array in `vercel.json` does not fire. These
+run as **root host cron on `dailzero-server`** rather than as Dokploy Schedules,
+because the frontend image ships without `curl` — an Application-type Dokploy
+schedule running curl would fail silently. Dokploy Server jobs execute on the
+host anyway, so this is the same mechanism, registered in a different place.
 
-| Schedule | Cron | Command |
-|---|---|---|
-| Outreach send | `*/10 * * * *` | `curl -fsS -H "Authorization: Bearer $CRON_SECRET" "https://www.dailzero.com/api/cron/outreach?job=send"` |
-| Demo expiry | `0 * * * *` | `curl -fsS -H "Authorization: Bearer $CRON_SECRET" "https://www.dailzero.com/api/cron/outreach?job=demos"` |
+```
+*/10 * * * * /usr/local/bin/dailzero-outreach-cron.sh send
+0    * * * * /usr/local/bin/dailzero-outreach-cron.sh demos
+```
 
-`CRON_SECRET` must exist in the Dokploy environment; the route refuses to run
-without it rather than defaulting to open.
+`/usr/local/bin/dailzero-outreach-cron.sh` reads `CRON_SECRET` live out of the
+running frontend container instead of keeping a copy on the host, so rotating it
+in Dokploy takes effect with no second place to update. It matches the container
+by its stable Dokploy service prefix (`dailzero-frontend-5sxpui`); the task-id
+suffix changes on every redeploy.
 
-Verify a schedule is actually firing by watching one run — Dokploy keeps only
-about 20 minutes of logs, so check soon after it fires. The send job returns
-`sentToday`, `sentLastHour` and the warmup state in its JSON response, so a
-successful tick is obvious from the body alone.
+Log: `/var/log/dailzero-outreach-cron.log`, one line per run with the HTTP status
+and response body.
+
+```bash
+ssh dailzero-server 'tail -5 /var/log/dailzero-outreach-cron.log'
+ssh dailzero-server 'crontab -l'                      # confirm still installed
+ssh dailzero-server '/usr/local/bin/dailzero-outreach-cron.sh send'   # run now
+```
+
+**If the server is ever rebuilt or migrated, these do not come with it.** Check
+`crontab -l` after any host-level change, or sending silently stops.
 
 To check configuration without sending anything, `GET /api/admin/outreach/send`
 as an admin returns the caps, warmup state and deliverability health. A
