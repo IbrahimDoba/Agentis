@@ -57,6 +57,11 @@ function trace(stage: string, detail?: string) {
 
 export function MetaConnectPanel({ appId, configId }: MetaConnectPanelProps) {
   const [connections, setConnections] = useState<Connection[]>([])
+  const [agents, setAgents] = useState<Array<{ id: string; businessName: string }>>([])
+  // Which agent answers on the number about to be connected. Chosen before
+  // launching the flow, because Meta's popup returns straight to the exchange
+  // and there is no moment afterwards to ask.
+  const [agentId, setAgentId] = useState("")
   const [sdkReady, setSdkReady] = useState(false)
   const [sdkError, setSdkError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -75,6 +80,9 @@ export function MetaConnectPanel({ appId, configId }: MetaConnectPanelProps) {
       if (!res.ok) return
       const data = await res.json()
       setConnections(data.connections as Connection[])
+      const list = (data.agents ?? []) as Array<{ id: string; businessName: string }>
+      setAgents(list)
+      setAgentId((current) => current || list[0]?.id || "")
     } catch {
       // Best-effort — the list refreshes after the next action.
     }
@@ -170,7 +178,7 @@ export function MetaConnectPanel({ appId, configId }: MetaConnectPanelProps) {
         const res = await fetch("/api/meta/connect", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ code, ...sel }),
+          body: JSON.stringify({ code, ...sel, agentId: agentId || null }),
         })
         const data = await res.json()
         trace("exchange_result", res.ok ? "stored" : `failed: ${data.error}`)
@@ -186,7 +194,7 @@ export function MetaConnectPanel({ appId, configId }: MetaConnectPanelProps) {
         setBusy(false)
       }
     },
-    [loadConnections]
+    [loadConnections, agentId]
   )
 
   function handleConnect() {
@@ -278,6 +286,30 @@ export function MetaConnectPanel({ appId, configId }: MetaConnectPanelProps) {
           configuration and set its ID.
         </p>
       )}
+      {agents.length > 0 && (
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="meta-connect-agent">
+            Agent that answers on this number
+          </label>
+          <select
+            id="meta-connect-agent"
+            className={styles.input}
+            value={agentId}
+            onChange={(e) => setAgentId(e.target.value)}
+          >
+            {agents.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.businessName}
+              </option>
+            ))}
+          </select>
+          <span className={styles.hint}>
+            Pick before connecting — the flow returns straight to us and there is no
+            chance to choose afterwards.
+          </span>
+        </div>
+      )}
+
       {sdkError && <p className={styles.error}>{sdkError}</p>}
       {appId && !sdkReady && !sdkError && (
         <p className={styles.hint}>Loading Facebook&apos;s SDK…</p>

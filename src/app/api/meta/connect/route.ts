@@ -27,7 +27,14 @@ export async function GET() {
     },
   })
 
+  const agents = await db.agent.findMany({
+    where: { userId: session.user.id },
+    orderBy: { createdAt: "asc" },
+    select: { id: true, businessName: true },
+  })
+
   return NextResponse.json({
+    agents,
     connections: connections.map((c) => ({
       ...c,
       agentName: c.agent?.businessName ?? null,
