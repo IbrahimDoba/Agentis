@@ -5,7 +5,8 @@ import {
   sendText,
   isAllowedRecipient,
 } from "@/lib/meta/cloud-api"
-import { alreadySeen, appendMessage, getHistory, resolveTestPersona } from "@/lib/meta/store"
+import { alreadySeen, appendMessage, getHistory } from "@/lib/meta/store"
+import { resolveNumberContext } from "@/lib/meta/routing"
 import { generateAgentReply } from "@/lib/meta/reply"
 
 // crypto + Prisma + openai — Node runtime, never cached.
@@ -35,6 +36,8 @@ interface InboundText {
   from: string
   text: string
   wamid: string
+  /** Which of our numbers received this — the routing key for multi-tenant. */
+  phoneNumberId: string
   value: unknown
 }
 
@@ -74,11 +77,13 @@ function extractTextMessages(payload: unknown): InboundText[] {
     const changes = (entry as { changes?: unknown[] })?.changes ?? []
     for (const change of changes) {
       const value = (change as { value?: Record<string, unknown> })?.value
+      const metadata = value?.metadata as { phone_number_id?: string } | undefined
+      const phoneNumberId = metadata?.phone_number_id
       const messages = (value?.messages as unknown[]) ?? []
       for (const msg of messages) {
         const m = msg as { type?: string; from?: string; id?: string; text?: { body?: string } }
-        if (m.type !== "text" || !m.from || !m.id || !m.text?.body) continue
-        out.push({ from: m.from, text: m.text.body, wamid: m.id, value })
+        if (m.type !== "text" || !m.from || !m.id || !m.text?.body || !phoneNumberId) continue
+        out.push({ from: m.from, text: m.text.body, wamid: m.id, phoneNumberId, value })
       }
     }
   }
@@ -92,6 +97,7 @@ async function handleInbound(msg: InboundText): Promise<void> {
 
   await appendMessage({
     waId: msg.from,
+    phoneNumberId: msg.phoneNumberId,
     direction: "inbound",
     text: msg.text,
     waMessageId: msg.wamid,
@@ -105,18 +111,27 @@ async function handleInbound(msg: InboundText): Promise<void> {
     return
   }
 
-  const persona = await resolveTestPersona()
-  if (!persona) {
-    console.error("[meta/webhook] No agent found to answer as — create an agent first")
+  // Which number was this sent to? That decides who replies, as whom, and with
+  // whose credentials. An unknown number is never answered with our own token.
+  const context = await resolveNumberContext(msg.phoneNumberId)
+  if (!context) {
+    console.error(
+      `[meta/webhook] no agent for phone_number_id ${msg.phoneNumberId} — ` +
+        `not a connected number, or its connection has no agent assigned`
+    )
     return
   }
 
-  const history = await getHistory(msg.from)
-  const reply = await generateAgentReply(persona, history, msg.text)
-  const sent = await sendText(msg.from, reply)
+  const history = await getHistory(msg.from, msg.phoneNumberId)
+  const reply = await generateAgentReply(context.persona, history, msg.text)
+  const sent = await sendText(msg.from, reply, {
+    phoneNumberId: context.phoneNumberId,
+    accessToken: context.accessToken,
+  })
 
   await appendMessage({
     waId: msg.from,
+    phoneNumberId: msg.phoneNumberId,
     direction: "outbound",
     text: reply,
     waMessageId: sent.waMessageId,

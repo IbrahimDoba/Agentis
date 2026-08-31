@@ -120,6 +120,7 @@ model User {
   creditPurchases    CreditPurchase[]
   subscriptionCharges SubscriptionCharge[]
   apiKeys            ApiKey[]
+  metaConnections    MetaTestConnection[]
 
   // Email is unique within a tenant, not globally.
   @@unique([resellerId, email])
@@ -298,6 +299,7 @@ model Agent {
   groupChats           GroupChat[]
   promptEdits          PromptEdit[]
   baileysAuthKeys      BaileysAuthKey[]
+  metaConnections      MetaTestConnection[]
 
   // Postgres does not auto-index FKs. `userId` is the app's hottest filter
   // (dashboard, billing, stats poll); `agentRuntime`/`elevenlabsAgentId` gate
@@ -1075,6 +1077,9 @@ model WorkerEvent {
 // wa_id. `raw` backs the on-camera event log (raw webhook value / send response).
 model MetaTestMessage {
   id          String   @id @default(cuid())
+  // Which of our numbers this message arrived on / was sent from. Null for rows
+  // written before multi-number routing existed.
+  phoneNumberId String?
   waId        String                                  // customer WhatsApp id — E.164 digits, no "+"
   direction   String                                  // "inbound" | "outbound"
   text        String   @db.Text
@@ -1083,6 +1088,7 @@ model MetaTestMessage {
   createdAt   DateTime @default(now()) @db.Timestamptz()
 
   @@index([waId, createdAt])
+  @@index([phoneNumberId, createdAt])
   @@index([createdAt(sort: Desc)])
 }
 
@@ -1096,6 +1102,12 @@ model MetaTestMessage {
 // someone else's number, so it never sits in plaintext.
 model MetaTestConnection {
   id                 String    @id @default(cuid())
+  // Who connected this number, and which agent answers on it. Both nullable so
+  // the pre-existing env-configured number keeps working without a row.
+  userId             String?
+  user               User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  agentId            String?
+  agent              Agent?    @relation(fields: [agentId], references: [id], onDelete: SetNull)
   wabaId             String
   phoneNumberId      String    @unique
   displayPhoneNumber String?
@@ -1110,6 +1122,7 @@ model MetaTestConnection {
   updatedAt          DateTime  @updatedAt @db.Timestamptz()
 
   @@index([wabaId])
+  @@index([userId])
 }
 
 // ---------------------------------------------------------------------------

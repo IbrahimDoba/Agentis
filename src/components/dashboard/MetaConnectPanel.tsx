@@ -17,6 +17,7 @@ interface Connection {
   verifiedName: string | null
   registeredAt: string | null
   subscribedAt: string | null
+  agentName: string | null
 }
 
 interface SignupSelection {
@@ -290,7 +291,7 @@ export function MetaConnectPanel({ appId, configId }: MetaConnectPanelProps) {
             <tr>
               <th>Number</th>
               <th>Business name</th>
-              <th>WABA</th>
+              <th>Answered by</th>
               <th>Status</th>
               <th />
             </tr>
@@ -301,7 +302,9 @@ export function MetaConnectPanel({ appId, configId }: MetaConnectPanelProps) {
                 <td>{c.displayPhoneNumber ?? c.phoneNumberId}</td>
                 <td>{c.verifiedName ?? "—"}</td>
                 <td>
-                  <code className={styles.checkValue}>{c.wabaId}</code>
+                  {c.agentName ?? (
+                    <span className={styles.error}>No agent — create one first</span>
+                  )}
                 </td>
                 <td>
                   {c.subscribedAt ? "Registered + subscribed" : "Connected, not activated"}

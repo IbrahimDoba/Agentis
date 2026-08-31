@@ -74,8 +74,15 @@ export interface SendTextResult {
 // Send a free-form text via POST /{phone_number_id}/messages. Only delivers
 // inside the 24h customer-service window (the customer must have messaged
 // first) — which is exactly the inbound→reply flow this harness demonstrates.
-export async function sendText(to: string, body: string): Promise<SendTextResult> {
-  const { phoneNumberId, accessToken } = getMetaConfig()
+export async function sendText(
+  to: string,
+  body: string,
+  // Which number to send AS. Omitted for the env-configured number; supplied
+  // for a number onboarded through Embedded Signup, whose replies must go out
+  // with that business's own credentials, not ours.
+  from?: MetaConfig
+): Promise<SendTextResult> {
+  const { phoneNumberId, accessToken } = from ?? getMetaConfig()
   const url = `https://graph.facebook.com/${GRAPH_VERSION}/${phoneNumberId}/messages`
 
   const res = await fetch(url, {
