@@ -38,6 +38,33 @@ interface InboundText {
   value: unknown
 }
 
+// account_update fires whenever a business customer completes Embedded Signup,
+// and carries the WABA they shared. It is the SERVER-SIDE record of an
+// onboarding — the browser postMessage is the only other signal, and it is lost
+// if the popup is closed, the tab crashes, or the domain isn't allow-listed.
+// Logged rather than stored: a webhook carries no access token, and a
+// connection without one can't do anything. It tells us a signup happened and
+// which WABA it was, which is exactly what's needed to chase a failed exchange.
+function logAccountUpdates(payload: unknown): number {
+  let seen = 0
+  const entries = (payload as { entry?: unknown[] })?.entry ?? []
+  for (const entry of entries) {
+    const changes = (entry as { changes?: unknown[] })?.changes ?? []
+    for (const change of changes) {
+      const c = change as { field?: string; value?: Record<string, unknown> }
+      if (c.field !== "account_update") continue
+      seen++
+      const v = c.value ?? {}
+      const waba = (v.waba_info as Record<string, unknown> | undefined) ?? {}
+      console.log(
+        `[meta/webhook] account_update event=${v.event} waba=${waba.waba_id ?? "?"} ` +
+          `owner_business=${waba.owner_business_id ?? "?"} phone=${v.phone_number ?? "?"}`
+      )
+    }
+  }
+  return seen
+}
+
 // Pull the text messages out of a webhook payload. Status callbacks (sent /
 // delivered / read) and non-text message types are intentionally skipped.
 function extractTextMessages(payload: unknown): InboundText[] {
@@ -113,12 +140,16 @@ export async function POST(req: NextRequest) {
   }
 
   let messages: InboundText[]
+  let parsed: unknown
   try {
-    messages = extractTextMessages(JSON.parse(rawBody))
+    parsed = JSON.parse(rawBody)
+    messages = extractTextMessages(parsed)
   } catch {
     // Malformed JSON — ack anyway so Meta doesn't retry a body we can't parse.
     return NextResponse.json({ status: "ignored" })
   }
+
+  logAccountUpdates(parsed)
 
   // Process sequentially, then ack. gpt-4o-mini replies fast enough to stay
   // within Meta's window; each message is isolated so one failure can't sink
