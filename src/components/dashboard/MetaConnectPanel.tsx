@@ -216,10 +216,13 @@ export function MetaConnectPanel({ appId, configId }: MetaConnectPanelProps) {
         config_id: configId,
         response_type: "code",
         override_default_response_type: true,
-        // Embedded Signup v4 takes only `setup` here. Older guides also passed
-        // featureType/sessionInfoVersion; featureType is for onboarding
-        // businesses off the WhatsApp Business *app*, which isn't our flow.
-        extras: { setup: {} },
+        // sessionInfoVersion is what makes Meta emit the WA_EMBEDDED_SIGNUP
+        // postMessage carrying the WABA and phone-number IDs. Without it the
+        // flow still completes and still returns a code, but the session info
+        // never arrives — leaving a code with nothing to attach it to.
+        // Matches the "Session Info Version 3" shown on the app's Embedded
+        // Signup setup page.
+        extras: { setup: {}, featureType: "", sessionInfoVersion: "3" },
       }
     )
   }
