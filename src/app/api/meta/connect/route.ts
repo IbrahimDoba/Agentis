@@ -54,6 +54,8 @@ export async function POST(req: NextRequest) {
     )
   }
 
+  console.log(`[meta/connect] exchange requested — waba=${wabaId} phone=${phoneNumberId}`)
+
   try {
     const accessToken = await exchangeCodeForToken(code)
     const details = await getNumberDetails(phoneNumberId, accessToken)
@@ -65,6 +67,7 @@ export async function POST(req: NextRequest) {
       details,
     })
 
+    console.log(`[meta/connect] stored connection for ${saved.displayPhoneNumber ?? saved.phoneNumberId}`)
     return NextResponse.json({
       connection: {
         id: saved.id,

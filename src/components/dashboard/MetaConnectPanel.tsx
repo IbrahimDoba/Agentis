@@ -44,6 +44,16 @@ interface MetaConnectPanelProps {
   configId: string | null
 }
 
+// Fire-and-forget breadcrumb so a failure that never reaches /api/meta/connect
+// still shows up in the server logs.
+function trace(stage: string, detail?: string) {
+  void fetch("/api/meta/connect/debug", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ stage, detail }),
+  }).catch(() => {})
+}
+
 export function MetaConnectPanel({ appId, configId }: MetaConnectPanelProps) {
   const [connections, setConnections] = useState<Connection[]>([])
   const [sdkReady, setSdkReady] = useState(false)
@@ -84,12 +94,14 @@ export function MetaConnectPanel({ appId, configId }: MetaConnectPanelProps) {
         // Meta has several success events (FINISH, FINISH_ONLY_WABA,
         // FINISH_OBO_MIGRATION, FINISH_GRANT_ONLY_API_ACCESS, …) — match the
         // prefix so a new one doesn't silently drop the selection.
+        trace("signup_message", `event=${payload.event}`)
         if (typeof payload.event === "string" && payload.event.startsWith("FINISH")) {
           selectionRef.current = {
             wabaId: payload.data?.waba_id,
             phoneNumberId: payload.data?.phone_number_id,
             businessId: payload.data?.business_id,
           }
+          trace("selection_captured", `waba=${payload.data?.waba_id} phone=${payload.data?.phone_number_id}`)
         } else if (payload.event === "CANCEL") {
           // data.current_step tells us where they dropped out.
           setStatus(`Signup cancelled at step: ${payload.data?.current_step ?? "unknown"}`)
@@ -160,6 +172,7 @@ export function MetaConnectPanel({ appId, configId }: MetaConnectPanelProps) {
           body: JSON.stringify({ code, ...sel }),
         })
         const data = await res.json()
+        trace("exchange_result", res.ok ? "stored" : `failed: ${data.error}`)
         if (!res.ok) setError(data.error || "Connect failed")
         else {
           setStatus(`Connected ${data.connection.displayPhoneNumber ?? data.connection.phoneNumberId}`)
@@ -176,6 +189,7 @@ export function MetaConnectPanel({ appId, configId }: MetaConnectPanelProps) {
   )
 
   function handleConnect() {
+    trace("connect_clicked", `sdkReady=${sdkReady} configId=${configId ? "set" : "missing"}`)
     if (!configId) {
       setError("No Facebook Login for Business configuration is set on the server.")
       return
@@ -185,12 +199,14 @@ export function MetaConnectPanel({ appId, configId }: MetaConnectPanelProps) {
     window.FB?.login(
       (res) => {
         const code = res.authResponse?.code
+        trace("login_callback", code ? "code received" : "NO code in authResponse")
         if (!code) {
           setError("No code returned — the signup was cancelled or blocked.")
           return
         }
         const selection = selectionRef.current
         if (!selection) {
+          trace("no_selection", "code arrived but no WA_EMBEDDED_SIGNUP message was captured")
           setError("Signup finished without returning a WhatsApp account selection.")
           return
         }
