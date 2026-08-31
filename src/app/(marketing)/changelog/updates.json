@@ -1,5 +1,20 @@
 [
   {
+    "date": "31 August 2026",
+    "tag": "Pricing",
+    "tagColor": "orange",
+    "title": "Updated Plan Pricing",
+    "description": "Every paid monthly plan goes up by ₦5,000. Your monthly credit allowance, agent limits and features are unchanged, and the Free plan stays free. If you are already subscribed, nothing changes mid-cycle — the new price applies from your next renewal date.",
+    "bullets": [
+      "Basic is now ₦20,000/month (was ₦15,000) — still 25,000 credits",
+      "Starter is now ₦40,000/month (was ₦35,000) — still 60,000 credits",
+      "Pro is now ₦75,000/month (was ₦70,000) — still 100,000 credits",
+      "Free is unchanged at ₦0 with 1,000 credits a month",
+      "Existing subscriptions keep their current price until their next renewal",
+      "Enterprise pricing is unchanged and still agreed with us directly"
+    ]
+  },
+  {
     "date": "18 June 2026",
     "tag": "Improvement",
     "tagColor": "blue",
