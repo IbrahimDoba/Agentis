@@ -83,8 +83,8 @@ const siteInfo = {
     plans: [
       {
         name: "Starter",
-        monthlyPrice: "₦35,000/month",
-        annualPrice: "₦28,000/month (billed annually)",
+        monthlyPrice: "₦40,000/month",
+        annualPrice: "₦32,000/month (billed annually)",
         description:
           "Perfect for small businesses getting started with AI-powered WhatsApp customer service.",
         features: [
@@ -110,8 +110,8 @@ const siteInfo = {
       },
       {
         name: "Pro",
-        monthlyPrice: "₦70,000/month",
-        annualPrice: "₦56,000/month (billed annually)",
+        monthlyPrice: "₦75,000/month",
+        annualPrice: "₦60,000/month (billed annually)",
         description:
           "For growing businesses that need advanced AI capabilities, higher volume, and priority support.",
         popular: true,

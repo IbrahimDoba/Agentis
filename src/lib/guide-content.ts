@@ -328,9 +328,9 @@ Manual replies you send (from the dashboard or your phone directly) are **free**
 | Plan | Price | Credits/month |
 |---|---|---|
 | Free | — | 1,000 |
-| Basic | ₦15,000 | 25,000 |
-| Starter | ₦35,000 | 60,000 |
-| Pro | ₦70,000 | 100,000 |
+| Basic | ₦20,000 | 25,000 |
+| Starter | ₦40,000 | 60,000 |
+| Pro | ₦75,000 | 100,000 |
 | Enterprise | Custom | Unlimited |
 
 > If your account was set up by a reseller or partner, your plan names, prices, and credit amounts may differ from the table above. Your own **Billing** page always shows the plan that actually applies to you.

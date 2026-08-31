@@ -1,8 +1,8 @@
 export const PLAN_PRICES: Record<string, number> = {
   free: 0,
-  basic: 15000,
-  starter: 35000,
-  pro: 70000,
+  basic: 20000,
+  starter: 40000,
+  pro: 75000,
   enterprise: 0, // custom — commission set manually by admin
   reseller: 0, // white-label tenant users — billed via the reseller's pool, not self-pay
 }
