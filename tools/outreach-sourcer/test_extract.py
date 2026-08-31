@@ -142,6 +142,14 @@ class TestMisc(unittest.TestCase):
             "The Market Food Shop",
         )
 
+    def test_unspaced_hyphen_is_part_of_the_name(self):
+        # "i-Fitness | Nigeria's Largest Gym" became "i" when a bare hyphen
+        # was treated as a separator.
+        self.assertEqual(
+            extract.business_name("<title>i-Fitness | Nigeria's Largest Gym Chain</title>", "x.com"),
+            "i-Fitness",
+        )
+
     def test_business_name_drops_generic_page_labels(self):
         self.assertEqual(extract.business_name("<title>Home | Nectar Beauty Hub</title>", "x.com"), "Nectar Beauty Hub")
 

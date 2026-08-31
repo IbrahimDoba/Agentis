@@ -85,8 +85,10 @@ def _brand_from(text):
     Market Food Shop"), so position is unreliable. The brand is reliably the
     shortest non-generic segment, since the other side is a tagline.
     """
-    parts = [p.strip() for p in re.split(r"\s*[|\-–—:]\s*", text) if p.strip()]
-    parts = [p for p in parts if p.lower() not in GENERIC_TITLE_PARTS]
+    # A hyphen only separates when it is spaced. An unspaced one is part of the
+    # name itself, and splitting there turned "i-Fitness" into "i".
+    parts = [p.strip() for p in re.split(r"\s+[-–—]\s+|\s*[|:]\s*", text) if p.strip()]
+    parts = [p for p in parts if p.lower() not in GENERIC_TITLE_PARTS and len(p) >= 2]
     if not parts:
         return None
     return min(parts, key=len)[:120]

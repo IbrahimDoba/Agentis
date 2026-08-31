@@ -20,9 +20,17 @@ from enrich import EXCLUDED_DOMAINS
 # Not businesses: social, analytics, CDNs, and the directories themselves.
 SKIP_HOSTS = set(EXCLUDED_DOMAINS) | {
     "twitter.com", "x.com", "youtube.com", "linkedin.com", "tiktok.com",
-    "pinterest.com", "wa.me", "api.whatsapp.com", "t.me", "maps.google.com",
+    "pinterest.com", "wa.me", "api.whatsapp.com", "whatsapp.com",
+    "chat.whatsapp.com", "t.me", "maps.google.com", "tripadvisor.com",
+    "fresha.com", "booksy.com",
     "goo.gl", "bit.ly", "gravatar.com", "cloudflare.com", "gstatic.com",
     "googletagmanager.com", "doubleclick.net", "w3.org", "schema.org",
+    # WordPress and theme infrastructure that every blog listicle links to.
+    "reddit.com", "akismet.com", "themeforest.net", "envato.com",
+    "cookieadmin.net", "wordpress.org", "elementor.com", "wp.com",
+    "gravatar.com", "jetpack.com", "medium.com", "substack.com",
+    # Discontinued Google Business sites: the domain no longer resolves.
+    "business.site",
 }
 
 SKIP_SUFFIXES = (".gov.ng", ".edu.ng", ".wikipedia.org")
