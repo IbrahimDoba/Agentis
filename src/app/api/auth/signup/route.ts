@@ -4,6 +4,7 @@ import { db } from "@/lib/db"
 import { signupSchema } from "@/lib/validations"
 import { sendVerificationCode } from "@/lib/email"
 import { findResellerByHost, emailBrandOf, PLATFORM_RESELLER_ID } from "@/lib/tenant"
+import { recordSignupAttribution, ATTRIBUTION_COOKIE } from "@/lib/outreach/attribution"
 
 function generateCode(): string {
   return Math.floor(1000 + Math.random() * 9000).toString()
@@ -98,6 +99,19 @@ export async function POST(req: NextRequest) {
         }).catch((err) => console.error("[SIGNUP] referral create error:", err))
       }
     }
+
+    // Fire-and-forget, like the referral write above: attribution is reporting,
+    // and a reporting failure must never fail a signup that already succeeded.
+    recordSignupAttribution({
+      userId: newUser.id,
+      cookieValue: req.cookies.get(ATTRIBUTION_COOKIE)?.value,
+      landingPath: parsed.data.landingPath ?? null,
+      utm: {
+        source: parsed.data.utmSource ?? null,
+        medium: parsed.data.utmMedium ?? null,
+        campaign: parsed.data.utmCampaign ?? null,
+      },
+    }).catch((err) => console.error("[SIGNUP] attribution error:", err))
 
     sendVerificationCode({ name, email, code }, brand).catch(
       (err) => console.error("[SIGNUP] send code error:", err)

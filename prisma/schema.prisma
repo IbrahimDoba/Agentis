@@ -1111,3 +1111,119 @@ model MetaTestConnection {
 
   @@index([wabaId])
 }
+
+// ---------------------------------------------------------------------------
+// Cold outreach (admin-only, platform tenant only)
+//
+// Deliberately flat: no company/campaign/step/enrollment tables. At pilot
+// volume (a few hundred prospects, one sequence step) those are joins with no
+// payload. Add them when a second step or a second campaign actually exists.
+//
+// Nothing here is tenant-scoped on purpose — outreach is run by the platform
+// admin, never by a reseller, so a `resellerId` would be cargo-culted.
+// ---------------------------------------------------------------------------
+
+// A business we might sell to. `sourceLabel`/`sourceUrl` are the NDPA
+// record-of-processing: "where did you get my address" must be answerable per
+// row, and sourceLabel is spliced verbatim into the disclosure sentence, so a
+// row without both can never be sent to.
+model OutreachProspect {
+  id                 String            @id @default(cuid())
+  businessName       String
+  email              String            @unique
+  emailDomain        String
+  // sha256(email). Survives an NDPA erasure — we delete the row and keep only
+  // a hash-scoped suppression, so the person can never be re-sourced while we
+  // retain no personal data about them.
+  emailHash          String            @unique
+  contactName        String?
+  vertical           String?
+  city               String?
+  phone              String?
+  whatsappNumber     String?
+  website            String?
+  instagram          String?
+  sourceLabel        String
+  sourceUrl          String
+  research           Json?
+  fitScore           Int               @default(0)
+  status             String            @default("new") // new | queued | sent | replied | unsubscribed | bounced | converted | disqualified
+  disqualifiedReason String?
+  // The mirror demo: a real Agent seeded with this prospect's own business
+  // info, reachable at /demo/<demoSlug> until demoExpiresAt.
+  demoAgentId        String?
+  demoSlug           String?           @unique
+  demoExpiresAt      DateTime?         @db.Timestamptz()
+  convertedUserId    String?
+  createdAt          DateTime          @default(now()) @db.Timestamptz()
+  updatedAt          DateTime          @updatedAt @db.Timestamptz()
+  messages           OutreachMessage[]
+
+  @@index([status, fitScore])
+  @@index([emailDomain])
+}
+
+// One row per (prospect, step). Mirrors FollowUpMessage's generate -> review ->
+// approve -> send lifecycle; nothing reaches a mailbox without a human approval.
+model OutreachMessage {
+  id                String           @id @default(cuid())
+  prospectId        String
+  prospect          OutreachProspect @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+  step              Int              @default(1)
+  // Snapshot, not a join. The prospect row can be erased on request; the send
+  // log has to survive that without resurrecting the address as a relation.
+  toEmail           String
+  subject           String
+  bodyText          String           @db.Text
+  aiReason          String?          @db.Text
+  // [{ claim, sourceUrl }] — every factual claim in the body traces to one, and
+  // the review UI renders them next to the copy so a hallucination is visible.
+  aiSignals         Json?
+  aiModel           String?
+  status            String           @default("pending") // pending | approved | rejected | sending | sent | failed | skipped
+  reviewedAt        DateTime?        @db.Timestamptz()
+  sentAt            DateTime?        @db.Timestamptz()
+  providerMessageId String?          @unique
+  error             String?
+  // Random, per-message. Serves both /u/<token> (unsubscribe) and /r/<token>
+  // (click + attribution), so which step earned the click or the opt-out is
+  // recoverable without a second column.
+  token             String           @unique
+  createdAt         DateTime         @default(now()) @db.Timestamptz()
+
+  // Structural double-send guard: a retry can never produce a second row.
+  @@unique([prospectId, step])
+  @@index([status, sentAt])
+}
+
+// Global do-not-contact, checked before every send. scope+value rather than
+// three nullable columns so the lookup is one indexed query across all three
+// kinds (exact address, whole domain, erased-prospect hash).
+model OutreachSuppression {
+  id        String   @id @default(cuid())
+  scope     String // email | domain | email_hash
+  value     String
+  reason    String // unsubscribed | complained | hard_bounce | manual | customer
+  note      String?
+  createdAt DateTime @default(now()) @db.Timestamptz()
+
+  @@unique([scope, value])
+}
+
+// Machine-captured first touch. Deliberately separate from User.referralSource,
+// which is the free-text answer the user types at signup — different question,
+// different trust level. userId is a plain column, not a relation, so the User
+// model is untouched.
+model SignupAttribution {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  prospectId  String?
+  source      String?
+  medium      String?
+  campaign    String?
+  clickToken  String?
+  landingPath String?
+  createdAt   DateTime @default(now()) @db.Timestamptz()
+
+  @@index([prospectId])
+}

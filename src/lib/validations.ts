@@ -42,6 +42,13 @@ export const signupSchema = z.object({
   password: z.string().min(8, "Password must be at least 8 characters"),
   // Optional "how did you hear about us?" — free-form string capped for safety.
   referralSource: z.string().max(100).optional().or(z.literal("")),
+  // Machine attribution. The dz_attr cookie set by /r/<token> is the primary
+  // path; these are the fallback for when it is missing (Safari ITP, or a URL
+  // copied to another device). Bounded so a crafted URL cannot bloat a row.
+  utmSource: z.string().max(64).optional(),
+  utmMedium: z.string().max(64).optional(),
+  utmCampaign: z.string().max(64).optional(),
+  landingPath: z.string().max(256).optional(),
 })
 
 export const profileUpdateSchema = z.object({

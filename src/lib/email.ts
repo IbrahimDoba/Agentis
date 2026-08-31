@@ -1,4 +1,5 @@
 import { Resend, type CreateEmailOptions } from "resend"
+import { newsletterUnsubToken } from "@/lib/outreach/unsubToken"
 
 const FROM_ADDRESS = "noreply@dailzero.com"
 const FROM = `D-Zero AI <${FROM_ADDRESS}>`
@@ -440,6 +441,12 @@ export async function sendNewsletter(data: {
   ctaText?: string
   ctaUrl?: string
 }) {
+  // Google, Yahoo and Apple require RFC 8058 one-click unsubscribe on bulk mail,
+  // and this sends from the primary domain that also carries every verification
+  // code and password reset. A missing header here is a risk to those, not just
+  // to the newsletter.
+  const unsubUrl = `${APP_URL}/u/${newsletterUnsubToken(data.email)}`
+
   const ctaBlock = data.ctaText && data.ctaUrl
     ? `<div style="margin:32px 0;">
         <a href="${data.ctaUrl}" style="display:inline-block;background:#00dc82;color:#0a0a0a;font-weight:700;font-size:15px;text-decoration:none;padding:14px 32px;border-radius:8px;letter-spacing:-0.2px;">${data.ctaText} →</a>
@@ -497,6 +504,8 @@ export async function sendNewsletter(data: {
               You're receiving this from <strong style="color:#8ab89a;">D-Zero AI</strong> because you subscribed or have an account with us.
               &nbsp;·&nbsp;
               <a href="${APP_URL}" style="color:#4a6b56;text-decoration:underline;">dailzero.com</a>
+              &nbsp;·&nbsp;
+              <a href="${unsubUrl}" style="color:#4a6b56;text-decoration:underline;">Unsubscribe</a>
             </p>
             <p style="margin:6px 0 0;font-size:11px;color:#2d4a38;">
               © ${new Date().getFullYear()} D-Zero AI. All rights reserved.
@@ -516,6 +525,10 @@ export async function sendNewsletter(data: {
     to: data.email,
     subject: data.subject,
     html,
+    headers: {
+      "List-Unsubscribe": `<${unsubUrl}>`,
+      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+    },
   })
 }
 

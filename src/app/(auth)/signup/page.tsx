@@ -15,10 +15,26 @@ function SignupForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [refCode, setRefCode] = useState<string | null>(null)
+  // Fallback attribution. The httpOnly dz_attr cookie set by /r/<token> is the
+  // primary path; these only matter when it is missing, e.g. Safari ITP or a
+  // link the prospect copied to another device.
+  const [attribution, setAttribution] = useState<Record<string, string>>({})
 
   useEffect(() => {
     const ref = searchParams.get("ref")
     if (ref) setRefCode(ref)
+
+    const utm: Record<string, string> = {}
+    const source = searchParams.get("utm_source")
+    const medium = searchParams.get("utm_medium")
+    const campaign = searchParams.get("utm_campaign")
+    if (source) utm.utmSource = source.slice(0, 64)
+    if (medium) utm.utmMedium = medium.slice(0, 64)
+    if (campaign) utm.utmCampaign = campaign.slice(0, 64)
+    if (Object.keys(utm).length > 0) {
+      utm.landingPath = window.location.pathname.slice(0, 256)
+      setAttribution(utm)
+    }
   }, [searchParams])
 
   const [form, setForm] = useState({
@@ -76,7 +92,7 @@ function SignupForm() {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...payload, ...(refCode ? { refCode } : {}) }),
+        body: JSON.stringify({ ...payload, ...attribution, ...(refCode ? { refCode } : {}) }),
       })
 
       const data = await res.json()
