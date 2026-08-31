@@ -1,4 +1,4 @@
-import { graphGet } from "./graph"
+import { graphGet, graphPost } from "./graph"
 
 // Read-only Graph calls that exercise the `whatsapp_business_management`
 // permission, separate from the messaging path in cloud-api.ts. Meta's app
@@ -81,5 +81,58 @@ export async function getBusinessOverview(): Promise<BusinessOverview> {
       category: t.category,
       language: t.language,
     })),
+  }
+}
+
+export type TemplateCategory = "UTILITY" | "MARKETING"
+
+export interface CreateTemplateInput {
+  name: string
+  category: TemplateCategory
+  language: string
+  body: string
+}
+
+export interface CreatedTemplate {
+  id: string
+  status: string
+  category: string
+}
+
+// Meta's rule: lowercase alphanumerics and underscores only. Callers pass
+// human input, so normalise rather than reject — "Order Update" becomes
+// "order_update" instead of a validation error the user has to decode.
+export function normalizeTemplateName(raw: string): string {
+  return raw
+    .toLowerCase()
+    .replace(/[^a-z0-9_\s]/g, "")
+    .trim()
+    .replace(/\s+/g, "_")
+    .slice(0, 512)
+}
+
+// Creates a body-only template on the WABA. Meta queues it for review, so the
+// returned status is normally PENDING — approval lands minutes to hours later
+// and shows up in the template list.
+export async function createMessageTemplate(
+  input: CreateTemplateInput
+): Promise<CreatedTemplate> {
+  const wabaId = process.env.META_TEST_WABA_ID
+  if (!wabaId) throw new Error("Missing Meta env var: META_TEST_WABA_ID")
+
+  const created = await graphPost<{ id: string; status?: string; category?: string }>(
+    `${wabaId}/message_templates`,
+    {
+      name: normalizeTemplateName(input.name),
+      category: input.category,
+      language: input.language,
+      components: [{ type: "BODY", text: input.body }],
+    }
+  )
+
+  return {
+    id: created.id,
+    status: created.status ?? "PENDING",
+    category: created.category ?? input.category,
   }
 }

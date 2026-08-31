@@ -36,6 +36,12 @@ export function MetaAccountClient() {
   const [account, setAccount] = useState<BusinessOverview | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [tplName, setTplName] = useState("")
+  const [tplBody, setTplBody] = useState("")
+  const [tplCategory, setTplCategory] = useState<"UTILITY" | "MARKETING">("UTILITY")
+  const [tplBusy, setTplBusy] = useState(false)
+  const [tplError, setTplError] = useState<string | null>(null)
+  const [tplStatus, setTplStatus] = useState<string | null>(null)
 
   // Fetches on open rather than on mount: each call spends Graph quota, and a
   // reviewer clicking the button should visibly trigger the request.
@@ -54,6 +60,34 @@ export function MetaAccountClient() {
       setLoading(false)
     }
   }, [])
+
+  async function handleCreateTemplate(e: React.FormEvent) {
+    e.preventDefault()
+    setTplBusy(true)
+    setTplError(null)
+    setTplStatus(null)
+    try {
+      const res = await fetch("/api/meta/templates", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: tplName, body: tplBody, category: tplCategory }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setTplError(data.error || "Template creation failed")
+        return
+      }
+      setTplStatus(`Submitted to Meta for review — status ${data.template.status}.`)
+      setTplName("")
+      setTplBody("")
+      // Re-read so the new template shows in the list above without a reload.
+      openPanel("account")
+    } catch (err) {
+      setTplError(err instanceof Error ? err.message : "Template creation failed")
+    } finally {
+      setTplBusy(false)
+    }
+  }
 
   return (
     <>
@@ -138,6 +172,51 @@ export function MetaAccountClient() {
                 </table>
               </div>
             )}
+
+            <h3 className={styles.sectionTitle}>Create a template</h3>
+            <p className={styles.muted}>
+              Templates are how you message a customer outside the 24-hour window. Meta
+              reviews each one before it can be sent.
+            </p>
+            <form className={styles.tplForm} onSubmit={handleCreateTemplate}>
+              <div className={styles.tplRow}>
+                <label className={styles.tplField}>
+                  <span className={styles.tplLabel}>Name</span>
+                  <input
+                    className={styles.tplInput}
+                    value={tplName}
+                    onChange={(e) => setTplName(e.target.value)}
+                    placeholder="order_update"
+                  />
+                </label>
+                <label className={styles.tplField}>
+                  <span className={styles.tplLabel}>Category</span>
+                  <select
+                    className={styles.tplInput}
+                    value={tplCategory}
+                    onChange={(e) => setTplCategory(e.target.value as "UTILITY" | "MARKETING")}
+                  >
+                    <option value="UTILITY">Utility</option>
+                    <option value="MARKETING">Marketing</option>
+                  </select>
+                </label>
+              </div>
+              <label className={styles.tplField}>
+                <span className={styles.tplLabel}>Message body</span>
+                <textarea
+                  className={`${styles.tplInput} ${styles.tplTextarea}`}
+                  value={tplBody}
+                  onChange={(e) => setTplBody(e.target.value)}
+                  rows={3}
+                  placeholder="Hi! Your order is on its way and should arrive today."
+                />
+              </label>
+              <Button disabled={tplBusy || !tplName.trim() || !tplBody.trim()}>
+                {tplBusy ? "Submitting…" : "Create template"}
+              </Button>
+            </form>
+            {tplError && <p className={styles.error}>{tplError}</p>}
+            {tplStatus && <p className={styles.muted}>{tplStatus}</p>}
           </>
         )}
       </Modal>
