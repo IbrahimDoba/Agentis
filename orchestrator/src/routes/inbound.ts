@@ -29,8 +29,13 @@ export const inboundSchema = z.object({
   // Embed-widget specific. When channel === "embed" the orchestrator skips
   // the WhatsApp-only dispatch path and just persists the outbound reply —
   // the visitor's browser picks it up via polling on /api/embed/messages.
-  channel: z.enum(["whatsapp", "embed", "whatsapp_group"]).optional(),
+  // "meta" = official WhatsApp Cloud API. Runs the full pipeline like whatsapp,
+  // but replies dispatch to the frontend's Cloud API send endpoint rather than
+  // the Baileys worker.
+  channel: z.enum(["whatsapp", "embed", "whatsapp_group", "meta"]).optional(),
   visitorId: z.string().min(1).optional(),
+  // Cloud API only: which of our numbers received the message.
+  metaPhoneNumberId: z.string().min(1).optional(),
   // Group only: the group JID (the conversation key) and the participant who spoke.
   groupJid: z.string().min(1).optional(),
   senderName: z.string().optional(),
@@ -46,7 +51,7 @@ export async function inboundRoutes(app: FastifyInstance) {
       return reply.code(400).send({ error: "Invalid payload", details: parsed.error.flatten() })
     }
 
-    const { agentId, messageId, fromPhone, senderJid, text, timestamp, pushName, adContext, channel, visitorId, imageDataUrl, groupJid, senderName } = parsed.data
+    const { agentId, messageId, fromPhone, senderJid, text, timestamp, pushName, adContext, channel, visitorId, imageDataUrl, groupJid, senderName, metaPhoneNumberId } = parsed.data
 
     // Dedup check
     if (await isDuplicate(messageId)) {
@@ -88,6 +93,7 @@ export async function inboundRoutes(app: FastifyInstance) {
       // who tagged us instead of answering in the room.
       groupJid,
       senderName,
+      metaPhoneNumberId,
     })
 
     logger.info({ agentId, fromPhone, messageId }, "Inbound message enqueued")

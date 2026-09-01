@@ -9,6 +9,10 @@ export interface DispatchOptions {
   toJid: string
   text: string
   source: "ai" | "human"
+  // Which transport to send over. "meta" goes to the frontend's Cloud API send
+  // endpoint; everything else goes to the Baileys worker. Defaults to the
+  // worker so existing callers are unaffected.
+  channel?: string
   // The persisted Message row backing this part. The worker deletes it if it
   // aborts the send (a human replied while the job sat in the queue) so the
   // dashboard never shows an AI message that was never delivered.
@@ -47,10 +51,50 @@ export async function canAffordReply(agentId: string): Promise<boolean> {
 }
 
 /**
- * Dispatch a reply through the Baileys worker's send endpoint.
- * The worker handles anti-ban pacing, typing indicators, etc.
+ * Send a Cloud API reply via the frontend, which holds the connected business's
+ * token. Deliberately not called from here with Graph directly: those tokens are
+ * encrypted with a key that lives in the frontend service, and copying that key
+ * into a second service to save one hop is a bad trade.
+ */
+async function dispatchViaMeta(opts: DispatchOptions): Promise<void> {
+  const url = `${config.APP_URL}/api/meta/internal/send`
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${config.ORCHESTRATOR_API_KEY}`,
+    },
+    body: JSON.stringify({
+      conversationId: opts.conversationId,
+      to: opts.toJid,
+      text: opts.text,
+      ...(opts.messageId ? { messageId: opts.messageId } : {}),
+      ...(opts.tokensInput !== undefined ? { tokensInput: opts.tokensInput } : {}),
+      ...(opts.tokensOutput !== undefined ? { tokensOutput: opts.tokensOutput } : {}),
+    }),
+  })
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => "")
+    logger.error({ status: res.status, body, agentId: opts.agentId }, "Meta send failed")
+    throw new Error(`Meta send failed: ${res.status}`)
+  }
+
+  logger.info(
+    { agentId: opts.agentId, conversationId: opts.conversationId, preview: opts.text.slice(0, 60) },
+    "Reply dispatched over Cloud API"
+  )
+}
+
+/**
+ * Dispatch a reply over the conversation's transport: the Cloud API for "meta",
+ * otherwise the Baileys worker (which handles anti-ban pacing, typing
+ * indicators, etc.).
  */
 export async function dispatchReply(opts: DispatchOptions): Promise<void> {
+  if (opts.channel === "meta") return dispatchViaMeta(opts)
+
   const url = `${config.WA_WORKER_URL}/v1/messages/send`
 
   const res = await fetch(url, {

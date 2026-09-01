@@ -19,7 +19,7 @@ export interface Conversation {
   mode: "ai" | "human"
   lastActivityAt: string | null
   adContext: AdContext | null
-  channel: "whatsapp" | "embed" | "api" | "whatsapp_group"
+  channel: "whatsapp" | "embed" | "api" | "whatsapp_group" | "meta"
   visitorId: string | null
 }
 
@@ -41,7 +41,8 @@ export interface Message {
 export interface CreateConversationOptions {
   contactName?: string
   defaultMode?: "ai" | "human"
-  channel?: "whatsapp" | "embed" | "api" | "whatsapp_group"
+  channel?: "whatsapp" | "embed" | "api" | "whatsapp_group" | "meta"
+  metaPhoneNumberId?: string | null
   visitorId?: string
   // Raw WhatsApp chat JID for the label-matching bridge (see Conversation.senderJid).
   senderJid?: string
@@ -65,6 +66,11 @@ export async function getOrCreateConversation(
   const channel = opts.channel ?? "whatsapp"
   const visitorId = opts.visitorId ?? null
   const senderJid = opts.senderJid ?? null
+  // Cloud API only: which of our numbers the conversation belongs to. The
+  // channel is part of the lookup above because the same customer can reach one
+  // agent on both a Baileys number and a Cloud API number, and those are
+  // separate conversations that dispatch over different transports.
+  const metaPhoneNumberId = opts.metaPhoneNumberId ?? null
 
   // Try to find existing
   const existing = await sql<Conversation[]>`
@@ -72,6 +78,7 @@ export async function getOrCreateConversation(
            "lastActivityAt", "adContext", "channel", "visitorId"
     FROM "Conversation"
     WHERE "agentId" = ${agentId} AND "phoneNumber" = ${phoneNumber}
+      AND "channel" = ${channel}
     LIMIT 1
   `
   if (existing[0]) {
@@ -93,9 +100,11 @@ export async function getOrCreateConversation(
   const id = randomUUID()
   const rows = await sql<Conversation[]>`
     INSERT INTO "Conversation" ("id", "agentId", "orchestratorAgentId", "phoneNumber",
-      "contactName", "senderJid", "mode", "channel", "visitorId", "lastActivityAt", "createdAt")
+      "contactName", "senderJid", "mode", "channel", "visitorId", "metaPhoneNumberId",
+      "lastActivityAt", "createdAt")
     VALUES (${id}, ${agentId}, ${orchestratorAgentId}, ${phoneNumber},
-      ${contactName ?? null}, ${senderJid}, ${defaultMode}, ${channel}, ${visitorId}, NOW(), NOW())
+      ${contactName ?? null}, ${senderJid}, ${defaultMode}, ${channel}, ${visitorId},
+      ${metaPhoneNumberId}, NOW(), NOW())
     RETURNING "id", "agentId", "orchestratorAgentId", "phoneNumber", "mode",
               "lastActivityAt", "adContext", "channel", "visitorId"
   `

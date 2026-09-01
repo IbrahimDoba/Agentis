@@ -102,8 +102,8 @@ export async function POST(
     // reply threads normally. Operator-initiated, so it opens in human mode —
     // toggle the AI on from the inbox if you want the agent to handle replies.
     const conversation = await db.conversation.upsert({
-      where: { agentId_phoneNumber: { agentId, phoneNumber: phone } },
-      create: { agentId, phoneNumber: phone, mode: "human", lastActivityAt: new Date() },
+      where: { agentId_phoneNumber_channel: { agentId, phoneNumber: phone, channel: "whatsapp" } },
+      create: { agentId, phoneNumber: phone, channel: "whatsapp", mode: "human", lastActivityAt: new Date() },
       update: { lastActivityAt: new Date() },
       select: { id: true },
     })

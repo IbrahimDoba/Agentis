@@ -576,6 +576,10 @@ model Conversation {
   // sweep skips it, so the timer never flips it back to AI.
   aiLocked             Boolean             @default(false)
   channel              String              @default("whatsapp")
+  // Which of our Cloud API numbers this conversation belongs to (channel
+  // "meta" only). Decides whose token the reply is sent with — see
+  // src/lib/meta/routing.ts.
+  metaPhoneNumberId    String?
   visitorId            String?
   lastActivityAt       DateTime?           @default(now())
   factsExtractedAt     DateTime?
@@ -604,7 +608,7 @@ model Conversation {
   groupChat            GroupChat?
   followUpMessages     FollowUpMessage[]
 
-  @@unique([agentId, phoneNumber])
+  @@unique([agentId, phoneNumber, channel])
   @@index([agentId, visitorId])
   @@index([agentId, senderJid])
   @@index([agentId, lastActivityAt])

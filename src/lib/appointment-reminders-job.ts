@@ -205,9 +205,16 @@ async function resolveCustomerConversationId(
   const phoneNumber = normalizePhone(appt.customerNumber)
   if (!phoneNumber) return null
   const convo = await db.conversation.upsert({
-    where: { agentId_phoneNumber: { agentId: appt.agentId, phoneNumber } },
+    where: {
+      agentId_phoneNumber_channel: { agentId: appt.agentId, phoneNumber, channel: "whatsapp" },
+    },
     update: {},
-    create: { agentId: appt.agentId, phoneNumber, contactName: appt.customerName },
+    create: {
+      agentId: appt.agentId,
+      phoneNumber,
+      channel: "whatsapp",
+      contactName: appt.customerName,
+    },
     select: { id: true },
   })
   return convo.id

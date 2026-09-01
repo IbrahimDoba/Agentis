@@ -28,6 +28,10 @@ const schema = z.object({
     .transform((u) => (u.includes("whatsapp-worker-production-143f.up.railway.app") ? "https://api.dailzero.com" : u)),
   WORKER_API_KEY: z.string().min(16),
 
+  // The Next.js app. Only used to dispatch Cloud API ("meta" channel) replies,
+  // which must go out with the connected business's own token — held there.
+  APP_URL: z.string().url().default("https://www.dailzero.com"),
+
   OPENAI_API_KEY: z.string().min(1),
   OPENAI_CHAT_MODEL: z.string().default("gpt-4o-mini"),
   OPENAI_EMBEDDING_MODEL: z.string().default("text-embedding-3-small"),
