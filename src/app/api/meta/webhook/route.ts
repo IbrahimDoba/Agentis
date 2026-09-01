@@ -2,12 +2,11 @@ import { NextRequest, NextResponse } from "next/server"
 import {
   verifyWebhookChallenge,
   verifyWebhookSignature,
-  sendText,
+
   isAllowedRecipient,
 } from "@/lib/meta/cloud-api"
-import { alreadySeen, appendMessage, getHistory } from "@/lib/meta/store"
+import { alreadySeen, appendMessage } from "@/lib/meta/store"
 import { resolveNumberContext } from "@/lib/meta/routing"
-import { generateAgentReply } from "@/lib/meta/reply"
 
 // crypto + Prisma + openai — Node runtime, never cached.
 export const runtime = "nodejs"
@@ -90,11 +89,18 @@ function extractTextMessages(payload: unknown): InboundText[] {
   return out
 }
 
+const ORCHESTRATOR_URL = process.env.ORCHESTRATOR_URL || "http://localhost:4100"
+const ORCHESTRATOR_API_KEY = process.env.ORCHESTRATOR_API_KEY || process.env.WORKER_API_KEY
+
 async function handleInbound(msg: InboundText): Promise<void> {
   // Dedup on Meta's message id — a retried/redelivered webhook must not trigger
-  // a second reply.
+  // a second reply. (The orchestrator dedups too; this also stops a duplicate
+  // landing in the shadow log below.)
   if (await alreadySeen(msg.wamid)) return
 
+  // Shadow log. The orchestrator is the real store now — this stays for one
+  // release so the Meta tab's own feed keeps working while the cutover is
+  // verified, and is dropped once Conversations covers it.
   await appendMessage({
     waId: msg.from,
     phoneNumberId: msg.phoneNumberId,
@@ -104,15 +110,15 @@ async function handleInbound(msg: InboundText): Promise<void> {
     raw: msg.value,
   })
 
-  // Recorded above so the inbound message is still visible in the feed, but we
-  // stop before generating or sending anything to a number we don't know.
+  // Recorded above so the inbound message is still visible, but we stop before
+  // generating or sending anything to a number we don't know.
   if (!isAllowedRecipient(msg.from)) {
     console.warn(`[meta/webhook] inbound from non-allowlisted ${msg.from} — logged, not replied`)
     return
   }
 
-  // Which number was this sent to? That decides who replies, as whom, and with
-  // whose credentials. An unknown number is never answered with our own token.
+  // Which number was this sent to? That decides which agent answers. An unknown
+  // number is never answered.
   const context = await resolveNumberContext(msg.phoneNumberId)
   if (!context) {
     console.error(
@@ -122,21 +128,40 @@ async function handleInbound(msg: InboundText): Promise<void> {
     return
   }
 
-  const history = await getHistory(msg.from, msg.phoneNumberId)
-  const reply = await generateAgentReply(context.persona, history, msg.text)
-  const sent = await sendText(msg.from, reply, {
-    phoneNumberId: context.phoneNumberId,
-    accessToken: context.accessToken,
+  if (!ORCHESTRATOR_API_KEY) {
+    console.error("[meta/webhook] ORCHESTRATOR_API_KEY not set — cannot forward inbound")
+    return
+  }
+
+  // Hand off to the orchestrator, exactly as the Baileys worker and the embed
+  // widget do. It owns persistence, the AI turn (RAG, tools, reply guard),
+  // tagging, lead detection and credit charging — none of which the old
+  // direct-reply path had. It dispatches the reply back to
+  // /api/meta/internal/send, which holds this business's Cloud API token.
+  const res = await fetch(`${ORCHESTRATOR_URL}/v1/inbound`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${ORCHESTRATOR_API_KEY}`,
+    },
+    body: JSON.stringify({
+      agentId: context.persona.agentId,
+      messageId: msg.wamid,
+      fromPhone: msg.from,
+      // No JID on the Cloud API. dispatchReply uses this as the send target,
+      // and the Meta send path wants digits, so pass the wa_id through.
+      senderJid: msg.from,
+      text: msg.text,
+      timestamp: Date.now(),
+      channel: "meta",
+      metaPhoneNumberId: msg.phoneNumberId,
+    }),
   })
 
-  await appendMessage({
-    waId: msg.from,
-    phoneNumberId: msg.phoneNumberId,
-    direction: "outbound",
-    text: reply,
-    waMessageId: sent.waMessageId,
-    raw: sent.raw,
-  })
+  if (!res.ok) {
+    const body = await res.text().catch(() => "")
+    console.error(`[meta/webhook] orchestrator forward failed (${res.status}): ${body}`)
+  }
 }
 
 // POST — inbound messages. Verify Meta's signature over the RAW body, then

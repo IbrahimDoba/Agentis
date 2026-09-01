@@ -47,7 +47,7 @@ interface OrchestratorConversation {
   contactName: string | null
   mode: string
   aiLocked?: boolean
-  channel?: "whatsapp" | "embed" | "whatsapp_group"
+  channel?: "whatsapp" | "embed" | "whatsapp_group" | "meta"
   visitorId?: string | null
   lastActivityAt: string
   createdAt: string
@@ -85,6 +85,13 @@ function isEmbed(c: OrchestratorConversation): boolean {
 
 function isGroup(c: OrchestratorConversation): boolean {
   return c.channel === "whatsapp_group"
+}
+
+// Official WhatsApp Cloud API, as opposed to a paired (Baileys) number. Worth
+// showing: replies go out from a different number, and the 24-hour customer
+// service window applies, so an operator needs to know which they are in.
+function isMeta(c: OrchestratorConversation): boolean {
+  return c.channel === "meta"
 }
 
 // Short, stable label for embed visitors who haven't identified themselves.
@@ -767,6 +774,8 @@ export function OrchestratorChatsView({ agentId }: OrchestratorChatsViewProps) {
                     ? <><span className={styles.channelTag}>🌐 Web</span> {conv.contactName ? embedLabel(conv) : ""}</>
                     : isGroup(conv)
                     ? <span className={styles.channelTag}>👥 Group</span>
+                    : isMeta(conv)
+                    ? <><span className={styles.channelTag}>☑️ Official</span> {formatPhone(displayPhone(conv))}</>
                     : isLid(displayPhone(conv))
                       ? `ID: ${displayPhone(conv).replace(/@.*$/, "")}`
                       : formatPhone(displayPhone(conv))}
