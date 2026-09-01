@@ -63,11 +63,18 @@ export function carryoverForNextCycle(
 }
 
 // Dailzero orchestrator usage policy (80% target margin)
+// Must stay identical to AI_CREDIT_COSTS in worker/src/billing/credits.ts —
+// the worker does the charging, this copy drives the app's estimates and the
+// /v1 API's flat rate. video and document were missing here, so the two tables
+// disagreed about what a media message costs. creditCostParity.test.ts fails if
+// they diverge again; the comment alone did not hold.
 export const AI_CREDIT_COSTS = {
   text: 5,
   image: 8,
+  video: 12, // heavier media — WhatsApp transcodes + larger transfer
+  document: 8, // priced like an image (a single file attachment)
   voicePerSec: 3,
-  voiceMin: 15,
+  voiceMin: 15, // minimum credits charged per voice note regardless of length
 } as const
 
 // Buyers reason in "messages", not raw credits, so pricing surfaces express each
