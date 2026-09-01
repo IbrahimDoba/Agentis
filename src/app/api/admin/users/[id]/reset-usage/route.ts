@@ -1,5 +1,5 @@
+import { withAdmin } from "@/lib/api/withAuth"
 import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 
 interface Params {
@@ -18,12 +18,7 @@ interface Params {
 //
 // Until the payment gateway is wired up, this is the manual equivalent of
 // "the customer paid for another month".
-export async function POST(_req: NextRequest, { params }: Params) {
-  const session = await auth()
-  if (!session || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
-
+export const POST = withAdmin(async (_req: NextRequest, { params }: Params) => {
   const { id } = await params
 
   const user = await db.user.findUnique({
@@ -54,4 +49,4 @@ export async function POST(_req: NextRequest, { params }: Params) {
     plan: updated.plan,
     subscriptionExpiresAt: updated.subscriptionExpiresAt?.toISOString() ?? null,
   })
-}
+})
