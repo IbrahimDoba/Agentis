@@ -3,6 +3,47 @@ import { randomUUID } from "crypto"
 import { logger as rootLogger } from "../lib/logger.js"
 import { cachedTtl, invalidateTtl } from "../lib/ttl-cache.js"
 
+/**
+ * Race-safe find-or-create for a Baileys conversation.
+ *
+ * Deliberately does NOT use `ON CONFLICT (...)`: naming a constraint couples
+ * this to whichever unique index the table currently carries, so changing that
+ * key means a deploy window where this service errors on live traffic. Insert
+ * first, and on a unique violation fall back to the select — same race safety,
+ * no dependency on the index's shape.
+ */
+export async function findOrCreateWhatsAppConversation(opts: {
+  agentId: string
+  phoneNumber: string
+  contactName?: string | null
+  mode?: string
+}): Promise<string | null> {
+  const { agentId, phoneNumber, contactName = null, mode = "ai" } = opts
+
+  try {
+    const created = await sql<{ id: string }[]>`
+      INSERT INTO "Conversation" ("id", "agentId", "phoneNumber", "contactName",
+        "mode", "channel", "lastActivityAt", "createdAt")
+      VALUES (${randomUUID()}, ${agentId}, ${phoneNumber}, ${contactName},
+        ${mode}, 'whatsapp', NOW(), NOW())
+      RETURNING "id"
+    `
+    if (created[0]?.id) return created[0].id
+  } catch (err) {
+    // 23505 = unique_violation: someone else created it between our check and
+    // this insert. Anything else is a real error.
+    if ((err as { code?: string })?.code !== "23505") throw err
+  }
+
+  const existing = await sql<{ id: string }[]>`
+    UPDATE "Conversation" SET "lastActivityAt" = NOW()
+    WHERE "agentId" = ${agentId} AND "phoneNumber" = ${phoneNumber}
+      AND "channel" = 'whatsapp'
+    RETURNING "id"
+  `
+  return existing[0]?.id ?? null
+}
+
 const logger = rootLogger.child({ module: "queries" })
 
 export type BaileysStatus =
@@ -564,18 +605,14 @@ export async function saveHumanOutboundMessage(
     `
     if (agentRows.length === 0) return false // agent gone — nothing to attach to
     const startMode = agentRows[0].autoPauseOnHumanReply === false ? "ai" : "human"
-    const newConvId = randomUUID()
-    // Race-safe vs a simultaneous inbound creating the same conversation:
-    // on conflict, refresh activity and return the existing row's id.
-    const created = await sql<{ id: string }[]>`
-      INSERT INTO "Conversation" ("id", "agentId", "phoneNumber", "mode", "lastActivityAt")
-      VALUES (${newConvId}, ${agentId}, ${customerPhone}, ${startMode}, NOW())
-      ON CONFLICT ("agentId", "phoneNumber")
-      DO UPDATE SET "lastActivityAt" = NOW()
-      RETURNING "id"
-    `
-    conversationId = created[0]?.id
-    if (!conversationId) return false
+    // Race-safe vs a simultaneous inbound creating the same conversation.
+    const attached = await findOrCreateWhatsAppConversation({
+      agentId,
+      phoneNumber: customerPhone,
+      mode: startMode,
+    })
+    if (!attached) return false
+    conversationId = attached
   }
 
   // Idempotent on the WhatsApp message id. Baileys delivers the same fromMe
