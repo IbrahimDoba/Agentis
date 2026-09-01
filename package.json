@@ -8,6 +8,7 @@
     "build": "prisma migrate resolve --applied 20240101000000_baseline 2>/dev/null; prisma migrate deploy && next build",
     "start": "next start",
     "lint": "eslint",
+    "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest"
   },
