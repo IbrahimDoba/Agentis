@@ -213,11 +213,41 @@ def whatsapp_numbers(html):
     return uniq
 
 
+# WhatsApp chat-widget apps, which are how most Nigerian Shopify and WooCommerce
+# stores route visitors to WhatsApp. The widget mounts in JavaScript, so there is
+# no wa.me link in the served HTML and a link-only check misses the site
+# entirely. The script asset that loads it is still there, and naming it is
+# evidence the business chose to put WhatsApp on their storefront.
+WIDGET_MARKERS = (
+    "whatsapp-chat",
+    "whatsapp_chat",
+    "whatsapp-widget",
+    "whatsapp-button",
+    "whatsappwidget",
+    "wa-widget",
+    "dondy",
+    "getbutton.io",
+    "chatwith.io",
+    "elfsight-app-whatsapp",
+)
+
+# Two false-positive sources seen in the wild: Wix ships a config key called
+# specs.restaurants.whatsappnotification on sites with no WhatsApp at all, and
+# bot blocklists list "whatsapp" among crawler user agents. Both contain the
+# bare word and neither means the business uses it.
+WHATSAPP_NOISE = (
+    "whatsappnotification",
+    "^whatsapp",
+)
+
+
 def uses_whatsapp(html):
     lowered = html.lower()
     if WA_LINK_RE.search(html):
         return True
-    return any(p in lowered for p in DM_PHRASES)
+    if any(p in lowered for p in DM_PHRASES):
+        return True
+    return any(m in lowered for m in WIDGET_MARKERS)
 
 
 def phones(html):
