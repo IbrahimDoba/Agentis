@@ -10,7 +10,7 @@ import {
   type Conversation,
 } from "../db/queries/conversations.js"
 import { buildSystemPrompt, buildMessages } from "./context-builder.js"
-import { dispatchReply, chargeEmbedTurn, canAffordReply } from "./response-dispatcher.js"
+import { dispatchReply, chargeTurnOutsideWorker, canAffordReply } from "./response-dispatcher.js"
 import { buildRichContent } from "./rich-content.js"
 import { publishSseEvent } from "../lib/sse-publish.js"
 import { uploadFile } from "../storage/r2.js"
@@ -508,16 +508,20 @@ async function generateReply(agent: OrchestratorAgent, conversation: Conversatio
         channel,
       })
     }
-  } else {
-    // Embed skips the Baileys worker (and thus its per-message billing), so
-    // charge the turn's tokens here — once — so widget replies count toward
-    // credits just like WhatsApp. Best-effort: the reply is already persisted.
-    await chargeEmbedTurn({
+  }
+
+  // Channels that never reach the Baileys worker never hit its per-message
+  // billing, so charge the turn here — once — or they reply for free. Embed is
+  // delivered by the orchestrator itself; "meta" goes out over the Cloud API.
+  if (channel === "embed" || channel === "meta") {
+    await chargeTurnOutsideWorker({
       agentId,
       conversationId,
       tokensInput: totalInputTokens,
       tokensOutput: totalOutputTokens,
-    }).catch((err) => logger.error({ err, agentId, conversationId }, "Failed to charge embed turn"))
+    }).catch((err) =>
+      logger.error({ err, agentId, conversationId, channel }, "Failed to charge turn")
+    )
   }
 
   // Tag after the reply is dispatched, so classification never adds latency to

@@ -139,13 +139,13 @@ export interface ChargeTurnOptions {
 }
 
 /**
- * Record credits for a non-WhatsApp AI turn (the embed widget) via the worker's
- * billing endpoint. Embed replies are delivered by the orchestrator directly
- * and never touch the Baileys send queue, so the queue's per-message billing
- * doesn't run — this makes widget usage count the same way. Best-effort: the
- * reply is already delivered, so a billing hiccup must not fail the turn.
+ * Record credits for an AI turn that never touches the Baileys send queue —
+ * the embed widget and the Cloud API ("meta") channel. The queue does the
+ * per-message billing for Baileys sends, so without this those channels reply
+ * for free. Best-effort: the reply is already delivered, so a billing hiccup
+ * must not fail the turn.
  */
-export async function chargeEmbedTurn(opts: ChargeTurnOptions): Promise<void> {
+export async function chargeTurnOutsideWorker(opts: ChargeTurnOptions): Promise<void> {
   const res = await fetch(`${config.WA_WORKER_URL}/v1/billing/charge`, {
     method: "POST",
     headers: {
