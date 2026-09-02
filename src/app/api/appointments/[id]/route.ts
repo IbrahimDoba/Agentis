@@ -18,6 +18,7 @@ const patchSchema = z.object({
   customerNumber: z.string().trim().max(40).nullable().optional(),
   reminder1Minutes: z.number().int().min(1).max(REMINDER_MAX).optional(),
   reminder2Minutes: z.number().int().min(1).max(REMINDER_MAX).nullable().optional(),
+  reminderTimeLabel: z.string().trim().max(60).nullable().optional(),
 })
 
 // PATCH /api/appointments/[id] — reschedule, change status, edit details or
@@ -48,6 +49,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   if (b.customerNumber !== undefined) data.customerNumber = b.customerNumber
   if (b.reminder1Minutes !== undefined) data.reminder1Minutes = b.reminder1Minutes
   if (b.reminder2Minutes !== undefined) data.reminder2Minutes = b.reminder2Minutes
+  if (b.reminderTimeLabel !== undefined) data.reminderTimeLabel = b.reminderTimeLabel?.trim() || null
 
   if (b.scheduledAt !== undefined) {
     const when = new Date(b.scheduledAt)

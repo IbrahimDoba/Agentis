@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { dueStages, leadLabel, sameNumber, type ReminderRow } from "./appointment-reminders-job"
+import { dueStages, leadLabel, sameNumber, dayPhrase, type ReminderRow } from "./appointment-reminders-job"
 import { normalizePhone } from "./phone"
 
 const base = (over: Partial<ReminderRow>): ReminderRow => ({
@@ -93,5 +93,25 @@ describe("leadLabel", () => {
     expect(leadLabel(120)).toBe("in about 2 hours")
     expect(leadLabel(1440)).toBe("in about 1 day")
     expect(leadLabel(2880)).toBe("in about 2 days")
+  })
+})
+
+describe("dayPhrase", () => {
+  // now = Wed 2 Sep 2026, 09:00 WAT (Africa/Lagos = UTC+1).
+  const now = new Date("2026-09-02T08:00:00.000Z")
+
+  it("says 'today' for a same Lagos-day appointment", () => {
+    expect(dayPhrase(new Date("2026-09-02T18:00:00.000Z"), now)).toBe("today")
+  })
+
+  it("says 'tomorrow' for the next day", () => {
+    expect(dayPhrase(new Date("2026-09-03T09:00:00.000Z"), now)).toBe("tomorrow")
+  })
+
+  it("gives an absolute date further out — and never a clock time", () => {
+    const p = dayPhrase(new Date("2026-09-06T09:00:00.000Z"), now)
+    expect(p.startsWith("on ")).toBe(true)
+    expect(p).toContain("Sep 6")
+    expect(p).not.toMatch(/\d:\d/) // no HH:MM — the whole point is no time to garble
   })
 })

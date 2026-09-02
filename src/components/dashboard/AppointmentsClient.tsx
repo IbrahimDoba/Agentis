@@ -19,6 +19,7 @@ interface Appointment {
   createdBy: string
   reminder1Minutes: number
   reminder2Minutes: number | null
+  reminderTimeLabel: string | null
   createdAt: string
   agent: { businessName: string; profileImageUrl: string | null }
 }
@@ -197,6 +198,9 @@ export function AppointmentsClient({ agents, defaultReminder1, defaultReminder2 
                   {!isPast && (
                     <RescheduleButton appointment={a} onDone={refresh} />
                   )}
+                  {!isPast && a.conversationId && (
+                    <ReminderTimeButton appointment={a} onDone={refresh} />
+                  )}
                   <button className={styles.actionBtn} onClick={() => patch(a.id, { status: "COMPLETED" })}>Mark done</button>
                   <button className={styles.actionBtn} onClick={() => patch(a.id, { status: "NO_SHOW" })}>No-show</button>
                   <button className={styles.actionBtn} onClick={() => patch(a.id, { status: "CANCELLED" })}>Cancel</button>
@@ -340,6 +344,7 @@ function NewAppointmentForm({ agents, defaultReminder1, defaultReminder2, onCrea
   const [notes, setNotes] = useState("")
   const [r1, setR1] = useState(defaultReminder1)
   const [r2, setR2] = useState<number | null>(defaultReminder2)
+  const [reminderTimeLabel, setReminderTimeLabel] = useState("")
   const [saving, setSaving] = useState(false)
   const [err, setErr] = useState<string | null>(null)
 
@@ -364,6 +369,7 @@ function NewAppointmentForm({ agents, defaultReminder1, defaultReminder2, onCrea
         notes: notes.trim() || null,
         reminder1Minutes: r1,
         reminder2Minutes: r2,
+        reminderTimeLabel: reminderTimeLabel.trim() || null,
       }),
     })
     setSaving(false)
@@ -408,6 +414,10 @@ function NewAppointmentForm({ agents, defaultReminder1, defaultReminder2, onCrea
             <option value="off">Off</option>
             {REMINDER_PRESETS.map((p) => <option key={p.minutes} value={p.minutes}>{p.label}</option>)}
           </select>
+        </label>
+        <label className={styles.field}>
+          <span>Time shown in reminder</span>
+          <input value={reminderTimeLabel} onChange={(e) => setReminderTimeLabel(e.target.value)} placeholder="Optional, e.g. 2:00 PM" maxLength={60} />
         </label>
         <label className={`${styles.field} ${styles.fieldWide}`}>
           <span>Notes</span>
@@ -455,6 +465,41 @@ function RescheduleButton({ appointment, onDone }: { appointment: Appointment; o
   return (
     <span className={styles.reschedule}>
       <input type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} />
+      <button className={styles.actionBtn} onClick={save} disabled={saving}>{saving ? "…" : "Save"}</button>
+      <button className={styles.actionBtn} onClick={() => setOpen(false)}>Cancel</button>
+    </span>
+  )
+}
+
+// --- Reminder time (inline text edit) -------------------------------------
+// The exact time the WhatsApp reminder repeats verbatim. Empty = the reminder
+// states only the day ("today") with no clock time — so the AI can never
+// hallucinate a wrong one.
+function ReminderTimeButton({ appointment, onDone }: { appointment: Appointment; onDone: () => void }) {
+  const [open, setOpen] = useState(false)
+  const [label, setLabel] = useState(appointment.reminderTimeLabel ?? "")
+  const [saving, setSaving] = useState(false)
+
+  const save = async () => {
+    setSaving(true)
+    await fetch(`/api/appointments/${appointment.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reminderTimeLabel: label.trim() || null }),
+    })
+    setSaving(false); setOpen(false); onDone()
+  }
+
+  if (!open) {
+    return (
+      <button className={styles.actionBtn} onClick={() => { setLabel(appointment.reminderTimeLabel ?? ""); setOpen(true) }}>
+        {appointment.reminderTimeLabel ? `⏰ ${appointment.reminderTimeLabel}` : "Add reminder time"}
+      </button>
+    )
+  }
+  return (
+    <span className={styles.reschedule}>
+      <input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="e.g. 2:00 PM" maxLength={60} />
       <button className={styles.actionBtn} onClick={save} disabled={saving}>{saving ? "…" : "Save"}</button>
       <button className={styles.actionBtn} onClick={() => setOpen(false)}>Cancel</button>
     </span>

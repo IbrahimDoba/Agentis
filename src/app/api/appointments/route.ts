@@ -34,6 +34,7 @@ export async function GET() {
       createdBy: a.createdBy,
       reminder1Minutes: a.reminder1Minutes,
       reminder2Minutes: a.reminder2Minutes,
+      reminderTimeLabel: a.reminderTimeLabel,
       createdAt: a.createdAt.toISOString(),
       agent: a.agent,
     })),
@@ -50,6 +51,8 @@ const createSchema = z.object({
   conversationId: z.string().optional().nullable(),
   reminder1Minutes: z.number().int().min(1).max(REMINDER_MAX).optional(),
   reminder2Minutes: z.number().int().min(1).max(REMINDER_MAX).nullable().optional(),
+  // Exact time text shown verbatim in the reminder (e.g. "2:00 PM"). Empty → no time.
+  reminderTimeLabel: z.string().trim().max(60).optional().nullable(),
 })
 
 // POST /api/appointments — manual (human) appointment creation from the dashboard.
@@ -97,6 +100,7 @@ export async function POST(req: NextRequest) {
         reminder1Minutes: b.reminder1Minutes ?? owner?.appointmentReminder1Minutes ?? 60,
         // Preserve a null account default (single reminder) when not overridden.
         reminder2Minutes: b.reminder2Minutes !== undefined ? b.reminder2Minutes : (owner ? owner.appointmentReminder2Minutes : 15),
+        reminderTimeLabel: b.reminderTimeLabel?.trim() || null,
       },
     })
     return NextResponse.json({ appointment }, { status: 201 })

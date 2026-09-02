@@ -743,6 +743,11 @@ model Appointment {
   reminder1SentAt  DateTime?
   reminder2Minutes Int?              @default(15)
   reminder2SentAt  DateTime?
+  // Optional exact time text the business types (e.g. "2:00 PM"). When set, the
+  // WhatsApp reminder repeats it verbatim; when null, the reminder states no
+  // clock time at all (just the day) — the AI never derives the time itself, so
+  // it can't hallucinate a wrong one.
+  reminderTimeLabel String?
   // Instant "appointment booked" email to owner + team, sent once just after
   // creation (idempotency stamp; null = not yet notified). Distinct from the
   // reminder stamps above.
