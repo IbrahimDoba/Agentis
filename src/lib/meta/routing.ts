@@ -98,3 +98,52 @@ export async function resolveNumberContext(
     ? { phoneNumberId: envPhoneNumberId, accessToken: envToken, persona, userId: null }
     : null
 }
+
+export interface WabaContext {
+  wabaId: string
+  accessToken: string
+  phoneNumberId: string
+  displayPhoneNumber: string | null
+}
+
+// The WABA an operator manages templates on. Scoped to connections they own, so
+// one customer can never read or write another's templates. Falls back to the
+// env-configured WABA for platform admins, who have no connection row of their
+// own but do own the original Cloud API number.
+export async function resolveWabaContext(
+  userId: string,
+  role: string,
+  phoneNumberId?: string | null
+): Promise<WabaContext | null> {
+  const connection = await db.metaTestConnection.findFirst({
+    where: { userId, ...(phoneNumberId ? { phoneNumberId } : {}) },
+    orderBy: { createdAt: "asc" },
+    select: {
+      wabaId: true,
+      accessToken: true,
+      phoneNumberId: true,
+      displayPhoneNumber: true,
+    },
+  })
+
+  if (connection) {
+    return {
+      wabaId: connection.wabaId,
+      accessToken: decryptToken(connection.accessToken),
+      phoneNumberId: connection.phoneNumberId,
+      displayPhoneNumber: connection.displayPhoneNumber,
+    }
+  }
+
+  if (role !== "ADMIN") return null
+  const envWaba = process.env.META_TEST_WABA_ID
+  const envToken = process.env.META_TEST_ACCESS_TOKEN
+  const envPhone = process.env.META_TEST_PHONE_NUMBER_ID
+  if (!envWaba || !envToken || !envPhone) return null
+  return {
+    wabaId: envWaba,
+    accessToken: envToken,
+    phoneNumberId: envPhone,
+    displayPhoneNumber: process.env.META_TEST_DISPLAY_NUMBER ?? null,
+  }
+}

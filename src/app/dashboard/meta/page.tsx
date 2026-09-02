@@ -4,6 +4,7 @@ import { db } from "@/lib/db"
 import { MetaConnectPanel } from "@/components/dashboard/MetaConnectPanel"
 import { MetaChatPanel } from "@/components/dashboard/MetaChatPanel"
 import { MetaAccountClient } from "@/components/dashboard/MetaAccountClient"
+import Link from "next/link"
 import styles from "./page.module.css"
 
 export default async function MetaPage() {
@@ -51,6 +52,12 @@ export default async function MetaPage() {
           </span>
         </div>
       )}
+
+      <div className={styles.quickLinks}>
+        <Link href="/dashboard/meta/templates" className={styles.quickLink}>
+          Message templates →
+        </Link>
+      </div>
 
       <MetaConnectPanel appId={metaAppId} configId={metaConfigId} />
       <MetaChatPanel />

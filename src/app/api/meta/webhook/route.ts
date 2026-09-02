@@ -67,6 +67,30 @@ function logAccountUpdates(payload: unknown): number {
   return seen
 }
 
+// Template review outcomes. Meta reviews asynchronously — often hours — so this
+// is how an operator learns a template went APPROVED or REJECTED without
+// sitting on the templates page refreshing. Logged rather than stored: we read
+// templates live from Graph, so there is no local copy to update yet.
+function logTemplateStatusUpdates(payload: unknown): number {
+  let seen = 0
+  const entries = (payload as { entry?: unknown[] })?.entry ?? []
+  for (const entry of entries) {
+    const changes = (entry as { changes?: unknown[] })?.changes ?? []
+    for (const change of changes) {
+      const c = change as { field?: string; value?: Record<string, unknown> }
+      if (c.field !== "message_template_status_update") continue
+      seen++
+      const v = c.value ?? {}
+      console.log(
+        `[meta/webhook] template ${v.message_template_name ?? "?"} ` +
+          `(${v.message_template_language ?? "?"}) -> ${v.event ?? "?"}` +
+          (v.reason && v.reason !== "NONE" ? ` reason=${v.reason}` : "")
+      )
+    }
+  }
+  return seen
+}
+
 // Pull the text messages out of a webhook payload. Status callbacks (sent /
 // delivered / read) and non-text message types are intentionally skipped.
 function extractTextMessages(payload: unknown): InboundText[] {
@@ -190,6 +214,7 @@ export async function POST(req: NextRequest) {
   }
 
   logAccountUpdates(parsed)
+  logTemplateStatusUpdates(parsed)
 
   // Process sequentially, then ack. gpt-4o-mini replies fast enough to stay
   // within Meta's window; each message is isolated so one failure can't sink

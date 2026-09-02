@@ -1,4 +1,4 @@
-import { graphGet, graphPost } from "./graph"
+import { graphGet, graphPost, graphDelete } from "./graph"
 
 // Read-only Graph calls that exercise the `whatsapp_business_management`
 // permission, separate from the messaging path in cloud-api.ts. Meta's app
@@ -115,19 +115,20 @@ export function normalizeTemplateName(raw: string): string {
 // returned status is normally PENDING — approval lands minutes to hours later
 // and shows up in the template list.
 export async function createMessageTemplate(
-  input: CreateTemplateInput
+  input: CreateTemplateInput,
+  // The WABA to create on, and its credentials. Templates belong to a customer's
+  // account, so these are always explicit.
+  target: { wabaId: string; accessToken: string }
 ): Promise<CreatedTemplate> {
-  const wabaId = process.env.META_TEST_WABA_ID
-  if (!wabaId) throw new Error("Missing Meta env var: META_TEST_WABA_ID")
-
   const created = await graphPost<{ id: string; status?: string; category?: string }>(
-    `${wabaId}/message_templates`,
+    `${target.wabaId}/message_templates`,
     {
       name: normalizeTemplateName(input.name),
       category: input.category,
       language: input.language,
       components: [{ type: "BODY", text: input.body }],
-    }
+    },
+    { accessToken: target.accessToken }
   )
 
   return {
@@ -135,4 +136,92 @@ export async function createMessageTemplate(
     status: created.status ?? "PENDING",
     category: created.category ?? input.category,
   }
+}
+
+// ---------------------------------------------------------------------------
+// Template management
+//
+// Templates belong to a customer's WABA, so every call here takes explicit
+// credentials rather than reading env — one customer must never see or delete
+// another's templates.
+
+export interface TemplateListItem {
+  id: string
+  name: string
+  status: string
+  category: string
+  language: string
+  /** Meta's quality signal; null until the template has been sent enough. */
+  qualityScore: string | null
+  /** Present when status is REJECTED — the reason, for the operator to act on. */
+  rejectedReason: string | null
+  /** The BODY text, so the list is useful without opening each one. */
+  body: string | null
+}
+
+export interface TemplatePage {
+  templates: TemplateListItem[]
+  /** Cursor for the next page; null when this is the last. */
+  after: string | null
+}
+
+interface RawTemplate {
+  id: string
+  name: string
+  status: string
+  category: string
+  language: string
+  quality_score?: { score?: string }
+  rejected_reason?: string
+  components?: Array<{ type?: string; text?: string }>
+}
+
+function toListItem(t: RawTemplate): TemplateListItem {
+  const body = t.components?.find((c) => c.type?.toUpperCase() === "BODY")?.text ?? null
+  return {
+    id: t.id,
+    name: t.name,
+    status: t.status,
+    category: t.category,
+    language: t.language,
+    qualityScore: t.quality_score?.score ?? null,
+    // Meta returns "NONE" rather than omitting the field for approved templates.
+    rejectedReason:
+      t.rejected_reason && t.rejected_reason !== "NONE" ? t.rejected_reason : null,
+    body,
+  }
+}
+
+export async function listTemplates(
+  wabaId: string,
+  accessToken: string,
+  after?: string | null
+): Promise<TemplatePage> {
+  const res = await graphGet<{
+    data?: RawTemplate[]
+    paging?: { cursors?: { after?: string }; next?: string }
+  }>(
+    `${wabaId}/message_templates`,
+    "id,name,status,category,language,quality_score,rejected_reason,components",
+    {
+      accessToken,
+      params: { limit: "50", ...(after ? { after } : {}) },
+    }
+  )
+
+  return {
+    templates: (res.data ?? []).map(toListItem),
+    // Only treat the cursor as a next page when Meta says there is one —
+    // `cursors.after` is present even on the last page.
+    after: res.paging?.next ? (res.paging.cursors?.after ?? null) : null,
+  }
+}
+
+// Meta deletes by NAME, and deletes every language variant sharing it.
+export async function deleteTemplate(
+  wabaId: string,
+  accessToken: string,
+  name: string
+): Promise<void> {
+  await graphDelete(`${wabaId}/message_templates`, { name }, { accessToken })
 }
