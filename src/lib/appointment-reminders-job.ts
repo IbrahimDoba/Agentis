@@ -70,6 +70,19 @@ export function whenLabel(date: Date): string {
   })
 }
 
+// A plain, correct day reference in the business timezone: "today", "tomorrow",
+// or "on Friday, Sep 5". We compute this ourselves and hand it to the reminder
+// generator so the model never has to reason about the calendar — it only ever
+// repeats a fixed word. No clock time is ever included here (see reminderTimeLabel).
+export function dayPhrase(scheduledAt: Date, now: Date = new Date()): string {
+  const tz = "Africa/Lagos"
+  const ymd = (d: Date) => d.toLocaleDateString("en-CA", { timeZone: tz }) // YYYY-MM-DD
+  const target = ymd(scheduledAt)
+  if (target === ymd(now)) return "today"
+  if (target === ymd(new Date(now.getTime() + 86_400_000))) return "tomorrow"
+  return `on ${scheduledAt.toLocaleDateString("en-US", { timeZone: tz, weekday: "long", month: "short", day: "numeric" })}`
+}
+
 // Two phone numbers are the "same line" ignoring formatting (spaces, +, leading
 // zeros, country-code prefix). Used to stop the owner's WhatsApp alert from being
 // addressed to the agent's own business line — a session can't message itself.
@@ -139,6 +152,7 @@ interface WaReminderAppt {
   title: string
   notes: string | null
   scheduledAt: Date
+  reminderTimeLabel: string | null
   agent: { businessName: string; businessDescription: string | null }
 }
 
@@ -148,23 +162,30 @@ interface WaReminderAppt {
 async function generateWaReminder(
   appt: WaReminderAppt,
   transcript: string,
-  lead: string,
-  when: string,
 ): Promise<{ message: string; tokensInput: number; tokensOutput: number } | null> {
   const business = [appt.agent.businessName, appt.agent.businessDescription].filter(Boolean).join(" — ")
+  const day = dayPhrase(appt.scheduledAt)
+  // The model is NEVER handed the appointment's clock time — that exact value is
+  // what it used to paraphrase into a WRONG time. It only gets a plain day word,
+  // plus (only when the business has typed one) an exact time to repeat verbatim.
+  const timing = appt.reminderTimeLabel
+    ? `They have an appointment ${day} at ${appt.reminderTimeLabel}. Use that time EXACTLY as written — "${appt.reminderTimeLabel}" — and never state any other time.`
+    : `They have an appointment ${day}. Do NOT mention any specific clock time — only that it is ${day}.`
   const prompt = `You are the WhatsApp assistant for this business, sending a short appointment reminder to a customer you have already been chatting with.
 
 Business: ${business}
 Customer: ${appt.customerName ?? "Unknown"}
 Appointment: ${appt.title}
-When: ${when} (${lead})
 ${appt.notes ? `Notes: ${appt.notes}\n` : ""}Recent conversation:
 ${transcript || "(no earlier messages)"}
 
+${timing}
+
 Write a friendly, natural WhatsApp reminder (1-2 sentences) that:
-- Reminds them of the appointment (${appt.title}) and the time (${when})
+- Reminds them about their appointment (${appt.title})
 - Uses their first name if known and matches the tone of the chat above
 - Sounds like a real person from the business, not a bot — no placeholders like [name]
+- ${appt.reminderTimeLabel ? `States the time exactly as "${appt.reminderTimeLabel}"` : "Does NOT include any specific clock time"}
 
 Respond ONLY with valid JSON: {"message": "the reminder text"}`
 
@@ -232,7 +253,7 @@ async function resolveCustomerConversationId(
 // so a never-delivered reminder doesn't linger in the thread. Returns false when
 // generation failed; the caller counts that as a failed nudge rather than
 // silently treating the stage as done.
-async function sendWaReminder(appt: WaReminderAppt, remainingMin: number): Promise<boolean> {
+async function sendWaReminder(appt: WaReminderAppt): Promise<boolean> {
   // Address the conversation's real routing JID when known — the same target the
   // live reply path uses. A bare phone would be naively turned into
   // "<phone>@s.whatsapp.net" by the worker, which doesn't reliably reach
@@ -254,7 +275,7 @@ async function sendWaReminder(appt: WaReminderAppt, remainingMin: number): Promi
     .map((m) => `${m.direction === "inbound" ? "Customer" : "Business"}: ${m.content}`)
     .join("\n")
 
-  const gen = await generateWaReminder(appt, transcript, leadLabel(remainingMin), whenLabel(appt.scheduledAt))
+  const gen = await generateWaReminder(appt, transcript)
   if (!gen) return false
 
   const msg = await db.message.create({
@@ -326,7 +347,7 @@ export async function runAppointmentReminders(now: Date = new Date()): Promise<R
     select: {
       id: true, userId: true, agentId: true, conversationId: true,
       title: true, notes: true, customerName: true, customerNumber: true,
-      scheduledAt: true,
+      scheduledAt: true, reminderTimeLabel: true,
       reminder1Minutes: true, reminder1SentAt: true,
       reminder2Minutes: true, reminder2SentAt: true,
       agent: {
@@ -468,19 +489,17 @@ export async function runAppointmentReminders(now: Date = new Date()): Promise<R
           })
           return
         }
-        const sent = await sendWaReminder(
-          {
-            agentId: appt.agentId,
-            conversationId,
-            customerNumber: appt.customerNumber,
-            customerName: appt.customerName,
-            title: appt.title,
-            notes: appt.notes,
-            scheduledAt: appt.scheduledAt,
-            agent: appt.agent,
-          },
-          remainingMin,
-        )
+        const sent = await sendWaReminder({
+          agentId: appt.agentId,
+          conversationId,
+          customerNumber: appt.customerNumber,
+          customerName: appt.customerName,
+          title: appt.title,
+          notes: appt.notes,
+          scheduledAt: appt.scheduledAt,
+          reminderTimeLabel: appt.reminderTimeLabel,
+          agent: appt.agent,
+        })
         if (sent) {
           summary.waRemindersSent++
         } else {
