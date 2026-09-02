@@ -1,5 +1,6 @@
 import { sql } from "../client.js"
 import { randomUUID } from "crypto"
+import { findOrCreateWhatsAppConversation } from "../queries.js"
 
 export type BroadcastStatus = "pending" | "running" | "paused" | "completed" | "cancelled" | "failed"
 export type RecipientStatus = "pending" | "sent" | "failed" | "skipped"
@@ -245,14 +246,11 @@ export async function saveBroadcastOutboundMessage(
   contactName: string | null,
   text: string
 ): Promise<void> {
-  const created = await sql<{ id: string }[]>`
-    INSERT INTO "Conversation" ("id", "agentId", "phoneNumber", "contactName", "mode", "lastActivityAt", "createdAt")
-    VALUES (${randomUUID()}, ${agentId}, ${phoneNumber}, ${contactName}, 'ai', NOW(), NOW())
-    ON CONFLICT ("agentId", "phoneNumber")
-    DO UPDATE SET "lastActivityAt" = NOW()
-    RETURNING "id"
-  `
-  const conversationId = created[0]?.id
+  const conversationId = await findOrCreateWhatsAppConversation({
+    agentId,
+    phoneNumber,
+    contactName,
+  })
   if (!conversationId) return
   await sql`
     INSERT INTO "Message" ("id", "conversationId", "direction", "senderRole", "content", "createdAt")

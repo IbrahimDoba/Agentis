@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { baileysClient } from "@/lib/baileys-client"
+import { sendText } from "@/lib/meta/cloud-api"
+import { resolveNumberContext } from "@/lib/meta/routing"
 import { push } from "@/lib/sse-store"
 import { getConversationMessages } from "@/lib/queries/messages"
 import { isFreeTrialExpired } from "@/lib/trial"
@@ -71,6 +73,8 @@ export async function POST(
         agentId: true,
         phoneNumber: true,
         mode: true,
+        channel: true,
+        metaPhoneNumberId: true,
         agent: {
           select: {
             userId: true,
@@ -105,14 +109,36 @@ export async function POST(
       },
     })
 
-    // Send via worker
-    await baileysClient.sendMessage({
-      agentId: conversation.agentId,
-      to: conversation.phoneNumber,
-      text: text.trim(),
-      conversationId,
-      source: "human",
-    })
+    // Send over the conversation's transport. A Cloud API thread goes out with
+    // the connected business's own token and number, not through the Baileys
+    // worker — that worker has no session for a number we never paired.
+    if (conversation.channel === "meta") {
+      if (!conversation.metaPhoneNumberId) {
+        return NextResponse.json(
+          { error: "This Meta conversation has no number on it" },
+          { status: 400 }
+        )
+      }
+      const context = await resolveNumberContext(conversation.metaPhoneNumberId)
+      if (!context) {
+        return NextResponse.json(
+          { error: "That WhatsApp number is no longer connected" },
+          { status: 400 }
+        )
+      }
+      await sendText(conversation.phoneNumber, text.trim(), {
+        phoneNumberId: context.phoneNumberId,
+        accessToken: context.accessToken,
+      })
+    } else {
+      await baileysClient.sendMessage({
+        agentId: conversation.agentId,
+        to: conversation.phoneNumber,
+        text: text.trim(),
+        conversationId,
+        source: "human",
+      })
+    }
 
     // Auto-pause AI: when the agent's autoPauseOnHumanReply setting is on
     // (default true), any human-sent message flips an AI conversation into

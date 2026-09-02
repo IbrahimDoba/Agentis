@@ -31,6 +31,7 @@ const toDto = (m: {
 
 export async function appendMessage(input: {
   waId: string
+  phoneNumberId?: string | null
   direction: "inbound" | "outbound"
   text: string
   waMessageId?: string | null
@@ -39,6 +40,7 @@ export async function appendMessage(input: {
   const row = await db.metaTestMessage.create({
     data: {
       waId: input.waId,
+      phoneNumberId: input.phoneNumberId ?? null,
       direction: input.direction,
       text: input.text,
       waMessageId: input.waMessageId ?? null,
@@ -59,9 +61,15 @@ export async function alreadySeen(waMessageId: string): Promise<boolean> {
 }
 
 // Recent turns for one contact, oldest→newest, for reply context.
-export async function getHistory(waId: string, limit = 20): Promise<HistoryTurn[]> {
+// History is per (customer, number): the same person may talk to two different
+// businesses we host, and those threads must not bleed into each other.
+export async function getHistory(
+  waId: string,
+  phoneNumberId?: string | null,
+  limit = 20
+): Promise<HistoryTurn[]> {
   const rows = await db.metaTestMessage.findMany({
-    where: { waId },
+    where: { waId, ...(phoneNumberId ? { phoneNumberId } : {}) },
     orderBy: { createdAt: "desc" },
     take: limit,
     select: { direction: true, text: true },
@@ -71,11 +79,19 @@ export async function getHistory(waId: string, limit = 20): Promise<HistoryTurn[
     .map((r) => ({ direction: r.direction as "inbound" | "outbound", text: r.text }))
 }
 
-// Latest messages across the harness (the demo has a single recipient), newest
-// first — the UI reverses for display. `sinceIso` enables cheap incremental polls.
-export async function getRecent(limit = 100, sinceIso?: string): Promise<StoredMessage[]> {
+// Latest messages, newest first — the UI reverses for display. Scope to a set of
+// numbers so an operator sees only the numbers they own; omit for the
+// env-configured number's own feed. `sinceIso` enables cheap incremental polls.
+export async function getRecent(
+  limit = 100,
+  sinceIso?: string,
+  phoneNumberIds?: string[]
+): Promise<StoredMessage[]> {
   const rows = await db.metaTestMessage.findMany({
-    where: sinceIso ? { createdAt: { gt: new Date(sinceIso) } } : undefined,
+    where: {
+      ...(sinceIso ? { createdAt: { gt: new Date(sinceIso) } } : {}),
+      ...(phoneNumberIds ? { phoneNumberId: { in: phoneNumberIds } } : {}),
+    },
     orderBy: { createdAt: "desc" },
     take: limit,
   })

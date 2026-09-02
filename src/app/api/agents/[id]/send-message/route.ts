@@ -101,12 +101,32 @@ export async function POST(
     // Find-or-create the conversation so the send appears in the inbox and any
     // reply threads normally. Operator-initiated, so it opens in human mode —
     // toggle the AI on from the inbox if you want the agent to handle replies.
-    const conversation = await db.conversation.upsert({
-      where: { agentId_phoneNumber: { agentId, phoneNumber: phone } },
-      create: { agentId, phoneNumber: phone, mode: "human", lastActivityAt: new Date() },
-      update: { lastActivityAt: new Date() },
+    //
+    // findFirst + create rather than upsert-on-compound-key: Prisma compiles
+    // that upsert to INSERT ... ON CONFLICT naming the unique constraint, which
+    // makes the code depend on which constraint currently exists. Keeping this
+    // constraint-agnostic means the uniqueness key can change without a
+    // deploy-ordering window where old code meets new schema.
+    const existing = await db.conversation.findFirst({
+      where: { agentId, phoneNumber: phone, channel: "whatsapp" },
       select: { id: true },
     })
+    const conversation = existing
+      ? await db.conversation.update({
+          where: { id: existing.id },
+          data: { lastActivityAt: new Date() },
+          select: { id: true },
+        })
+      : await db.conversation.create({
+          data: {
+            agentId,
+            phoneNumber: phone,
+            channel: "whatsapp",
+            mode: "human",
+            lastActivityAt: new Date(),
+          },
+          select: { id: true },
+        })
 
     // Record the outgoing message in the thread
     await db.message.create({

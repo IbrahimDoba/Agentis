@@ -30,7 +30,11 @@ const logger = rootLogger.child({ module: "handle-inbound" })
 // "whatsapp_group" behaves like whatsapp for transport but differs on the
 // 1:1-only steps (tagging, operator handoff). Use isWhatsApp() for "goes out
 // over Baileys" and an explicit === comparison for group-specific behaviour.
-export type Channel = "whatsapp" | "embed" | "whatsapp_group"
+// "meta" is the official WhatsApp Cloud API. It is WhatsApp to the customer,
+// but it does NOT go out over Baileys — replies are dispatched to the frontend,
+// which holds the connected business's Cloud API token. So it is deliberately
+// excluded from isWhatsApp(), which means "goes out over Baileys".
+export type Channel = "whatsapp" | "embed" | "whatsapp_group" | "meta"
 const isWhatsApp = (c: Channel) => c === "whatsapp" || c === "whatsapp_group"
 
 export interface InboundPayload {
@@ -46,6 +50,8 @@ export interface InboundPayload {
   // dispatch and just persists the outbound reply — the visitor's widget
   // picks it up via polling.
   channel?: Channel
+  /** Cloud API only: which of our numbers received the message. */
+  metaPhoneNumberId?: string
   visitorId?: string
   // Group only: the group JID (also the conversation key) and the participant
   // who spoke.
@@ -141,6 +147,7 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
       visitorId: payload.visitorId,
       // Store the raw chat JID for label matching (WhatsApp only — @lid/@s.whatsapp.net).
       senderJid: isWhatsApp(channel) ? (payload.groupJid ?? senderJid) : undefined,
+      metaPhoneNumberId: payload.metaPhoneNumberId ?? null,
     }
   )
 
@@ -472,9 +479,10 @@ async function generateReply(agent: OrchestratorAgent, conversation: Conversatio
     direction: "outbound",
   })
 
-  // Dispatch via transport. Embed conversations skip the Baileys worker
-  // round-trip — the outbound rows persisted above are picked up by the
-  // visitor's widget via polling on /api/embed/messages.
+  // Dispatch via transport. Embed conversations skip dispatch entirely — the
+  // outbound rows persisted above are picked up by the visitor's widget via
+  // polling on /api/embed/messages. Everything else dispatches, with the
+  // transport chosen inside dispatchReply().
   if (channel !== "embed") {
     for (let i = 0; i < replyParts.length; i++) {
       await dispatchReply({
@@ -497,6 +505,7 @@ async function generateReply(agent: OrchestratorAgent, conversation: Conversatio
         // Subsequent parts pass 0/0 so the worker doesn't double-charge.
         tokensInput: i === 0 ? totalInputTokens : 0,
         tokensOutput: i === 0 ? totalOutputTokens : 0,
+        channel,
       })
     }
   } else {

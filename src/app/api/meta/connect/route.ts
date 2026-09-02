@@ -12,6 +12,7 @@ export async function GET() {
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const connections = await db.metaTestConnection.findMany({
+    where: { userId: session.user.id },
     orderBy: { createdAt: "desc" },
     select: {
       id: true,
@@ -22,12 +23,21 @@ export async function GET() {
       registeredAt: true,
       subscribedAt: true,
       createdAt: true,
+      agent: { select: { businessName: true } },
     },
   })
 
+  const agents = await db.agent.findMany({
+    where: { userId: session.user.id },
+    orderBy: { createdAt: "asc" },
+    select: { id: true, businessName: true },
+  })
+
   return NextResponse.json({
+    agents,
     connections: connections.map((c) => ({
       ...c,
+      agentName: c.agent?.businessName ?? null,
       registeredAt: c.registeredAt?.toISOString() ?? null,
       subscribedAt: c.subscribedAt?.toISOString() ?? null,
       createdAt: c.createdAt.toISOString(),
@@ -54,17 +64,36 @@ export async function POST(req: NextRequest) {
     )
   }
 
+  console.log(`[meta/connect] exchange requested — waba=${wabaId} phone=${phoneNumberId}`)
+
   try {
     const accessToken = await exchangeCodeForToken(code)
     const details = await getNumberDetails(phoneNumberId, accessToken)
+
+    // Which agent answers on this number. The caller may name one; otherwise
+    // default to the account's first agent so a connection is usable straight
+    // away rather than silently answering nobody.
+    const requestedAgentId = typeof body?.agentId === "string" ? body.agentId : null
+    const agent = await db.agent.findFirst({
+      where: { userId: session.user.id, ...(requestedAgentId ? { id: requestedAgentId } : {}) },
+      orderBy: requestedAgentId ? undefined : { createdAt: "asc" },
+      select: { id: true },
+    })
+
     const saved = await saveConnection({
       wabaId,
       phoneNumberId,
       businessId: typeof body?.businessId === "string" ? body.businessId : null,
       accessToken,
       details,
+      userId: session.user.id,
+      agentId: agent?.id ?? null,
     })
 
+    console.log(
+      `[meta/connect] stored connection for ${saved.displayPhoneNumber ?? saved.phoneNumberId} ` +
+        `agent=${saved.agentId ?? "NONE — no agent on this account, it cannot reply yet"}`
+    )
     return NextResponse.json({
       connection: {
         id: saved.id,

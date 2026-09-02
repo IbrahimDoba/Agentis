@@ -17,6 +17,7 @@ interface Connection {
   verifiedName: string | null
   registeredAt: string | null
   subscribedAt: string | null
+  agentName: string | null
 }
 
 interface SignupSelection {
@@ -44,8 +45,23 @@ interface MetaConnectPanelProps {
   configId: string | null
 }
 
+// Fire-and-forget breadcrumb so a failure that never reaches /api/meta/connect
+// still shows up in the server logs.
+function trace(stage: string, detail?: string) {
+  void fetch("/api/meta/connect/debug", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ stage, detail }),
+  }).catch(() => {})
+}
+
 export function MetaConnectPanel({ appId, configId }: MetaConnectPanelProps) {
   const [connections, setConnections] = useState<Connection[]>([])
+  const [agents, setAgents] = useState<Array<{ id: string; businessName: string }>>([])
+  // Which agent answers on the number about to be connected. Chosen before
+  // launching the flow, because Meta's popup returns straight to the exchange
+  // and there is no moment afterwards to ask.
+  const [agentId, setAgentId] = useState("")
   const [sdkReady, setSdkReady] = useState(false)
   const [sdkError, setSdkError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -64,6 +80,9 @@ export function MetaConnectPanel({ appId, configId }: MetaConnectPanelProps) {
       if (!res.ok) return
       const data = await res.json()
       setConnections(data.connections as Connection[])
+      const list = (data.agents ?? []) as Array<{ id: string; businessName: string }>
+      setAgents(list)
+      setAgentId((current) => current || list[0]?.id || "")
     } catch {
       // Best-effort — the list refreshes after the next action.
     }
@@ -84,12 +103,14 @@ export function MetaConnectPanel({ appId, configId }: MetaConnectPanelProps) {
         // Meta has several success events (FINISH, FINISH_ONLY_WABA,
         // FINISH_OBO_MIGRATION, FINISH_GRANT_ONLY_API_ACCESS, …) — match the
         // prefix so a new one doesn't silently drop the selection.
+        trace("signup_message", `event=${payload.event}`)
         if (typeof payload.event === "string" && payload.event.startsWith("FINISH")) {
           selectionRef.current = {
             wabaId: payload.data?.waba_id,
             phoneNumberId: payload.data?.phone_number_id,
             businessId: payload.data?.business_id,
           }
+          trace("selection_captured", `waba=${payload.data?.waba_id} phone=${payload.data?.phone_number_id}`)
         } else if (payload.event === "CANCEL") {
           // data.current_step tells us where they dropped out.
           setStatus(`Signup cancelled at step: ${payload.data?.current_step ?? "unknown"}`)
@@ -157,9 +178,10 @@ export function MetaConnectPanel({ appId, configId }: MetaConnectPanelProps) {
         const res = await fetch("/api/meta/connect", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ code, ...sel }),
+          body: JSON.stringify({ code, ...sel, agentId: agentId || null }),
         })
         const data = await res.json()
+        trace("exchange_result", res.ok ? "stored" : `failed: ${data.error}`)
         if (!res.ok) setError(data.error || "Connect failed")
         else {
           setStatus(`Connected ${data.connection.displayPhoneNumber ?? data.connection.phoneNumberId}`)
@@ -172,10 +194,11 @@ export function MetaConnectPanel({ appId, configId }: MetaConnectPanelProps) {
         setBusy(false)
       }
     },
-    [loadConnections]
+    [loadConnections, agentId]
   )
 
   function handleConnect() {
+    trace("connect_clicked", `sdkReady=${sdkReady} configId=${configId ? "set" : "missing"}`)
     if (!configId) {
       setError("No Facebook Login for Business configuration is set on the server.")
       return
@@ -185,12 +208,14 @@ export function MetaConnectPanel({ appId, configId }: MetaConnectPanelProps) {
     window.FB?.login(
       (res) => {
         const code = res.authResponse?.code
+        trace("login_callback", code ? "code received" : "NO code in authResponse")
         if (!code) {
           setError("No code returned — the signup was cancelled or blocked.")
           return
         }
         const selection = selectionRef.current
         if (!selection) {
+          trace("no_selection", "code arrived but no WA_EMBEDDED_SIGNUP message was captured")
           setError("Signup finished without returning a WhatsApp account selection.")
           return
         }
@@ -200,10 +225,13 @@ export function MetaConnectPanel({ appId, configId }: MetaConnectPanelProps) {
         config_id: configId,
         response_type: "code",
         override_default_response_type: true,
-        // Embedded Signup v4 takes only `setup` here. Older guides also passed
-        // featureType/sessionInfoVersion; featureType is for onboarding
-        // businesses off the WhatsApp Business *app*, which isn't our flow.
-        extras: { setup: {} },
+        // sessionInfoVersion is what makes Meta emit the WA_EMBEDDED_SIGNUP
+        // postMessage carrying the WABA and phone-number IDs. Without it the
+        // flow still completes and still returns a code, but the session info
+        // never arrives — leaving a code with nothing to attach it to.
+        // Matches the "Session Info Version 3" shown on the app's Embedded
+        // Signup setup page.
+        extras: { setup: {}, featureType: "", sessionInfoVersion: "3" },
       }
     )
   }
@@ -258,6 +286,30 @@ export function MetaConnectPanel({ appId, configId }: MetaConnectPanelProps) {
           configuration and set its ID.
         </p>
       )}
+      {agents.length > 0 && (
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="meta-connect-agent">
+            Agent that answers on this number
+          </label>
+          <select
+            id="meta-connect-agent"
+            className={styles.input}
+            value={agentId}
+            onChange={(e) => setAgentId(e.target.value)}
+          >
+            {agents.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.businessName}
+              </option>
+            ))}
+          </select>
+          <span className={styles.hint}>
+            Pick before connecting — the flow returns straight to us and there is no
+            chance to choose afterwards.
+          </span>
+        </div>
+      )}
+
       {sdkError && <p className={styles.error}>{sdkError}</p>}
       {appId && !sdkReady && !sdkError && (
         <p className={styles.hint}>Loading Facebook&apos;s SDK…</p>
@@ -271,7 +323,7 @@ export function MetaConnectPanel({ appId, configId }: MetaConnectPanelProps) {
             <tr>
               <th>Number</th>
               <th>Business name</th>
-              <th>WABA</th>
+              <th>Answered by</th>
               <th>Status</th>
               <th />
             </tr>
@@ -282,7 +334,9 @@ export function MetaConnectPanel({ appId, configId }: MetaConnectPanelProps) {
                 <td>{c.displayPhoneNumber ?? c.phoneNumberId}</td>
                 <td>{c.verifiedName ?? "—"}</td>
                 <td>
-                  <code className={styles.checkValue}>{c.wabaId}</code>
+                  {c.agentName ?? (
+                    <span className={styles.error}>No agent — create one first</span>
+                  )}
                 </td>
                 <td>
                   {c.subscribedAt ? "Registered + subscribed" : "Connected, not activated"}

@@ -24,8 +24,15 @@ import { allowedNow, nextGapMs, sleep, HOURLY_CAP } from "./pacing"
 const ROOT_DOMAIN = "dailzero.com"
 
 const FROM_EMAIL = process.env.OUTREACH_FROM_EMAIL
-const FROM_NAME = process.env.OUTREACH_FROM_NAME ?? "Ibrahim"
+const FROM_NAME = process.env.OUTREACH_FROM_NAME ?? "Dailzero"
 const REPLY_TO = process.env.OUTREACH_REPLY_TO ?? FROM_EMAIL
+
+// The From name is the brand; the signature is the person behind it. Kept
+// separate because they answer different questions for the reader: who is this
+// from, and who am I replying to.
+const SIGNER_NAME = process.env.OUTREACH_SIGNER_NAME ?? "Ibrahim Doba"
+const SIGNER_TITLE = process.env.OUTREACH_SIGNER_TITLE ?? "CEO, Dailzero"
+const SIGN_OFF = `${SIGNER_NAME}\n${SIGNER_TITLE}\n${FROM_EMAIL ?? ""}`.trim()
 
 // Steady-state ceiling once warmup finishes. Stays low because the pilot is 200
 // prospects and volume buys nothing but risk.
@@ -145,8 +152,9 @@ export async function sendOutreachMessage(messageId: string): Promise<SendOutcom
   const rendered = renderOutreachEmail({
     subject: message.subject,
     body: message.bodyText,
-    signOff: `${FROM_NAME}\ndailzero.com`,
+    signOff: SIGN_OFF,
     token: message.token,
+    htmlPart: process.env.OUTREACH_HTML !== "false",
   })
 
   try {

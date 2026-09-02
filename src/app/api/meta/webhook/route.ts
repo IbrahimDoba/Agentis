@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from "next/server"
 import {
   verifyWebhookChallenge,
   verifyWebhookSignature,
-  sendText,
+
   isAllowedRecipient,
 } from "@/lib/meta/cloud-api"
-import { alreadySeen, appendMessage, getHistory, resolveTestPersona } from "@/lib/meta/store"
-import { generateAgentReply } from "@/lib/meta/reply"
+import { alreadySeen, appendMessage } from "@/lib/meta/store"
+import { resolveNumberContext } from "@/lib/meta/routing"
 
 // crypto + Prisma + openai — Node runtime, never cached.
 export const runtime = "nodejs"
@@ -35,7 +35,36 @@ interface InboundText {
   from: string
   text: string
   wamid: string
+  /** Which of our numbers received this — the routing key for multi-tenant. */
+  phoneNumberId: string
   value: unknown
+}
+
+// account_update fires whenever a business customer completes Embedded Signup,
+// and carries the WABA they shared. It is the SERVER-SIDE record of an
+// onboarding — the browser postMessage is the only other signal, and it is lost
+// if the popup is closed, the tab crashes, or the domain isn't allow-listed.
+// Logged rather than stored: a webhook carries no access token, and a
+// connection without one can't do anything. It tells us a signup happened and
+// which WABA it was, which is exactly what's needed to chase a failed exchange.
+function logAccountUpdates(payload: unknown): number {
+  let seen = 0
+  const entries = (payload as { entry?: unknown[] })?.entry ?? []
+  for (const entry of entries) {
+    const changes = (entry as { changes?: unknown[] })?.changes ?? []
+    for (const change of changes) {
+      const c = change as { field?: string; value?: Record<string, unknown> }
+      if (c.field !== "account_update") continue
+      seen++
+      const v = c.value ?? {}
+      const waba = (v.waba_info as Record<string, unknown> | undefined) ?? {}
+      console.log(
+        `[meta/webhook] account_update event=${v.event} waba=${waba.waba_id ?? "?"} ` +
+          `owner_business=${waba.owner_business_id ?? "?"} phone=${v.phone_number ?? "?"}`
+      )
+    }
+  }
+  return seen
 }
 
 // Pull the text messages out of a webhook payload. Status callbacks (sent /
@@ -47,54 +76,92 @@ function extractTextMessages(payload: unknown): InboundText[] {
     const changes = (entry as { changes?: unknown[] })?.changes ?? []
     for (const change of changes) {
       const value = (change as { value?: Record<string, unknown> })?.value
+      const metadata = value?.metadata as { phone_number_id?: string } | undefined
+      const phoneNumberId = metadata?.phone_number_id
       const messages = (value?.messages as unknown[]) ?? []
       for (const msg of messages) {
         const m = msg as { type?: string; from?: string; id?: string; text?: { body?: string } }
-        if (m.type !== "text" || !m.from || !m.id || !m.text?.body) continue
-        out.push({ from: m.from, text: m.text.body, wamid: m.id, value })
+        if (m.type !== "text" || !m.from || !m.id || !m.text?.body || !phoneNumberId) continue
+        out.push({ from: m.from, text: m.text.body, wamid: m.id, phoneNumberId, value })
       }
     }
   }
   return out
 }
 
+const ORCHESTRATOR_URL = process.env.ORCHESTRATOR_URL || "http://localhost:4100"
+const ORCHESTRATOR_API_KEY = process.env.ORCHESTRATOR_API_KEY || process.env.WORKER_API_KEY
+
 async function handleInbound(msg: InboundText): Promise<void> {
   // Dedup on Meta's message id — a retried/redelivered webhook must not trigger
-  // a second reply.
+  // a second reply. (The orchestrator dedups too; this also stops a duplicate
+  // landing in the shadow log below.)
   if (await alreadySeen(msg.wamid)) return
 
+  // Shadow log. The orchestrator is the real store now — this stays for one
+  // release so the Meta tab's own feed keeps working while the cutover is
+  // verified, and is dropped once Conversations covers it.
   await appendMessage({
     waId: msg.from,
+    phoneNumberId: msg.phoneNumberId,
     direction: "inbound",
     text: msg.text,
     waMessageId: msg.wamid,
     raw: msg.value,
   })
 
-  // Recorded above so the inbound message is still visible in the feed, but we
-  // stop before generating or sending anything to a number we don't know.
+  // Recorded above so the inbound message is still visible, but we stop before
+  // generating or sending anything to a number we don't know.
   if (!isAllowedRecipient(msg.from)) {
     console.warn(`[meta/webhook] inbound from non-allowlisted ${msg.from} — logged, not replied`)
     return
   }
 
-  const persona = await resolveTestPersona()
-  if (!persona) {
-    console.error("[meta/webhook] No agent found to answer as — create an agent first")
+  // Which number was this sent to? That decides which agent answers. An unknown
+  // number is never answered.
+  const context = await resolveNumberContext(msg.phoneNumberId)
+  if (!context) {
+    console.error(
+      `[meta/webhook] no agent for phone_number_id ${msg.phoneNumberId} — ` +
+        `not a connected number, or its connection has no agent assigned`
+    )
     return
   }
 
-  const history = await getHistory(msg.from)
-  const reply = await generateAgentReply(persona, history, msg.text)
-  const sent = await sendText(msg.from, reply)
+  if (!ORCHESTRATOR_API_KEY) {
+    console.error("[meta/webhook] ORCHESTRATOR_API_KEY not set — cannot forward inbound")
+    return
+  }
 
-  await appendMessage({
-    waId: msg.from,
-    direction: "outbound",
-    text: reply,
-    waMessageId: sent.waMessageId,
-    raw: sent.raw,
+  // Hand off to the orchestrator, exactly as the Baileys worker and the embed
+  // widget do. It owns persistence, the AI turn (RAG, tools, reply guard),
+  // tagging, lead detection and credit charging — none of which the old
+  // direct-reply path had. It dispatches the reply back to
+  // /api/meta/internal/send, which holds this business's Cloud API token.
+  const res = await fetch(`${ORCHESTRATOR_URL}/v1/inbound`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${ORCHESTRATOR_API_KEY}`,
+    },
+    body: JSON.stringify({
+      agentId: context.persona.agentId,
+      messageId: msg.wamid,
+      fromPhone: msg.from,
+      // No JID on the Cloud API. dispatchReply uses this as the send target,
+      // and the Meta send path wants digits, so pass the wa_id through.
+      senderJid: msg.from,
+      text: msg.text,
+      timestamp: Date.now(),
+      channel: "meta",
+      metaPhoneNumberId: msg.phoneNumberId,
+    }),
   })
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => "")
+    console.error(`[meta/webhook] orchestrator forward failed (${res.status}): ${body}`)
+  }
 }
 
 // POST — inbound messages. Verify Meta's signature over the RAW body, then
@@ -113,12 +180,16 @@ export async function POST(req: NextRequest) {
   }
 
   let messages: InboundText[]
+  let parsed: unknown
   try {
-    messages = extractTextMessages(JSON.parse(rawBody))
+    parsed = JSON.parse(rawBody)
+    messages = extractTextMessages(parsed)
   } catch {
     // Malformed JSON — ack anyway so Meta doesn't retry a body we can't parse.
     return NextResponse.json({ status: "ignored" })
   }
+
+  logAccountUpdates(parsed)
 
   // Process sequentially, then ack. gpt-4o-mini replies fast enough to stay
   // within Meta's window; each message is isolated so one failure can't sink

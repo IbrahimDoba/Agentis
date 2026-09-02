@@ -204,10 +204,22 @@ async function resolveCustomerConversationId(
   // customer's real thread ("2348027929743") must resolve to ONE conversation.
   const phoneNumber = normalizePhone(appt.customerNumber)
   if (!phoneNumber) return null
-  const convo = await db.conversation.upsert({
-    where: { agentId_phoneNumber: { agentId: appt.agentId, phoneNumber } },
-    update: {},
-    create: { agentId: appt.agentId, phoneNumber, contactName: appt.customerName },
+  // findFirst + create rather than upsert-on-compound-key — see the note in
+  // api/agents/[id]/send-message: it keeps this independent of which unique
+  // constraint the table currently carries.
+  const existing = await db.conversation.findFirst({
+    where: { agentId: appt.agentId, phoneNumber, channel: "whatsapp" },
+    select: { id: true },
+  })
+  if (existing) return existing.id
+
+  const convo = await db.conversation.create({
+    data: {
+      agentId: appt.agentId,
+      phoneNumber,
+      channel: "whatsapp",
+      contactName: appt.customerName,
+    },
     select: { id: true },
   })
   return convo.id

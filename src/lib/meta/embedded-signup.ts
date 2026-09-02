@@ -69,11 +69,15 @@ export async function saveConnection(input: {
   businessId?: string | null
   accessToken: string
   details: ConnectedNumber
+  userId: string
+  agentId: string | null
 }) {
   const encrypted = encryptToken(input.accessToken)
   const data = {
     wabaId: input.wabaId,
     businessId: input.businessId ?? null,
+    userId: input.userId,
+    agentId: input.agentId,
     accessToken: encrypted,
     displayPhoneNumber: input.details.displayPhoneNumber,
     verifiedName: input.details.verifiedName,
