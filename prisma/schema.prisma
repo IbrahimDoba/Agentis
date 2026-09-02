@@ -10,117 +10,117 @@ datasource db {
 }
 
 model User {
-  id             String     @id @default(cuid())
-  name           String
-  email          String
-  phone          String?
-  businessName   String
-  passwordHash   String?
-  role           Role       @default(USER)
-  status         UserStatus @default(PENDING)
+  id                           String               @id @default(cuid())
+  name                         String
+  email                        String
+  phone                        String?
+  businessName                 String
+  passwordHash                 String?
+  role                         Role                 @default(USER)
+  status                       UserStatus           @default(PENDING)
   // Multi-tenant: which reseller (white-label tenant) this user belongs to.
   // Existing users backfill to the root tenant "platform". Email is unique
   // PER tenant (see @@unique below), so the same address can exist on Dailzero
   // and on a reseller's site independently. (resellerId is served by the leading
   // column of @@unique([resellerId, email]); status/plan get their own indexes
   // below for admin counts + the daily renewal/expiry cron scans.)
-  resellerId     String     @default("platform")
-  reseller       Reseller   @relation("ResellerUsers", fields: [resellerId], references: [id])
-  workspaceMembers   WorkspaceMember[] @relation("WorkspaceOwner")
-  memberOf           WorkspaceMember[] @relation("WorkspaceMemberUser")
-  resetToken            String?    @unique
-  resetTokenExpiry      DateTime?
-  emailVerified         Boolean    @default(false)
-  verificationCode      String?
-  verificationCodeExpiry DateTime?
-  businessCategory    String?
-  businessDescription String?
-  businessGoals       String?
-  businessAddress     String?
-  businessEmail       String?
-  businessWebsite     String?
+  resellerId                   String               @default("platform")
+  reseller                     Reseller             @relation("ResellerUsers", fields: [resellerId], references: [id])
+  workspaceMembers             WorkspaceMember[]    @relation("WorkspaceOwner")
+  memberOf                     WorkspaceMember[]    @relation("WorkspaceMemberUser")
+  resetToken                   String?              @unique
+  resetTokenExpiry             DateTime?
+  emailVerified                Boolean              @default(false)
+  verificationCode             String?
+  verificationCodeExpiry       DateTime?
+  businessCategory             String?
+  businessDescription          String?
+  businessGoals                String?
+  businessAddress              String?
+  businessEmail                String?
+  businessWebsite              String?
   // Optional "how did you hear about us?" answer captured at signup (Instagram,
   // TikTok, Friend, etc.) — for attribution/analytics. Shown in admin.
-  referralSource      String?
-  maxAgents               Int        @default(1)
-  plan                    String     @default("free")
-  subscriptionExpiresAt   DateTime?
+  referralSource               String?
+  maxAgents                    Int                  @default(1)
+  plan                         String               @default("free")
+  subscriptionExpiresAt        DateTime?
   // Explicit start of the current billing cycle, stamped on every activation,
   // renewal, and admin usage-reset. The credit-usage window is
   // [currentPeriodStart, subscriptionExpiresAt]; null falls back to the legacy
   // rolling-30-day inference (see lib/billing-period.ts). Anchoring the start
   // fixes a lapsed resubscribe carrying the previous cycle's usage.
-  currentPeriodStart      DateTime?
-  expiryWarningEmailSentAt DateTime?
-  expiredEmailSentAt       DateTime?
+  currentPeriodStart           DateTime?
+  expiryWarningEmailSentAt     DateTime?
+  expiredEmailSentAt           DateTime?
   // Paystack recurring billing. Captured on the first successful subscription
   // charge (a hosted-checkout payment) and reused by the renewal cron via
   // charge_authorization. Auto-renew only runs when authorizationReusable.
-  paystackAuthorizationCode String?
-  paystackCustomerCode      String?
-  cardLast4                 String?
-  cardBrand                 String?
-  cardExpiry                String?   // "MM/YY", for the "update card" UI
-  authorizationReusable     Boolean   @default(false)
-  autoRenew                 Boolean   @default(false)
-  subscriptionStatus        String    @default("none") // none | active | past_due | cancelled
-  cancelAtPeriodEnd         Boolean   @default(false)
-  pendingPlan               String?   // scheduled downgrade, applied at next renewal
-  renewalRetryCount         Int       @default(0)
-  lastRenewalAttemptAt      DateTime?
-  paymentFailedEmailSentAt  DateTime?
+  paystackAuthorizationCode    String?
+  paystackCustomerCode         String?
+  cardLast4                    String?
+  cardBrand                    String?
+  cardExpiry                   String? // "MM/YY", for the "update card" UI
+  authorizationReusable        Boolean              @default(false)
+  autoRenew                    Boolean              @default(false)
+  subscriptionStatus           String               @default("none") // none | active | past_due | cancelled
+  cancelAtPeriodEnd            Boolean              @default(false)
+  pendingPlan                  String? // scheduled downgrade, applied at next renewal
+  renewalRetryCount            Int                  @default(0)
+  lastRenewalAttemptAt         DateTime?
+  paymentFailedEmailSentAt     DateTime?
   // Pay-as-you-go wallet. Spent only after the user's plan allowance is
   // exhausted for the cycle. `creditsExpireAt` is set to (now + 12mo) on
   // every top-up — rolling expiry, so active users never lose credits.
-  creditBalance           Int        @default(0)
-  creditsExpireAt         DateTime?
+  creditBalance                Int                  @default(0)
+  creditsExpireAt              DateTime?
   // One-cycle carryover: unused plan allowance kept when the plan CHANGES
   // (upgrade or downgrade). Added on top of the new plan's monthly allowance
   // until `carryoverExpiresAt` (= that cycle's end), then dropped at the next
   // same-plan renewal. Not touched by top-ups (that's the wallet above).
-  carryoverCredits        Int        @default(0)
-  carryoverExpiresAt      DateTime?
-  onboardingCompleted     Boolean    @default(false)
-  referralsEnabled    Boolean    @default(false)
-  historySyncEnabled  Boolean    @default(false)
-  developerModeEnabled Boolean   @default(false)
+  carryoverCredits             Int                  @default(0)
+  carryoverExpiresAt           DateTime?
+  onboardingCompleted          Boolean              @default(false)
+  referralsEnabled             Boolean              @default(false)
+  historySyncEnabled           Boolean              @default(false)
+  developerModeEnabled         Boolean              @default(false)
   // Gates the Meta tab — accounts provisioned on the official WhatsApp Cloud
   // API. Off for everyone on the Baileys channel, for whom the WABA/template
   // views have nothing to show.
-  metaEnabled         Boolean    @default(false)
+  metaEnabled                  Boolean              @default(false)
   // Opt-in (default ON) for the account owner's lead/handoff email alerts and
   // the daily/weekly activity digests. See src/lib/lead-notifications-job.ts.
-  leadNotificationsEnabled Boolean @default(true)
+  leadNotificationsEnabled     Boolean              @default(true)
   // Opt-in (default ON) for handoff-request email alerts specifically — split
   // from leadNotificationsEnabled so owners can toggle handoff emails on their
   // own. Existing rows backfill to their leadNotificationsEnabled value.
-  handoffEmailsEnabled Boolean @default(true)
+  handoffEmailsEnabled         Boolean              @default(true)
   // Opt-in (default OFF) to also receive lead/handoff alerts as a WhatsApp
   // message on the owner's own number (sent from the relevant agent's session).
   // Independent of the email toggles above. See src/lib/lead-whatsapp.ts.
-  whatsappNotificationsEnabled Boolean @default(false)
-  notifyWhatsappNumber String?
+  whatsappNotificationsEnabled Boolean              @default(false)
+  notifyWhatsappNumber         String?
   // Account-wide defaults for appointment reminders (lead minutes before the
   // appointment). Every new Appointment copies these; each one is then editable
   // per-appointment. Reminder 2 can be disabled per-appointment (null). See
   // src/lib/appointment-reminders-job.ts.
-  appointmentReminder1Minutes Int  @default(60)
+  appointmentReminder1Minutes  Int                  @default(60)
   // Nullable so an account can default new appointments to a single reminder.
-  appointmentReminder2Minutes Int? @default(15)
-  createdAt           DateTime   @default(now())
-  updatedAt          DateTime   @updatedAt
-  agents             Agent[]
-  leads              Lead[]
-  appointments       Appointment[]
-  conversationReads  ConversationRead[]
-  referralCode       String?    @unique
-  referralsMade      Referral[] @relation("ReferralsMade")
-  referredBy         Referral?  @relation("ReferredBy")
-  paymentRequests    PaymentRequest[]
-  creditPurchases    CreditPurchase[]
-  subscriptionCharges SubscriptionCharge[]
-  apiKeys            ApiKey[]
-  metaConnections    MetaTestConnection[]
+  appointmentReminder2Minutes  Int?                 @default(15)
+  createdAt                    DateTime             @default(now())
+  updatedAt                    DateTime             @updatedAt
+  agents                       Agent[]
+  leads                        Lead[]
+  appointments                 Appointment[]
+  conversationReads            ConversationRead[]
+  referralCode                 String?              @unique
+  referralsMade                Referral[]           @relation("ReferralsMade")
+  referredBy                   Referral?            @relation("ReferredBy")
+  paymentRequests              PaymentRequest[]
+  creditPurchases              CreditPurchase[]
+  subscriptionCharges          SubscriptionCharge[]
+  apiKeys                      ApiKey[]
+  metaConnections              MetaTestConnection[]
 
   // Email is unique within a tenant, not globally.
   @@unique([resellerId, email])
@@ -133,24 +133,24 @@ model User {
 // belongs to exactly one reseller. Co-branded: appName/logo/color are shown to
 // her users while a "powered by Dailzero" footer stays.
 model Reseller {
-  id              String   @id @default(cuid()) // root tenant has fixed id "platform"
+  id              String         @id @default(cuid()) // root tenant has fixed id "platform"
   name            String // internal name
-  domain          String   @unique // primary host, e.g. resellers-site.com
-  domainAliases   String[] @default([]) // extra hosts that also map here
+  domain          String         @unique // primary host, e.g. resellers-site.com
+  domainAliases   String[]       @default([]) // extra hosts that also map here
   appName         String // brand shown to her users
   logoUrl         String?
   primaryColor    String? // hex accent
   supportEmail    String?
   supportWhatsapp String? // support number; users get a "Contact support" wa.me link
-  status          String   @default("active") // active | suspended
+  status          String         @default("active") // active | suspended
   // Wholesale credit pool you allocate her. Her users' AI sends draw from this;
   // when it hits zero her tenant pauses until you top it up. `creditPool` is the
   // live balance; `creditPoolTotal` is the lifetime allocation (admin display).
-  creditPool      Int      @default(0)
-  creditPoolTotal Int      @default(0)
+  creditPool      Int            @default(0)
+  creditPoolTotal Int            @default(0)
   adminUserId     String? // her RESELLER_ADMIN account
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
   users           User[]         @relation("ResellerUsers")
   plans           ResellerPlan[]
 }
@@ -181,15 +181,15 @@ model ResellerPlan {
 // (run agents — safe to embed client-side) and/or "manage" (configure agents
 // — server-side only), so a leaked chat key can't reconfigure agents.
 model ApiKey {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  name      String                       // operator-visible label
-  prefix    String   @unique             // public lookup id, e.g. "dz_live_a1b2c3d4"
-  hashedKey String                       // bcrypt(full raw key) — raw never persisted
+  name      String // operator-visible label
+  prefix    String @unique // public lookup id, e.g. "dz_live_a1b2c3d4"
+  hashedKey String // bcrypt(full raw key) — raw never persisted
 
-  scopes    String[] @default([])        // "chat" | "manage"
+  scopes String[] @default([]) // "chat" | "manage"
 
   // Per-key safety rail: optional rolling 24h spend cap (in credits).
   dailySpendingCapCredits Int?
@@ -205,101 +205,101 @@ model ApiKey {
 }
 
 model Agent {
-  id                   String      @id @default(cuid())
-  userId               String
-  user                 User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  businessName         String
-  businessDescription  String      @db.Text
-  productsServices     String      @db.Text
-  faqs                 String      @db.Text
-  operatingHours       String
-  contactEmail         String?
-  contactPhone         String?
-  websiteLinks         String?
-  responseGuidelines   String?     @db.Text
-  profileImageUrl      String?
-  whatsappBusinessName String?
-  whatsappAgentLink    String?
-  whatsappPhoneNumber  String?
-  qrCodeUrl            String?
-  elevenlabsAgentId    String?
-  whatsappPhoneNumberId String?
-  messagingEnabled     Boolean     @default(true)
+  id                           String               @id @default(cuid())
+  userId                       String
+  user                         User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessName                 String
+  businessDescription          String               @db.Text
+  productsServices             String               @db.Text
+  faqs                         String               @db.Text
+  operatingHours               String
+  contactEmail                 String?
+  contactPhone                 String?
+  websiteLinks                 String?
+  responseGuidelines           String?              @db.Text
+  profileImageUrl              String?
+  whatsappBusinessName         String?
+  whatsappAgentLink            String?
+  whatsappPhoneNumber          String?
+  qrCodeUrl                    String?
+  elevenlabsAgentId            String?
+  whatsappPhoneNumberId        String?
+  messagingEnabled             Boolean              @default(true)
   // Global master switch for AI replies. When false, the orchestrator skips the
   // AI for ALL of this agent's conversations (every message goes to a human),
   // regardless of per-conversation mode. Default true.
-  aiRepliesEnabled     Boolean     @default(true)
+  aiRepliesEnabled             Boolean              @default(true)
   // Opt-in for WhatsApp group chats. While false the worker drops group
   // messages at ingest exactly as before this feature existed.
-  groupChatEnabled     Boolean     @default(false)
-  autoPauseOnHumanReply Boolean    @default(true)
-  pauseOnAiHandoff     Boolean     @default(true)
-  pauseOnQualifiedLead Boolean     @default(true)
+  groupChatEnabled             Boolean              @default(false)
+  autoPauseOnHumanReply        Boolean              @default(true)
+  pauseOnAiHandoff             Boolean              @default(true)
+  pauseOnQualifiedLead         Boolean              @default(true)
   // Owner-defined, free-text criteria for WHEN the AI should treat a chat as a
   // qualified lead / hand off to a human. When set, these are injected into the
   // built system prompt (context-builder.ts) to override the generic defaults.
-  leadCriteria         String?
-  handoffCriteria      String?
+  leadCriteria                 String?
+  handoffCriteria              String?
   // Minutes of inactivity after which a human-mode conversation auto-switches
   // back to AI. null = off (the AI stays paused until a human resumes it).
-  autoResumeAiAfterMinutes Int?
+  autoResumeAiAfterMinutes     Int?
   // Seconds to wait before the AI replies. Doubles as a debounce window: rapid
   // messages within it are batched into a single combined reply instead of one
   // reply each. 0 = reply instantly (no batching).
-  replyDelaySeconds    Int         @default(0)
-  isVerified           Boolean     @default(false)
-  autoConfigStatus     String?
-  autoConfigInputs     Json?
-  autoConfigDraft      Json?
-  autoConfigStartedAt   DateTime?
-  autoConfigCompletedAt DateTime?
-  category             String?
-  address              String?
-  productsData         Json?
+  replyDelaySeconds            Int                  @default(0)
+  isVerified                   Boolean              @default(false)
+  autoConfigStatus             String?
+  autoConfigInputs             Json?
+  autoConfigDraft              Json?
+  autoConfigStartedAt          DateTime?
+  autoConfigCompletedAt        DateTime?
+  category                     String?
+  address                      String?
+  productsData                 Json?
   // When on, the AI may send the whole product catalogue as one WhatsApp album
   // (via the send_product_catalog tool) when a customer asks to see products.
   // productAlbumTitle is the optional intro line sent above the album.
-  productAlbumEnabled  Boolean     @default(false)
-  productAlbumTitle    String?
+  productAlbumEnabled          Boolean              @default(false)
+  productAlbumTitle            String?
   // When on, a second model reviews each AI reply before sending (rewrite /
   // handoff / suppress). Off by default — the guard can over-suppress and
   // silence legitimate replies; enable per agent once tuned/trusted.
-  replyGuardEnabled    Boolean     @default(false)
+  replyGuardEnabled            Boolean              @default(false)
   // When on, the AI may tag/categorise chats with the business's WhatsApp
   // labels (the tag_conversation tool). Off by default.
-  chatTaggingEnabled   Boolean     @default(false)
+  chatTaggingEnabled           Boolean              @default(false)
   // When on, the AI also keeps tagging while a HUMAN is handling the chat — a
   // cheap, throttled classify-only pass (no reply). Off by default; only matters
   // when chatTaggingEnabled is also on.
-  backgroundTaggingEnabled Boolean @default(false)
+  backgroundTaggingEnabled     Boolean              @default(false)
   // Gates the AI's schedule_appointment tool. Off by default so only agents
   // whose business actually books appointments/inspections get it. Manual
   // (human) appointment creation works regardless of this flag.
-  appointmentSchedulingEnabled Boolean @default(false)
-  toolsData            Json?
-  openaiApiKey         String?
-  transportType        String      @default("waba")
-  agentRuntime         String      @default("elevenlabs")
-  status               AgentStatus @default(PENDING_REVIEW)
-  createdAt            DateTime    @default(now())
-  updatedAt            DateTime    @updatedAt
-  leads                Lead[]
-  appointments         Appointment[]
-  conversationLogs     ConversationLog[]
-  customers            Customer[]
-  templates            MessageTemplate[]
-  baileysSession       BaileysSession?
-  orchestratorAgents   OrchestratorAgent[]
-  conversations        Conversation[]
-  broadcasts           BroadcastCampaign[]
-  followUpCampaigns    FollowUpCampaign[]
-  embedSite            EmbedSite?
-  whatsappLabels       WhatsAppLabel[]
-  chatLabels           ChatLabel[]
-  groupChats           GroupChat[]
-  promptEdits          PromptEdit[]
-  baileysAuthKeys      BaileysAuthKey[]
-  metaConnections      MetaTestConnection[]
+  appointmentSchedulingEnabled Boolean              @default(false)
+  toolsData                    Json?
+  openaiApiKey                 String?
+  transportType                String               @default("waba")
+  agentRuntime                 String               @default("elevenlabs")
+  status                       AgentStatus          @default(PENDING_REVIEW)
+  createdAt                    DateTime             @default(now())
+  updatedAt                    DateTime             @updatedAt
+  leads                        Lead[]
+  appointments                 Appointment[]
+  conversationLogs             ConversationLog[]
+  customers                    Customer[]
+  templates                    MessageTemplate[]
+  baileysSession               BaileysSession?
+  orchestratorAgents           OrchestratorAgent[]
+  conversations                Conversation[]
+  broadcasts                   BroadcastCampaign[]
+  followUpCampaigns            FollowUpCampaign[]
+  embedSite                    EmbedSite?
+  whatsappLabels               WhatsAppLabel[]
+  chatLabels                   ChatLabel[]
+  groupChats                   GroupChat[]
+  promptEdits                  PromptEdit[]
+  baileysAuthKeys              BaileysAuthKey[]
+  metaConnections              MetaTestConnection[]
 
   // Postgres does not auto-index FKs. `userId` is the app's hottest filter
   // (dashboard, billing, stats poll); `agentRuntime`/`elevenlabsAgentId` gate
@@ -318,14 +318,14 @@ model WhatsAppLabel {
   id           String   @id @default(cuid())
   agentId      String
   agent        Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
-  waLabelId    String                       // WhatsApp's label id
+  waLabelId    String // WhatsApp's label id
   name         String
   color        Int      @default(0)
-  predefinedId String?                      // set for WhatsApp's 5 built-ins
+  predefinedId String? // set for WhatsApp's 5 built-ins
   deleted      Boolean  @default(false)
-  isStage      Boolean  @default(false)     // part of the stage funnel vs additive tag
-  stageOrder   Int?                         // funnel position (lower = earlier)
-  applyRule    String?                      // optional "when to apply" criteria
+  isStage      Boolean  @default(false) // part of the stage funnel vs additive tag
+  stageOrder   Int? // funnel position (lower = earlier)
+  applyRule    String? // optional "when to apply" criteria
   // When true, the AI does NOT reply to any chat carrying this label — it stays
   // silent for a human to handle (dynamic: remove the label and the AI resumes).
   aiDisabled   Boolean  @default(false)
@@ -342,8 +342,8 @@ model ChatLabel {
   id          String   @id @default(cuid())
   agentId     String
   agent       Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
-  chatJid     String                        // WhatsApp chat remoteJid
-  phoneNumber String?                       // resolved, for joining to Conversation
+  chatJid     String // WhatsApp chat remoteJid
+  phoneNumber String? // resolved, for joining to Conversation
   waLabelId   String
   appliedBy   String   @default("whatsapp") // whatsapp(synced) | ai | operator
   createdAt   DateTime @default(now())
@@ -368,24 +368,24 @@ model EmbedSite {
 }
 
 model FollowUpCampaign {
-  id           String    @id @default(cuid())
-  agentId      String
-  agent        Agent     @relation(fields: [agentId], references: [id], onDelete: Cascade)
-  status       String    @default("scanning") // scanning | review | scheduled | sending | completed | cancelled | failed
-  mode         String    @default("auto")     // auto | review
-  minDaysSince Int       @default(1)
+  id              String            @id @default(cuid())
+  agentId         String
+  agent           Agent             @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  status          String            @default("scanning") // scanning | review | scheduled | sending | completed | cancelled | failed
+  mode            String            @default("auto") // auto | review
+  minDaysSince    Int               @default(1)
   // Optional: restrict the scan to chats carrying this WhatsApp label
   // (e.g. only "warm leads"). null = all eligible conversations.
   targetLabelId   String?
   targetLabelName String?
-  totalScanned Int       @default(0)
-  totalFound   Int       @default(0)
-  totalSent    Int       @default(0)
-  totalSkipped Int       @default(0)
-  createdAt    DateTime  @default(now())
-  startedAt    DateTime?
-  completedAt  DateTime?
-  messages     FollowUpMessage[]
+  totalScanned    Int               @default(0)
+  totalFound      Int               @default(0)
+  totalSent       Int               @default(0)
+  totalSkipped    Int               @default(0)
+  createdAt       DateTime          @default(now())
+  startedAt       DateTime?
+  completedAt     DateTime?
+  messages        FollowUpMessage[]
 
   @@index([agentId])
 }
@@ -499,100 +499,100 @@ model PromptEdit {
 }
 
 model OrchestratorAgent {
-  id               String         @id @default(cuid())
-  agentId          String
-  agent            Agent          @relation(fields: [agentId], references: [id], onDelete: Cascade)
-  name             String
-  systemPrompt     String         @db.Text
-  personality      String?        @db.Text
-  model            String         @default("gpt-4o-mini")
-  temperature      Decimal        @default(0.7) @db.Decimal(3, 2)
-  maxOutputTokens  Int            @default(800)
-  shortTermWindow  Int            @default(20)
-  summarizeAfter   Int            @default(30)
-  isActive         Boolean        @default(true)
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
-  conversations    Conversation[]
+  id              String         @id @default(cuid())
+  agentId         String
+  agent           Agent          @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  name            String
+  systemPrompt    String         @db.Text
+  personality     String?        @db.Text
+  model           String         @default("gpt-4o-mini")
+  temperature     Decimal        @default(0.7) @db.Decimal(3, 2)
+  maxOutputTokens Int            @default(800)
+  shortTermWindow Int            @default(20)
+  summarizeAfter  Int            @default(30)
+  isActive        Boolean        @default(true)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  conversations   Conversation[]
 }
 
 model Document {
-  id               String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  agentId          String
-  filename         String
-  mimeType         String
-  sizeBytes        BigInt
-  r2Key            String
-  status           String          @default("pending")
-  error            String?
-  chunkCount       Int?            @default(0)
-  createdAt        DateTime        @default(now()) @db.Timestamptz()
-  chunks           DocumentChunk[]
+  id         String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  agentId    String
+  filename   String
+  mimeType   String
+  sizeBytes  BigInt
+  r2Key      String
+  status     String          @default("pending")
+  error      String?
+  chunkCount Int?            @default(0)
+  createdAt  DateTime        @default(now()) @db.Timestamptz()
+  chunks     DocumentChunk[]
 }
 
 model DocumentChunk {
-  id               String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  documentId       String          @db.Uuid
-  document         Document        @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  agentId          String
-  chunkIndex       Int
-  content          String
+  id         String                       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  documentId String                       @db.Uuid
+  document   Document                     @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  agentId    String
+  chunkIndex Int
+  content    String
   // Using Unsupported for pgvector as Prisma requires native support for vector
-  embedding        Unsupported("vector(1536)")?
-  metadata         Json?           @default("{}")
-  createdAt        DateTime        @default(now()) @db.Timestamptz()
+  embedding  Unsupported("vector(1536)")?
+  metadata   Json?                        @default("{}")
+  createdAt  DateTime                     @default(now()) @db.Timestamptz()
 
   @@index([agentId])
 }
 
 model MediaItem {
-  id               String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  agentId          String
-  filename         String
-  mimeType         String
-  r2Key            String
-  description      String
-  tags             String[]        @default([])
-  createdAt        DateTime        @default(now()) @db.Timestamptz()
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  agentId     String
+  filename    String
+  mimeType    String
+  r2Key       String
+  description String
+  tags        String[] @default([])
+  createdAt   DateTime @default(now()) @db.Timestamptz()
 
   @@index([agentId])
 }
 
 model Conversation {
-  id                   String              @id @default(cuid())
-  agentId              String
-  agent                Agent               @relation(fields: [agentId], references: [id], onDelete: Cascade)
-  orchestratorAgentId  String?
-  orchestratorAgent    OrchestratorAgent?  @relation(fields: [orchestratorAgentId], references: [id], onDelete: SetNull)
-  phoneNumber          String
-  contactName          String?
+  id                     String               @id @default(cuid())
+  agentId                String
+  agent                  Agent                @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  orchestratorAgentId    String?
+  orchestratorAgent      OrchestratorAgent?   @relation(fields: [orchestratorAgentId], references: [id], onDelete: SetNull)
+  phoneNumber            String
+  contactName            String?
   // Raw WhatsApp chat JID (e.g. "<lid>@lid" or "<phone>@s.whatsapp.net") from the
   // inbound message. Bridges to ChatLabel.chatJid so label features (AI-off,
   // follow-up-by-label) join reliably despite the LID↔phone duality that
   // phoneNumber alone can't. Backfilled as each customer messages.
-  senderJid            String?
-  mode                 String              @default("ai")
+  senderJid              String?
+  mode                   String               @default("ai")
   // When true, this conversation stays human forever — the auto-resume-AI
   // sweep skips it, so the timer never flips it back to AI.
-  aiLocked             Boolean             @default(false)
-  channel              String              @default("whatsapp")
+  aiLocked               Boolean              @default(false)
+  channel                String               @default("whatsapp")
   // Which of our Cloud API numbers this conversation belongs to (channel
   // "meta" only). Decides whose token the reply is sent with — see
   // src/lib/meta/routing.ts.
-  metaPhoneNumberId    String?
-  visitorId            String?
-  lastActivityAt       DateTime?           @default(now())
-  factsExtractedAt     DateTime?
-  lastFollowedUpAt     DateTime?
-  adContext            Json?
-  handoffReason        String?
-  handoffAt            DateTime?
-  handoffUrgency       String?
+  metaPhoneNumberId      String?
+  visitorId              String?
+  lastActivityAt         DateTime?            @default(now())
+  factsExtractedAt       DateTime?
+  lastFollowedUpAt       DateTime?
+  adContext              Json?
+  handoffReason          String?
+  handoffAt              DateTime?
+  handoffUrgency         String?
   // When the owner was emailed about this handoff request. Reset implicitly by
   // a newer handoffAt so a fresh handoff on the same conversation re-notifies.
-  handoffNotifiedAt    DateTime?
-  leadQualifiedAt      DateTime?
-  leadIntent           String?
+  handoffNotifiedAt      DateTime?
+  leadQualifiedAt        DateTime?
+  leadIntent             String?
   // Set when the full product album was last sent to this conversation. Used to
   // stop the AI re-dumping the whole catalogue (a credit drain) — once sent, the
   // album only resends when the customer explicitly asks to see everything again.
@@ -601,12 +601,12 @@ model Conversation {
   // memory cutoff — the orchestrator only feeds the model messages sent AFTER
   // this timestamp, so it "forgets" everything prior (a clean per-conversation
   // memory reset). The row + messages are preserved; nothing is destroyed.
-  deletedAt            DateTime?
-  createdAt            DateTime            @default(now())
-  messages             Message[]
-  summary              ConversationSummary?
-  groupChat            GroupChat?
-  followUpMessages     FollowUpMessage[]
+  deletedAt              DateTime?
+  createdAt              DateTime             @default(now())
+  messages               Message[]
+  summary                ConversationSummary?
+  groupChat              GroupChat?
+  followUpMessages       FollowUpMessage[]
 
   @@unique([agentId, phoneNumber, channel])
   @@index([agentId, visitorId])
@@ -619,7 +619,7 @@ model Message {
   conversationId   String
   conversation     Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   direction        String
-  senderRole       String       @default("ai")  // "ai" | "human" (outbound only)
+  senderRole       String       @default("ai") // "ai" | "human" (outbound only)
   // Group inbound only — which participant spoke. Null on all 1:1 traffic,
   // where the conversation itself identifies the sender.
   senderJid        String?
@@ -722,35 +722,35 @@ enum LeadStatus {
 // members ahead of `scheduledAt`, at up to two independent lead times, and — for
 // chat-linked appointments — also sends the customer a WhatsApp nudge in-thread.
 model Appointment {
-  id             String            @id @default(cuid())
-  agentId        String
-  userId         String            // workspace owner — the reminder recipient scope
+  id               String            @id @default(cuid())
+  agentId          String
+  userId           String // workspace owner — the reminder recipient scope
   // Null for a purely-manual appointment not tied to a chat. When set, links
   // back to the conversation it was booked in.
-  conversationId String?
-  customerName   String?
-  customerNumber String?
-  title          String            // what it is: "Property inspection", "Consultation"…
-  notes          String?           @db.Text
-  scheduledAt    DateTime          @db.Timestamptz()   // the appointment instant (UTC)
-  status         AppointmentStatus @default(SCHEDULED)
-  createdBy      String            @default("ai")       // "ai" | "human"
+  conversationId   String?
+  customerName     String?
+  customerNumber   String?
+  title            String // what it is: "Property inspection", "Consultation"…
+  notes            String?           @db.Text
+  scheduledAt      DateTime          @db.Timestamptz() // the appointment instant (UTC)
+  status           AppointmentStatus @default(SCHEDULED)
+  createdBy        String            @default("ai") // "ai" | "human"
   // Two independent reminders. `reminderNMinutes` = lead time (minutes before
   // scheduledAt); `reminderNSentAt` is the idempotency stamp (null until sent).
   // Reminder 2 is disabled when its minutes are null. A reschedule clears both
   // stamps so the reminders re-fire for the new time.
-  reminder1Minutes Int             @default(60)
+  reminder1Minutes Int               @default(60)
   reminder1SentAt  DateTime?
-  reminder2Minutes Int?            @default(15)
+  reminder2Minutes Int?              @default(15)
   reminder2SentAt  DateTime?
   // Instant "appointment booked" email to owner + team, sent once just after
   // creation (idempotency stamp; null = not yet notified). Distinct from the
   // reminder stamps above.
   bookedNotifiedAt DateTime?
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
-  agent          Agent             @relation(fields: [agentId], references: [id], onDelete: Cascade)
-  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  agent            Agent             @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, scheduledAt])
   // Reminder cron scan: upcoming, still-SCHEDULED appointments by time.
@@ -767,18 +767,18 @@ enum AppointmentStatus {
 }
 
 model Customer {
-  id                  String    @id @default(cuid())
-  phoneNumber         String    @unique
+  id                  String   @id @default(cuid())
+  phoneNumber         String   @unique
   agentId             String?
   name                String?
   email               String?
-  conversationSummary String?   @db.Text
-  lastSeen            DateTime  @default(now())
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
+  conversationSummary String?  @db.Text
+  lastSeen            DateTime @default(now())
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
-  agent               Agent?           @relation(fields: [agentId], references: [id], onDelete: SetNull)
-  conversationLogs    ConversationLog[]
+  agent            Agent?            @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  conversationLogs ConversationLog[]
 
   @@index([agentId])
 }
@@ -795,8 +795,8 @@ model Referral {
   assignedByAdmin  Boolean        @default(false)
   createdAt        DateTime       @default(now())
 
-  referrer         User           @relation("ReferralsMade", fields: [referrerId], references: [id], onDelete: Cascade)
-  referred         User           @relation("ReferredBy", fields: [referredId], references: [id], onDelete: Cascade)
+  referrer User @relation("ReferralsMade", fields: [referrerId], references: [id], onDelete: Cascade)
+  referred User @relation("ReferredBy", fields: [referredId], references: [id], onDelete: Cascade)
 
   @@index([referrerId])
 }
@@ -838,8 +838,8 @@ model ConversationLog {
   rawPayload        Json
   createdAt         DateTime  @default(now())
 
-  agent             Agent?    @relation(fields: [agentId], references: [id], onDelete: SetNull)
-  customer          Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  agent    Agent?    @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  customer Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
 
   // Voice logs are always listed/exported by agent, newest first.
   @@index([agentId, createdAt])
@@ -847,18 +847,18 @@ model ConversationLog {
 }
 
 model WorkspaceMember {
-  id          String              @id @default(cuid())
+  id          String                @id @default(cuid())
   workspaceId String
   userId      String?
   email       String
-  role        WorkspaceRole       @default(MEMBER)
+  role        WorkspaceRole         @default(MEMBER)
   status      WorkspaceInviteStatus @default(PENDING)
-  inviteToken String?             @unique
-  invitedAt   DateTime            @default(now())
+  inviteToken String?               @unique
+  invitedAt   DateTime              @default(now())
   joinedAt    DateTime?
 
-  workspace   User                @relation("WorkspaceOwner", fields: [workspaceId], references: [id], onDelete: Cascade)
-  user        User?               @relation("WorkspaceMemberUser", fields: [userId], references: [id], onDelete: SetNull)
+  workspace User  @relation("WorkspaceOwner", fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User? @relation("WorkspaceMemberUser", fields: [userId], references: [id], onDelete: SetNull)
 
   @@unique([workspaceId, email])
   @@index([userId])
@@ -892,25 +892,25 @@ model PaymentRequest {
 }
 
 model BaileysSession {
-  id                   String           @id @default(cuid())
-  agentId              String           @unique
-  agent                Agent            @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  id                   String               @id @default(cuid())
+  agentId              String               @unique
+  agent                Agent                @relation(fields: [agentId], references: [id], onDelete: Cascade)
   phoneNumber          String?
-  status               BaileysStatus    @default(DISCONNECTED)
+  status               BaileysStatus        @default(DISCONNECTED)
   lastConnectedAt      DateTime?
   lastDisconnectReason String?
-  linkedDeviceName     String           @default("Dailzero AI")
+  linkedDeviceName     String               @default("Dailzero AI")
   authBackupPath       String?
   warmupStartedAt      DateTime?
-  warmupTier           Int              @default(1)
+  warmupTier           Int                  @default(1)
   historySyncedAt      DateTime?
-  dailyMessageCount    Int              @default(0)
-  dailyCountResetAt    DateTime         @default(now())
-  businessHoursStart   String           @default("08:00")
-  businessHoursEnd     String           @default("21:00")
-  timezone             String           @default("Africa/Lagos")
-  createdAt            DateTime         @default(now())
-  updatedAt            DateTime         @updatedAt
+  dailyMessageCount    Int                  @default(0)
+  dailyCountResetAt    DateTime             @default(now())
+  businessHoursStart   String               @default("08:00")
+  businessHoursEnd     String               @default("21:00")
+  timezone             String               @default("Africa/Lagos")
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
   outboundLogs         BaileysOutboundLog[]
 }
 
@@ -934,16 +934,16 @@ model BaileysAuthKey {
 }
 
 model BaileysOutboundLog {
-  id             String                 @id @default(cuid())
+  id             String                @id @default(cuid())
   sessionId      String
-  session        BaileysSession         @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  session        BaileysSession        @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   conversationId String?
   toJid          String
   messagePreview String?
-  queuedAt       DateTime               @default(now())
+  queuedAt       DateTime              @default(now())
   sentAt         DateTime?
   delayAppliedMs Int?
-  status         BaileysOutboundStatus  @default(QUEUED)
+  status         BaileysOutboundStatus @default(QUEUED)
 }
 
 enum BaileysStatus {
@@ -974,7 +974,7 @@ model CreditUsage {
   // a given message cost what it cost. billedTo distinguishes plan vs wallet.
   tokensInput    Int?
   tokensOutput   Int?
-  billedTo       String?  // 'plan' | 'wallet'
+  billedTo       String? // 'plan' | 'wallet'
   createdAt      DateTime @default(now()) @db.Timestamptz()
 
   @@index([agentId, createdAt])
@@ -987,15 +987,15 @@ model CreditPurchase {
   id           String        @id @default(cuid())
   userId       String
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  amountNaira  Int                                      // gross price paid by the user
-  netNaira     Int                                      // after Paystack fees
-  creditsAdded Int                                      // credits granted on completion
-  unitRateNGN  Decimal       @db.Decimal(6, 3)         // for audit (NGN per credit at purchase time; 6 digits total, 3 after the point)
-  reference    String        @unique                    // Paystack transaction ref
+  amountNaira  Int // gross price paid by the user
+  netNaira     Int // after Paystack fees
+  creditsAdded Int // credits granted on completion
+  unitRateNGN  Decimal       @db.Decimal(6, 3) // for audit (NGN per credit at purchase time; 6 digits total, 3 after the point)
+  reference    String        @unique // Paystack transaction ref
   status       PaymentStatus @default(PENDING)
   createdAt    DateTime      @default(now())
   completedAt  DateTime?
-  expiresAt    DateTime                                 // = completedAt + 12 months (when known)
+  expiresAt    DateTime // = completedAt + 12 months (when known)
 
   @@index([userId, createdAt(sort: Desc)])
   @@index([status, createdAt])
@@ -1009,14 +1009,14 @@ model SubscriptionCharge {
   id            String        @id @default(cuid())
   userId        String
   user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  plan          String                                   // plan being paid for
-  amountNaira   Int                                      // total charged (planNaira + overageNaira)
-  planNaira     Int                                      // plan-price portion
-  overageNaira  Int           @default(0)                // prior-cycle overage portion (starter/pro)
-  netNaira      Int                                      // after Paystack fees
-  reference     String        @unique                    // idempotency anchor (deterministic per cycle)
+  plan          String // plan being paid for
+  amountNaira   Int // total charged (planNaira + overageNaira)
+  planNaira     Int // plan-price portion
+  overageNaira  Int           @default(0) // prior-cycle overage portion (starter/pro)
+  netNaira      Int // after Paystack fees
+  reference     String        @unique // idempotency anchor (deterministic per cycle)
   status        PaymentStatus @default(PENDING)
-  kind          String        @default("renewal")        // initial | renewal | upgrade
+  kind          String        @default("renewal") // initial | renewal | upgrade
   periodStart   DateTime
   periodEnd     DateTime
   failureReason String?
@@ -1035,13 +1035,13 @@ model SubscriptionCharge {
 // one-off. This is bookkeeping, not billing — nothing here charges anyone.
 model FinanceEntry {
   id         String   @id @default(cuid())
-  kind       String                                   // "expense" | "revenue"
-  label      String                                   // category (Hosting, APIs, Salaries…) or revenue name
-  amount     Int                                      // whole units of `currency`
-  currency   String   @default("NGN")                 // ISO 4217 code
-  recurring  Boolean  @default(true)                  // monthly run-rate vs one-off
+  kind       String // "expense" | "revenue"
+  label      String // category (Hosting, APIs, Salaries…) or revenue name
+  amount     Int // whole units of `currency`
+  currency   String   @default("NGN") // ISO 4217 code
+  recurring  Boolean  @default(true) // monthly run-rate vs one-off
   note       String?
-  incurredAt DateTime @default(now())                 // when it applies (month views / "so far")
+  incurredAt DateTime @default(now()) // when it applies (month views / "so far")
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
@@ -1051,8 +1051,8 @@ model FinanceEntry {
 // Editable FX rates for the finance tab. Base currency is NGN (rate 1, implicit
 // — no row needed). Each row says: 1 unit of `currency` == `rateToBase` NGN.
 model FinanceFxRate {
-  currency   String   @id                             // ISO 4217 code (e.g. "USD")
-  rateToBase Decimal  @db.Decimal(18, 6)              // 1 `currency` = this many NGN
+  currency   String   @id // ISO 4217 code (e.g. "USD")
+  rateToBase Decimal  @db.Decimal(18, 6) // 1 `currency` = this many NGN
   updatedAt  DateTime @updatedAt
 }
 
@@ -1061,12 +1061,12 @@ model FinanceFxRate {
 // without Railway log access. High-signal, low-volume — only warnings/errors.
 model WorkerEvent {
   id        String   @id @default(cuid())
-  level     String                                   // "warn" | "error"
-  category  String                                   // e.g. "session.closed", "broadcast.send_failed"
+  level     String // "warn" | "error"
+  category  String // e.g. "session.closed", "broadcast.send_failed"
   agentId   String?
   userId    String?
   message   String   @db.Text
-  detail    Json?                                    // { statusCode, reason, jid, error, ... }
+  detail    Json? // { statusCode, reason, jid, error, ... }
   createdAt DateTime @default(now()) @db.Timestamptz()
 
   @@index([category, createdAt(sort: Desc)])
@@ -1080,16 +1080,16 @@ model WorkerEvent {
 // per inbound/outbound message on the test number, keyed by the customer's
 // wa_id. `raw` backs the on-camera event log (raw webhook value / send response).
 model MetaTestMessage {
-  id          String   @id @default(cuid())
+  id            String   @id @default(cuid())
   // Which of our numbers this message arrived on / was sent from. Null for rows
   // written before multi-number routing existed.
   phoneNumberId String?
-  waId        String                                  // customer WhatsApp id — E.164 digits, no "+"
-  direction   String                                  // "inbound" | "outbound"
-  text        String   @db.Text
-  waMessageId String?                                 // Meta wamid, for dedup + status matching
-  raw         Json?
-  createdAt   DateTime @default(now()) @db.Timestamptz()
+  waId          String // customer WhatsApp id — E.164 digits, no "+"
+  direction     String // "inbound" | "outbound"
+  text          String   @db.Text
+  waMessageId   String? // Meta wamid, for dedup + status matching
+  raw           Json?
+  createdAt     DateTime @default(now()) @db.Timestamptz()
 
   @@index([waId, createdAt])
   @@index([phoneNumberId, createdAt])
@@ -1243,4 +1243,51 @@ model SignupAttribution {
   createdAt   DateTime @default(now()) @db.Timestamptz()
 
   @@index([prospectId])
+}
+
+// Operational settings for the cold-outreach campaign. A single row; the app
+// upserts it on first read.
+//
+// These live here rather than in env because they are things an operator
+// changes while a campaign is running — a send cap, a start date, the number
+// prospects are told to message. Needing a redeploy to slow sending down is the
+// wrong shape when the reason to slow down is usually "something looks wrong".
+//
+// Secrets stay in env: the SMTP password, the mailbox we authenticate as, the
+// unsubscribe signing key. So does OUTREACH_ALLOW_ROOT_DOMAIN, deliberately —
+// it is a safety flag, and one that can be flipped from a web form is not much
+// of one.
+model OutreachSettings {
+  id String @id @default("default")
+
+  // The effective cap is always min(dailyCap, warmup ramp), so this raises the
+  // roof rather than overriding the ramp.
+  dailyCap  Int @default(10)
+  hourlyCap Int @default(5)
+  // Messages released per cron tick, spaced 30-90s apart within the tick.
+  sliceSize Int @default(3)
+
+  // Null holds sending at the day-one ramp value: the safe reading of a missing
+  // date is the strictest one, not the most permissive.
+  warmupStartedAt DateTime? @db.Timestamptz()
+
+  // Digits only, country code first. Where /r/<token> sends a click.
+  whatsappNumber String?
+
+  // The From name is the brand; the signature is the person behind it. They
+  // answer different questions for the reader, so they are separate fields.
+  fromName    String @default("Dailzero")
+  signerName  String @default("Ibrahim Doba")
+  signerTitle String @default("CEO, Dailzero")
+
+  // Off sends text/plain only, which classifies better in Gmail but looks
+  // plainer. On is the branded version.
+  htmlEnabled Boolean @default(true)
+  logoUrl     String?
+
+  // Set false to stop every send path at once without touching a deploy.
+  sendingEnabled Boolean @default(true)
+
+  updatedAt DateTime @updatedAt @db.Timestamptz()
+  updatedBy String?
 }

@@ -3,9 +3,11 @@ import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
 import { OutreachReview } from "@/components/admin/OutreachReview"
 import { ProspectImport } from "@/components/admin/ProspectImport"
+import { OutreachSettingsPanel } from "@/components/admin/OutreachSettings"
 import { OUTREACH_APP_URL } from "@/lib/outreach/render"
 import { WARMUP_DAYS } from "@/lib/outreach/warmup"
 import { effectiveDailyCap, warmupStatus, isRootSender } from "@/lib/outreach/send"
+import { getOutreachSettings } from "@/lib/outreach/settings"
 import styles from "./page.module.css"
 
 // The review queue. This is the page that gets used daily: everything else in
@@ -54,8 +56,9 @@ export default async function AdminOutreachPage() {
   ])
 
   const approved = await db.outreachMessage.count({ where: { status: "approved" } })
-  const warmup = warmupStatus()
-  const cap = effectiveDailyCap()
+  const settings = await getOutreachSettings()
+  const warmup = warmupStatus(settings)
+  const cap = effectiveDailyCap(settings)
 
   // Serialize before the client boundary — Dates never cross it as objects.
   const items = drafts.map((d) => ({
@@ -119,6 +122,22 @@ export default async function AdminOutreachPage() {
           At pilot volume one complaint is already above the rate Gmail enforces.
         </p>
       )}
+
+      <OutreachSettingsPanel
+        initial={{
+          dailyCap: settings.dailyCap,
+          hourlyCap: settings.hourlyCap,
+          sliceSize: settings.sliceSize,
+          warmupStartedAt: settings.warmupStartedAt?.toISOString().slice(0, 10) ?? null,
+          whatsappNumber: settings.whatsappNumber,
+          fromName: settings.fromName,
+          signerName: settings.signerName,
+          signerTitle: settings.signerTitle,
+          htmlEnabled: settings.htmlEnabled,
+          logoUrl: settings.logoUrl,
+          sendingEnabled: settings.sendingEnabled,
+        }}
+      />
 
       <ProspectImport />
 

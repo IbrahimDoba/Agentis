@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { sendApprovedBatch, sentToday, sentLastHour, effectiveDailyCap, warmupStatus } from "@/lib/outreach/send"
+import { getOutreachSettings } from "@/lib/outreach/settings"
 import { expireStaleDemos } from "@/lib/outreach/demo"
 
 // Outreach cron, same shape and CRON_SECRET guard as
@@ -39,13 +40,14 @@ export async function GET(req: NextRequest) {
     switch (job) {
       case "send": {
         const counts = await sendApprovedBatch()
+        const cfg = await getOutreachSettings()
         return NextResponse.json({
           job,
           ...counts,
           sentToday: await sentToday(),
           sentLastHour: await sentLastHour(),
-          cap: effectiveDailyCap(),
-          warmup: warmupStatus(),
+          cap: effectiveDailyCap(cfg),
+          warmup: warmupStatus(cfg),
           ms: Date.now() - startedAt,
         })
       }

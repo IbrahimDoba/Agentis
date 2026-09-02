@@ -100,28 +100,28 @@ const WRAPPER_STYLE = [
 // markedly harder to read at this length.
 const CONTENT_STYLE = "text-align:left;"
 
-export const BRAND_NAME = process.env.OUTREACH_BRAND_NAME ?? "Dailzero"
+export const DEFAULT_BRAND_NAME = "Dailzero"
 
 // Served from public/ at the site root, which sits behind Cloudflare, so no
 // separate asset host is needed. logo-email.png is a 128px copy of the 500px
 // original: a 216KB download for a 44px logo is a slow first paint on a Nigerian
 // mobile connection.
-const LOGO_URL = process.env.OUTREACH_LOGO_URL ?? `${OUTREACH_APP_URL}/logo-email.png`
+export const DEFAULT_LOGO_URL = `${OUTREACH_APP_URL}/logo-email.png`
 
 // Georgia rather than the body's system sans. Email clients strip @font-face,
 // so a real brand font is not an option; a serif wordmark against a sans body is
 // the only way to make the name look deliberate using fonts that always render.
-function headerHtml(): string {
+function headerHtml(brandName: string, logoUrl: string): string {
   return [
     `<div style="text-align:center;padding:4px 0 26px;">`,
     `<a href="${OUTREACH_APP_URL}" style="text-decoration:none;">`,
     // Explicit width/height and alt text so a client with images off still shows
     // the brand rather than a broken-image box.
-    `<img src="${LOGO_URL}" width="42" height="42" alt="${escapeHtml(BRAND_NAME)}"`,
+    `<img src="${logoUrl}" width="42" height="42" alt="${escapeHtml(brandName)}"`,
     ` style="display:inline-block;vertical-align:middle;border:0;border-radius:10px;">`,
     `<span style="display:inline-block;vertical-align:middle;margin-left:11px;`,
     `font-family:Georgia,'Times New Roman',serif;font-size:23px;font-weight:700;`,
-    `color:#12261c;letter-spacing:-0.2px;">${escapeHtml(BRAND_NAME)}</span>`,
+    `color:#12261c;letter-spacing:-0.2px;">${escapeHtml(brandName)}</span>`,
     `</a>`,
     `</div>`,
   ].join("")
@@ -148,6 +148,8 @@ export function renderOutreachEmail(args: {
   signOff: string
   token: string
   htmlPart?: boolean
+  brandName?: string
+  logoUrl?: string | null
 }): RenderedEmail {
   const unsubUrl = unsubscribeUrl(args.token)
 
@@ -164,7 +166,7 @@ export function renderOutreachEmail(args: {
     `<tr><td align="center" style="padding:28px 14px;">`,
     `<table width="560" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;width:100%;">`,
     `<tr><td style="${WRAPPER_STYLE}">`,
-    headerHtml(),
+    headerHtml(args.brandName ?? DEFAULT_BRAND_NAME, args.logoUrl || DEFAULT_LOGO_URL),
     `<div style="${CONTENT_STYLE}">`,
     toParagraphs(args.body, BODY_STYLE),
     signatureHtml(args.signOff),

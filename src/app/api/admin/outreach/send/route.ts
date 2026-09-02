@@ -10,6 +10,7 @@ import {
   assertOutreachConfigured,
 } from "@/lib/outreach/send"
 import { transportName } from "@/lib/outreach/transport"
+import { getOutreachSettings } from "@/lib/outreach/settings"
 
 // Manual "release the next slice now" for the approved queue, plus the
 // deliverability health read the admin page renders.
@@ -67,11 +68,12 @@ export async function POST(req: NextRequest) {
   }
 
   const counts = await sendApprovedBatch(parsed.data.limit)
+  const cfg = await getOutreachSettings()
   return NextResponse.json({
     ...counts,
     sentToday: await sentToday(),
-    cap: effectiveDailyCap(),
-    warmup: warmupStatus(),
+    cap: effectiveDailyCap(cfg),
+    warmup: warmupStatus(cfg),
     health,
   })
 }
@@ -81,10 +83,12 @@ export async function GET() {
   if (!session || session.user.role !== "ADMIN") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
+  const cfg = await getOutreachSettings()
   return NextResponse.json({
     sentToday: await sentToday(),
-    cap: effectiveDailyCap(),
-    warmup: warmupStatus(),
+    cap: effectiveDailyCap(cfg),
+    warmup: warmupStatus(cfg),
+    settings: cfg,
     approved: await db.outreachMessage.count({ where: { status: "approved" } }),
     health: await deliverabilityHealth(),
   })

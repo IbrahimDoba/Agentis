@@ -1,9 +1,10 @@
 import { db } from "@/lib/db"
 import { assertSendable } from "./suppression"
 import { renderOutreachEmail } from "./render"
-import { warmupStage, parseWarmupStart } from "./warmup"
+import { warmupStage } from "./warmup"
+import { getOutreachSettings, type OutreachSettings } from "./settings"
 import { deliver, transportName } from "./transport"
-import { allowedNow, nextGapMs, sleep, HOURLY_CAP } from "./pacing"
+import { allowedNow, nextGapMs, sleep } from "./pacing"
 
 // Cold sending, deliberately isolated from src/lib/email.ts.
 //
@@ -23,35 +24,24 @@ import { allowedNow, nextGapMs, sleep, HOURLY_CAP } from "./pacing"
 
 const ROOT_DOMAIN = "dailzero.com"
 
+// The mailbox we authenticate to SMTP as. Stays in env because it is half of a
+// credential: changing it from a web form without the matching password would
+// only ever break sending.
 const FROM_EMAIL = process.env.OUTREACH_FROM_EMAIL
-const FROM_NAME = process.env.OUTREACH_FROM_NAME ?? "Dailzero"
 const REPLY_TO = process.env.OUTREACH_REPLY_TO ?? FROM_EMAIL
 
-// The From name is the brand; the signature is the person behind it. Kept
-// separate because they answer different questions for the reader: who is this
-// from, and who am I replying to.
-const SIGNER_NAME = process.env.OUTREACH_SIGNER_NAME ?? "Ibrahim Doba"
-const SIGNER_TITLE = process.env.OUTREACH_SIGNER_TITLE ?? "CEO, Dailzero"
-const SIGN_OFF = `${SIGNER_NAME}\n${SIGNER_TITLE}\n${FROM_EMAIL ?? ""}`.trim()
-
-// Steady-state ceiling once warmup finishes. Stays low because the pilot is 200
-// prospects and volume buys nothing but risk.
-export const DAILY_SEND_CAP = Number(process.env.OUTREACH_DAILY_CAP ?? 30)
-
-export const WARMUP_STARTED_AT = parseWarmupStart(process.env.OUTREACH_WARMUP_STARTED_AT)
-
 /**
- * The cap actually in force today: the lower of the configured ceiling and the
- * warmup ramp. Every send path goes through this rather than DAILY_SEND_CAP, so
- * a forgotten env var cannot open the taps on a cold subdomain.
+ * The cap actually in force: the lower of the configured ceiling and the warmup
+ * ramp. Every send path goes through this, so raising the cap in the admin
+ * cannot skip the ramp — only raise the roof the ramp climbs toward.
  */
-export function effectiveDailyCap(now = new Date()): number {
-  return warmupStage(WARMUP_STARTED_AT, DAILY_SEND_CAP, now).cap
+export function effectiveDailyCap(settings: OutreachSettings, now = new Date()): number {
+  return warmupStage(settings.warmupStartedAt, settings.dailyCap, now).cap
 }
 
-export function warmupStatus(now = new Date()) {
-  const stage = warmupStage(WARMUP_STARTED_AT, DAILY_SEND_CAP, now)
-  return { ...stage, configured: WARMUP_STARTED_AT !== null, fullCap: DAILY_SEND_CAP }
+export function warmupStatus(settings: OutreachSettings, now = new Date()) {
+  const stage = warmupStage(settings.warmupStartedAt, settings.dailyCap, now)
+  return { ...stage, configured: settings.warmupStartedAt !== null, fullCap: settings.dailyCap }
 }
 
 /**
@@ -115,8 +105,13 @@ export type SendOutcome =
  * two overlapping callers cannot both send it — the same pattern the reseller
  * credit pool uses to avoid overdrawing.
  */
-export async function sendOutreachMessage(messageId: string): Promise<SendOutcome> {
+export async function sendOutreachMessage(
+  messageId: string,
+  settings?: OutreachSettings
+): Promise<SendOutcome> {
   const from = assertOutreachConfigured()
+  const cfg = settings ?? (await getOutreachSettings())
+  if (!cfg.sendingEnabled) return { status: "skipped", reason: "sending is paused in settings" }
 
   const claimed = await db.outreachMessage.updateMany({
     where: { id: messageId, status: "approved" },
@@ -152,15 +147,17 @@ export async function sendOutreachMessage(messageId: string): Promise<SendOutcom
   const rendered = renderOutreachEmail({
     subject: message.subject,
     body: message.bodyText,
-    signOff: SIGN_OFF,
+    signOff: [cfg.signerName, cfg.signerTitle, from].filter(Boolean).join("\n"),
     token: message.token,
-    htmlPart: process.env.OUTREACH_HTML !== "false",
+    htmlPart: cfg.htmlEnabled,
+    brandName: cfg.fromName,
+    logoUrl: cfg.logoUrl,
   })
 
   try {
     const providerMessageId = await deliver({
       from,
-      fromName: FROM_NAME,
+      fromName: cfg.fromName,
       replyTo: REPLY_TO ?? from,
       to: message.toEmail,
       email: rendered,
@@ -199,14 +196,20 @@ export async function sendOutreachMessage(messageId: string): Promise<SendOutcom
  * minutes, so the drip continues across invocations instead of inside one.
  */
 export async function sendApprovedBatch(limit?: number) {
+  const cfg = await getOutreachSettings()
+  if (!cfg.sendingEnabled) {
+    return { attempted: 0, sent: 0, skipped: 0, failed: 0, capReached: true, paused: true }
+  }
+
   const allowed = allowedNow({
     sentToday: await sentToday(),
     sentLastHour: await sentLastHour(),
-    dailyCap: effectiveDailyCap(),
-    sliceSize: limit,
+    dailyCap: effectiveDailyCap(cfg),
+    hourlyCap: cfg.hourlyCap,
+    sliceSize: limit ?? cfg.sliceSize,
   })
   if (allowed === 0) {
-    return { attempted: 0, sent: 0, skipped: 0, failed: 0, capReached: true }
+    return { attempted: 0, sent: 0, skipped: 0, failed: 0, capReached: true, paused: false }
   }
 
   const queue = await db.outreachMessage.findMany({
@@ -216,7 +219,7 @@ export async function sendApprovedBatch(limit?: number) {
     select: { id: true },
   })
 
-  const counts = { attempted: 0, sent: 0, skipped: 0, failed: 0, capReached: false }
+  const counts = { attempted: 0, sent: 0, skipped: 0, failed: 0, capReached: false, paused: false }
   // Serial, not Promise.all. Pacing is the feature here, which is the opposite
   // of what the newsletter route wants and why this does not reuse it.
   for (const [index, { id }] of queue.entries()) {
@@ -225,7 +228,7 @@ export async function sendApprovedBatch(limit?: number) {
     if (index > 0) await sleep(nextGapMs())
 
     counts.attempted++
-    const outcome = await sendOutreachMessage(id)
+    const outcome = await sendOutreachMessage(id, cfg)
     counts[outcome.status === "sent" ? "sent" : outcome.status === "skipped" ? "skipped" : "failed"]++
 
     // A transport failure is usually the provider throttling or refusing us.
@@ -247,4 +250,3 @@ export async function sentLastHour(): Promise<number> {
   return db.outreachMessage.count({ where: { status: "sent", sentAt: { gte: since } } })
 }
 
-export { HOURLY_CAP }

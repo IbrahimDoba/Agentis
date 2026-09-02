@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
+import { getOutreachSettings } from "@/lib/outreach/settings"
 
 // Click tracking and first-touch attribution in one hop.
 //
@@ -15,12 +16,6 @@ export const dynamic = "force-dynamic"
 // is still attributed, which is the realistic shape of an SMB buying decision.
 const ATTRIBUTION_COOKIE_DAYS = 90
 
-// The number prospects are invited to message. Digits only, country code first,
-// e.g. 2348012345678. When set it becomes the click destination: the point of
-// the email is to get them into a WhatsApp conversation with our own agent,
-// which is the product demonstrating itself.
-const WHATSAPP_NUMBER = (process.env.OUTREACH_WHATSAPP_NUMBER ?? "").replace(/\D/g, "")
-
 /**
  * A wa.me link whose prefilled text carries a short reference derived from the
  * message token.
@@ -30,10 +25,10 @@ const WHATSAPP_NUMBER = (process.env.OUTREACH_WHATSAPP_NUMBER ?? "").replace(/\D
  * only way to tie a conversation back to the email that caused it. Prospects can
  * and do edit the text before sending, so treat it as best effort.
  */
-function whatsappUrl(token: string): string {
+function whatsappUrl(token: string, number: string): string {
   const ref = token.slice(0, 10)
   const text = `Hi Dailzero, I got your email. Can I see how this works? (ref: ${ref})`
-  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`
+  return `https://wa.me/${number}?text=${encodeURIComponent(text)}`
 }
 
 // Mirrors the folders under src/app/(marketing)/solutions/. Checked rather than
@@ -81,11 +76,14 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ token: stri
   // first thing they see loses everyone who was merely curious. The attribution
   // cookie is set on the click regardless, so a signup days later still lands
   // against this message.
+  // The number prospects are invited to message is a campaign setting, so it can
+  // be changed without a redeploy.
+  const whatsappNumber = (await getOutreachSettings()).whatsappNumber ?? ""
   const vertical = message.prospect.vertical
   const destination = demoLive
     ? new URL(`/demo/${message.prospect.demoSlug}`, req.url)
-    : WHATSAPP_NUMBER
-      ? new URL(whatsappUrl(token))
+    : whatsappNumber
+      ? new URL(whatsappUrl(token, whatsappNumber))
       : vertical && SOLUTION_SLUGS.has(vertical)
         ? new URL(`/solutions/${vertical}`, req.url)
         : new URL("/", req.url)
