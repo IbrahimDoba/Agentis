@@ -74,15 +74,13 @@ export async function POST(req: NextRequest) {
       rejected.push({ prospectId: draft.prospectId, reason: blocked })
       continue
     }
-    if (!prospect.demoSlug) {
-      rejected.push({ prospectId: draft.prospectId, reason: "no demo provisioned yet" })
-      continue
-    }
 
-    // Mint the token first: the demo URL is derived from it, and the copy must
-    // contain that exact string for validation to pass.
+    // Mint the token first: the click URL is derived from it, and the copy must
+    // contain that exact string for validation to pass. Where it lands is decided
+    // at click time by /r/<token> — the prospect's WhatsApp conversation, their
+    // demo if one exists, otherwise their vertical's solutions page.
     const token = randomBytes(18).toString("base64url")
-    const demoUrl = clickUrl(token)
+    const linkUrl = clickUrl(token)
 
     const verdict = validateCopy(
       {
@@ -91,7 +89,7 @@ export async function POST(req: NextRequest) {
         sourceDisclosure: draft.sourceDisclosure,
         observedSignals: draft.observedSignals,
       },
-      { fetchedHosts: draft.fetchedHosts, sourceLabel: prospect.sourceLabel, demoUrl }
+      { fetchedHosts: draft.fetchedHosts, sourceLabel: prospect.sourceLabel, demoUrl: linkUrl }
     )
     if (!verdict.ok) {
       rejected.push({ prospectId: draft.prospectId, reason: verdict.failures.join("; ") })
@@ -133,7 +131,7 @@ export async function GET() {
   }
 
   const prospects = await db.outreachProspect.findMany({
-    where: { status: "new", demoSlug: { not: null } },
+    where: { status: "new" },
     orderBy: { fitScore: "desc" },
     take: 50,
     select: {

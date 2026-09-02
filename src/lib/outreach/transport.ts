@@ -64,7 +64,9 @@ export async function deliver(args: SendArgs): Promise<string> {
       replyTo: args.replyTo,
       subject: args.email.subject,
       text: args.email.text,
-      html: args.email.html,
+      // Omitted entirely when null, so nodemailer sends a single text/plain
+      // part rather than an empty multipart/alternative.
+      ...(args.email.html ? { html: args.email.html } : {}),
       headers: args.email.headers,
     })
     // nodemailer returns the Message-ID wrapped in angle brackets; strip them so
@@ -78,7 +80,7 @@ export async function deliver(args: SendArgs): Promise<string> {
     replyTo: args.replyTo,
     subject: args.email.subject,
     text: args.email.text,
-    html: args.email.html,
+    ...(args.email.html ? { html: args.email.html } : {}),
     headers: args.email.headers,
   })
 
