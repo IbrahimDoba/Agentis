@@ -20,9 +20,16 @@ import { suppressionReason } from "@/lib/outreach/suppression"
 // model output, because the failure modes (an unverifiable claim, a second link,
 // a missing disclosure) are identical regardless of who typed it.
 
+// Reserved spot for the tracked link. The route mints the token, so the copy
+// cannot contain the real URL when it arrives.
+const LINK_PLACEHOLDER = "{{link}}"
+
 const draftSchema = z.object({
   prospectId: z.string().min(1),
   subject: z.string().min(1).max(120),
+  // Must contain {{link}} exactly once. The token is minted here, so the caller
+  // cannot know the URL in advance; the placeholder is how the copy reserves a
+  // spot for it.
   body: z.string().min(20).max(4000),
   sourceDisclosure: z.string().min(5).max(300),
   reason: z.string().max(500).optional(),
@@ -79,13 +86,22 @@ export async function POST(req: NextRequest) {
     // contain that exact string for validation to pass. Where it lands is decided
     // at click time by /r/<token> — the prospect's WhatsApp conversation, their
     // demo if one exists, otherwise their vertical's solutions page.
+    if (!draft.body.includes(LINK_PLACEHOLDER)) {
+      rejected.push({
+        prospectId: draft.prospectId,
+        reason: `body must contain ${LINK_PLACEHOLDER} where the tracked link goes`,
+      })
+      continue
+    }
+
     const token = randomBytes(18).toString("base64url")
     const linkUrl = clickUrl(token)
+    const body = draft.body.split(LINK_PLACEHOLDER).join(linkUrl)
 
     const verdict = validateCopy(
       {
         subject: draft.subject,
-        body: draft.body,
+        body,
         sourceDisclosure: draft.sourceDisclosure,
         observedSignals: draft.observedSignals,
       },
@@ -103,7 +119,7 @@ export async function POST(req: NextRequest) {
           step,
           toEmail: prospect.email,
           subject: draft.subject,
-          bodyText: `${draft.body}\n\n${draft.sourceDisclosure}`,
+          bodyText: `${body}\n\n${draft.sourceDisclosure}`,
           aiReason: draft.reason ?? null,
           aiSignals: draft.observedSignals,
           aiModel: "claude-code",
