@@ -18,6 +18,7 @@ const bodySchema = z.object({
   fromName: z.string().min(1).max(60).optional(),
   signerName: z.string().min(1).max(60).optional(),
   signerTitle: z.string().min(1).max(80).optional(),
+  warmupEnabled: z.boolean().optional(),
   htmlEnabled: z.boolean().optional(),
   logoUrl: z.string().url().optional().nullable().or(z.literal("")),
   sendingEnabled: z.boolean().optional(),

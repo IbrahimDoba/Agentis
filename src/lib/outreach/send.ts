@@ -36,12 +36,16 @@ const REPLY_TO = process.env.OUTREACH_REPLY_TO ?? FROM_EMAIL
  * cannot skip the ramp — only raise the roof the ramp climbs toward.
  */
 export function effectiveDailyCap(settings: OutreachSettings, now = new Date()): number {
+  if (!settings.warmupEnabled) return settings.dailyCap
   return warmupStage(settings.warmupStartedAt, settings.dailyCap, now).cap
 }
 
 export function warmupStatus(settings: OutreachSettings, now = new Date()) {
+  if (!settings.warmupEnabled) {
+    return { day: 0, cap: settings.dailyCap, complete: true, configured: false, fullCap: settings.dailyCap, enabled: false }
+  }
   const stage = warmupStage(settings.warmupStartedAt, settings.dailyCap, now)
-  return { ...stage, configured: settings.warmupStartedAt !== null, fullCap: settings.dailyCap }
+  return { ...stage, configured: settings.warmupStartedAt !== null, fullCap: settings.dailyCap, enabled: true }
 }
 
 /**

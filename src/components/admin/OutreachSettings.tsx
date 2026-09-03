@@ -14,6 +14,7 @@ export type Settings = {
   dailyCap: number
   hourlyCap: number
   sliceSize: number
+  warmupEnabled: boolean
   warmupStartedAt: string | null
   whatsappNumber: string | null
   fromName: string
@@ -47,6 +48,7 @@ export function OutreachSettingsPanel({ initial }: { initial: Settings }) {
           dailyCap: s.dailyCap,
           hourlyCap: s.hourlyCap,
           sliceSize: s.sliceSize,
+          warmupEnabled: s.warmupEnabled,
           warmupStartedAt: s.warmupStartedAt || "",
           whatsappNumber: s.whatsappNumber ?? "",
           fromName: s.fromName,
@@ -96,8 +98,9 @@ export function OutreachSettingsPanel({ initial }: { initial: Settings }) {
                 onChange={(e) => set("sliceSize", Number(e.target.value))} />
             </Field>
 
-            <Field label="Warmup started" hint="Empty holds sending at the day-one value.">
+            <Field label="Warmup started" hint={s.warmupEnabled ? "Empty holds sending at the day-one value." : "Ignored while warmup is off."}>
               <input type="date" value={s.warmupStartedAt ?? ""} className={styles.input}
+                disabled={!s.warmupEnabled}
                 onChange={(e) => set("warmupStartedAt", e.target.value || null)} />
             </Field>
 
@@ -134,6 +137,19 @@ export function OutreachSettingsPanel({ initial }: { initial: Settings }) {
               <span>
                 Branded HTML email
                 <em>Off sends plain text, which classifies better in Gmail but looks plainer.</em>
+              </span>
+            </label>
+
+            <label className={styles.check}>
+              <input type="checkbox" checked={s.warmupEnabled}
+                onChange={(e) => set("warmupEnabled", e.target.checked)} />
+              <span>
+                Warmup ramp
+                <em>
+                  Ramps 5 a day to your cap over three weeks. Off sends at the full cap
+                  immediately, which is the pattern providers flag on a mailbox with no
+                  bulk history.
+                </em>
               </span>
             </label>
 
