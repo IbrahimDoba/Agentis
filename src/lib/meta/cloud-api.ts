@@ -1,77 +1,14 @@
 import crypto from "crypto"
 
-// Thin client for the official Meta WhatsApp Cloud API, scoped to the
-// meta-integration test harness. Config is read from env so the harness stays
-// isolated from the app's Baileys/worker credentials (WHATSAPP_ACCESS_TOKEN et
-// al. still point at the legacy number). See src/app/meta-test for the UI.
+// Thin client for the official Meta WhatsApp Cloud API. Credentials are always
+// passed in rather than read from env: every number belongs to a business that
+// connected it through Embedded Signup, and each carries its own token.
 
 const GRAPH_VERSION = process.env.META_GRAPH_VERSION || "v21.0"
 
 export interface MetaConfig {
   phoneNumberId: string
   accessToken: string
-}
-
-// Non-throwing view of which env pieces are present — powers the UI's config
-// panel (so you can see at a glance what's missing before recording) without
-// leaking secret values to the client.
-export function metaConfigStatus() {
-  return {
-    graphVersion: GRAPH_VERSION,
-    phoneNumberId: process.env.META_TEST_PHONE_NUMBER_ID || null,
-    hasAccessToken: !!process.env.META_TEST_ACCESS_TOKEN,
-    hasAppSecret: !!process.env.META_APP_SECRET,
-    hasVerifyToken: !!process.env.META_WEBHOOK_VERIFY_TOKEN,
-  }
-}
-
-// Strict accessor for the send path — throws a precise error naming the missing
-// var rather than letting an undefined slip into a Graph call. (The verify token
-// and app secret have their own accessors, since the webhook GET/signature paths
-// each depend on only one of them.)
-export function getMetaConfig(): MetaConfig {
-  const phoneNumberId = process.env.META_TEST_PHONE_NUMBER_ID
-  const accessToken = process.env.META_TEST_ACCESS_TOKEN
-
-  const missing = [
-    !phoneNumberId && "META_TEST_PHONE_NUMBER_ID",
-    !accessToken && "META_TEST_ACCESS_TOKEN",
-  ].filter(Boolean)
-
-  if (missing.length) {
-    throw new Error(`Missing Meta env vars: ${missing.join(", ")}`)
-  }
-
-  return { phoneNumberId: phoneNumberId!, accessToken: accessToken! }
-}
-
-// Whether we may auto-reply to a customer on a given number of ours.
-//
-// The guard exists for ONE number: the shared Meta test number, which anyone
-// who knows it can message, and where an unguarded webhook would answer
-// strangers with a business persona that isn't theirs.
-//
-// It must NOT apply to a number a business connected through Embedded Signup.
-// Serving arbitrary customers is exactly what that number is for — every one
-// of them is an unknown number, and gating them would silence the product.
-export function isAllowedRecipient(waId: string, receivedOn?: string | null): boolean {
-  const envNumber = process.env.META_TEST_PHONE_NUMBER_ID
-  if (receivedOn && envNumber && receivedOn !== envNumber) return true
-
-  const raw = (process.env.META_TEST_ALLOWED_RECIPIENTS || "").trim()
-
-  // "*" opens replies on the test number to anyone — needed during Meta App
-  // Review, when a reviewer messages from a phone we can't know in advance.
-  // Deliberately an explicit value rather than "unset means open": forgetting
-  // the var must fail closed, not spray a business persona at strangers.
-  if (raw === "*") return true
-
-  const allowed = raw
-    .split(",")
-    .map((n) => n.replace(/\D/g, ""))
-    .filter(Boolean)
-  if (allowed.length === 0) return false
-  return allowed.includes(waId.replace(/\D/g, ""))
 }
 
 export interface SendTextResult {
@@ -85,12 +22,12 @@ export interface SendTextResult {
 export async function sendText(
   to: string,
   body: string,
-  // Which number to send AS. Omitted for the env-configured number; supplied
-  // for a number onboarded through Embedded Signup, whose replies must go out
-  // with that business's own credentials, not ours.
-  from?: MetaConfig
+  // Which number to send AS, always explicit: every number belongs to a
+  // business that connected it, and its replies must go out with that
+  // business's own credentials.
+  from: MetaConfig
 ): Promise<SendTextResult> {
-  const { phoneNumberId, accessToken } = from ?? getMetaConfig()
+  const { phoneNumberId, accessToken } = from
   const url = `https://graph.facebook.com/${GRAPH_VERSION}/${phoneNumberId}/messages`
 
   const res = await fetch(url, {
