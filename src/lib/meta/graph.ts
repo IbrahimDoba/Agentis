@@ -1,5 +1,3 @@
-import { getMetaConfig } from "./cloud-api"
-
 const GRAPH_VERSION = process.env.META_GRAPH_VERSION || "v21.0"
 
 // Shared read helper for the harness's Graph calls. Graph returns errors as
@@ -8,11 +6,10 @@ const GRAPH_VERSION = process.env.META_GRAPH_VERSION || "v21.0"
 export async function graphGet<T>(
   path: string,
   fields: string,
-  // Explicit credentials for a connected customer's WABA. Omitted falls back to
-  // the env-configured account (the platform's own number).
-  opts?: { accessToken?: string; params?: Record<string, string> }
+  // The connected business's credentials — always explicit, never env.
+  opts: { accessToken: string; params?: Record<string, string> }
 ): Promise<T> {
-  const accessToken = opts?.accessToken ?? getMetaConfig().accessToken
+  const { accessToken } = opts
   const url = new URL(`https://graph.facebook.com/${GRAPH_VERSION}/${path}`)
   url.searchParams.set("fields", fields)
   for (const [k, v] of Object.entries(opts?.params ?? {})) url.searchParams.set(k, v)
@@ -32,9 +29,9 @@ export async function graphGet<T>(
 export async function graphPost<T>(
   path: string,
   body: unknown,
-  opts?: { accessToken?: string }
+  opts: { accessToken: string }
 ): Promise<T> {
-  const accessToken = opts?.accessToken ?? getMetaConfig().accessToken
+  const { accessToken } = opts
   const res = await fetch(`https://graph.facebook.com/${GRAPH_VERSION}/${path}`, {
     method: "POST",
     cache: "no-store",
@@ -61,9 +58,9 @@ export async function graphPost<T>(
 export async function graphDelete(
   path: string,
   params: Record<string, string>,
-  opts?: { accessToken?: string }
+  opts: { accessToken: string }
 ): Promise<void> {
-  const accessToken = opts?.accessToken ?? getMetaConfig().accessToken
+  const { accessToken } = opts
   const url = new URL(`https://graph.facebook.com/${GRAPH_VERSION}/${path}`)
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v)
   url.searchParams.set("access_token", accessToken)

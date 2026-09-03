@@ -2,7 +2,6 @@ import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
 import { MetaConnectPanel } from "@/components/dashboard/MetaConnectPanel"
-import { MetaChatPanel } from "@/components/dashboard/MetaChatPanel"
 import { MetaAccountClient } from "@/components/dashboard/MetaAccountClient"
 import Link from "next/link"
 import styles from "./page.module.css"
@@ -19,9 +18,14 @@ export default async function MetaPage() {
   })
   if (!user?.metaEnabled) redirect("/dashboard")
 
-  // Shown prominently because the number is the entry point: without it you
-  // can't message the agent, and it isn't discoverable anywhere else.
-  const displayNumber = process.env.META_TEST_DISPLAY_NUMBER || null
+  // The connected numbers, shown prominently: they are the entry point, and
+  // aren't discoverable anywhere else in the product. Read from the account's
+  // own connections rather than env — there is no single platform number.
+  const connections = await db.metaConnection.findMany({
+    where: { userId: session.user.id },
+    orderBy: { createdAt: "asc" },
+    select: { phoneNumberId: true, displayPhoneNumber: true, verifiedName: true },
+  })
 
   // Read here rather than in the client component: NEXT_PUBLIC_* is inlined at
   // build time and the production image is built without these, so they must
@@ -43,12 +47,20 @@ export default async function MetaPage() {
         </div>
       </div>
 
-      {displayNumber && (
+      {connections.length > 0 && (
         <div className={styles.numberBanner}>
-          <span className={styles.numberLabel}>Message your AI agent on WhatsApp</span>
-          <strong className={styles.number}>{displayNumber}</strong>
+          <span className={styles.numberLabel}>
+            {connections.length === 1 ? "Your WhatsApp number" : "Your WhatsApp numbers"}
+          </span>
+          {connections.map((c) => (
+            <strong key={c.phoneNumberId} className={styles.number}>
+              {c.displayPhoneNumber ?? c.phoneNumberId}
+              {c.verifiedName && <span className={styles.numberName}> · {c.verifiedName}</span>}
+            </strong>
+          ))}
           <span className={styles.numberHint}>
-            Send a message to this number and the AI replies below in real time.
+            Messages to these numbers appear in Conversations, answered by the agent
+            assigned to each.
           </span>
         </div>
       )}
@@ -60,7 +72,6 @@ export default async function MetaPage() {
       </div>
 
       <MetaConnectPanel appId={metaAppId} configId={metaConfigId} />
-      <MetaChatPanel />
       <MetaAccountClient />
     </div>
   )

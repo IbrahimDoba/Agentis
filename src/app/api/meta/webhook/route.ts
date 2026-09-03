@@ -1,11 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import {
-  verifyWebhookChallenge,
-  verifyWebhookSignature,
-
-  isAllowedRecipient,
-} from "@/lib/meta/cloud-api"
-import { alreadySeen, appendMessage } from "@/lib/meta/store"
+import { verifyWebhookChallenge, verifyWebhookSignature } from "@/lib/meta/cloud-api"
 import { resolveNumberContext } from "@/lib/meta/routing"
 
 // crypto + Prisma + openai — Node runtime, never cached.
@@ -117,32 +111,8 @@ const ORCHESTRATOR_URL = process.env.ORCHESTRATOR_URL || "http://localhost:4100"
 const ORCHESTRATOR_API_KEY = process.env.ORCHESTRATOR_API_KEY || process.env.WORKER_API_KEY
 
 async function handleInbound(msg: InboundText): Promise<void> {
-  // Dedup on Meta's message id — a retried/redelivered webhook must not trigger
-  // a second reply. (The orchestrator dedups too; this also stops a duplicate
-  // landing in the shadow log below.)
-  if (await alreadySeen(msg.wamid)) return
-
-  // Shadow log. The orchestrator is the real store now — this stays for one
-  // release so the Meta tab's own feed keeps working while the cutover is
-  // verified, and is dropped once Conversations covers it.
-  await appendMessage({
-    waId: msg.from,
-    phoneNumberId: msg.phoneNumberId,
-    direction: "inbound",
-    text: msg.text,
-    waMessageId: msg.wamid,
-    raw: msg.value,
-  })
-
-  // Recorded above so the inbound message is still visible, but we stop before
-  // generating or sending anything to a number we don't know.
-  if (!isAllowedRecipient(msg.from)) {
-    console.warn(`[meta/webhook] inbound from non-allowlisted ${msg.from} — logged, not replied`)
-    return
-  }
-
-  // Which number was this sent to? That decides which agent answers. An unknown
-  // number is never answered.
+  // Which number was this sent to? That decides which agent answers and whose
+  // credentials the reply goes out with. An unknown number is never answered.
   const context = await resolveNumberContext(msg.phoneNumberId)
   if (!context) {
     console.error(
@@ -158,9 +128,8 @@ async function handleInbound(msg: InboundText): Promise<void> {
   }
 
   // Hand off to the orchestrator, exactly as the Baileys worker and the embed
-  // widget do. It owns persistence, the AI turn (RAG, tools, reply guard),
-  // tagging, lead detection and credit charging — none of which the old
-  // direct-reply path had. It dispatches the reply back to
+  // widget do. It owns persistence, dedup, the AI turn, tagging, lead detection
+  // and credit charging, and dispatches the reply back to
   // /api/meta/internal/send, which holds this business's Cloud API token.
   const res = await fetch(`${ORCHESTRATOR_URL}/v1/inbound`, {
     method: "POST",
@@ -169,7 +138,7 @@ async function handleInbound(msg: InboundText): Promise<void> {
       Authorization: `Bearer ${ORCHESTRATOR_API_KEY}`,
     },
     body: JSON.stringify({
-      agentId: context.persona.agentId,
+      agentId: context.agentId,
       messageId: msg.wamid,
       fromPhone: msg.from,
       // No JID on the Cloud API. dispatchReply uses this as the send target,

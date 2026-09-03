@@ -35,29 +35,26 @@ export interface BusinessOverview {
   templates: MessageTemplate[]
 }
 
-function getWabaId(): string {
-  const wabaId = process.env.META_TEST_WABA_ID
-  if (!wabaId) throw new Error("Missing Meta env var: META_TEST_WABA_ID")
-  return wabaId
-}
-
 // Fetches the three management views in parallel — one round trip's latency
-// instead of three, which matters when the panel polls alongside the chat feed.
-export async function getBusinessOverview(): Promise<BusinessOverview> {
-  const wabaId = getWabaId()
-
+// instead of three. Credentials belong to the business that connected the
+// account, so they are passed in rather than read from env.
+export async function getBusinessOverview(
+  wabaId: string,
+  accessToken: string
+): Promise<BusinessOverview> {
   const [account, numbers, templates] = await Promise.all([
-    graphGet<{ id: string; name: string; timezone_id?: string }>(
-      wabaId,
-      "id,name,timezone_id"
-    ),
+    graphGet<{ id: string; name: string; timezone_id?: string }>(wabaId, "id,name,timezone_id", {
+      accessToken,
+    }),
     graphGet<{ data?: Array<Record<string, string>> }>(
       `${wabaId}/phone_numbers`,
-      "id,display_phone_number,verified_name,quality_rating,code_verification_status"
+      "id,display_phone_number,verified_name,quality_rating,code_verification_status",
+      { accessToken }
     ),
     graphGet<{ data?: Array<Record<string, string>> }>(
       `${wabaId}/message_templates`,
-      "id,name,status,category,language"
+      "id,name,status,category,language",
+      { accessToken }
     ),
   ])
 

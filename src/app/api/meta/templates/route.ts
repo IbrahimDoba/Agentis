@@ -19,7 +19,7 @@ async function requireWaba(phoneNumberId?: string | null) {
   const session = await auth()
   if (!session) return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) }
 
-  const waba = await resolveWabaContext(session.user.id, session.user.role, phoneNumberId)
+  const waba = await resolveWabaContext(session.user.id, phoneNumberId)
   if (!waba) {
     return {
       error: NextResponse.json(

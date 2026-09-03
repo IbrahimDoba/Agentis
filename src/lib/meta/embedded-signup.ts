@@ -82,7 +82,7 @@ export async function saveConnection(input: {
     displayPhoneNumber: input.details.displayPhoneNumber,
     verifiedName: input.details.verifiedName,
   }
-  return db.metaTestConnection.upsert({
+  return db.metaConnection.upsert({
     where: { phoneNumberId: input.phoneNumberId },
     create: { phoneNumberId: input.phoneNumberId, ...data },
     update: data,
@@ -90,7 +90,7 @@ export async function saveConnection(input: {
 }
 
 export async function getConnectionToken(phoneNumberId: string): Promise<string | null> {
-  const row = await db.metaTestConnection.findUnique({
+  const row = await db.metaConnection.findUnique({
     where: { phoneNumberId },
     select: { accessToken: true },
   })
@@ -102,7 +102,7 @@ export async function getConnectionToken(phoneNumberId: string): Promise<string 
 // the connect route because both mutate a real phone number — the UI asks
 // before calling this.
 export async function activateConnection(phoneNumberId: string, pin: string) {
-  const row = await db.metaTestConnection.findUnique({ where: { phoneNumberId } })
+  const row = await db.metaConnection.findUnique({ where: { phoneNumberId } })
   if (!row) throw new Error(`No connection stored for phone number ${phoneNumberId}`)
   const accessToken = decryptToken(row.accessToken)
 
@@ -118,7 +118,7 @@ export async function activateConnection(phoneNumberId: string, pin: string) {
     headers: { Authorization: `Bearer ${accessToken}` },
   })
 
-  return db.metaTestConnection.update({
+  return db.metaConnection.update({
     where: { phoneNumberId },
     data: { registeredAt, subscribedAt: new Date() },
   })
