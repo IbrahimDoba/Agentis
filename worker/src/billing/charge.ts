@@ -104,6 +104,52 @@ export async function chargeAiCredits(opts: {
  * pointless, so we just make sure it gets counted. Returns null only when the
  * agent has no billing profile.
  */
+/**
+ * Charge a cost that has ALREADY been incurred, for an explicit credit amount.
+ *
+ * Voice transcription is the case this exists for: the Whisper call is made on
+ * the inbound path, before any reply is generated, so the credits are spent
+ * whatever happens next. Like chargeAiTurn this NEVER throws and always records
+ * usage — refusing a charge for work already done would just lose the money.
+ * Unlike chargeAiTurn the amount is passed in rather than derived from tokens.
+ *
+ * Routing matches the rest of the billing path via routeMessageCharge: plan
+ * allowance first, PAYG wallet when the plan overflows and overage isn't
+ * allowed. Returns null when the agent has no billing profile.
+ */
+export async function chargeIncurredCredits(opts: {
+  agentId: string
+  credits: number
+  messageType: "text" | "image" | "video" | "document"
+  conversationId?: string
+  source?: "ai" | "broadcast" | "followup"
+}): Promise<{ creditsUsed: number; billedTo: "plan" | "wallet" } | null> {
+  const { agentId, credits, messageType, conversationId } = opts
+  const source = opts.source ?? "ai"
+  if (credits <= 0) return null
+
+  const billing = await getAgentBillingInfo(agentId)
+  if (!billing) return null
+
+  let billedTo: "plan" | "wallet" = "plan"
+  const monthlyLimit = effectiveCreditLimit(PLAN_CREDIT_LIMITS[billing.plan] ?? PLAN_CREDIT_LIMITS.free, billing.carryoverCredits, billing.carryoverExpiresAt)
+  const overageAllowed = allowsOverage(billing.plan)
+  if (monthlyLimit !== -1) {
+    const { start, end } = getBillingPeriod(billing.subscriptionExpiresAt, billing.currentPeriodStart)
+    const used = await getMonthlyCreditsUsedForUser(billing.userId, start, end)
+    const decision = routeMessageCharge({ creditsToCharge: credits, planLimit: monthlyLimit, used, overageAllowed })
+    billedTo = decision.billedTo
+    if (decision.needsWalletDeduction) {
+      // Best-effort: record even if the wallet can't cover it. The cost is
+      // already spent, so billedTo stays "wallet" to keep accounting accurate.
+      await deductFromWallet(billing.userId, credits)
+    }
+  }
+
+  await insertCreditUsage({ agentId, conversationId, messageType, source, creditsUsed: credits, billedTo })
+  return { creditsUsed: credits, billedTo }
+}
+
 export async function chargeAiTurn(opts: {
   agentId: string
   conversationId?: string

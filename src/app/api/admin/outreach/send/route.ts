@@ -1,6 +1,6 @@
+import { withAdmin } from "@/lib/api/withAuth"
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
-import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import {
   sendApprovedBatch,
@@ -41,12 +41,7 @@ const COMPLAINT_TRIP_RATE = 0.001
 const BOUNCE_TRIP_RATE = 0.02
 const MIN_SAMPLE_FOR_TRIP = 50
 
-export async function POST(req: NextRequest) {
-  const session = await auth()
-  if (!session || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
-
+export const POST = withAdmin(async (req: NextRequest) => {
   try {
     assertOutreachConfigured()
   } catch (err) {
@@ -76,13 +71,9 @@ export async function POST(req: NextRequest) {
     warmup: warmupStatus(cfg),
     health,
   })
-}
+})
 
-export async function GET() {
-  const session = await auth()
-  if (!session || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
+export const GET = withAdmin(async () => {
   const cfg = await getOutreachSettings()
   return NextResponse.json({
     sentToday: await sentToday(),
@@ -92,7 +83,7 @@ export async function GET() {
     approved: await db.outreachMessage.count({ where: { status: "approved" } }),
     health: await deliverabilityHealth(),
   })
-}
+})
 
 async function deliverabilityHealth() {
   const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)

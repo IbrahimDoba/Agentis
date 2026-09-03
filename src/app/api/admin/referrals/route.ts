@@ -1,11 +1,8 @@
-import { auth } from "@/lib/auth"
+import { withAdmin } from "@/lib/api/withAuth"
 import { db } from "@/lib/db"
 import { NextRequest, NextResponse } from "next/server"
 
-export async function GET() {
-  const session = await auth()
-  if (!session || session.user.role !== "ADMIN") return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-
+export const GET = withAdmin(async () => {
   const referrals = await db.referral.findMany({
     include: {
       referrer: { select: { id: true, name: true, email: true } },
@@ -33,13 +30,10 @@ export async function GET() {
     })),
     totalOwed,
   })
-}
+})
 
 // Assign a referrer to a user manually
-export async function POST(req: NextRequest) {
-  const session = await auth()
-  if (!session || session.user.role !== "ADMIN") return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-
+export const POST = withAdmin(async (req: NextRequest) => {
   const { referrerId, referredId, commissionEarned } = await req.json()
   if (!referrerId || !referredId) return NextResponse.json({ error: "referrerId and referredId required" }, { status: 400 })
   if (referrerId === referredId) return NextResponse.json({ error: "Cannot refer yourself" }, { status: 400 })
@@ -62,4 +56,4 @@ export async function POST(req: NextRequest) {
   })
 
   return NextResponse.json({ referral })
-}
+})

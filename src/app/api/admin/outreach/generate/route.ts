@@ -1,7 +1,7 @@
+import { withAdmin } from "@/lib/api/withAuth"
 import { NextRequest, NextResponse } from "next/server"
 import { randomBytes } from "node:crypto"
 import { z } from "zod"
-import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { personalize } from "@/lib/outreach/personalize"
 import { provisionDemo, type DemoSeed } from "@/lib/outreach/demo"
@@ -25,12 +25,7 @@ type Research = {
   seed?: DemoSeed
 }
 
-export async function POST(req: NextRequest) {
-  const session = await auth()
-  if (!session || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
-
+export const POST = withAdmin(async (req: NextRequest) => {
   const parsed = bodySchema.safeParse((await req.json().catch(() => null)) ?? {})
   if (!parsed.success) return NextResponse.json({ error: "Invalid body" }, { status: 400 })
 
@@ -146,4 +141,4 @@ export async function POST(req: NextRequest) {
     drafted: results.filter((r) => r.outcome === "drafted").length,
     results,
   })
-}
+})

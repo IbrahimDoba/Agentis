@@ -1,0 +1,1489 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`unauthenticated response baseline > matches the recorded responses 1`] = `
+{
+  "admin/events": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "admin/finances/entries": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "admin/finances/entries/[id]": {
+    "DELETE": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "PATCH": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "admin/finances/rates": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "PUT": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "admin/newsletter/send": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "admin/outreach/demo-owner": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "admin/outreach/drafts": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "admin/outreach/generate": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "admin/outreach/import": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "admin/outreach/messages": {
+    "PATCH": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "admin/outreach/send": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "admin/payments": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "admin/payments/[id]/approve": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "admin/referrals": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "admin/referrals/[id]": {
+    "DELETE": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "PATCH": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "admin/resellers": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "admin/resellers/[id]": {
+    "PATCH": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "admin/resellers/[id]/allocate": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "admin/sync-webhooks": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "admin/users/[id]/billing": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "admin/users/[id]/credits": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "admin/users/[id]/history-sync": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "PATCH": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "admin/users/[id]/reset-usage": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]": {
+    "DELETE": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "PATCH": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/analytics": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/appointment-settings": {
+    "PATCH": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/auto-configure": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/auto-configure/activate": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/auto-configure/skip": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/broadcast-contacts": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/broadcasts": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/broadcasts/[broadcastId]/cancel": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/broadcasts/[broadcastId]/resume": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/contacts": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/contacts/export": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/contacts/export-csv": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/contacts/export-vcard": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/conversations": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/conversations/[convId]": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/conversations/detect-leads": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/conversations/mode": {
+    "PATCH": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/documents": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/documents/[docId]": {
+    "DELETE": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/embed": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "PATCH": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/followup-campaigns": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/followup-campaigns/[campaignId]": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/followup-campaigns/[campaignId]/approve": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/followup-campaigns/[campaignId]/cancel": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/followup-campaigns/[campaignId]/resume": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/followup-campaigns/[campaignId]/start": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/groups": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "PATCH": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/knowledge-base": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/knowledge-base/[docId]": {
+    "DELETE": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/labels": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "PATCH": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/media": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/media/[mediaId]": {
+    "DELETE": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/messaging": {
+    "PATCH": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/orchestrator-conversations": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/orchestrator-mode": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "PATCH": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/prompt-edit/apply": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/prompt-edit/propose": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/prompt-edits": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/prompt-edits/[editId]/revert": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/relink": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/send-message": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/stream": {
+    "GET": {
+      "body": "Unauthorized",
+      "contentType": "text/plain;charset=UTF-8",
+      "status": 401,
+    },
+  },
+  "agents/[id]/system-prompt": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/templates": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/templates/[templateId]": {
+    "DELETE": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "PATCH": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/tools": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "PUT": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/enhance": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "analyst": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "api-keys": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "api-keys/[id]": {
+    "DELETE": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "appointments": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "appointments/[id]": {
+    "DELETE": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "PATCH": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "auth/[...nextauth]": {
+    "GET": {
+      "body": "",
+      "contentType": null,
+      "status": 405,
+    },
+    "POST": {
+      "body": "",
+      "contentType": null,
+      "status": 405,
+    },
+  },
+  "auth/forgot-password": {
+    "POST": {
+      "body": "{"error":"Email is required"}",
+      "contentType": "application/json",
+      "status": 400,
+    },
+  },
+  "auth/reset-password": {
+    "POST": {
+      "body": "{"error":"Token and password are required"}",
+      "contentType": "application/json",
+      "status": 400,
+    },
+  },
+  "auth/signup": {
+    "POST": {
+      "body": "{"errors":{"name":"Invalid input: expected string, received undefined","email":"Invalid input: expected string, received undefined","businessName":"Invalid input: expected string, received undefined",…",
+      "contentType": "application/json",
+      "status": 400,
+    },
+  },
+  "auth/verify-email": {
+    "POST": {
+      "body": "{"error":"Missing email or code"}",
+      "contentType": "application/json",
+      "status": 400,
+    },
+    "PUT": {
+      "body": "{"error":"Missing email"}",
+      "contentType": "application/json",
+      "status": 400,
+    },
+  },
+  "baileys/events": {
+    "POST": {
+      "body": "{"error":"Invalid signature"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "baileys/sessions": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "baileys/sessions/[agentId]": {
+    "DELETE": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "baileys/sessions/[agentId]/disconnect": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "baileys/sessions/[agentId]/pairing-code": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "baileys/sessions/[agentId]/qr": {
+    "GET": {
+      "body": "Unauthorized",
+      "contentType": "text/plain;charset=UTF-8",
+      "status": 401,
+    },
+  },
+  "baileys/sessions/[agentId]/restart": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "baileys/sessions/[agentId]/tier": {
+    "PATCH": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "chats": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "chats/[conversationId]": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "contact": {
+    "POST": {
+      "body": "{"error":"Invalid request"}",
+      "contentType": "application/json",
+      "status": 400,
+    },
+  },
+  "conversations": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "conversations/[id]": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "conversations/[id]/delete": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "conversations/[id]/followup": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "conversations/[id]/improve-draft": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "conversations/[id]/media/[messageId]": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "conversations/[id]/messages": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "conversations/[id]/mode": {
+    "PATCH": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "conversations/[id]/stream": {
+    "GET": {
+      "body": "Unauthorized",
+      "contentType": "text/plain;charset=UTF-8",
+      "status": 401,
+    },
+  },
+  "conversations/[id]/summary": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "conversations/read": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "conversations/stats": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "credits/balance": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "credits/history": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "credits/purchase": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "credits/webhook": {
+    "POST": {
+      "body": "Invalid signature",
+      "contentType": "text/plain;charset=UTF-8",
+      "status": 401,
+    },
+  },
+  "cron/notifications": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "cron/outreach": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "cron/subscription-expiry": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "data-deletion": {
+    "POST": {
+      "body": "{"error":"Missing required fields"}",
+      "contentType": "application/json",
+      "status": 400,
+    },
+  },
+  "demo": {
+    "POST": {
+      "body": "{"errors":{"name":"Invalid input: expected string, received undefined","email":"Invalid input: expected string, received undefined","businessName":"Invalid input: expected string, received undefined",…",
+      "contentType": "application/json",
+      "status": 400,
+    },
+  },
+  "elevenlabs/agents": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "elevenlabs/whatsapp-accounts": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "embed/init": {
+    "POST": {
+      "body": "{"error":"Invalid body","details":{"formErrors":[],"fieldErrors":{"publicKey":["Invalid input: expected string, received undefined"],"visitorId":["Invalid input: expected string, received undefined"]}…",
+      "contentType": "application/json",
+      "status": 400,
+    },
+  },
+  "embed/message": {
+    "POST": {
+      "body": "{"error":"Invalid body","details":{"formErrors":[],"fieldErrors":{"publicKey":["Invalid input: expected string, received undefined"],"visitorId":["Invalid input: expected string, received undefined"],…",
+      "contentType": "application/json",
+      "status": 400,
+    },
+  },
+  "embed/messages": {
+    "GET": {
+      "body": "{"error":"Invalid query","details":{"formErrors":[],"fieldErrors":{"publicKey":["Too small: expected string to have >=8 characters"],"visitorId":["Too small: expected string to have >=8 characters"],"…",
+      "contentType": "application/json",
+      "status": 400,
+    },
+  },
+  "embed/stream": {
+    "GET": {
+      "body": "Invalid query",
+      "contentType": "text/plain;charset=UTF-8",
+      "status": 400,
+    },
+  },
+  "invite/[token]": {
+    "GET": {
+      "body": "{"error":"Invalid invite link"}",
+      "contentType": "application/json",
+      "status": 404,
+    },
+    "POST": {
+      "body": "{"error":"Invalid invite link"}",
+      "contentType": "application/json",
+      "status": 404,
+    },
+  },
+  "leads": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "leads/[id]": {
+    "DELETE": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "PATCH": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "me": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "PATCH": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "me/agent": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "me/password": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "meta/business": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "meta/connect": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "meta/connect/activate": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "meta/messages": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "meta/templates": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "meta/webhook": {
+    "GET": {
+      "body": "Verification failed",
+      "contentType": "text/plain;charset=UTF-8",
+      "status": 403,
+    },
+    "POST": {
+      "body": "Invalid signature",
+      "contentType": "text/plain;charset=UTF-8",
+      "status": 401,
+    },
+  },
+  "newsletter/subscribe": {
+    "POST": {
+      "body": "{"error":"Valid email required"}",
+      "contentType": "application/json",
+      "status": 400,
+    },
+  },
+  "onboarding/complete": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "paystack/webhook": {
+    "POST": {
+      "body": "Invalid signature",
+      "contentType": "text/plain;charset=UTF-8",
+      "status": 401,
+    },
+  },
+  "referrals": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "reseller/agents": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "reseller/agents/[id]": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "PATCH": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "reseller/overview": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "reseller/plans": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "reseller/plans/[id]": {
+    "DELETE": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "PATCH": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "reseller/settings": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "PATCH": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "reseller/users": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "reseller/users/[id]": {
+    "DELETE": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "PATCH": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "reseller/users/[id]/activate": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "reseller/users/[id]/credits": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "site-info": {
+    "GET": {
+      "body": "{"product":{"name":"D-Zero AI","tagline":"Your Business, Always Responding","description":"D-Zero AI deploys an AI agent that handles WhatsApp conversations 24/7. It answers questions, captures leads,…",
+      "contentType": "application/json",
+      "status": 200,
+    },
+  },
+  "stream-token": {
+    "GET": {
+      "body": "{"error":"Streaming not configured"}",
+      "contentType": "application/json",
+      "status": 503,
+    },
+  },
+  "subscription/cancel": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "subscription/checkout": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "subscription/request": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "subscription/resume": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "subscription/status": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "subscription/update-card": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "subscription/verify": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "upload": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "uploadthing": {
+    "GET": {
+      "body": "[{"slug":"agentProfileImage","config":{"image":{"maxFileSize":"4MB","maxFileCount":1,"minFileCount":1,"contentDisposition":"inline"}}}]",
+      "contentType": "application/json",
+      "status": 200,
+    },
+    "POST": {
+      "body": "{"message":"Invalid input"}",
+      "contentType": "application/json",
+      "status": 400,
+    },
+  },
+  "users": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "users/[id]": {
+    "PATCH": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "v1/agents": {
+    "GET": {
+      "body": "{"error":{"code":"UNAUTHORIZED","message":"Missing or malformed Authorization header. Use: Authorization: Bearer <api-key>.","request_id":"req_<id>"}}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "v1/agents/[id]": {
+    "GET": {
+      "body": "{"error":{"code":"UNAUTHORIZED","message":"Missing or malformed Authorization header. Use: Authorization: Bearer <api-key>.","request_id":"req_<id>"}}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "v1/agents/[id]/tools": {
+    "GET": {
+      "body": "{"error":{"code":"UNAUTHORIZED","message":"Missing or malformed Authorization header. Use: Authorization: Bearer <api-key>.","request_id":"req_<id>"}}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "PUT": {
+      "body": "{"error":{"code":"UNAUTHORIZED","message":"Missing or malformed Authorization header. Use: Authorization: Bearer <api-key>.","request_id":"req_<id>"}}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "v1/chat/completions": {
+    "POST": {
+      "body": "{"error":{"code":"UNAUTHORIZED","message":"Missing or malformed Authorization header. Use: Authorization: Bearer <api-key>.","request_id":"req_<id>"}}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "v1/contacts/check": {
+    "POST": {
+      "body": "{"error":{"code":"UNAUTHORIZED","message":"Missing or malformed Authorization header. Use: Authorization: Bearer <api-key>.","request_id":"req_<id>"}}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "v1/messages": {
+    "POST": {
+      "body": "{"error":{"code":"UNAUTHORIZED","message":"Missing or malformed Authorization header. Use: Authorization: Bearer <api-key>.","request_id":"req_<id>"}}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "webhook/elevenlabs": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "webhook/elevenlabs/customer-history": {
+    "POST": {
+      "body": "{"history":"Missing required fields. Treat as new customer."}",
+      "contentType": "application/json",
+      "status": 200,
+    },
+  },
+  "webhook/elevenlabs/initiate": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "webhooks/outreach": {
+    "POST": {
+      "body": "{"error":"Not configured"}",
+      "contentType": "application/json",
+      "status": 500,
+    },
+  },
+  "workspace/invite": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "workspace/members": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "workspace/members/[memberId]": {
+    "DELETE": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "PATCH": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "workspace/switch": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "workspace/workspaces": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+}
+`;

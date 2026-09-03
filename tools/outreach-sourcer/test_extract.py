@@ -190,3 +190,23 @@ class TestMisc(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class WhatsAppWidgetTests(unittest.TestCase):
+    def test_detects_a_javascript_chat_widget(self):
+        # perfecttrustbeauty.com loads Dondy from Shopify's extension CDN. The
+        # widget mounts in JS, so there is no wa.me link to find, but the store
+        # plainly routes customers to WhatsApp.
+        html = '<script src="https://cdn.shopify.com/extensions/x/dondy-whatsapp-chat-widget-98/assets/chatbubble.js"></script>'
+        self.assertTrue(extract.uses_whatsapp(html))
+
+    def test_detects_generic_widget_asset_names(self):
+        for marker in ("whatsapp-chat", "whatsapp-button", "wa-widget"):
+            self.assertTrue(extract.uses_whatsapp('<script src="/assets/%s.js">' % marker), marker)
+
+    def test_still_finds_plain_links_and_phrases(self):
+        self.assertTrue(extract.uses_whatsapp('<a href="https://wa.me/2348012345678">chat</a>'))
+        self.assertTrue(extract.uses_whatsapp("<p>DM to order</p>"))
+
+    def test_rejects_a_site_with_no_whatsapp_at_all(self):
+        self.assertFalse(extract.uses_whatsapp("<p>Call us on 08012345678</p>"))

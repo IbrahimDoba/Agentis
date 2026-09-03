@@ -1,6 +1,6 @@
+import { withAdmin } from "@/lib/api/withAuth"
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
-import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { parseCsvRows } from "@/lib/outreach/csv"
 import { filterSuppressed } from "@/lib/outreach/suppression"
@@ -26,12 +26,7 @@ const bodySchema = z.object({
 
 type RowOutcome = { email: string; outcome: string }
 
-export async function POST(req: NextRequest) {
-  const session = await auth()
-  if (!session || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
-
+export const POST = withAdmin(async (req: NextRequest) => {
   const parsed = bodySchema.safeParse(await req.json().catch(() => null))
   if (!parsed.success) {
     return NextResponse.json({ error: "csv is required" }, { status: 400 })
@@ -148,7 +143,7 @@ export async function POST(req: NextRequest) {
     skipped: skipped.length,
     details: skipped.slice(0, 100),
   })
-}
+})
 
 function truthy(value: string | undefined): boolean {
   if (!value) return false

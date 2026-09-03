@@ -1,13 +1,10 @@
-import { auth } from "@/lib/auth"
+import { withAdmin } from "@/lib/api/withAuth"
 import { db } from "@/lib/db"
 import { NextRequest, NextResponse } from "next/server"
 
 interface Params { params: Promise<{ id: string }> }
 
-export async function PATCH(req: NextRequest, { params }: Params) {
-  const session = await auth()
-  if (!session || session.user.role !== "ADMIN") return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-
+export const PATCH = withAdmin(async (req: NextRequest, { params }: Params) => {
   const { id } = await params
   const { rewardGranted, commissionEarned, status } = await req.json()
 
@@ -25,13 +22,10 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   })
 
   return NextResponse.json({ referral })
-}
+})
 
-export async function DELETE(_req: NextRequest, { params }: Params) {
-  const session = await auth()
-  if (!session || session.user.role !== "ADMIN") return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-
+export const DELETE = withAdmin(async (_req: NextRequest, { params }: Params) => {
   const { id } = await params
   await db.referral.delete({ where: { id } })
   return NextResponse.json({ ok: true })
-}
+})

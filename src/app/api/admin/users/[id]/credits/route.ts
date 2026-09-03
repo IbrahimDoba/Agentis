@@ -1,5 +1,5 @@
+import { withAdmin } from "@/lib/api/withAuth"
 import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { addCredits, deductFromWallet, getBalance } from "@/lib/creditWallet"
 
@@ -9,12 +9,7 @@ interface Params { params: Promise<{ id: string }> }
 // the spendable balance and resets the wallet expiry to 12 months from now;
 // `action: "deduct"` removes credits, guarded so the balance can never go
 // negative (e.g. correcting an over-grant). Super-admin only.
-export async function POST(req: NextRequest, { params }: Params) {
-  const session = await auth()
-  if (!session || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
-
+export const POST = withAdmin(async (req: NextRequest, { params }: Params) => {
   const { id } = await params
   const body = await req.json().catch(() => ({}))
   const action = body?.action === "deduct" ? "deduct" : "add"
@@ -52,4 +47,4 @@ export async function POST(req: NextRequest, { params }: Params) {
     creditBalance: wallet.creditBalance,
     creditsExpireAt: wallet.creditsExpireAt ? wallet.creditsExpireAt.toISOString() : null,
   })
-}
+})

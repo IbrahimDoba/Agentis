@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { creditsForTokens, OUTPUT_WEIGHT, TOKENS_PER_CREDIT } from "./credits.js"
+import { creditsForTokens, creditsForVoice, AI_CREDIT_COSTS, OUTPUT_WEIGHT, TOKENS_PER_CREDIT } from "./credits.js"
 import { routeMessageCharge } from "./wallet.js"
 
 describe("creditsForTokens (worker mirror)", () => {
@@ -60,5 +60,32 @@ describe("routeMessageCharge — billing routing decision", () => {
     const d = routeMessageCharge({ creditsToCharge: 21, planLimit: 1000, used: 980, overageAllowed: false })
     expect(d.billedTo).toBe("wallet")
     expect(d.needsWalletDeduction).toBe(true)
+  })
+})
+
+// Voice notes used to be transcribed for free: the worker computed this cost and
+// sent it to the orchestrator as `extraCredits`, but the inbound schema never
+// listed the field so zod stripped it. The worker now charges it directly, which
+// makes this the amount a customer actually pays.
+describe("creditsForVoice", () => {
+  it("charges the per-second rate once past the minimum", () => {
+    expect(creditsForVoice(6)).toBe(6 * AI_CREDIT_COSTS.voicePerSec)
+    expect(creditsForVoice(30)).toBe(30 * AI_CREDIT_COSTS.voicePerSec)
+  })
+
+  it("floors at the per-note minimum for short notes", () => {
+    expect(creditsForVoice(0)).toBe(AI_CREDIT_COSTS.voiceMin)
+    expect(creditsForVoice(1)).toBe(AI_CREDIT_COSTS.voiceMin)
+    // The break-even point: below this the minimum wins.
+    const breakEven = AI_CREDIT_COSTS.voiceMin / AI_CREDIT_COSTS.voicePerSec
+    expect(creditsForVoice(breakEven)).toBe(AI_CREDIT_COSTS.voiceMin)
+  })
+
+  it("rounds a partial second up, never down", () => {
+    expect(creditsForVoice(10.1)).toBe(11 * AI_CREDIT_COSTS.voicePerSec)
+  })
+
+  it("never returns a chargeable-but-zero amount", () => {
+    for (const d of [0, 0.4, 1, 7, 60]) expect(creditsForVoice(d)).toBeGreaterThan(0)
   })
 })

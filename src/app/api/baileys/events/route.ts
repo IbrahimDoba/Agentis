@@ -22,6 +22,19 @@ async function maybeStartFreeTrial(agentId: string): Promise<void> {
   })
 }
 
+// The events the worker emits. Mirrors WorkerEvent in
+// worker/src/dashboard/webhook-emitter.ts — the packages cannot import each
+// other, so this is the only place the contract is stated on this side.
+// Typing it (it used to be `string`) is what makes a missing case visible.
+type WorkerEvent =
+  | "session.qr"
+  | "session.connected"
+  | "session.disconnected"
+  | "session.banned"
+  | "message.inbound"
+  | "message.sent"
+  | "message.failed"
+
 function verify(body: string, signature: string): boolean {
   const secret = process.env.BAILEYS_WEBHOOK_SECRET ?? ""
   const expected = createHmac("sha256", secret).update(body).digest("hex")
@@ -40,7 +53,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 401 })
   }
 
-  const { event, data } = JSON.parse(raw) as { event: string; data: Record<string, unknown> }
+  const { event, data } = JSON.parse(raw) as { event: WorkerEvent; data: Record<string, unknown> }
   const agentId = data.agentId as string
 
   switch (event) {
@@ -80,6 +93,35 @@ export async function POST(req: Request) {
     case "message.sent":
       push(agentId, "message", { agentId })
       break
+
+    // A send that failed still changes what the dashboard should show, exactly
+    // like one that succeeded. This case was missing, so failures were emitted
+    // by the worker and dropped here in silence.
+    case "message.failed":
+      push(agentId, "message", { agentId })
+      break
+
+    // Deliberately nothing to do. The worker writes QR_PENDING to
+    // BaileysSession itself (session-manager.ts), and the browser reads the QR
+    // straight from the worker through the SSE proxy at
+    // /api/baileys/sessions/[agentId]/qr — so a DB write here would duplicate
+    // one the worker already throttles. Listed so "handled, nothing to do" is
+    // distinguishable from "forgotten", which is what went wrong here.
+    case "session.qr":
+      break
+
+    default: {
+      // Compile time: if WorkerEvent gains a member and no case handles it,
+      // this assignment stops being valid and typecheck fails. That is the
+      // guard that was missing — session.qr and message.failed were emitted
+      // and dropped with nothing to notice it.
+      // Run time: an unknown event is still acknowledged, never rejected. The
+      // worker can ship a new event before this app deploys, and a 200 keeps
+      // its emitter from retrying against a version that cannot handle it yet.
+      const unhandled: never = event
+      void unhandled
+      break
+    }
   }
 
   return NextResponse.json({ ok: true })

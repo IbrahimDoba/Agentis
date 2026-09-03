@@ -1,17 +1,12 @@
+import { withAdmin } from "@/lib/api/withAuth"
 import { NextResponse } from "next/server"
-import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { setAgentWebhook } from "@/lib/elevenlabs"
 
 // POST /api/admin/sync-webhooks
 // Registers the post-call webhook on every ElevenLabs agent that doesn't have one yet.
 // Admin-only. Safe to re-run — ElevenLabs PATCH is idempotent.
-export async function POST() {
-  const session = await auth()
-  if (!session || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
-
+export const POST = withAdmin(async () => {
   const agents = await db.agent.findMany({
     where: { elevenlabsAgentId: { not: null } },
     select: { id: true, elevenlabsAgentId: true, businessName: true },
@@ -37,4 +32,4 @@ export async function POST() {
   const failed = results.filter((r) => r.status === "error").length
 
   return NextResponse.json({ succeeded, failed, results })
-}
+})

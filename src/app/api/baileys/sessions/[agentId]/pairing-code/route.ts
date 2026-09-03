@@ -1,11 +1,15 @@
 import { NextResponse } from "next/server"
-import { auth } from "@/lib/auth"
+import { requireAgentAccess } from "@/lib/agentAccess"
 
 export async function POST(req: Request, { params }: { params: Promise<{ agentId: string }> }) {
-  const session = await auth()
-  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-
   const { agentId } = await params
+  const access = await requireAgentAccess(agentId)
+  if (!access.ok) {
+    return access.reason === "UNAUTHENTICATED"
+      ? NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      : NextResponse.json({ error: "Not found" }, { status: 404 })
+  }
+
   const { phoneNumber } = await req.json()
   if (!phoneNumber) return NextResponse.json({ error: "phoneNumber required" }, { status: 400 })
 

@@ -1,6 +1,6 @@
+import { withAdmin } from "@/lib/api/withAuth"
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
-import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 
 // Review actions on a drafted message: approve, reject, or edit-then-approve.
@@ -14,12 +14,7 @@ const bodySchema = z.object({
   bodyText: z.string().min(20).max(4000).optional(),
 })
 
-export async function PATCH(req: NextRequest) {
-  const session = await auth()
-  if (!session || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
-
+export const PATCH = withAdmin(async (req: NextRequest) => {
   const parsed = bodySchema.safeParse(await req.json().catch(() => null))
   if (!parsed.success) {
     const errors: Record<string, string> = {}
@@ -61,4 +56,4 @@ export async function PATCH(req: NextRequest) {
   }
 
   return NextResponse.json({ ok: true })
-}
+})

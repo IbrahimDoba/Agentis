@@ -1,5 +1,5 @@
+import { withAdmin } from "@/lib/api/withAuth"
 import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { PLAN_CREDIT_LIMITS, PLAN_OVERAGE_RATE_PER_1K, effectiveCreditLimit } from "@/lib/plans"
 import { getBillingPeriod } from "@/lib/billing-period"
@@ -8,12 +8,7 @@ interface Params {
   params: Promise<{ id: string }>
 }
 
-export async function GET(req: NextRequest, { params }: Params) {
-  const session = await auth()
-  if (!session || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
-
+export const GET = withAdmin(async (req: NextRequest, { params }: Params) => {
   const { id } = await params
 
   const user = await db.user.findUnique({
@@ -173,4 +168,4 @@ export async function GET(req: NextRequest, { params }: Params) {
       whatsappAgentLink: a.whatsappAgentLink ?? null,
     })),
   })
-}
+})

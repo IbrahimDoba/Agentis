@@ -5,7 +5,7 @@ import Link from "next/link"
 import { usePlanStats } from "@/hooks/usePlanStats"
 import {
   PLAN_LABELS, PLAN_PRICES, PLAN_CREDIT_LIMITS,
-  PLAN_FEATURES, PLAN_ORDER, PLAN_OVERAGE_RATE_PER_1K,
+  PLAN_FEATURES, PLAN_ORDER, isPlanUpgrade, isPlanDowngrade, PLAN_OVERAGE_RATE_PER_1K,
   CREDITS_NOTE, estimatedAiMessages, formatNaira
 } from "@/lib/plans"
 import { PAYG_DEFAULT_NGN_PER_CREDIT } from "@/lib/credits"
@@ -189,10 +189,11 @@ export default function SubscriptionPage() {
           const features = PLAN_FEATURES[plan] ?? []
           const overageRate = PLAN_OVERAGE_RATE_PER_1K[plan]
           const isEnterprise = plan === "enterprise"
-          const planIndex = PLAN_ORDER.indexOf(plan)
-          const currentIndex = PLAN_ORDER.indexOf(currentPlan)
-          const isUpgrade = planIndex > currentIndex
-          const isDowngrade = planIndex < currentIndex && plan !== "free"
+          // A currentPlan off the ladder (reseller) is not comparable to
+          // anything here, so neither label applies — it used to rank as -1 and
+          // paint every card "Upgrade".
+          const isUpgrade = isPlanUpgrade(currentPlan, plan)
+          const isDowngrade = isPlanDowngrade(currentPlan, plan) && plan !== "free"
 
           return (
             <div key={plan} className={`${styles.planCard} ${isCurrent ? styles.planCardCurrent : ""} ${isPopular ? styles.planCardPopular : ""}`}>
