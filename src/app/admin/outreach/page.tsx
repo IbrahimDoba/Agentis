@@ -100,11 +100,21 @@ export default async function AdminOutreachPage() {
         <Stat label="Complaints" value={complaints} danger={complaints > 0} />
       </div>
 
-      {!warmup.complete && (
+      {!settings.warmupEnabled && (
         <p className={styles.warmup}>
-          {warmup.configured
-            ? `Warmup day ${warmup.day} of ${WARMUP_DAYS}. Today's ceiling is ${cap}, rising to ${warmup.fullCap} once the ramp finishes.`
-            : `OUTREACH_WARMUP_STARTED_AT is not set, so sending is held at the day-one ceiling of ${cap}. Set it to the date you started sending from this address.`}
+          Warmup is off, so sending runs at the full cap of {cap} a day from the first message.
+          Providers watch for exactly that pattern on a mailbox with no bulk history, so watch
+          Google Postmaster Tools closely over the first few days.
+        </p>
+      )}
+
+      {settings.warmupEnabled && !warmup.complete && (
+        <p className={styles.warmup}>
+          {!warmup.configured
+            ? `No warmup start date set, so sending is held at the day-one ceiling of ${cap}. Set one in campaign settings.`
+            : cap < warmup.fullCap
+              ? `Warmup day ${warmup.day} of ${WARMUP_DAYS}. Today's ceiling is ${cap}, rising to ${warmup.fullCap} once the ramp finishes.`
+              : `Warmup day ${warmup.day} of ${WARMUP_DAYS}, already at the configured cap of ${cap}.`}
         </p>
       )}
 
@@ -128,6 +138,7 @@ export default async function AdminOutreachPage() {
           dailyCap: settings.dailyCap,
           hourlyCap: settings.hourlyCap,
           sliceSize: settings.sliceSize,
+          warmupEnabled: settings.warmupEnabled,
           warmupStartedAt: settings.warmupStartedAt?.toISOString().slice(0, 10) ?? null,
           whatsappNumber: settings.whatsappNumber,
           fromName: settings.fromName,

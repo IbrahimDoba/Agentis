@@ -16,6 +16,7 @@ export type OutreachSettings = {
   dailyCap: number
   hourlyCap: number
   sliceSize: number
+  warmupEnabled: boolean
   warmupStartedAt: Date | null
   whatsappNumber: string | null
   fromName: string
@@ -39,6 +40,7 @@ function envSeed(): OutreachSettings {
     dailyCap: Number(process.env.OUTREACH_DAILY_CAP ?? 10),
     hourlyCap: Number(process.env.OUTREACH_HOURLY_CAP ?? 5),
     sliceSize: Number(process.env.OUTREACH_SLICE_SIZE ?? 3),
+    warmupEnabled: process.env.OUTREACH_WARMUP !== "false",
     warmupStartedAt: parseWarmupStart(process.env.OUTREACH_WARMUP_STARTED_AT),
     whatsappNumber: process.env.OUTREACH_WHATSAPP_NUMBER?.replace(/\D/g, "") || null,
     fromName: process.env.OUTREACH_FROM_NAME ?? "Dailzero",
@@ -73,6 +75,7 @@ export async function getOutreachSettings(): Promise<OutreachSettings> {
         dailyCap: seed.dailyCap,
         hourlyCap: seed.hourlyCap,
         sliceSize: seed.sliceSize,
+        warmupEnabled: seed.warmupEnabled,
         warmupStartedAt: seed.warmupStartedAt,
         whatsappNumber: seed.whatsappNumber,
         fromName: seed.fromName,
@@ -93,6 +96,7 @@ export async function getOutreachSettings(): Promise<OutreachSettings> {
     dailyCap: row.dailyCap,
     hourlyCap: row.hourlyCap,
     sliceSize: row.sliceSize,
+    warmupEnabled: row.warmupEnabled,
     warmupStartedAt: row.warmupStartedAt,
     whatsappNumber: row.whatsappNumber,
     fromName: row.fromName,

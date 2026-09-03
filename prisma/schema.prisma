@@ -1271,6 +1271,11 @@ model OutreachSettings {
   // Messages released per cron tick, spaced 30-90s apart within the tick.
   sliceSize Int @default(3)
 
+  // Off removes the ramp entirely and lets dailyCap apply from the first send.
+  // An explicit switch rather than something you work around by backdating the
+  // start date: skipping warmup should be a recorded decision, not a trick.
+  warmupEnabled Boolean @default(true)
+
   // Null holds sending at the day-one ramp value: the safe reading of a missing
   // date is the strictest one, not the most permissive.
   warmupStartedAt DateTime? @db.Timestamptz()

@@ -58,3 +58,23 @@ describe("parseWarmupStart", () => {
     expect(parseWarmupStart("not a date")).toBeNull()
   })
 })
+
+describe("warmup can be switched off", () => {
+  it("applies the full cap when the ramp is disabled", async () => {
+    const { effectiveDailyCap, warmupStatus } = await import("./send")
+    const base = {
+      dailyCap: 100, hourlyCap: 10, sliceSize: 10,
+      warmupStartedAt: START, whatsappNumber: null, fromName: "Dailzero",
+      signerName: "x", signerTitle: "y", htmlEnabled: true, logoUrl: null,
+      sendingEnabled: true,
+    }
+    // On day 1 the ramp would hold this at 5.
+    expect(effectiveDailyCap({ ...base, warmupEnabled: true }, START)).toBe(5)
+    expect(effectiveDailyCap({ ...base, warmupEnabled: false }, START)).toBe(100)
+
+    const off = warmupStatus({ ...base, warmupEnabled: false }, START)
+    expect(off.enabled).toBe(false)
+    expect(off.complete).toBe(true)
+    expect(off.cap).toBe(100)
+  })
+})
