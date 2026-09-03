@@ -1141,18 +1141,6 @@ exports[`unauthenticated response baseline > matches the recorded responses 1`] 
       "status": 401,
     },
   },
-  "meta/messages": {
-    "GET": {
-      "body": "{"error":"Unauthorized"}",
-      "contentType": "application/json",
-      "status": 401,
-    },
-    "POST": {
-      "body": "{"error":"Unauthorized"}",
-      "contentType": "application/json",
-      "status": 401,
-    },
-  },
   "meta/templates": {
     "DELETE": {
       "body": "{"error":"Unauthorized"}",
