@@ -369,7 +369,6 @@ export function Sidebar({ userName, businessName, currentUserId, currentWorkspac
             const walletUsedCr = stats.walletUsed ?? 0
             const walletTotal = walletUsedCr + walletCredits
             const walletPct = walletTotal > 0 ? Math.min(100, Math.round((walletUsedCr / walletTotal) * 100)) : 0
-            const planExpiredNow = expiresAt ? expiresAt.getTime() <= Date.now() : false
             return (
               <Link href="/dashboard/billing" className={styles.usageMini} onClick={onClose}>
                 <div className={styles.usageMiniHeader}>
@@ -384,10 +383,14 @@ export function Sidebar({ userName, businessName, currentUserId, currentWorkspac
                   <span className={styles.usageMiniUsed}>{walletUsedCr.toLocaleString()} cr used</span>
                   <span className={styles.usageMiniRem} style={{ color: "#16a34a" }}>{walletCredits.toLocaleString()} left</span>
                 </div>
-                <div className={styles.expiringHint} style={{ color: "var(--text-secondary, #71717a)" }}>
-                  {planExpiredNow ? "Plan expired — wallet covering sends" : "Plan allowance finished — wallet covering sends"}
-                  {walletExp ? ` · valid until ${walletExp.toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}` : ""}
-                </div>
+                {/* A funded wallet IS covering sends — show only the positive
+                   validity date, never a "plan expired" warning (a wallet with a
+                   long runway shouldn't read as an alarm). */}
+                {walletExp && (
+                  <div className={styles.expiringHint} style={{ color: "var(--text-secondary, #71717a)" }}>
+                    Valid until {walletExp.toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}
+                  </div>
+                )}
               </Link>
             )
           }
