@@ -21,7 +21,7 @@ export default async function MetaPage() {
   // The connected numbers, shown prominently: they are the entry point, and
   // aren't discoverable anywhere else in the product. Read from the account's
   // own connections rather than env — there is no single platform number.
-  const connections = await db.metaTestConnection.findMany({
+  const connections = await db.metaConnection.findMany({
     where: { userId: session.user.id },
     orderBy: { createdAt: "asc" },
     select: { phoneNumberId: true, displayPhoneNumber: true, verifiedName: true },

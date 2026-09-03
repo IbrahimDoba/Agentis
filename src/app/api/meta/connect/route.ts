@@ -11,7 +11,7 @@ export async function GET() {
   const session = await auth()
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-  const connections = await db.metaTestConnection.findMany({
+  const connections = await db.metaConnection.findMany({
     where: { userId: session.user.id },
     orderBy: { createdAt: "desc" },
     select: {

@@ -1,7 +1,7 @@
 import { createCipheriv, createDecipheriv, randomBytes } from "crypto"
 
 // AES-256-GCM for business tokens at rest, mirroring worker/src/lib/crypto.ts.
-// Separate key (META_TEST_ENCRYPTION_KEY) so the harness never needs the
+// Separate key (META_ENCRYPTION_KEY) so the harness never needs the
 // worker's AUTH_ENCRYPTION_KEY — the two blast radii stay independent.
 
 const ALGORITHM = "aes-256-gcm"
@@ -9,9 +9,13 @@ const IV_LENGTH = 12
 const TAG_LENGTH = 16
 
 function getKey(): Buffer {
-  const raw = Buffer.from(process.env.META_TEST_ENCRYPTION_KEY ?? "", "base64")
+  // Accepts the old META_TEST_ name so renaming the env var is not a flag-day:
+  // this key decrypts live customer tokens, and a deploy that lands before the
+  // rename would take every connected number offline.
+  const configured = process.env.META_ENCRYPTION_KEY ?? process.env.META_TEST_ENCRYPTION_KEY
+  const raw = Buffer.from(configured ?? "", "base64")
   if (raw.length !== 32) {
-    throw new Error("META_TEST_ENCRYPTION_KEY must be exactly 32 bytes (base64-encoded)")
+    throw new Error("META_ENCRYPTION_KEY must be exactly 32 bytes (base64-encoded)")
   }
   return raw
 }

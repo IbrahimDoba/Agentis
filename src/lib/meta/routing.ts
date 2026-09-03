@@ -20,7 +20,7 @@ export interface NumberContext {
 export async function resolveNumberContext(
   phoneNumberId: string
 ): Promise<NumberContext | null> {
-  const connection = await db.metaTestConnection.findUnique({
+  const connection = await db.metaConnection.findUnique({
     where: { phoneNumberId },
     select: { phoneNumberId: true, accessToken: true, userId: true, agentId: true },
   })
@@ -50,7 +50,7 @@ export async function resolveWabaContext(
   userId: string,
   phoneNumberId?: string | null
 ): Promise<WabaContext | null> {
-  const connection = await db.metaTestConnection.findFirst({
+  const connection = await db.metaConnection.findFirst({
     where: { userId, ...(phoneNumberId ? { phoneNumberId } : {}) },
     orderBy: { createdAt: "asc" },
     select: {
