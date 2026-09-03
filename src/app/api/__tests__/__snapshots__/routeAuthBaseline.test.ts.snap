@@ -109,6 +109,18 @@ exports[`unauthenticated response baseline > matches the recorded responses 1`] 
       "status": 401,
     },
   },
+  "admin/outreach/settings": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "PATCH": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
   "admin/payments": {
     "GET": {
       "body": "{"error":"Unauthorized"}",
@@ -1115,6 +1127,20 @@ exports[`unauthenticated response baseline > matches the recorded responses 1`] 
       "status": 401,
     },
   },
+  "meta/connect/debug": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "meta/internal/send": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
   "meta/messages": {
     "GET": {
       "body": "{"error":"Unauthorized"}",
@@ -1128,6 +1154,16 @@ exports[`unauthenticated response baseline > matches the recorded responses 1`] 
     },
   },
   "meta/templates": {
+    "DELETE": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
     "POST": {
       "body": "{"error":"Unauthorized"}",
       "contentType": "application/json",
