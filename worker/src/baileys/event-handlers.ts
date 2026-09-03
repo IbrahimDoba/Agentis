@@ -19,10 +19,15 @@ import { createHash } from "crypto"
 
 const logger = rootLogger.child({ module: "event-handlers" })
 
-// Chat ids that are never a customer conversation. Channels ("@newsletter") and
-// status/broadcast posts arrive through the same messages.upsert event as real
-// chats, so they have to be filtered by suffix.
-const NON_CONVERSATION_SUFFIXES = ["@broadcast", "@newsletter"]
+// Chat ids that are never a customer conversation. Status/broadcast posts
+// arrive through the same messages.upsert event as real chats, so they have to
+// be filtered by suffix.
+//
+// "@newsletter" (WhatsApp Channels) is deliberately NOT here. It was blocked
+// briefly, then unblocked on the owner's decision: channel posts are ingested
+// and answered like any other message, and the reply is charged at the normal
+// per-message rate through the usual send path.
+const NON_CONVERSATION_SUFFIXES = ["@broadcast"]
 
 export function isNonConversationJid(jid: string): boolean {
   return NON_CONVERSATION_SUFFIXES.some((suffix) => jid.endsWith(suffix))
@@ -105,14 +110,8 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
     if (type !== "notify" && type !== "append") return
 
     for (const msg of messages) {
-      // §9 — Ignore broadcasts and WhatsApp Channels. Groups are ingested only
-      // for agents opted in; without the flag this stays the hard skip it has
-      // always been.
-      //
-      // "@newsletter" is a WhatsApp Channel the operator follows. Posts from one
-      // are not customer messages and cannot be replied to, but they were being
-      // ingested as conversations and answered by the AI — 64 fake chats and
-      // 1,359 wasted replies across 8 agents before this was caught.
+      // §9 — Ignore broadcasts. Groups are ingested only for agents opted in;
+      // without the flag this stays the hard skip it has always been.
       if (!msg.key.remoteJid) continue
       if (isNonConversationJid(msg.key.remoteJid)) continue
 
