@@ -135,8 +135,9 @@ async function handleInbound(msg: InboundText): Promise<void> {
   })
 
   // Recorded above so the inbound message is still visible, but we stop before
-  // generating or sending anything to a number we don't know.
-  if (!isAllowedRecipient(msg.from)) {
+  // generating or sending anything. Only gates the shared test number — a
+  // connected business's number serves whoever messages it.
+  if (!isAllowedRecipient(msg.from, msg.phoneNumberId)) {
     console.warn(`[meta/webhook] inbound from non-allowlisted ${msg.from} — logged, not replied`)
     return
   }

@@ -45,17 +45,25 @@ export function getMetaConfig(): MetaConfig {
   return { phoneNumberId: phoneNumberId!, accessToken: accessToken! }
 }
 
-// Numbers the harness may auto-reply to, as E.164 digits without "+".
-// The test number is reachable by anyone who knows it, and an unguarded
-// webhook answers every stranger with a business persona that isn't theirs —
-// so replies are opt-in per number rather than open by default.
-export function isAllowedRecipient(waId: string): boolean {
+// Whether we may auto-reply to a customer on a given number of ours.
+//
+// The guard exists for ONE number: the shared Meta test number, which anyone
+// who knows it can message, and where an unguarded webhook would answer
+// strangers with a business persona that isn't theirs.
+//
+// It must NOT apply to a number a business connected through Embedded Signup.
+// Serving arbitrary customers is exactly what that number is for — every one
+// of them is an unknown number, and gating them would silence the product.
+export function isAllowedRecipient(waId: string, receivedOn?: string | null): boolean {
+  const envNumber = process.env.META_TEST_PHONE_NUMBER_ID
+  if (receivedOn && envNumber && receivedOn !== envNumber) return true
+
   const raw = (process.env.META_TEST_ALLOWED_RECIPIENTS || "").trim()
 
-  // "*" opens replies to any number — needed during Meta App Review, when a
-  // reviewer messages from a phone we can't know in advance. Deliberately an
-  // explicit value rather than "unset means open": forgetting the var must
-  // fail closed, not spray a business persona at strangers.
+  // "*" opens replies on the test number to anyone — needed during Meta App
+  // Review, when a reviewer messages from a phone we can't know in advance.
+  // Deliberately an explicit value rather than "unset means open": forgetting
+  // the var must fail closed, not spray a business persona at strangers.
   if (raw === "*") return true
 
   const allowed = raw
