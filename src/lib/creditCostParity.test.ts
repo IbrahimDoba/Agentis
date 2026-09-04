@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest"
-import { AI_CREDIT_COSTS as APP_COSTS } from "./plans"
-import { AI_CREDIT_COSTS as WORKER_COSTS } from "../../worker/src/billing/credits"
+import { AI_CREDIT_COSTS as APP_COSTS, creditsForMessageType as appCost } from "./plans"
+import { AI_CREDIT_COSTS as WORKER_COSTS, creditsForMessageType as workerCost } from "../../worker/src/billing/credits"
 
 // The three packages cannot import each other at runtime — different module
 // resolution, different zod majors, no workspace deps — so billing constants are
@@ -28,5 +28,19 @@ describe("AI_CREDIT_COSTS parity (app vs worker)", () => {
 
   it("charges a voice minimum worth at least one second", () => {
     expect(APP_COSTS.voiceMin).toBeGreaterThanOrEqual(APP_COSTS.voicePerSec)
+  })
+
+  it("prices every message type the same as the worker does", () => {
+    // The worker charges and writes the ledger row; the app copy reports the
+    // number back to the developer on /v1/messages. If these ever disagree, the
+    // API lies about what it just spent.
+    for (const t of ["text", "image", "video", "document"] as const) {
+      expect(appCost(t)).toBe(workerCost(t))
+    }
+  })
+
+  it("falls back to the text rate for an unknown type, on both sides", () => {
+    expect(appCost(undefined)).toBe(workerCost(undefined))
+    expect(appCost(undefined)).toBe(APP_COSTS.text)
   })
 })

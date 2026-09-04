@@ -1,7 +1,9 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-/node_modules
+# Unanchored: the workspace has worker/ and orchestrator/ package roots too,
+# and pnpm puts a node_modules in each. Anchoring to / missed those.
+node_modules
 /.pnp
 .pnp.*
 .yarn/*

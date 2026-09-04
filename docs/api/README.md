@@ -9,7 +9,7 @@ There are **three surfaces**:
 |---|---|---|---|
 | **A — Run** | Talk to an agent, get a reply | `POST /v1/chat/completions` | ✅ Yes |
 | **B — Manage** | Configure agents (persona, knowledge/products, tools) | `/v1/agents/*` | ❌ No (rate-limited) |
-| **C — Messaging** | Send outbound WhatsApp + verify contacts | `POST /v1/messages`, `/v1/contacts/check` | ✅ Send / ❌ verify |
+| **C — Messaging** | Send outbound WhatsApp (text, image, video, document) + verify contacts | `POST /v1/messages`, `/v1/contacts/check` | ✅ Send / ❌ verify |
 
 These surfaces are powered by the **same engine** the dashboard and WhatsApp use —
 the orchestrator's chat loop, RAG knowledge base, configured tools, and the
@@ -18,6 +18,12 @@ that engine.
 
 ## What a developer can do
 
+- **Send media**, not just text. `POST /v1/messages` takes `type` of `image`,
+  `video` or `document` plus a publicly reachable `mediaUrl`; `text` becomes the
+  caption. Documents also need a `fileName` — WhatsApp shows it to the recipient.
+  The worker fetches the URL at send time, so it must still resolve then, and it
+  goes through the same anti-ban pacing as every other send. Billing is per type
+  (a video costs more than a text) and the charge comes back as `usage.credits`.
 - **Run an agent** from any app or channel (website widget, Telegram, SMS, in-app,
   backend automation). The reply comes with the agent's persona, RAG knowledge,
   and its configured tools — not a raw LLM.
@@ -46,6 +52,7 @@ that engine.
 | Rate limit / output cap / idempotency / daily-cap enforcement | ✅ Live |
 | `/v1/agents/*` — list/get + webhook-tools management (Surface B) | ✅ Live |
 | `POST /v1/messages` + `POST /v1/contacts/check` (Surface C) | ✅ Live |
+| `POST /v1/messages` image / video / document sends | ✅ Live |
 | `/v1/agents` create + knowledge/products upload | 🚧 Deferred (provisioning + RAG-heavy) |
 | Public `/developers` docs page | ✅ Live |
 

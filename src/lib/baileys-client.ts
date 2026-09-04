@@ -140,6 +140,13 @@ export const baileysClient = {
     agentId: string
     to: string
     text: string
+    // Media send. The worker fetches mediaUrl and dispatches through the
+    // matching paced sender; documents also need a filename and mimetype,
+    // because WhatsApp shows the filename to the recipient.
+    mediaUrl?: string
+    type?: "text" | "image" | "video" | "document"
+    mediaMimeType?: string
+    mediaFileName?: string
     conversationId?: string
     source?: "ai" | "human" | "api"
     // When the caller has already persisted the outbound Message row, pass its
