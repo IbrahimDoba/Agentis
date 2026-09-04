@@ -402,6 +402,20 @@ exports[`unauthenticated response baseline > matches the recorded responses 1`] 
       "status": 401,
     },
   },
+  "agents/[id]/documents/[docId]/recrawl": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/documents/web": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
   "agents/[id]/embed": {
     "GET": {
       "body": "{"error":"Unauthorized"}",
