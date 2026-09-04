@@ -35,6 +35,16 @@ export const MIN_PAGES_FOR_JS_RATIO = 3
  */
 export const MIN_TOTAL_WORDS = 10
 
+/**
+ * Statuses that mean "this link is dead", not "this site is down".
+ *
+ * A healthy site routinely has a few stale links, and hitting three of them in
+ * a row was ending the crawl early and marking a perfectly reachable site
+ * unreachable. Only transport errors and server errors count toward the
+ * consecutive-failure guard now.
+ */
+const DEAD_LINK_STATUSES = new Set([400, 401, 403, 404, 405, 410, 451])
+
 export interface CrawledPage {
   url: string
   title: string
@@ -167,8 +177,12 @@ export async function crawlSite(
     if (!res.ok) {
       pagesFailed++
       consecutiveFailures++
-      // Not-HTML is a routine skip, not evidence the site is broken.
-      if (res.reason === "unsupported_content_type") {
+      // Not-HTML, and a dead link, are routine skips rather than evidence the
+      // site is broken.
+      const routine =
+        res.reason === "unsupported_content_type" ||
+        (res.status !== undefined && DEAD_LINK_STATUSES.has(res.status))
+      if (routine) {
         pagesSkipped++
         pagesFailed--
         consecutiveFailures = 0

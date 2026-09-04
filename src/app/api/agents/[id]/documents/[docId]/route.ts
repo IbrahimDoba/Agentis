@@ -22,10 +22,21 @@ export async function DELETE(req: NextRequest, { params }: Params) {
         const isAdmin = session.user.role === "ADMIN"
         if (!isOwner && !isAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
 
-        const res = await fetch(`${ORCHESTRATOR_URL}/v1/documents/${docId}`, {
-            method: "DELETE",
-            headers: { Authorization: `Bearer ${ORCHESTRATOR_API_KEY}` }
-        })
+        // Scope the delete to this agent. Ownership of `id` was checked above,
+        // but `docId` was forwarded unscoped, so anyone with one agent of their
+        // own could delete another tenant's document by pairing their agent id
+        // with a document id that was not theirs.
+        const res = await fetch(
+            `${ORCHESTRATOR_URL}/v1/documents/${docId}?agentId=${encodeURIComponent(id)}`,
+            {
+                method: "DELETE",
+                headers: { Authorization: `Bearer ${ORCHESTRATOR_API_KEY}` }
+            }
+        )
+
+        if (res.status === 404) {
+            return NextResponse.json({ error: "Document not found" }, { status: 404 })
+        }
 
         if (!res.ok) throw new Error("Failed to delete document")
 

@@ -13,6 +13,7 @@ import { mediaRoutes } from "./routes/media.js"
 import { streamRoutes } from "./routes/stream.js"
 import { startInboundWorker } from "./queue/workers/inbound-worker.js"
 import { startEmbedWorker } from "./queue/workers/embed-worker.js"
+import { startCrawlWorker } from "./queue/workers/crawl-worker.js"
 
 // 15MB covers a 10MB raw file after base64 (~33% overhead). Per-route handlers
 // still enforce stricter raw-byte limits (documents: 10MB, media: 5MB).
@@ -55,12 +56,14 @@ await app.register(streamRoutes, { prefix: "/v1" })
 // Start BullMQ workers
 const inboundWorker = startInboundWorker()
 const embedWorker = startEmbedWorker()
+const crawlWorker = startCrawlWorker()
 
 // Graceful shutdown
 const shutdown = async () => {
   logger.info("Shutting down orchestrator...")
   await inboundWorker.close()
   await embedWorker.close()
+  await crawlWorker.close()
   await app.close()
   await closeRedis()
   process.exit(0)

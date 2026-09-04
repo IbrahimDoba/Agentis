@@ -22,7 +22,11 @@ export default defineConfig({
       NODE_ENV: "test",
       ORCHESTRATOR_API_KEY: "test-orchestrator-key-0000",
       WORKER_API_KEY: "test-worker-key-000000000",
-      DATABASE_URL: "postgresql://test:test@127.0.0.1:5432/test",
+      // Fake by default, so the suite stays hermetic. The database-backed
+      // tests in db/queries/*.integration.test.ts skip themselves when the
+      // connection fails, and run only when a real URL is passed in here
+      // explicitly — never by picking one up from a developer's .env.local.
+      DATABASE_URL: process.env.INTEGRATION_DATABASE_URL ?? "postgresql://test:test@127.0.0.1:5432/test",
       REDIS_URL: "redis://127.0.0.1:6379",
       OPENAI_API_KEY: "test-openai-key",
       CLOUDFLARE_R2_ACCOUNT_ID: "test-account",

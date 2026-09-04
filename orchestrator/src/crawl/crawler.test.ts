@@ -20,6 +20,9 @@ function harness(site: Record<string, string>, opts: { clock?: number[] } = {}) 
       fetch: async (url: string): Promise<SafeFetchResult> => {
         requested.push(url)
         const body = site[url]
+        // `undefined` means the page 404s (a dead link); an explicit null means
+        // the request itself failed, which is what "the site is down" looks like.
+        if (body === null) return { ok: false, reason: "network_error", url }
         if (body === undefined) return { ok: false, reason: "http_error", status: 404, url }
         return { ok: true, url, status: 200, contentType: "text/html", body }
       },
@@ -127,7 +130,8 @@ describe("crawlSite — limits and failures", () => {
         "<p>Home page linking to a set of subpages that all return errors, written at enough length to read as a genuine content page.</p>"
       ),
     }
-    // Every linked page 404s.
+    // Every linked page fails at the transport level — the site has gone away.
+    for (let i = 0; i < 6; i++) site[`https://example.com/s${i}/p`] = null as unknown as string
     const h = harness(site)
     const r = await crawlSite(SEED, {}, h.deps)
     expect(r.unreachable).toBe(true)
@@ -170,6 +174,22 @@ describe("crawlSite — limits and failures", () => {
     expect(r.pages).toHaveLength(0)
     expect(r.unreachable).toBe(false) // one failure, not three
     expect(r.failure).toBe("no_pages_extracted")
+  })
+
+  it("treats dead links as skips, not as the site being down", async () => {
+    const site: Record<string, string> = {
+      "https://example.com/robots.txt": "",
+      "https://example.com/": page(
+        Array.from({ length: 5 }, (_, i) => `<a href="/dead${i}">D${i}</a>`).join("") +
+        `<a href="/live">Live</a><p>Home page with a handful of stale links alongside a good one, written at enough length to read as a genuine content page.</p>`
+      ),
+      // /dead0../dead4 are absent, so they 404 — a normal stale link.
+      "https://example.com/live": page("<p>A page that is very much alive and carries a real paragraph of ordinary prose content for the extractor to keep.</p>", "Live"),
+    }
+    const r = await crawlSite(SEED, {}, harness(site).deps)
+    // Five 404s in a row must not stop the crawl before it reaches /live.
+    expect(r.unreachable).toBe(false)
+    expect(r.pages.map((p) => p.url)).toContain("https://example.com/live")
   })
 
   it("reports when nothing could be extracted", async () => {

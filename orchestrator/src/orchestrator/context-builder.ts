@@ -106,9 +106,16 @@ Greet them with awareness of what brought them here. Do NOT ask a generic "how c
       const chunks = await retrieveRelevantChunks(agent.agentId, queryText, 5)
       if (chunks.length > 0) {
         const ragSection = chunks
-          .map((c) => `[From: ${c.filename}]\n${c.content}`)
+          .map((c) => {
+            // A crawled page cites its URL, so the agent can say where an answer
+            // came from and the operator can check it against the live site.
+            const from = c.sourceType === "web" && c.pageUrl
+              ? `${c.filename} — ${c.pageUrl}`
+              : c.filename
+            return `[From: ${from}]\n${c.content}`
+          })
           .join("\n\n")
-        sections.push(`## Knowledge base\nRelevant information from uploaded documents:\n\n${ragSection}`)
+        sections.push(`## Knowledge base\nRelevant information from the uploaded documents and website:\n\n${ragSection}`)
         logger.debug({ agentId: agent.agentId, chunkCount: chunks.length }, "RAG chunks injected")
       }
     } catch (err: any) {

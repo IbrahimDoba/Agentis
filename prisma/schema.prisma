@@ -535,7 +535,24 @@ model Document {
   error      String?
   chunkCount Int?            @default(0)
   createdAt  DateTime        @default(now()) @db.Timestamptz()
+
+  // Website sources. A crawled site is ONE Document (so the Documents tab shows
+  // one row per link, not 25 per page); per-page attribution rides on
+  // DocumentChunk.metadata.
+  sourceType    String    @default("file") // "file" | "web"
+  sourceUrl     String?
+  // Progress of a crawl, deliberately SEPARATE from `status`. Retrieval gates on
+  // status='ready', so a re-crawl that wrote status would blank the agent's
+  // knowledge for the ~2 minutes it runs. Instead status stays untouched until
+  // the new content commits, and this carries the live state.
+  crawlStatus   String?   // queued | crawling | embedding | failed | null
+  lastCrawledAt DateTime? @db.Timestamptz()
+  crawlMeta     Json?
+
   chunks     DocumentChunk[]
+
+  @@index([agentId, createdAt])
+  @@index([agentId, crawlStatus])
 }
 
 model DocumentChunk {

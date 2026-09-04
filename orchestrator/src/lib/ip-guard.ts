@@ -6,12 +6,14 @@
 // shares a docker network with Postgres, Redis and the WhatsApp worker, so an
 // unguarded fetcher reaches straight into them.
 
-export interface UrlCheck {
-  ok: boolean
-  /** Machine-readable reason, used in tests and logs. */
-  reason?: string
-  url?: URL
-}
+/**
+ * A discriminated union, so a caller that has checked `ok` gets `url` without a
+ * non-null assertion and a caller in the failure branch gets `reason` for free.
+ */
+export type UrlCheck =
+  | { ok: true; url: URL }
+  /** Machine-readable reason, used in tests, logs and the operator message. */
+  | { ok: false; reason: string }
 
 /** Only these two. Blocks file:, gopher:, data:, javascript: and friends. */
 const ALLOWED_PROTOCOLS = new Set(["http:", "https:"])
@@ -138,6 +140,15 @@ export function isBlockedIp(ip: string): string | null {
   const groups = expandIpv6(raw)
   if (!groups) return "unparseable_ip"
 
+  // Unspecified and loopback are checked BEFORE the embedded-v4 branch. Both
+  // sit inside ::/96, so the IPv4-compatible rule would otherwise claim them and
+  // report ::1 as "embedded_v4_blocked_ipv4_0.0.0.0/8" — blocked either way, but
+  // a reason string that misdescribes the address is useless in a log.
+  if (groups.every((g) => parseInt(g, 16) === 0)) return "blocked_ipv6_unspecified"
+  if (groups.slice(0, 7).every((g) => parseInt(g, 16) === 0) && parseInt(groups[7], 16) === 1) {
+    return "blocked_ipv6_loopback"
+  }
+
   const v4 = embeddedV4(groups)
   if (v4) {
     const nested = isBlockedIp(v4)
@@ -145,10 +156,6 @@ export function isBlockedIp(ip: string): string | null {
   }
 
   const first = parseInt(groups[0], 16)
-  if (groups.every((g) => parseInt(g, 16) === 0)) return "blocked_ipv6_unspecified"
-  if (groups.slice(0, 7).every((g) => parseInt(g, 16) === 0) && parseInt(groups[7], 16) === 1) {
-    return "blocked_ipv6_loopback"
-  }
   if ((first & 0xfe00) === 0xfc00) return "blocked_ipv6_ula"        // fc00::/7
   if ((first & 0xffc0) === 0xfe80) return "blocked_ipv6_link_local" // fe80::/10
   if ((first & 0xff00) === 0xff00) return "blocked_ipv6_multicast"  // ff00::/8

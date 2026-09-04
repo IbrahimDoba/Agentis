@@ -75,7 +75,7 @@ describe("validateCrawlUrl", () => {
   it("accepts an ordinary https site", () => {
     const r = validateCrawlUrl("https://www.example.com/pricing")
     expect(r.ok).toBe(true)
-    expect(r.url?.hostname).toBe("www.example.com")
+    expect(r.ok && r.url.hostname).toBe("www.example.com")
   })
 
   it("accepts explicit :443 and :80", () => {
@@ -108,9 +108,18 @@ describe("validateCrawlUrl", () => {
     it(`rejects ${url} (${reason})`, () => {
       const r = validateCrawlUrl(url)
       expect(r.ok).toBe(false)
-      expect(r.reason).toBe(reason)
+      expect(!r.ok && r.reason).toBe(reason)
     })
   }
+
+  it("names ::1 loopback rather than an embedded IPv4", () => {
+    // ::1 sits inside ::/96, so the IPv4-compatible rule used to claim it and
+    // report a 0.0.0.0/8 block. Blocked either way, but the reason must be true.
+    expect(isBlockedIp("::1")).toBe("blocked_ipv6_loopback")
+    expect(isBlockedIp("::")).toBe("blocked_ipv6_unspecified")
+    // A genuine mapped address still reports as one.
+    expect(isBlockedIp("::ffff:127.0.0.1")).toMatch(/^embedded_v4_/)
+  })
 
   // The four literals normalizeWebsite() accepts today — the gap this closes.
   const literals = ["http://127.0.0.1/", "http://169.254.169.254/latest/meta-data/", "http://10.0.0.1/", "http://[::1]/"]
@@ -118,7 +127,7 @@ describe("validateCrawlUrl", () => {
     it(`rejects the IP literal ${url}`, () => {
       const r = validateCrawlUrl(url)
       expect(r.ok).toBe(false)
-      expect(r.reason).toMatch(/blocked_ipv/)
+      expect(!r.ok && r.reason).toMatch(/blocked_ipv/)
     })
   }
 

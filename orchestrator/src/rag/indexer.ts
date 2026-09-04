@@ -1,6 +1,6 @@
 import { resolveProvider } from "../providers/registry.js"
 import { config } from "../config.js"
-import { insertChunks, searchChunks } from "../db/queries/documents.js"
+import { replaceChunks, searchChunks, type RetrievedChunk } from "../db/queries/documents.js"
 import { logger as rootLogger } from "../lib/logger.js"
 
 const logger = rootLogger.child({ module: "rag-indexer" })
@@ -14,7 +14,9 @@ const EMBED_MODEL = config.OPENAI_EMBEDDING_MODEL
 export async function indexChunks(
     documentId: string,
     agentId: string,
-    chunks: string[]
+    chunks: string[],
+    /** Per-chunk attribution, positionally aligned with `chunks`. Web pages use it. */
+    metadata?: Record<string, unknown>[]
 ): Promise<void> {
     if (chunks.length === 0) return
 
@@ -22,7 +24,7 @@ export async function indexChunks(
 
     // Batch embed in groups of 100 (OpenAI limit is 2048 per request, 100 is safe)
     const BATCH_SIZE = 100
-    const allChunks: { documentId: string; agentId: string; chunkIndex: number; content: string; embedding: number[] }[] = []
+    const allChunks: { content: string; embedding: number[]; metadata?: Record<string, unknown> }[] = []
 
     for (let i = 0; i < chunks.length; i += BATCH_SIZE) {
         const batch = chunks.slice(i, i + BATCH_SIZE)
@@ -30,18 +32,18 @@ export async function indexChunks(
 
         for (let j = 0; j < batch.length; j++) {
             allChunks.push({
-                documentId,
-                agentId,
-                chunkIndex: i + j,
                 content: batch[j]!,
                 embedding: result.embeddings[j]!,
+                metadata: metadata?.[i + j],
             })
         }
 
         logger.info({ documentId, batchStart: i, batchSize: batch.length }, "Embedded chunk batch")
     }
 
-    await insertChunks(allChunks)
+    // Replaces rather than appends: a retry after a partial insert used to
+    // duplicate every chunk it had already written.
+    await replaceChunks(documentId, agentId, allChunks)
     logger.info({ documentId, totalChunks: allChunks.length }, "All chunks indexed")
 }
 
@@ -53,7 +55,7 @@ export async function retrieveRelevantChunks(
     agentId: string,
     queryText: string,
     limit = 5
-): Promise<{ content: string; filename: string; similarity: number }[]> {
+): Promise<RetrievedChunk[]> {
     if (!queryText.trim()) return []
 
     const provider = resolveProvider(EMBED_MODEL)
