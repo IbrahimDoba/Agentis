@@ -5,7 +5,7 @@ import { config } from "../config.js"
 import { sessionManager } from "../baileys/session-manager.js"
 import { sendWithPacing } from "../anti-ban/pacing.js"
 import { checkAndIncrement } from "../anti-ban/rate-limiter.js"
-import { getSessionByAgentId } from "../db/queries.js"
+import { getSessionByAgentId, getAgentBroadcastConfig } from "../db/queries.js"
 import {
   getBroadcast,
   updateBroadcastStatus,
@@ -21,7 +21,7 @@ import { truncatedNormal } from "../anti-ban/distribution.js"
 import { logger as rootLogger } from "../lib/logger.js"
 import { resolveSendJid } from "../baileys/resolve-jid.js"
 import { recordEvent } from "../lib/event-log.js"
-import { resolveSpreadHours } from "../anti-ban/spread-window.js"
+import { resolveSpreadHours, deferPastQuietHours } from "../anti-ban/spread-window.js"
 
 // Cloud API broadcasts send an approved template through the frontend, which
 // holds the connected business's token. The worker keeps everything else —
@@ -339,6 +339,11 @@ export async function enqueueBroadcast(broadcastId: string, opts?: {
   // one is spaced by a random gap in [minSpacingMs, maxSpacingMs].
   const customSpacing = opts?.minSpacingMs != null && opts?.maxSpacingMs != null
 
+  // Per-agent overnight pause (see spread-window.deferPastQuietHours). Read here
+  // so it applies to fresh sends AND resumes, always with the current setting.
+  const bcConfig = await getAgentBroadcastConfig(broadcast.agentId)
+  const enqueueNow = Date.now()
+
   let cumulativeDelayMs = startOffsetMs
 
   for (let i = 0; i < recipients.length; i++) {
@@ -357,6 +362,13 @@ export async function enqueueBroadcast(broadcastId: string, opts?: {
         cumulativeDelayMs += batchBreak
         logger.debug({ broadcastId, index: i, batchBreak }, "Batch break scheduled")
       }
+    }
+
+    // Pause overnight: a send that would land in 23:00–06:00 is pushed to the
+    // next 6am. cumulativeDelayMs carries forward, so the whole tail follows.
+    if (bcConfig?.pauseOvernight) {
+      const shifted = deferPastQuietHours(enqueueNow + cumulativeDelayMs, bcConfig.timezone)
+      cumulativeDelayMs = shifted - enqueueNow
     }
 
     await queue.add(

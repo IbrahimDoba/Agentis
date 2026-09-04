@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { SMALL_LIST_MAX_RECIPIENTS, minSpreadHours, resolveSpreadHours } from "./spread-window.js"
+import { SMALL_LIST_MAX_RECIPIENTS, minSpreadHours, resolveSpreadHours, deferPastQuietHours } from "./spread-window.js"
 
 describe("minSpreadHours", () => {
   it("allows no floor at or below the small-list threshold", () => {
@@ -47,5 +47,33 @@ describe("resolveSpreadHours", () => {
     expect(Math.floor(windowMs / 2)).toBe(0) // anti-ban gap (8-20s) now dominates
     const oldWindowMs = 24 * 60 * 60 * 1000
     expect(Math.floor(oldWindowMs / 2)).toBe(43_200_000) // 12h, the old behaviour
+  })
+})
+
+describe("deferPastQuietHours (Africa/Lagos = WAT = UTC+1)", () => {
+  const tz = "Africa/Lagos"
+  const at = (iso: string) => new Date(iso).getTime()
+  const iso = (ms: number) => new Date(ms).toISOString()
+
+  it("leaves a daytime send unchanged", () => {
+    const t = at("2026-09-04T12:00:00.000Z") // 13:00 WAT
+    expect(deferPastQuietHours(t, tz)).toBe(t)
+  })
+
+  it("pushes a late-night send (23:30 WAT) to the next morning 6am", () => {
+    const t = at("2026-09-04T22:30:00.000Z") // 23:30 WAT, Sep 4
+    expect(iso(deferPastQuietHours(t, tz))).toBe("2026-09-05T05:00:00.000Z") // 06:00 WAT, Sep 5
+  })
+
+  it("pushes an early-morning send (02:00 WAT) to 6am the same day", () => {
+    const t = at("2026-09-04T01:00:00.000Z") // 02:00 WAT, Sep 4
+    expect(iso(deferPastQuietHours(t, tz))).toBe("2026-09-04T05:00:00.000Z") // 06:00 WAT, Sep 4
+  })
+
+  it("treats 06:00 as daytime (unchanged) and 23:00 as quiet (deferred)", () => {
+    const six = at("2026-09-04T05:00:00.000Z") // 06:00 WAT
+    expect(deferPastQuietHours(six, tz)).toBe(six)
+    const eleven = at("2026-09-04T22:00:00.000Z") // 23:00 WAT
+    expect(iso(deferPastQuietHours(eleven, tz))).toBe("2026-09-05T05:00:00.000Z")
   })
 })

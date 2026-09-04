@@ -100,6 +100,7 @@ export const agentSchema = z.object({
   chatTaggingEnabled: z.boolean().optional(),
   backgroundTaggingEnabled: z.boolean().optional(),
   autoPauseOnHumanReply: z.boolean().optional(),
+  broadcastPauseOvernight: z.boolean().optional(),
   pauseOnAiHandoff: z.boolean().optional(),
   pauseOnQualifiedLead: z.boolean().optional(),
   // Minutes of inactivity before a human-mode chat auto-resumes to AI. null = off.
