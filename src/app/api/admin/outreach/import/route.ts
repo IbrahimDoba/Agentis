@@ -1,5 +1,5 @@
-import { withAdmin } from "@/lib/api/withAuth"
 import { NextRequest, NextResponse } from "next/server"
+import { authorizeOutreachAdmin } from "@/lib/outreach/adminAuth"
 import { z } from "zod"
 import { db } from "@/lib/db"
 import { parseCsvRows } from "@/lib/outreach/csv"
@@ -26,7 +26,9 @@ const bodySchema = z.object({
 
 type RowOutcome = { email: string; outcome: string }
 
-export const POST = withAdmin(async (req: NextRequest) => {
+export async function POST(req: NextRequest) {
+  const actor = await authorizeOutreachAdmin(req)
+  if (!actor) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   const parsed = bodySchema.safeParse(await req.json().catch(() => null))
   if (!parsed.success) {
     return NextResponse.json({ error: "csv is required" }, { status: 400 })
@@ -143,7 +145,7 @@ export const POST = withAdmin(async (req: NextRequest) => {
     skipped: skipped.length,
     details: skipped.slice(0, 100),
   })
-})
+}
 
 function truthy(value: string | undefined): boolean {
   if (!value) return false

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
+import { authorizeOutreachAdmin, actorLabel } from "@/lib/outreach/adminAuth"
 import { z } from "zod"
-import { auth } from "@/lib/auth"
 import { getOutreachSettings, updateOutreachSettings, LIMITS } from "@/lib/outreach/settings"
 
 // Campaign settings an operator changes while a campaign is running. Secrets are
@@ -24,19 +24,15 @@ const bodySchema = z.object({
   sendingEnabled: z.boolean().optional(),
 })
 
-export async function GET() {
-  const session = await auth()
-  if (!session || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
+export async function GET(req: NextRequest) {
+  const actor = await authorizeOutreachAdmin(req)
+  if (!actor) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   return NextResponse.json({ settings: await getOutreachSettings(), limits: LIMITS })
 }
 
 export async function PATCH(req: NextRequest) {
-  const session = await auth()
-  if (!session || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
+  const actor = await authorizeOutreachAdmin(req)
+  if (!actor) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const parsed = bodySchema.safeParse(await req.json().catch(() => null))
   if (!parsed.success) {
@@ -68,6 +64,6 @@ export async function PATCH(req: NextRequest) {
   }
   if (logoUrl !== undefined) patch.logoUrl = logoUrl || null
 
-  const settings = await updateOutreachSettings(patch, session.user.email ?? "admin")
+  const settings = await updateOutreachSettings(patch, actorLabel(actor))
   return NextResponse.json({ settings })
 }
