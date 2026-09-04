@@ -1,15 +1,12 @@
+import { withAdmin } from "@/lib/api/withAuth"
 import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 
 interface Params { params: Promise<{ id: string }> }
 
 // Top up (or deduct from) a reseller's credit pool. ADMIN only. `credits` may be
 // negative to claw back, but the pool can't go below 0.
-export async function POST(req: NextRequest, { params }: Params) {
-  const session = await auth()
-  if (!session || session.user.role !== "ADMIN") return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-
+export const POST = withAdmin(async (req: NextRequest, { params }: Params) => {
   const { id } = await params
   const body = await req.json().catch(() => ({}))
   const credits = Math.floor(Number(body?.credits))
@@ -34,4 +31,4 @@ export async function POST(req: NextRequest, { params }: Params) {
   })
 
   return NextResponse.json({ ok: true, ...updated })
-}
+})

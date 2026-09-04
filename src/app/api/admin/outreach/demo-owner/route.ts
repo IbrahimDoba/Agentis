@@ -1,7 +1,7 @@
+import { withAdmin } from "@/lib/api/withAuth"
 import { NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
 import { randomBytes } from "node:crypto"
-import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { PLATFORM_RESELLER_ID } from "@/lib/tenant"
 import { DEMO_OWNER_EMAIL } from "@/lib/outreach/demo"
@@ -15,12 +15,7 @@ import { DEMO_OWNER_EMAIL } from "@/lib/outreach/demo"
 
 const DEMO_OWNER_CREDITS = Number(process.env.OUTREACH_DEMO_CREDITS ?? 50_000)
 
-export async function POST() {
-  const session = await auth()
-  if (!session || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
-
+export const POST = withAdmin(async () => {
   const existing = await db.user.findFirst({
     where: { email: DEMO_OWNER_EMAIL, resellerId: PLATFORM_RESELLER_ID },
     select: { id: true, creditBalance: true },
@@ -53,4 +48,4 @@ export async function POST() {
   })
 
   return NextResponse.json({ created: true, userId: owner.id, credits: owner.creditBalance })
-}
+})

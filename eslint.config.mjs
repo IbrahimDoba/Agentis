@@ -12,6 +12,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Agent worktrees are full checkouts of this repo. Linting them reports
+    // every problem three times and triples the run.
+    ".claude/**",
+    // Generated Prisma client.
+    "src/generated/**",
   ]),
 ]);
 

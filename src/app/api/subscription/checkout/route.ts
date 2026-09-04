@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { z } from "zod"
-import { PLAN_PRICES, PLAN_ORDER } from "@/lib/plans"
+import { PLAN_PRICES, isPlanDowngrade } from "@/lib/plans"
 import { initializeTransaction, newSubscriptionReference } from "@/lib/paystack"
 import { addOneMonth, chargeUpgradeNow, scheduleDowngrade, type RenewableUser } from "@/lib/subscriptionBilling"
 
@@ -36,13 +36,13 @@ export async function POST(req: NextRequest) {
   const planNaira = PLAN_PRICES[plan] ?? 0
   if (planNaira <= 0) return NextResponse.json({ error: "Plan is not purchasable" }, { status: 400 })
 
-  const currentIdx = PLAN_ORDER.indexOf(user.plan)
-  const targetIdx = PLAN_ORDER.indexOf(plan)
   const subActive = !!user.subscriptionExpiresAt && user.subscriptionExpiresAt > new Date()
   const hasCard = !!user.paystackAuthorizationCode && user.authorizationReusable
 
   // Downgrade to a lower paid tier while still active → apply at next renewal.
-  if (subActive && targetIdx < currentIdx) {
+  // A plan off the self-serve ladder (reseller) is not comparable, so this is
+  // not a downgrade and falls through to the charge-now path, as it does today.
+  if (subActive && isPlanDowngrade(user.plan, plan)) {
     await scheduleDowngrade(user.id, plan)
     return NextResponse.json({ scheduled: true, effectiveAt: user.subscriptionExpiresAt })
   }

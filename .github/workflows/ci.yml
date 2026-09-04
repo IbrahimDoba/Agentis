@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      # prisma generate reads the schema, not the database, but the Prisma config
+      # still wants the var present. Never point this at a real database.
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/ci
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Match the version pinned in Dockerfile.frontend so CI resolves the
+      # lockfile exactly the way the production image does.
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.31.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      # postinstall runs `prisma generate`, which the app's typecheck needs.
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck (app)
+        run: pnpm typecheck
+
+      - name: Typecheck (worker)
+        run: pnpm --filter dailzero-wa-worker typecheck
+
+      - name: Typecheck (orchestrator)
+        run: pnpm --filter dailzero-orchestrator typecheck
+
+      - name: Test (worker)
+        run: pnpm --filter dailzero-wa-worker test
+
+      - name: Test (orchestrator)
+        run: pnpm --filter dailzero-orchestrator test
+
+      # The app's suite runs against a real database by project rule (no DB
+      # mocking), so it needs a CI branch provisioned before it can gate here.
+      # Until then it stays a local pre-push step.
+      # - name: Test (app)
+      #   run: pnpm test
+
+      # Reporting only. There are ~159 pre-existing errors, mostly
+      # no-explicit-any; failing on them from day one would make this pipeline
+      # something people learn to ignore. Flip to a hard gate once burned down.
+      - name: Lint (non-blocking)
+        run: pnpm lint
+        continue-on-error: true

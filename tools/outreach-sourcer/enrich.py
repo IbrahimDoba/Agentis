@@ -50,6 +50,11 @@ def enrich(fetcher, domain):
 
     # Tries apex then www: a TLS failure on the apex is common and is not
     # evidence the business has no website.
+    # A host asking for a 40s crawl delay is asking not to be crawled at our
+    # pace. Respecting that and moving on beats ignoring it or stalling the run.
+    if fetcher.too_slow_to_crawl("https://" + domain + "/"):
+        return "rejected", "robots.txt asks for a crawl delay we will not spend", None
+
     base = fetcher.resolve_base(domain)
     if not base:
         if not fetcher.allowed("https://" + domain):

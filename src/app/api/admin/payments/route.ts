@@ -1,13 +1,8 @@
+import { withAdmin } from "@/lib/api/withAuth"
 import { NextResponse } from "next/server"
-import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 
-export async function GET() {
-  const session = await auth()
-  if (!session || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
-
+export const GET = withAdmin(async () => {
   const requests = await db.paymentRequest.findMany({
     orderBy: { createdAt: "desc" },
     include: {
@@ -25,4 +20,4 @@ export async function GET() {
     createdAt: r.createdAt.toISOString(),
     user: r.user,
   })))
-}
+})

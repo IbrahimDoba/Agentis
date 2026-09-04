@@ -63,11 +63,18 @@ export function carryoverForNextCycle(
 }
 
 // Dailzero orchestrator usage policy (80% target margin)
+// Must stay identical to AI_CREDIT_COSTS in worker/src/billing/credits.ts —
+// the worker does the charging, this copy drives the app's estimates and the
+// /v1 API's flat rate. video and document were missing here, so the two tables
+// disagreed about what a media message costs. creditCostParity.test.ts fails if
+// they diverge again; the comment alone did not hold.
 export const AI_CREDIT_COSTS = {
   text: 5,
   image: 8,
+  video: 12, // heavier media — WhatsApp transcodes + larger transfer
+  document: 8, // priced like an image (a single file attachment)
   voicePerSec: 3,
-  voiceMin: 15,
+  voiceMin: 15, // minimum credits charged per voice note regardless of length
 } as const
 
 // Buyers reason in "messages", not raw credits, so pricing surfaces express each
@@ -168,6 +175,33 @@ export const PLAN_FEATURES: Record<string, string[]> = {
 }
 
 export const PLAN_ORDER = ["free", "basic", "starter", "pro", "enterprise"]
+
+// PLAN_ORDER is the self-serve upgrade ladder, so it deliberately excludes
+// "reseller": those tenants are billed from the reseller's pool, not self-pay,
+// and have no rung on this ladder. That makes PLAN_ORDER.indexOf() unsafe —
+// it answers -1 for them, and -1 compares as "cheaper than free", which silently
+// made every plan look like an upgrade and stopped downgrades being scheduled.
+//
+// Rank returns null for a plan that isn't on the ladder, so callers have to say
+// what they want to happen instead of inheriting -1 arithmetic.
+export function planRank(plan: string | null | undefined): number | null {
+  const i = PLAN_ORDER.indexOf(plan ?? "")
+  return i === -1 ? null : i
+}
+
+// Both answer false when either plan is off the ladder: an unrankable plan is
+// not comparable, which is different from being equal.
+export function isPlanUpgrade(from: string | null | undefined, to: string | null | undefined): boolean {
+  const a = planRank(from)
+  const b = planRank(to)
+  return a !== null && b !== null && b > a
+}
+
+export function isPlanDowngrade(from: string | null | undefined, to: string | null | undefined): boolean {
+  const a = planRank(from)
+  const b = planRank(to)
+  return a !== null && b !== null && b < a
+}
 
 // Max workspace members per plan (0 = team feature not available)
 export const PLAN_SEAT_LIMITS: Record<string, number> = {

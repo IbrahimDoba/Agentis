@@ -13,6 +13,8 @@ import {
 import { isAddressedToUs, resolveSelfJids, addressingDebug } from "./group-mention.js"
 import { transcribeVoiceNote } from "../voice/transcribe.js"
 import { creditsForVoice } from "../billing/credits.js"
+import { chargeIncurredCredits } from "../billing/charge.js"
+import { recordEvent } from "../lib/event-log.js"
 import { wasSentByUs } from "./sent-message-cache.js"
 import { markInboundActivity } from "./activity-tracker.js"
 import { createHash } from "crypto"
@@ -330,13 +332,32 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
           text,
           timestamp: (msg.messageTimestamp as number) * 1000,
           pushName,
-          extraCredits: voiceCredits || undefined,
           adContext: adContext ?? undefined,
           imageDataUrl: imageDataUrl ?? undefined,
           channel: isGroup ? "whatsapp_group" : undefined,
           groupJid: groupJid ?? undefined,
           senderName: isGroup ? pushName : undefined,
         })
+
+        // Bill the voice transcription. It used to ride along on the forward as
+        // `extraCredits`, but the orchestrator's inbound schema never listed the
+        // field, so zod stripped it and every voice note was transcribed for
+        // free. Charged here instead, where the cost is actually incurred and
+        // where billing already lives. Best-effort: the Whisper call is already
+        // paid for, so a failed charge must not drop the customer's message.
+        if (voiceCredits > 0) {
+          try {
+            await chargeIncurredCredits({ agentId, credits: voiceCredits, messageType: "text" })
+          } catch (err) {
+            void recordEvent({
+              level: "warn",
+              category: "billing.voice_charge_failed",
+              agentId,
+              message: err instanceof Error ? err.message : "voice transcription charge failed",
+              detail: { senderJid, voiceCredits },
+            })
+          }
+        }
       } catch (err) {
         logger.error({ err, agentId, senderJid }, "Failed to forward to orchestrator")
       }
@@ -456,7 +477,6 @@ async function forwardToOrchestrator(payload: {
   text: string
   timestamp: number
   pushName?: string
-  extraCredits?: number  // e.g. voice transcription cost, billed on top of the AI reply cost
   adContext?: AdContext
   imageDataUrl?: string  // inbound image (base64 data URL) for vision
   channel?: "whatsapp_group"
