@@ -137,6 +137,31 @@ export function BroadcastsPanel({ agentId, isConnected, warmupTier }: Broadcasts
     staleTime: 15_000,
   })
 
+  // Per-agent "pause broadcasts overnight (11 PM–6 AM)" setting.
+  const overnightQuery = useQuery({
+    queryKey: ["agent-broadcast-setting", agentId],
+    queryFn: async () => {
+      const res = await fetch(`/api/agents/${agentId}`)
+      if (!res.ok) throw new Error("Failed to load agent settings")
+      const a = await res.json()
+      return { pauseOvernight: a.broadcastPauseOvernight !== false }
+    },
+    staleTime: 60_000,
+  })
+  const pauseOvernight = overnightQuery.data?.pauseOvernight ?? true
+
+  const overnightMutation = useMutation({
+    mutationFn: async (next: boolean) => {
+      const res = await fetch(`/api/agents/${agentId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ broadcastPauseOvernight: next }),
+      })
+      if (!res.ok) throw new Error("Failed to update setting")
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["agent-broadcast-setting", agentId] }),
+  })
+
   const contacts = contactsQuery.data?.contacts ?? EMPTY_CONTACTS
   const broadcasts = broadcastsQuery.data?.broadcasts ?? []
 
@@ -476,6 +501,22 @@ export function BroadcastsPanel({ agentId, isConnected, warmupTier }: Broadcasts
                 : ""}
             </p>
           </div>
+
+          <label className={styles.sendWindow} style={{ display: "flex", flexDirection: "row", alignItems: "flex-start", gap: 10, cursor: "pointer" }}>
+            <input
+              type="checkbox"
+              checked={pauseOvernight}
+              disabled={overnightMutation.isPending || overnightQuery.isLoading}
+              onChange={(e) => overnightMutation.mutate(e.target.checked)}
+              style={{ marginTop: 3 }}
+            />
+            <span>
+              <span className={styles.sendWindowLabel}>Pause overnight</span>
+              <p className={styles.sendWindowHint} style={{ margin: 0 }}>
+                Don&apos;t send broadcasts between 11 PM and 6 AM — the run pauses and picks up again at 6 AM.
+              </p>
+            </span>
+          </label>
 
           <div className={styles.statsGrid}>
             <div className={styles.statCard}>
