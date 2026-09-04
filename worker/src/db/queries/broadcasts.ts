@@ -14,6 +14,12 @@ export interface BroadcastCampaign {
   sentCount: number
   failedCount: number
   spreadHours: number | null
+  // "whatsapp" = paired Baileys number, free-form text. "meta" = Cloud API,
+  // which requires an approved template outside the 24-hour window.
+  channel: string
+  metaPhoneNumberId: string | null
+  templateName: string | null
+  templateLanguage: string | null
   createdAt: string
   startedAt: string | null
   completedAt: string | null
@@ -44,13 +50,25 @@ export async function createBroadcast(
   agentId: string,
   message: string,
   recipients: { phoneNumber: string; jid: string; contactName: string | null }[],
-  spreadHours: number | null = null
+  spreadHours: number | null = null,
+  // Cloud API campaigns carry the number to send from and the approved template
+  // to send; Baileys campaigns leave these null and send `message` as text.
+  meta?: {
+    metaPhoneNumberId: string
+    templateName: string
+    templateLanguage: string
+  } | null
 ): Promise<BroadcastCampaign> {
   const id = randomUUID()
+  const channel = meta ? "meta" : "whatsapp"
 
   const rows = await sql<BroadcastCampaign[]>`
-    INSERT INTO "BroadcastCampaign" ("id", "agentId", "message", "status", "totalCount", "sentCount", "failedCount", "spreadHours", "createdAt")
-    VALUES (${id}, ${agentId}, ${message}, 'pending', ${recipients.length}, 0, 0, ${spreadHours}, NOW())
+    INSERT INTO "BroadcastCampaign" ("id", "agentId", "message", "status", "totalCount",
+      "sentCount", "failedCount", "spreadHours", "channel", "metaPhoneNumberId",
+      "templateName", "templateLanguage", "createdAt")
+    VALUES (${id}, ${agentId}, ${message}, 'pending', ${recipients.length}, 0, 0,
+      ${spreadHours}, ${channel}, ${meta?.metaPhoneNumberId ?? null},
+      ${meta?.templateName ?? null}, ${meta?.templateLanguage ?? null}, NOW())
     RETURNING *
   `
   const campaign = rows[0]

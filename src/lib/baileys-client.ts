@@ -176,6 +176,12 @@ export const baileysClient = {
     message: string
     phoneNumbers: string[]
     spreadHours?: number
+    // Cloud API campaigns: the transport, the number to send from, and the
+    // approved template to send. Free-form text is not deliverable there.
+    channel?: string
+    metaPhoneNumberId?: string
+    templateName?: string
+    templateLanguage?: string
   }): Promise<{
     broadcast: WorkerBroadcastCampaign
     eligibleCount?: number

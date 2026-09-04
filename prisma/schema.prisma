@@ -417,6 +417,14 @@ model BroadcastCampaign {
   agent       Agent                @relation(fields: [agentId], references: [id], onDelete: Cascade)
   message     String               @db.Text
   status      String               @default("pending") // pending | running | paused | completed | cancelled | failed
+  // Which transport this campaign sends over. "whatsapp" = a paired Baileys
+  // number, free-form text. "meta" = the Cloud API, where reaching someone
+  // outside the 24-hour window REQUIRES an approved template — free text is
+  // rejected by Meta, so the fields below are mandatory for that channel.
+  channel          String  @default("whatsapp")
+  metaPhoneNumberId String?
+  templateName     String?
+  templateLanguage String?
   totalCount  Int                  @default(0)
   sentCount   Int                  @default(0)
   failedCount Int                  @default(0)

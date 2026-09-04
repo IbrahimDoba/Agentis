@@ -6,6 +6,10 @@ const schema = z.object({
   PORT: z.coerce.number().default(4000),
 
   WORKER_API_KEY: z.string().min(16),
+
+  // The Next.js app. Used only to send Cloud API broadcast templates, which go
+  // out with a connected business's own token — held there, not here.
+  APP_URL: z.string().url().default("https://www.dailzero.com"),
   DASHBOARD_URL: z.string().url(),
   DASHBOARD_WEBHOOK_SECRET: z.string().min(16),
 

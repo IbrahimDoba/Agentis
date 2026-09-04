@@ -70,11 +70,28 @@ export async function POST(req: NextRequest, { params }: Params) {
 
     const body = await req.json()
     const message = typeof body.message === "string" ? body.message : ""
+
+    // Cloud API campaigns must name an approved template: free-form text
+    // outside the 24-hour service window is rejected by Meta, not merely
+    // undelivered. The number decides whose credentials the send uses.
+    const channel = body.channel === "meta" ? "meta" : "whatsapp"
+    const templateName = typeof body.templateName === "string" ? body.templateName.trim() : ""
+    const templateLanguage =
+      typeof body.templateLanguage === "string" ? body.templateLanguage.trim() : "en_US"
+    const metaPhoneNumberId =
+      typeof body.metaPhoneNumberId === "string" ? body.metaPhoneNumberId : ""
+
+    if (channel === "meta" && (!templateName || !metaPhoneNumberId)) {
+      return NextResponse.json(
+        { error: "A Meta broadcast needs an approved template and a connected number" },
+        { status: 400 }
+      )
+    }
     const phoneNumbers = Array.isArray(body.phoneNumbers)
       ? body.phoneNumbers.filter((value: unknown): value is string => typeof value === "string")
       : []
 
-    if (!message.trim()) {
+    if (channel !== "meta" && !message.trim()) {
       return NextResponse.json({ error: "Message is required" }, { status: 400 })
     }
 
@@ -108,6 +125,10 @@ export async function POST(req: NextRequest, { params }: Params) {
     const data = await baileysClient.createBroadcast({
       agentId: id,
       message: message.trim(),
+      channel,
+      ...(channel === "meta"
+        ? { metaPhoneNumberId, templateName, templateLanguage }
+        : {}),
       phoneNumbers,
       ...(spreadHours !== undefined ? { spreadHours } : {}),
     })

@@ -77,6 +77,13 @@ export function BroadcastsPanel({ agentId, isConnected, warmupTier }: Broadcasts
   const queryClient = useQueryClient()
   const [search, setSearch] = useState("")
   const [message, setMessage] = useState("")
+  // Cloud API campaigns: which connected number sends, and which approved
+  // template. Free-form text cannot be delivered outside the 24-hour service
+  // window, so a template is mandatory there rather than optional.
+  const [channel, setChannel] = useState<"whatsapp" | "meta">("whatsapp")
+  const [metaNumber, setMetaNumber] = useState<{ phoneNumberId: string; label: string } | null>(null)
+  const [templates, setTemplates] = useState<Array<{ name: string; language: string; body: string | null }>>([])
+  const [templateName, setTemplateName] = useState("")
   const [selectedPhones, setSelectedPhones] = useState<string[]>([])
   const [serverMessage, setServerMessage] = useState<string | null>(null)
   // Send window: how long to spread the whole broadcast over. A list of
@@ -142,12 +149,57 @@ export function BroadcastsPanel({ agentId, isConnected, warmupTier }: Broadcasts
 
   const selectedSet = useMemo(() => new Set(selectedPhones), [selectedPhones])
 
+  // Only accounts with a connected Cloud API number get the choice at all —
+  // for everyone else this is a Baileys-only screen, unchanged.
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetch("/api/meta/connect", { cache: "no-store" })
+        if (!res.ok) return
+        const data = await res.json()
+        const first = (data.connections ?? [])[0]
+        if (!first || cancelled) return
+        setMetaNumber({
+          phoneNumberId: first.phoneNumberId,
+          label: first.displayPhoneNumber ?? first.phoneNumberId,
+        })
+
+        const t = await fetch("/api/meta/templates", { cache: "no-store" })
+        if (!t.ok || cancelled) return
+        const tdata = await t.json()
+        // Only APPROVED templates can actually be sent.
+        setTemplates(
+          (tdata.templates ?? []).filter((x: { status: string }) => x.status === "APPROVED")
+        )
+      } catch {
+        // Best-effort: a failure here just leaves the screen Baileys-only.
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   const createBroadcast = useMutation({
     mutationFn: async () => {
       const res = await fetch(`/api/agents/${agentId}/broadcasts`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message, phoneNumbers: selectedPhones, spreadHours }),
+        body: JSON.stringify({
+          message,
+          phoneNumbers: selectedPhones,
+          spreadHours,
+          channel,
+          ...(channel === "meta"
+            ? {
+                metaPhoneNumberId: metaNumber?.phoneNumberId,
+                templateName,
+                templateLanguage:
+                  templates.find((t) => t.name === templateName)?.language ?? "en_US",
+              }
+            : {}),
+        }),
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(data.error ?? "Failed to create broadcast")
@@ -318,6 +370,59 @@ export function BroadcastsPanel({ agentId, isConnected, warmupTier }: Broadcasts
             </div>
           </div>
 
+          {metaNumber && (
+            <div className={styles.channelChoice}>
+              <label className={styles.channelOption}>
+                <input
+                  type="radio"
+                  checked={channel === "whatsapp"}
+                  onChange={() => setChannel("whatsapp")}
+                />
+                <span>Paired number — free-form message</span>
+              </label>
+              <label className={styles.channelOption}>
+                <input
+                  type="radio"
+                  checked={channel === "meta"}
+                  onChange={() => setChannel("meta")}
+                />
+                <span>Official ({metaNumber.label}) — approved template</span>
+              </label>
+            </div>
+          )}
+
+          {channel === "meta" ? (
+            <div className={styles.templatePick}>
+              <label className={styles.templateLabel}>Approved template</label>
+              <select
+                className={styles.templateSelect}
+                value={templateName}
+                onChange={(e) => setTemplateName(e.target.value)}
+              >
+                <option value="">Choose a template…</option>
+                {templates.map((t) => (
+                  <option key={`${t.name}-${t.language}`} value={t.name}>
+                    {t.name} ({t.language})
+                  </option>
+                ))}
+              </select>
+              {templates.length === 0 && (
+                <p className={styles.templateHint}>
+                  No approved templates yet. Create one on the Meta tab — Meta reviews each
+                  before it can be sent.
+                </p>
+              )}
+              {templateName && (
+                <p className={styles.templatePreview}>
+                  {templates.find((t) => t.name === templateName)?.body ?? ""}
+                </p>
+              )}
+              <p className={styles.templateHint}>
+                Outside the 24-hour service window only an approved template can be
+                delivered, so the message is the template itself.
+              </p>
+            </div>
+          ) : (
           <Textarea
             label="Message"
             placeholder="Hi {name}, we just restocked your most requested item..."
@@ -327,6 +432,7 @@ export function BroadcastsPanel({ agentId, isConnected, warmupTier }: Broadcasts
             maxLength={1000}
             hint="Use {name} to personalize the message and reduce identical-message patterns."
           />
+          )}
 
           <div className={styles.sendWindow}>
             <span className={styles.sendWindowLabel}>Send over</span>

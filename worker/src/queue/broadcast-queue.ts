@@ -1,6 +1,7 @@
 import { Queue, Worker, type Job } from "bullmq"
 import { getRedis } from "./redis.js"
 import { isLeader } from "../lib/leader.js"
+import { config } from "../config.js"
 import { sessionManager } from "../baileys/session-manager.js"
 import { sendWithPacing } from "../anti-ban/pacing.js"
 import { checkAndIncrement } from "../anti-ban/rate-limiter.js"
@@ -21,6 +22,31 @@ import { logger as rootLogger } from "../lib/logger.js"
 import { resolveSendJid } from "../baileys/resolve-jid.js"
 import { recordEvent } from "../lib/event-log.js"
 import { resolveSpreadHours } from "../anti-ban/spread-window.js"
+
+// Cloud API broadcasts send an approved template through the frontend, which
+// holds the connected business's token. The worker keeps everything else —
+// spread scheduling, pause/resume, idempotency, counts and billing — so a Meta
+// campaign behaves like any other; only the transport differs.
+async function sendMetaTemplate(opts: {
+  phoneNumberId: string
+  to: string
+  templateName: string
+  templateLanguage: string
+  params: string[]
+}): Promise<void> {
+  const res = await fetch(`${config.APP_URL}/api/meta/internal/send-template`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${config.WORKER_API_KEY}`,
+    },
+    body: JSON.stringify(opts),
+  })
+  if (!res.ok) {
+    const body = await res.text().catch(() => "")
+    throw new Error(`Meta template send failed: ${res.status} ${body}`)
+  }
+}
 import { chargeAiCredits, hasCreditHeadroom } from "../billing/charge.js"
 import { creditsForMessageType } from "../billing/credits.js"
 
@@ -82,6 +108,58 @@ const worker = new Worker<BroadcastJob>(
       return
     }
     const alreadyFailed = recipient?.status === "failed"
+
+    // Cloud API campaigns fork here, before every Baileys-specific step below —
+    // there is no session, no socket, no JID and no anti-ban pacing to apply.
+    if (broadcast.channel === "meta") {
+      if (!broadcast.metaPhoneNumberId || !broadcast.templateName) {
+        logger.error({ broadcastId }, "Meta broadcast missing number or template — failing")
+        await updateRecipientStatus(recipientId, "failed")
+        await incrementBroadcastFailed(broadcastId)
+        return
+      }
+
+      // Same headroom gate as below: stop a broke account before sending, and
+      // pause so the campaign is resumable once topped up.
+      if (!(await hasCreditHeadroom(agentId))) {
+        logger.warn({ broadcastId, agentId }, "Out of credits — pausing Meta broadcast")
+        await updateBroadcastStatus(broadcastId, "paused")
+        return
+      }
+
+      const phoneNumber = toJid.split("@")[0].split(":")[0]
+      try {
+        await sendMetaTemplate({
+          phoneNumberId: broadcast.metaPhoneNumberId,
+          to: phoneNumber,
+          templateName: broadcast.templateName,
+          templateLanguage: broadcast.templateLanguage ?? "en_US",
+          // One positional variable, the contact's first name, mirroring the
+          // {name} personalisation Baileys broadcasts already do.
+          params: contactName ? [contactName.split(" ")[0]] : [],
+        })
+        await updateRecipientStatus(recipientId, "sent")
+        await incrementBroadcastSent(broadcastId)
+
+        try {
+          await chargeAiCredits({
+            agentId,
+            credits: creditsForMessageType("text"),
+            messageType: "text",
+            source: "broadcast",
+          })
+        } catch (err: any) {
+          logger.warn({ broadcastId, recipientId, err: err?.message }, "Meta broadcast charge failed after send")
+        }
+      } catch (err: any) {
+        logger.error({ broadcastId, recipientId, err: err?.message }, "Meta broadcast send failed")
+        if (!alreadyFailed) {
+          await updateRecipientStatus(recipientId, "failed")
+          await incrementBroadcastFailed(broadcastId)
+        }
+      }
+      return
+    }
 
     // Session gone (e.g. WhatsApp reconnecting mid-broadcast). PAUSE the
     // broadcast — visible + resumable — instead of throwing the recipient into

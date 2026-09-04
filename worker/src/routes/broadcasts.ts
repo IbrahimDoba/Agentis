@@ -27,7 +27,8 @@ const MAX_BROADCAST_RECIPIENTS = 2000
 
 const CreateSchema = z.object({
   agentId: z.string().min(1),
-  message: z.string().min(1).max(1000),
+  // Empty for Cloud API campaigns — the template is the message there.
+  message: z.string().max(1000),
   phoneNumbers: z.array(z.string().min(7)).min(1).max(MAX_BROADCAST_RECIPIENTS),
   // Hours to spread the whole send over (paced evenly, like AI follow-ups).
   // Omitted → default 24h. 0 disables even-spreading entirely, leaving only the
@@ -40,6 +41,11 @@ const CreateSchema = z.object({
   // subsequent message after a random gap in [min, max]. E.g. 300–600 = 5–10 min.
   minSpacingSeconds: z.number().int().min(1).max(3600).optional(),
   maxSpacingSeconds: z.number().int().min(1).max(3600).optional(),
+  // Cloud API campaign: send this approved template from this connected number.
+  channel: z.enum(["whatsapp", "meta"]).optional(),
+  metaPhoneNumberId: z.string().min(1).optional(),
+  templateName: z.string().min(1).optional(),
+  templateLanguage: z.string().min(1).optional(),
 }).refine(
   (b) => b.spreadHours === undefined || b.spreadHours >= 24 || b.phoneNumbers.length <= SMALL_LIST_MAX_RECIPIENTS,
   {
@@ -147,7 +153,14 @@ export const broadcastRoutes: FastifyPluginAsync = async (app) => {
       body.agentId,
       body.message,
       cappedRecipients,
-      body.spreadHours ?? null
+      body.spreadHours ?? null,
+      body.channel === "meta" && body.metaPhoneNumberId && body.templateName
+        ? {
+            metaPhoneNumberId: body.metaPhoneNumberId,
+            templateName: body.templateName,
+            templateLanguage: body.templateLanguage ?? "en_US",
+          }
+        : null
     )
 
     // Start enqueuing asynchronously — don't block the HTTP response

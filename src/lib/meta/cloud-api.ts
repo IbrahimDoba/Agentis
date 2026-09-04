@@ -83,3 +83,55 @@ export function verifyWebhookSignature(rawBody: string, signatureHeader: string 
   // timingSafeEqual throws on length mismatch, so length-guard first.
   return a.length === b.length && crypto.timingSafeEqual(a, b)
 }
+
+export interface TemplateParam {
+  type: "text"
+  text: string
+}
+
+// Send an approved template via POST /{phone_number_id}/messages.
+//
+// This is the ONLY way to reach a customer outside the 24-hour service window,
+// which is why broadcasts must use it: a free-form send to someone who hasn't
+// messaged recently is rejected by Meta, not merely undelivered.
+export async function sendTemplate(
+  to: string,
+  template: { name: string; language: string; params?: TemplateParam[] },
+  from: MetaConfig
+): Promise<SendTextResult> {
+  const { phoneNumberId, accessToken } = from
+  const url = `https://graph.facebook.com/${GRAPH_VERSION}/${phoneNumberId}/messages`
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      messaging_product: "whatsapp",
+      recipient_type: "individual",
+      to,
+      type: "template",
+      template: {
+        name: template.name,
+        language: { code: template.language },
+        // Components are omitted entirely when the template has no variables —
+        // Meta rejects an empty parameters array.
+        ...(template.params?.length
+          ? { components: [{ type: "body", parameters: template.params }] }
+          : {}),
+      },
+    }),
+  })
+
+  const raw = await res.json().catch(() => ({}))
+  if (!res.ok) {
+    const detail = (raw as { error?: { message?: string } })?.error?.message || res.statusText
+    throw new Error(`Cloud API template send failed (${res.status}): ${detail}`)
+  }
+
+  const waMessageId =
+    (raw as { messages?: Array<{ id?: string }> })?.messages?.[0]?.id ?? null
+  return { waMessageId, raw }
+}
