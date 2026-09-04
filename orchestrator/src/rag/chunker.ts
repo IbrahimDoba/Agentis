@@ -1,39 +1,67 @@
 /**
- * Chunker — splits plain text into overlapping ~400 token chunks.
+ * Chunker — splits a document into retrievable chunks along its own structure.
  *
- * Uses a word-count heuristic: 1 token ≈ 0.75 words.
- * Target: 400 tokens (~533 words) with 50-token (~67 word) overlap.
+ * This used to do `text.split(/\s+/)` and rejoin with spaces, which destroyed
+ * every newline, then cut at a fixed word count. It was deliberately frozen:
+ * 1,867 live chunks came from it and there was no way to re-index them.
+ *
+ * It was changed because that behaviour was producing false answers to real
+ * customers. One agent's knowledge base described three locations, one worked
+ * example each. Flattened, a single chunk held all three, and the agent told a
+ * customer "our office in Abuja is <the Lagos address>" — then apologised and
+ * said there was no Abuja office. The document was correct; the chunk was not.
+ *
+ * The freeze came with a re-index endpoint (POST /v1/documents/:id/reindex), so
+ * existing documents can be rebuilt rather than left on the old behaviour.
  */
 
-const TARGET_WORDS = 533   // ~400 tokens
-const OVERLAP_WORDS = 67   // ~50 tokens
+const HEADING_LINE = /^\s{0,3}#{1,6}\s+\S/
+/** Authors write pseudo-headings in bold far more often than with #. */
+const BOLD_HEADING_LINE = /^\*\*[^*\n]{1,100}\*\*:?$/
+const RULE_LINE = /^\s{0,3}([-*_])\1{2,}\s*$/
+
+function isHeadingLine(line: string): boolean {
+    const t = line.trim()
+    return HEADING_LINE.test(t) || BOLD_HEADING_LINE.test(t)
+}
 
 /**
- * Split text into overlapping chunks.
- * Returns an array of chunk content strings.
+ * Split plain text into blocks on the boundaries the author already put there:
+ * headings, horizontal rules and blank lines. Consecutive non-blank lines stay
+ * together so a markdown table is not torn apart row from header.
  */
-export function chunkText(text: string): string[] {
-    // Normalize whitespace
-    const normalized = text.replace(/\r\n/g, "\n").trim()
-    if (!normalized) return []
+export function textToBlocks(text: string): string[] {
+    const lines = text.replace(/\r\n/g, "\n").split("\n")
+    const blocks: string[] = []
+    let buf: string[] = []
 
-    // Split into words preserving newlines as separators
-    const words = normalized.split(/\s+/).filter(Boolean)
-    if (words.length === 0) return []
-
-    const chunks: string[] = []
-    let start = 0
-
-    while (start < words.length) {
-        const end = Math.min(start + TARGET_WORDS, words.length)
-        const chunkWords = words.slice(start, end)
-        chunks.push(chunkWords.join(" "))
-
-        if (end >= words.length) break
-        start = end - OVERLAP_WORDS
+    const flush = () => {
+        const body = buf.join("\n").trim()
+        buf = []
+        if (body) blocks.push(body)
     }
 
-    return chunks
+    for (const line of lines) {
+        if (isHeadingLine(line)) {
+            flush()
+            blocks.push(line.trim())
+            continue
+        }
+        if (RULE_LINE.test(line) || !line.trim()) {
+            flush()
+            continue
+        }
+        buf.push(line)
+    }
+    flush()
+    return blocks
+}
+
+/** Split text into chunks that respect its structure. */
+export function chunkText(text: string): string[] {
+    const normalized = text.replace(/\r\n/g, "\n").trim()
+    if (!normalized) return []
+    return chunkStructuredText(textToBlocks(normalized))
 }
 
 // ---------------------------------------------------------------------------
@@ -59,7 +87,16 @@ function words(s: string): number {
 }
 
 function isHeading(block: string): boolean {
-    return /^#{1,3}\s/.test(block)
+    return /^#{1,3}\s/.test(block) || /^\*\*[^*\n]{1,100}\*\*:?$/.test(block.trim())
+}
+
+/**
+ * How deep a heading sits. Markdown depth for `#`, and bold pseudo-headings sit
+ * at a single consistent level so two of them read as siblings.
+ */
+function headingDepth(block: string): number {
+    const m = /^(#{1,6})\s/.exec(block.trim())
+    return m ? m[1]!.length : 3
 }
 
 /**
@@ -76,6 +113,9 @@ export function chunkStructuredText(blocks: string[], pageTitle = ""): string[] 
     let current: string[] = []
     let currentWords = 0
     let heading = ""
+    // Depth of the heading that opened the current chunk. A sibling or
+    // higher-level heading starts a new one; a subsection may continue this one.
+    let openDepth = Infinity
 
     const flush = () => {
         if (current.length === 0) return
@@ -83,10 +123,19 @@ export function chunkStructuredText(blocks: string[], pageTitle = ""): string[] 
         chunks.push(prefix ? `${prefix}\n\n${current.join("\n")}` : current.join("\n"))
         current = []
         currentWords = 0
+        openDepth = Infinity
     }
 
     for (const block of clean) {
-        if (isHeading(block)) heading = block
+        if (isHeading(block)) {
+            const depth = headingDepth(block)
+            // Two sibling sections must not share a chunk. Flattened together,
+            // one agent's Lagos, Ogun and Abuja sections became a single blob
+            // and it answered with the wrong city's address.
+            if (current.length > 0 && depth <= openDepth) flush()
+            heading = block
+            openDepth = Math.min(openDepth, depth)
+        }
 
         const w = words(block)
 

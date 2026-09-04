@@ -4,14 +4,21 @@ import { getDocument, updateDocumentStatus } from "../../db/queries/documents.js
 import { extractText } from "../../rag/extractor.js"
 import { chunkText } from "../../rag/chunker.js"
 import { indexChunks } from "../../rag/indexer.js"
-import { uploadFile, r2Keys } from "../../storage/r2.js"
+import { uploadFile, r2Keys, getSignedDownloadUrl } from "../../storage/r2.js"
 import { logger as rootLogger } from "../../lib/logger.js"
 
 const logger = rootLogger.child({ module: "embed-worker" })
 
 export interface EmbedJobData {
     documentId: string
-    fileBuffer: number[]  // serialized Buffer (arrays are JSON-safe)
+    /**
+     * The uploaded file, serialized (arrays are JSON-safe).
+     *
+     * Omitted by a re-index, which pulls the original back from R2 instead —
+     * the point of a re-index is to rebuild chunks from a file we already have,
+     * without asking the customer to upload it again.
+     */
+    fileBuffer?: number[]
 }
 
 export function startEmbedWorker() {
@@ -19,7 +26,6 @@ export function startEmbedWorker() {
         "orchestrator-embed",
         async (job) => {
             const { documentId, fileBuffer } = job.data
-            const buffer = Buffer.from(fileBuffer)
 
             const doc = await getDocument(documentId)
             if (!doc) {
@@ -32,6 +38,21 @@ export function startEmbedWorker() {
             try {
                 // 1. Update status to chunking
                 await updateDocumentStatus(documentId, "chunking")
+
+                // Re-index: no buffer on the job, so fetch the original from R2.
+                let buffer: Buffer
+                if (fileBuffer) {
+                    buffer = Buffer.from(fileBuffer)
+                } else {
+                    if (!doc.r2Key) {
+                        await updateDocumentStatus(documentId, "failed", { error: "Nothing stored to re-index" })
+                        return
+                    }
+                    const url = await getSignedDownloadUrl(doc.r2Key)
+                    const res = await fetch(url)
+                    if (!res.ok) throw new Error(`Could not fetch the stored file (${res.status})`)
+                    buffer = Buffer.from(await res.arrayBuffer())
+                }
 
                 // 2. Extract text
                 const text = await extractText(buffer, doc.mimeType)

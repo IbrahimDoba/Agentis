@@ -6,6 +6,7 @@ import {
     insertDocument,
     listDocuments,
     getDocument,
+    updateDocumentStatus,
     deleteDocument,
     failStuckCrawls,
     insertWebDocument,
@@ -216,6 +217,43 @@ export async function documentsRoutes(app: FastifyInstance) {
 
         logger.info({ docId: doc.id, agentId, url: normalized }, "Website crawl queued")
         return reply.status(202).send({ id: doc.id, crawlStatus: "queued", refreshed: false })
+    })
+
+    /**
+     * POST /v1/documents/:id/reindex?agentId=xxx
+     *
+     * Rebuild a stored file's chunks from the original in R2, without asking the
+     * customer to upload it again. Exists because the chunker changed: documents
+     * indexed by the old whitespace-flattening version keep its chunks until
+     * something rebuilds them, and re-uploading by hand is not a fix we can ask
+     * every customer to perform.
+     *
+     * The old chunks keep serving until the new ones commit — replaceChunks
+     * swaps them inside one transaction.
+     */
+    app.post("/documents/:id/reindex", async (req, reply) => {
+        const parsed = DocIdSchema.safeParse(req.params)
+        if (!parsed.success) return reply.status(400).send({ error: "Invalid document id" })
+        const scope = AgentScopeSchema.safeParse(req.query)
+        if (!scope.success) return reply.status(400).send({ error: "agentId required" })
+
+        const doc = await getDocument(parsed.data.id)
+        if (!doc || doc.agentId !== scope.data.agentId) {
+            return reply.status(404).send({ error: "Document not found" })
+        }
+        // A crawled site has no stored file; recrawl is its equivalent.
+        if (doc.sourceType === "web") {
+            return reply.status(400).send({ error: "Use recrawl for a website link" })
+        }
+        if (!doc.r2Key) {
+            return reply.status(400).send({ error: "Nothing stored to re-index" })
+        }
+
+        await updateDocumentStatus(doc.id, "pending")
+        await embedQueue.add("reindex", { documentId: doc.id }, { attempts: 3, backoff: { type: "exponential", delay: 5000 } })
+
+        logger.info({ documentId: doc.id, agentId: doc.agentId }, "Re-index queued")
+        return reply.status(202).send({ id: doc.id, status: "pending" })
     })
 
     /**
