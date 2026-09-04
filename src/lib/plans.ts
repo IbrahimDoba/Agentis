@@ -77,6 +77,21 @@ export const AI_CREDIT_COSTS = {
   voiceMin: 15, // minimum credits charged per voice note regardless of length
 } as const
 
+export type MessageBillingType = "text" | "image" | "video" | "document"
+
+// Flat per-type send cost. Mirrors creditsForMessageType in
+// worker/src/billing/credits.ts — the worker does the real charging and writes
+// the ledger row; this copy exists so the API can report and meter the same
+// number. creditCostParity.test.ts fails if the two disagree.
+export function creditsForMessageType(type?: MessageBillingType): number {
+  switch (type) {
+    case "image": return AI_CREDIT_COSTS.image
+    case "video": return AI_CREDIT_COSTS.video
+    case "document": return AI_CREDIT_COSTS.document
+    default: return AI_CREDIT_COSTS.text
+  }
+}
+
 // Buyers reason in "messages", not raw credits, so pricing surfaces express each
 // plan's size as an estimated AI-message count: the allowance ÷ the cost of a
 // typical text reply. Real spend varies with message length (billing is

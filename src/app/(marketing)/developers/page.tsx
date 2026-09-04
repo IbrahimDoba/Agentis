@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { Navbar } from "@/components/landing/Navbar"
 import { Footer } from "@/components/landing/Footer"
 import { CodeTabs, type CodeSample } from "./CodeTabs"
+import { AI_CREDIT_COSTS } from "@/lib/plans"
 import styles from "./page.module.css"
 
 export const metadata: Metadata = {
@@ -114,6 +115,81 @@ const SEND_RESPONSE = `{
   "status": "queued",
   "usage": { "credits": 5 },
   "remaining_credits": 11195
+}`
+
+// --- Send an image, video or document ---
+const SEND_MEDIA: CodeSample[] = [
+  {
+    label: "cURL",
+    code: `# A video, with an optional caption
+curl ${BASE}/api/v1/messages \\
+  -H "Authorization: Bearer dz_live_..." \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "agentId": "<your-agent-id>",
+    "to": "2348012345678",
+    "type": "video",
+    "mediaUrl": "https://cdn.example.com/demo.mp4",
+    "text": "Here is the 30-second demo"
+  }'
+
+# A document — fileName is required, it is what the recipient sees
+curl ${BASE}/api/v1/messages \\
+  -H "Authorization: Bearer dz_live_..." \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "agentId": "<your-agent-id>",
+    "to": "2348012345678",
+    "type": "document",
+    "mediaUrl": "https://cdn.example.com/price-list.pdf",
+    "fileName": "price-list.pdf",
+    "mimeType": "application/pdf"
+  }'`,
+  },
+  {
+    label: "JavaScript",
+    code: `const res = await fetch("${BASE}/api/v1/messages", {
+  method: "POST",
+  headers: {
+    Authorization: "Bearer dz_live_...",
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    agentId: "<your-agent-id>",
+    to: "2348012345678",
+    type: "document",
+    mediaUrl: "https://cdn.example.com/price-list.pdf",
+    fileName: "price-list.pdf",   // required for documents
+    mimeType: "application/pdf",  // optional but recommended
+    text: "Our latest price list",
+  }),
+})
+console.log(await res.json())`,
+  },
+  {
+    label: "Python",
+    code: `import requests
+
+res = requests.post(
+    "${BASE}/api/v1/messages",
+    headers={"Authorization": "Bearer dz_live_..."},
+    json={
+        "agentId": "<your-agent-id>",
+        "to": "2348012345678",
+        "type": "image",
+        "mediaUrl": "https://cdn.example.com/product.jpg",
+        "text": "The blue one you asked about",
+    },
+)
+print(res.json())`,
+  },
+]
+
+const SEND_MEDIA_RESPONSE = `{
+  "message_id": "d4e5f6",
+  "status": "queued",
+  "usage": { "credits": 12 },
+  "remaining_credits": 11183
 }`
 
 // --- Verify a contact ---
@@ -345,6 +421,24 @@ export default function DevelopersPage() {
           <pre className={styles.code}>{SEND_RESPONSE}</pre>
         </section>
 
+        <section className={styles.section} id="send-media">
+          <h2>Send an image, video or document</h2>
+          <p className={styles.body}>
+            The same endpoint sends media. Set <code>type</code> to <code>image</code>, <code>video</code> or{" "}
+            <code>document</code> and pass a publicly reachable <code>mediaUrl</code>. Your agent fetches the
+            file at send time, so the URL must still resolve then — a signed URL needs to outlive the send
+            queue. <code>text</code> becomes the caption.
+          </p>
+          <p className={styles.body}>
+            Documents require <code>fileName</code>, because that is the name WhatsApp shows the recipient.
+            Passing <code>mimeType</code> is optional but recommended. Media costs more than text — see{" "}
+            <a href="#limits">Limits &amp; safety</a>.
+          </p>
+          <CodeTabs samples={SEND_MEDIA} />
+          <p className={styles.caption}>Response</p>
+          <pre className={styles.code}>{SEND_MEDIA_RESPONSE}</pre>
+        </section>
+
         <section className={styles.section}>
           <h2>Verify a contact</h2>
           <p className={styles.body}>
@@ -367,9 +461,14 @@ export default function DevelopersPage() {
           <CodeTabs samples={TOOLS} />
         </section>
 
-        <section className={styles.section}>
+        <section className={styles.section} id="limits">
           <h2>Limits &amp; safety</h2>
           <ul className={styles.list}>
+            <li>
+              Sends are billed per message by type: text {AI_CREDIT_COSTS.text} credits, image{" "}
+              {AI_CREDIT_COSTS.image}, video {AI_CREDIT_COSTS.video}, document {AI_CREDIT_COSTS.document}. The
+              exact figure charged comes back on every send as <code>usage.credits</code>.
+            </li>
             <li>Per-key rate limit (default 60 requests/minute) → <code>429</code> with <code>Retry-After</code>.</li>
             <li>Optional per-key daily spending cap, set when you create the key.</li>
             <li>Hard per-request output cap so a single call can&apos;t run up a huge bill.</li>

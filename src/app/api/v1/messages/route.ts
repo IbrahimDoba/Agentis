@@ -6,18 +6,47 @@ import { recordApiKeySpend, isApiKeyDailyCapExceeded } from "@/lib/apiKey"
 import { checkApiRateLimit } from "@/lib/apiRateLimit"
 import { getAgentBillingContext, preflightApiCharge, getRemainingCredits } from "@/lib/apiBilling"
 import { baileysClient } from "@/lib/baileys-client"
-import { AI_CREDIT_COSTS } from "@/lib/plans"
+import { creditsForMessageType } from "@/lib/plans"
 
 // POST /api/v1/messages — Surface C of the External Developer API. Sends an
-// outbound WhatsApp message from the developer's connected agent. Requires a
-// "messages"-scoped key. Goes through the worker's anti-ban outbound pipeline
-// (pacing + warmup limits) and bills per message (source='api').
+// outbound WhatsApp message from the developer's connected agent: text, or an
+// image / video / document by URL. Requires a "messages"-scoped key. Goes
+// through the worker's anti-ban outbound pipeline (pacing + warmup limits) and
+// bills per message by type (source='api').
 
-const bodySchema = z.object({
-  agentId: z.string().min(1),
-  to: z.string().min(5), // E.164 digits (e.g. 2348012345678) or a full JID
-  text: z.string().min(1).max(4096),
-})
+const MEDIA_TYPES = ["image", "video", "document"] as const
+
+export const bodySchema = z
+  .object({
+    agentId: z.string().min(1),
+    to: z.string().min(5), // E.164 digits (e.g. 2348012345678) or a full JID
+    // Required for a text message; an optional caption alongside media.
+    text: z.string().min(1).max(4096).optional(),
+    // Publicly reachable URL. The worker fetches it at send time, so it must
+    // still resolve then — signed URLs need to outlive the send queue.
+    mediaUrl: z.string().url().optional(),
+    type: z.enum(["text", ...MEDIA_TYPES]).optional(),
+    // WhatsApp shows the filename to the recipient, so documents must carry one
+    // rather than arriving as "document".
+    fileName: z.string().min(1).max(255).optional(),
+    mimeType: z.string().min(1).max(255).optional(),
+  })
+  .superRefine((v, ctx) => {
+    const isMedia = v.type !== undefined && v.type !== "text"
+
+    if (!v.mediaUrl && isMedia) {
+      ctx.addIssue({ code: "custom", message: `mediaUrl is required when type is "${v.type}".` })
+    }
+    if (v.mediaUrl && !isMedia) {
+      ctx.addIssue({ code: "custom", message: 'type must be one of "image", "video" or "document" when mediaUrl is set.' })
+    }
+    if (!v.mediaUrl && !v.text) {
+      ctx.addIssue({ code: "custom", message: "text is required when no mediaUrl is provided." })
+    }
+    if (v.type === "document" && !v.fileName) {
+      ctx.addIssue({ code: "custom", message: 'fileName is required when type is "document".' })
+    }
+  })
 
 export async function POST(req: NextRequest) {
   const requestId = newRequestId()
@@ -47,7 +76,8 @@ export async function POST(req: NextRequest) {
   if (!parsed.success) {
     return apiError("BAD_REQUEST", parsed.error.issues[0]?.message ?? "Invalid request.", { requestId })
   }
-  const { agentId, to, text } = parsed.data
+  const { agentId, to, text, mediaUrl, fileName, mimeType } = parsed.data
+  const type = parsed.data.type ?? "text"
 
   // 4. Daily spending cap (per key).
   if (await isApiKeyDailyCapExceeded(keyId)) {
@@ -84,13 +114,24 @@ export async function POST(req: NextRequest) {
   //    source='api', writing the CreditUsage row).
   let result: { jobId: string; status: string }
   try {
-    result = await baileysClient.sendMessage({ agentId, to, text, source: "api" })
+    result = await baileysClient.sendMessage({
+      agentId,
+      to,
+      // The worker treats text as the caption on a media send.
+      text: text ?? "",
+      type,
+      mediaUrl,
+      mediaFileName: fileName,
+      mediaMimeType: mimeType,
+      source: "api",
+    })
   } catch {
     return apiError("INTERNAL", "Couldn't queue the message. Please retry.", { requestId })
   }
 
   // 9. Track per-key spend for the rolling daily cap (worker did the ledger write).
-  const credits = AI_CREDIT_COSTS.text
+  // Same number the worker charged — a video costs more than a text.
+  const credits = creditsForMessageType(type)
   await recordApiKeySpend(keyId, credits)
   const remaining = await getRemainingCredits(ctx)
 
