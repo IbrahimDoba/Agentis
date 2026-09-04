@@ -470,6 +470,27 @@ export async function getAgentBillingInfo(agentId: string): Promise<AgentBilling
   return rows[0] ?? null
 }
 
+export interface AgentBroadcastConfig {
+  pauseOvernight: boolean
+  timezone: string
+}
+
+// The agent's broadcast pacing config: whether to pause overnight and the
+// timezone the 23:00–06:00 quiet window is measured in (the connected session's,
+// falling back to Africa/Lagos). Read at enqueue time so it applies to fresh
+// sends AND resumes.
+export async function getAgentBroadcastConfig(agentId: string): Promise<AgentBroadcastConfig | null> {
+  const rows = await sql<AgentBroadcastConfig[]>`
+    SELECT COALESCE(a."broadcastPauseOvernight", true) AS "pauseOvernight",
+           COALESCE(s."timezone", 'Africa/Lagos') AS "timezone"
+    FROM "Agent" a
+    LEFT JOIN "BaileysSession" s ON s."agentId" = a."id"
+    WHERE a."id" = ${agentId}
+    LIMIT 1
+  `
+  return rows[0] ?? null
+}
+
 export async function getMonthlyCreditsUsed(agentId: string, monthStart: Date, monthEnd: Date): Promise<number> {
   const rows = await sql<{ total: number | null }[]>`
     SELECT COALESCE(SUM("creditsUsed"), 0)::int as total

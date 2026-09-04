@@ -233,6 +233,10 @@ model Agent {
   // messages at ingest exactly as before this feature existed.
   groupChatEnabled             Boolean              @default(false)
   autoPauseOnHumanReply        Boolean              @default(true)
+  // Broadcasts pause overnight — no sends between 23:00 and 06:00 in the agent's
+  // timezone (BaileysSession.timezone); the run resumes at 6am. Default on so
+  // customers aren't messaged in the middle of the night.
+  broadcastPauseOvernight      Boolean              @default(true)
   pauseOnAiHandoff             Boolean              @default(true)
   pauseOnQualifiedLead         Boolean              @default(true)
   // Owner-defined, free-text criteria for WHEN the AI should treat a chat as a

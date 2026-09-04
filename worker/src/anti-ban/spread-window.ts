@@ -34,3 +34,34 @@ export function resolveSpreadHours(recipientCount: number, requested: number | n
   const hours = requested ?? 24
   return Math.min(168, Math.max(minSpreadHours(recipientCount), hours))
 }
+
+// ── Overnight quiet window ──────────────────────────────────────────────────
+// Per-agent (Agent.broadcastPauseOvernight, default on): no broadcast sends
+// between 23:00 and 06:00 in the agent's timezone. A send that would land in
+// that window is pushed to the next 06:00, so a run pauses overnight and
+// resumes in the morning.
+
+export const QUIET_START_HOUR = 23
+export const QUIET_END_HOUR = 6
+
+/**
+ * If `sendAtMs` falls inside the overnight quiet window (23:00–06:00 in `tz`),
+ * return the timestamp of the next 06:00 local; otherwise return it unchanged.
+ * Pure + timezone-aware (via Intl), so it's unit-testable without a DB or clock.
+ */
+export function deferPastQuietHours(sendAtMs: number, tz: string): number {
+  // Offset between `tz` wall-clock and UTC at this instant (constant for a
+  // no-DST zone like Africa/Lagos; fine elsewhere away from a DST edge).
+  const utcMs = new Date(new Date(sendAtMs).toLocaleString("en-US", { timeZone: "UTC" })).getTime()
+  const tzMs = new Date(new Date(sendAtMs).toLocaleString("en-US", { timeZone: tz })).getTime()
+  const offsetMs = tzMs - utcMs
+
+  const local = new Date(sendAtMs + offsetMs) // read wall-clock parts via getUTC*
+  const hour = local.getUTCHours()
+  if (hour >= QUIET_END_HOUR && hour < QUIET_START_HOUR) return sendAtMs // daytime — send as-is
+
+  const target = new Date(sendAtMs + offsetMs)
+  target.setUTCHours(QUIET_END_HOUR, 0, 0, 0)
+  if (hour >= QUIET_START_HOUR) target.setUTCDate(target.getUTCDate() + 1) // late night → next-day 6am
+  return target.getTime() - offsetMs
+}
