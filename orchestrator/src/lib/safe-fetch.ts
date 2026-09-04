@@ -148,7 +148,7 @@ export async function safeFetch(
 
   for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
     const check = validateCrawlUrl(current)
-    if (!check.ok || !check.url) return { ok: false, reason: check.reason ?? "invalid_url", url: current }
+    if (!check.ok) return { ok: false, reason: check.reason, url: current }
     const url = check.url
 
     if (visited.has(url.toString())) return { ok: false, reason: "redirect_loop", url: current }

@@ -20,3 +20,16 @@ export const embedQueue = new Queue("orchestrator-embed", {
     removeOnFail: 500,
   },
 })
+
+export const crawlQueue = new Queue("orchestrator-crawl", {
+  connection: getRedis(),
+  defaultJobOptions: {
+    // One retry only. A crawl takes up to two minutes and a site that failed
+    // twice is usually down or blocking us, not flaky — three attempts just
+    // means six minutes of a stuck spinner in the dashboard.
+    attempts: 2,
+    backoff: { type: "exponential", delay: 10_000 },
+    removeOnComplete: 100,
+    removeOnFail: 500,
+  },
+})
