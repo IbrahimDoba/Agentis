@@ -145,11 +145,42 @@ describe("apiBilling — chargeApiTurn / remaining (real DB)", () => {
     await db.agent.deleteMany({ where: { id: walletAgentId } })
   })
 
-  it("preflight blocks an expired subscription", async () => {
-    const past = new Date(Date.now() - 1000)
-    const res = await preflightApiCharge({ userId, plan: "free", subscriptionExpiresAt: past, currentPeriodStart: null, carryoverCredits: 0, carryoverExpiresAt: null })
+  // A lapsed plan voids the allowance, not the PAYG wallet. The worker funds an
+  // expired account from the wallet at charge time, so the pre-flight must agree
+  // with it — an earlier version refused outright, which stopped customers
+  // spending credits they had already bought.
+  const expiredCtx = (): AgentBillingContext => ({
+    userId,
+    plan: "free",
+    subscriptionExpiresAt: new Date(Date.now() - 1000),
+    currentPeriodStart: null,
+    carryoverCredits: 0,
+    carryoverExpiresAt: null,
+  })
+
+  it("preflight ALLOWS an expired subscription when the PAYG wallet has credits", async () => {
+    await db.user.update({
+      where: { id: userId },
+      data: { creditBalance: 500, creditsExpireAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) },
+    })
+    const res = await preflightApiCharge(expiredCtx())
+    expect(res.ok).toBe(true)
+  })
+
+  it("preflight blocks an expired subscription with an empty wallet", async () => {
+    await db.user.update({ where: { id: userId }, data: { creditBalance: 0 } })
+    const res = await preflightApiCharge(expiredCtx())
     expect(res.ok).toBe(false)
     expect(res.reason).toBe("SUBSCRIPTION_EXPIRED")
+  })
+
+  it("preflight blocks an expired subscription whose wallet credits have expired", async () => {
+    await db.user.update({
+      where: { id: userId },
+      data: { creditBalance: 500, creditsExpireAt: new Date(Date.now() - 1000) },
+    })
+    const res = await preflightApiCharge(expiredCtx())
+    expect(res.ok).toBe(false)
   })
 
   it("getRemainingCredits sums account-wide plan room + wallet", async () => {
