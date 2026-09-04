@@ -79,7 +79,16 @@ export async function preflightApiCharge(
   ctx: AgentBillingContext
 ): Promise<PreflightResult> {
   const expired = ctx.subscriptionExpiresAt ? new Date() > ctx.subscriptionExpiresAt : false
-  if (expired) return { ok: false, reason: "SUBSCRIPTION_EXPIRED" }
+  if (expired) {
+    // A lapsed plan voids the allowance but NOT the PAYG wallet. The worker
+    // funds an expired account straight from the wallet at charge time
+    // (outbound-queue.ts), so refusing here rejected sends the worker would
+    // have happily made and billed — leaving customers unable to spend credits
+    // they had already paid for.
+    const wallet = await getBalance(ctx.userId)
+    if (wallet.creditBalance > 0) return { ok: true }
+    return { ok: false, reason: "SUBSCRIPTION_EXPIRED" }
+  }
 
   const planLimit = effectiveCreditLimit(PLAN_CREDIT_LIMITS[ctx.plan] ?? PLAN_CREDIT_LIMITS.free, ctx.carryoverCredits, ctx.carryoverExpiresAt)
   if (planLimit === -1) return { ok: true } // unlimited
