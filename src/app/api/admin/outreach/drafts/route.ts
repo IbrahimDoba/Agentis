@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
+import { authorizeOutreachAdmin } from "@/lib/outreach/adminAuth"
 import { randomBytes } from "node:crypto"
 import { z } from "zod"
-import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { validateCopy } from "@/lib/outreach/validate"
 import { clickUrl } from "@/lib/outreach/render"
@@ -47,10 +47,8 @@ const bodySchema = z.object({
 })
 
 export async function POST(req: NextRequest) {
-  const session = await auth()
-  if (!session || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
+  const actor = await authorizeOutreachAdmin(req)
+  if (!actor) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const parsed = bodySchema.safeParse(await req.json().catch(() => null))
   if (!parsed.success) {
@@ -140,11 +138,9 @@ export async function POST(req: NextRequest) {
 }
 
 /** The prospects still needing copy, with everything needed to research them. */
-export async function GET() {
-  const session = await auth()
-  if (!session || session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
+export async function GET(req: NextRequest) {
+  const actor = await authorizeOutreachAdmin(req)
+  if (!actor) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const prospects = await db.outreachProspect.findMany({
     where: { status: "new" },

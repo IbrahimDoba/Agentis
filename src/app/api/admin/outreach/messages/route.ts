@@ -1,5 +1,5 @@
-import { withAdmin } from "@/lib/api/withAuth"
 import { NextRequest, NextResponse } from "next/server"
+import { authorizeOutreachAdmin } from "@/lib/outreach/adminAuth"
 import { z } from "zod"
 import { db } from "@/lib/db"
 
@@ -14,7 +14,9 @@ const bodySchema = z.object({
   bodyText: z.string().min(20).max(4000).optional(),
 })
 
-export const PATCH = withAdmin(async (req: NextRequest) => {
+export async function PATCH(req: NextRequest) {
+  const actor = await authorizeOutreachAdmin(req)
+  if (!actor) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   const parsed = bodySchema.safeParse(await req.json().catch(() => null))
   if (!parsed.success) {
     const errors: Record<string, string> = {}
@@ -56,4 +58,4 @@ export const PATCH = withAdmin(async (req: NextRequest) => {
   }
 
   return NextResponse.json({ ok: true })
-})
+}
