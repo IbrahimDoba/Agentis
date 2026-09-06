@@ -2,11 +2,13 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { startOfDay, subDays, subWeeks, subMonths, format, eachDayOfInterval } from "date-fns"
-import { listAgentCreditEvents } from "@/lib/creditUsage"
+import { getActivitySeries, getBusiestWeekday, type Granularity } from "@/lib/queries/conversationStats"
 
 interface Params {
   params: Promise<{ id: string }>
 }
+
+type Bucket = { label: string; conversations: number; credits: number }
 
 export async function GET(req: NextRequest, { params }: Params) {
   const session = await auth()
@@ -31,143 +33,100 @@ export async function GET(req: NextRequest, { params }: Params) {
   const now = new Date()
   let from: Date
   let to: Date = startOfDay(now)
+  let granularity: Granularity = "day"
 
-  if (range === "day") {
-    from = startOfDay(subDays(now, 6))      // last 7 days
-  } else if (range === "week") {
-    from = startOfDay(subWeeks(now, 11))    // last 12 weeks (grouped by week start)
+  const customFrom = fromParam ? startOfDay(new Date(fromParam)) : null
+  const customTo = toParam ? startOfDay(new Date(toParam)) : null
+  const hasValidCustom =
+    range === "custom" &&
+    customFrom != null && customTo != null &&
+    !Number.isNaN(customFrom.getTime()) && !Number.isNaN(customTo.getTime()) &&
+    customFrom <= customTo
+
+  if (range === "week") {
+    from = startOfDay(subWeeks(now, 11))   // last 12 weeks
+    granularity = "week"
   } else if (range === "month") {
-    from = startOfDay(subMonths(now, 11))   // last 12 months (grouped by month)
-  } else if (range === "custom" && fromParam && toParam) {
-    from = startOfDay(new Date(fromParam))
-    to = startOfDay(new Date(toParam))
+    from = startOfDay(subMonths(now, 11))  // last 12 months
+    granularity = "month"
+  } else if (hasValidCustom) {
+    from = customFrom!
+    to = customTo!
   } else {
-    from = startOfDay(subDays(now, 6))
+    from = startOfDay(subDays(now, 6))     // last 7 days
   }
 
+  // Exclusive upper bound: `to` is the start of the last day we want to include.
   const rangeEnd = new Date(to.getTime() + 86400000)
 
-  let conversationPoints: Date[] = []
-  let creditPoints: { at: Date; credits: number }[] = []
-
   if (agent.agentRuntime === "orchestrator") {
-    const rows = await db.conversation.findMany({
-      where: {
-        agentId: id,
-        OR: [
-          { lastActivityAt: { gte: from, lte: rangeEnd } },
-          { createdAt: { gte: from, lte: rangeEnd } },
-        ],
-      },
-      select: { lastActivityAt: true, createdAt: true },
-      orderBy: { lastActivityAt: "asc" },
-    })
+    const [data, busiestDay] = await Promise.all([
+      getActivitySeries(id, from, rangeEnd, granularity),
+      getBusiestWeekday(id, from, rangeEnd),
+    ])
 
-    conversationPoints = rows.map((row) => row.lastActivityAt ?? row.createdAt)
-    creditPoints = await listAgentCreditEvents(id, from, rangeEnd)
-  } else {
-    const agentFilter = {
+    // Summed from the buckets rather than counted separately, so the headline
+    // total can never disagree with the bars it sits above.
+    return NextResponse.json({
+      data,
+      totalConversations: data.reduce((s, p) => s + p.conversations, 0),
+      totalCredits: data.reduce((s, p) => s + p.credits, 0),
+      busiestDay,
+    })
+  }
+
+  // Legacy ElevenLabs runtime: no Conversation rows, only ConversationLog, and
+  // one log IS one conversation. Kept for agents created before the runtime was
+  // removed; new agents never reach this branch.
+  const logs = await db.conversationLog.findMany({
+    where: {
       OR: [
         { agentId: id },
         ...(agent.elevenlabsAgentId ? [{ elevenlabsAgentId: agent.elevenlabsAgentId }] : []),
       ],
-    }
+      startTime: { gte: from, lt: rangeEnd },
+    },
+    select: { startTime: true, creditsUsed: true },
+    orderBy: { startTime: "asc" },
+  })
 
-    const logs = await db.conversationLog.findMany({
-      where: {
-        ...agentFilter,
-        startTime: { gte: from, lte: rangeEnd },
-      },
-      select: { startTime: true, creditsUsed: true },
-      orderBy: { startTime: "asc" },
-    })
+  const keyFor = (d: Date) =>
+    granularity === "month" ? format(d, "yyyy-MM") : format(d, "yyyy-MM-dd")
+  const labelFor = (d: Date) =>
+    granularity === "month" ? format(d, "MMM yy") : format(d, "d MMM")
 
-    creditPoints = logs
-      .filter((log) => !!log.startTime)
-      .map((log) => ({ at: log.startTime as Date, credits: log.creditsUsed }))
-    conversationPoints = creditPoints.map((p) => p.at)
-  }
-
-  // Group by day / week / month
-  type Bucket = { label: string; conversations: number; credits: number }
   const buckets = new Map<string, Bucket>()
-
-  if (range === "day" || (range === "custom" && fromParam && toParam)) {
-    // Build all days in range so we have zero-filled gaps
-    const days = eachDayOfInterval({ start: from, end: to })
-    for (const d of days) {
-      const key = format(d, "yyyy-MM-dd")
-      buckets.set(key, { label: format(d, "d MMM"), conversations: 0, credits: 0 })
-    }
-    for (const point of conversationPoints) {
-      const key = format(point, "yyyy-MM-dd")
-      const b = buckets.get(key)
-      if (b) b.conversations++
-    }
-    for (const point of creditPoints) {
-      const key = format(point.at, "yyyy-MM-dd")
-      const b = buckets.get(key)
-      if (b) b.credits += point.credits
-    }
-  } else if (range === "week") {
-    // Group into ISO week buckets
-    for (const point of conversationPoints) {
-      const weekStart = startOfDay(subDays(point, point.getDay()))
-      const key = format(weekStart, "yyyy-MM-dd")
-      if (!buckets.has(key)) {
-        buckets.set(key, { label: format(weekStart, "d MMM"), conversations: 0, credits: 0 })
-      }
-      const b = buckets.get(key)!
-      b.conversations++
-    }
-    for (const point of creditPoints) {
-      const weekStart = startOfDay(subDays(point.at, point.at.getDay()))
-      const key = format(weekStart, "yyyy-MM-dd")
-      if (!buckets.has(key)) {
-        buckets.set(key, { label: format(weekStart, "d MMM"), conversations: 0, credits: 0 })
-      }
-      const b = buckets.get(key)!
-      b.credits += point.credits
-    }
-  } else if (range === "month") {
-    for (const point of conversationPoints) {
-      const key = format(point, "yyyy-MM")
-      if (!buckets.has(key)) {
-        buckets.set(key, { label: format(point, "MMM yy"), conversations: 0, credits: 0 })
-      }
-      const b = buckets.get(key)!
-      b.conversations++
-    }
-    for (const point of creditPoints) {
-      const key = format(point.at, "yyyy-MM")
-      if (!buckets.has(key)) {
-        buckets.set(key, { label: format(point.at, "MMM yy"), conversations: 0, credits: 0 })
-      }
-      const b = buckets.get(key)!
-      b.credits += point.credits
+  if (granularity === "day") {
+    for (const d of eachDayOfInterval({ start: from, end: to })) {
+      buckets.set(keyFor(d), { label: labelFor(d), conversations: 0, credits: 0 })
     }
   }
+  for (const log of logs) {
+    if (!log.startTime) continue
+    const key = keyFor(log.startTime)
+    const bucket = buckets.get(key) ?? { label: labelFor(log.startTime), conversations: 0, credits: 0 }
+    bucket.conversations++
+    bucket.credits += log.creditsUsed ?? 0
+    buckets.set(key, bucket)
+  }
 
-  // Sort by key (chronological)
   const data = Array.from(buckets.entries())
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([, v]) => v)
 
-  // Summary stats
-  const totalConversations = conversationPoints.length
-  const totalCredits = creditPoints.reduce((s, p) => s + p.credits, 0)
-
-  // Busiest day (always per-day regardless of range)
-  const dayMap = new Map<string, number>()
-  for (const point of conversationPoints) {
-    const key = format(point, "EEEE") // Monday, Tuesday…
-    dayMap.set(key, (dayMap.get(key) ?? 0) + 1)
+  const weekdays = new Map<string, number>()
+  for (const log of logs) {
+    if (!log.startTime) continue
+    const day = format(log.startTime, "EEEE")
+    weekdays.set(day, (weekdays.get(day) ?? 0) + 1)
   }
-  let busiestDay: string | null = null
-  let busiestCount = 0
-  for (const [day, count] of dayMap) {
-    if (count > busiestCount) { busiestDay = day; busiestCount = count }
-  }
+  const busiestDay =
+    [...weekdays.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null
 
-  return NextResponse.json({ data, totalConversations, totalCredits, busiestDay })
+  return NextResponse.json({
+    data,
+    totalConversations: data.reduce((s, p) => s + p.conversations, 0),
+    totalCredits: data.reduce((s, p) => s + p.credits, 0),
+    busiestDay,
+  })
 }
