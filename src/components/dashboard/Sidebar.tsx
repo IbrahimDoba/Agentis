@@ -103,7 +103,7 @@ const baseNavItems: NavItem[] = [
 const referralNavItem: NavItem = { href: "/dashboard/referrals", label: "Referrals", icon: GiftIcon }
 // Only for accounts on the official Cloud API — a Baileys user has no WhatsApp
 // Business Account, so the tab would open onto nothing.
-const metaNavItem: NavItem = { href: "/dashboard/meta", label: "Meta", icon: BuildingStorefrontIcon }
+const metaNavItem: NavItem = { href: "/dashboard/meta", label: "WhatsApp accounts", icon: BuildingStorefrontIcon }
 
 export function Sidebar({ userName, businessName, currentUserId, currentWorkspaceId, isOpen, onClose, collapsed, onToggleCollapse }: SidebarProps) {
   const pathname = usePathname()

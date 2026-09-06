@@ -17,12 +17,16 @@ export async function GET() {
     select: {
       id: true,
       wabaId: true,
+      businessId: true,
       phoneNumberId: true,
       displayPhoneNumber: true,
       verifiedName: true,
       registeredAt: true,
       subscribedAt: true,
       createdAt: true,
+      aiRepliesEnabled: true,
+      typingIndicator: true,
+      agentId: true,
       agent: { select: { businessName: true } },
     },
   })

@@ -1,4 +1,5 @@
 import { getOrchestratorAgent, isAiRepliesPaused, isReplyGuardEnabled, getReplyDelayMs, type OrchestratorAgent } from "../db/queries/agents.js"
+import { isMetaAiRepliesPaused } from "../db/queries/meta.js"
 import {
   getOrCreateConversation,
   getConversationById,
@@ -348,6 +349,21 @@ async function generateReply(agent: OrchestratorAgent, conversation: Conversatio
     await maybeBackgroundTag()
     logger.info({ agentId, conversationId }, "AI replies disabled for agent — skipping AI reply")
     return
+  }
+
+  // Per-number switch for Cloud API connections. Sits beside the agent-level
+  // switch rather than replacing it: one agent can answer on several connected
+  // numbers, and an operator silencing one must not silence the rest. Checked
+  // here, after the inbound is already persisted, so the customer's message
+  // still lands in Conversations for a human to pick up.
+  if (channel === "meta" && conversation.metaPhoneNumberId) {
+    if (await isMetaAiRepliesPaused(conversation.metaPhoneNumberId)) {
+      logger.info(
+        { agentId, conversationId, metaPhoneNumberId: conversation.metaPhoneNumberId },
+        "AI replies disabled for this Cloud API number — skipping AI reply"
+      )
+      return
+    }
   }
 
   // Per-label AI-off — stay silent on chats carrying a label the operator set to

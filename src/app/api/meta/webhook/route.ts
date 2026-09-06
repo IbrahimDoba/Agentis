@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
-import { verifyWebhookChallenge, verifyWebhookSignature } from "@/lib/meta/cloud-api"
+import {
+  markReadWithTyping,
+  verifyWebhookChallenge,
+  verifyWebhookSignature,
+} from "@/lib/meta/cloud-api"
 import { resolveNumberContext } from "@/lib/meta/routing"
 
 // crypto + Prisma + openai — Node runtime, never cached.
@@ -125,6 +129,16 @@ async function handleInbound(msg: InboundText): Promise<void> {
   if (!ORCHESTRATOR_API_KEY) {
     console.error("[meta/webhook] ORCHESTRATOR_API_KEY not set — cannot forward inbound")
     return
+  }
+
+  // Read receipt + typing bubble, when the operator has switched it on for this
+  // number. Fire-and-forget and deliberately un-awaited: it is cosmetic, and the
+  // orchestrator handoff below must not wait on a second round trip to Graph.
+  if (context.typingIndicator) {
+    void markReadWithTyping(msg.wamid, {
+      phoneNumberId: context.phoneNumberId,
+      accessToken: context.accessToken,
+    })
   }
 
   // Hand off to the orchestrator, exactly as the Baileys worker and the embed

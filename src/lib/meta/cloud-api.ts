@@ -135,3 +135,38 @@ export async function sendTemplate(
     (raw as { messages?: Array<{ id?: string }> })?.messages?.[0]?.id ?? null
   return { waMessageId, raw }
 }
+
+// Mark an inbound message read and show the typing bubble while the AI composes.
+// One call does both: Meta ties the typing indicator to the read receipt of a
+// specific message rather than exposing it as a standalone endpoint.
+//
+// Best-effort by design — the caller must not let this fail a reply. The
+// indicator expires on its own after ~25 seconds, or when the reply lands.
+export async function markReadWithTyping(
+  messageId: string,
+  from: MetaConfig
+): Promise<void> {
+  const { phoneNumberId, accessToken } = from
+  const url = `https://graph.facebook.com/${GRAPH_VERSION}/${phoneNumberId}/messages`
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      messaging_product: "whatsapp",
+      status: "read",
+      message_id: messageId,
+      typing_indicator: { type: "text" },
+    }),
+  })
+
+  if (!res.ok) {
+    const raw = await res.json().catch(() => ({}))
+    const detail = (raw as { error?: { message?: string } })?.error?.message || res.statusText
+    // Logged, never thrown: a cosmetic indicator must not cost the customer a reply.
+    console.warn(`[meta/cloud-api] typing indicator failed (${res.status}): ${detail}`)
+  }
+}

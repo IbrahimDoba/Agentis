@@ -1,0 +1,111 @@
+.wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background-color var(--transition), color var(--transition),
+    border-color var(--transition);
+}
+
+.trigger:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.trigger:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.trigger[aria-expanded="true"] {
+  background: var(--bg-hover);
+  border-color: var(--border);
+  color: var(--text-primary);
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 40;
+  min-width: 210px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-lg);
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  padding: 0.5rem 0.6rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background-color var(--transition), color var(--transition);
+}
+
+.item:hover:not(:disabled),
+.item:focus-visible {
+  background: var(--bg-hover);
+}
+
+.item:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.item:disabled {
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+/* Destructive actions sit apart so "Delete" is never a neighbour-miss of a
+   harmless copy action. */
+.destructive {
+  color: var(--danger);
+  margin-top: 4px;
+  border-top: 1px solid var(--border-subtle);
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  padding-top: 0.6rem;
+}
+
+.destructive:hover:not(:disabled),
+.destructive:focus-visible {
+  background: var(--danger-light);
+}
+
+.external {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trigger,
+  .item {
+    transition: none;
+  }
+}
