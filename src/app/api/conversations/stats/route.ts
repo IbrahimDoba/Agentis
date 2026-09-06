@@ -6,6 +6,8 @@ import { getWorkspaceContext } from "@/lib/workspace"
 import { sumCreditsForAgents, sumCreditsBySourceForAgents, sumWalletCreditsUsedForUser } from "@/lib/creditUsage"
 import { getBillingPeriod } from "@/lib/billing-period"
 import { cachedJson } from "@/lib/cache"
+import { getOverviewCounts } from "@/lib/queries/conversationStats"
+import { leadsRate } from "@/lib/conversationStats"
 
 type RuntimeView = "orchestrator" | "elevenlabs"
 type StatsRange = "7d" | "1m" | "6m" | "1y" | "all"
@@ -68,6 +70,10 @@ export async function GET(req: NextRequest) {
     let totalConversations = 0
     let totalAiMessages = 0
     let totalLeads = 0
+    // Conversations in the cohort that carry a lead. Separate from totalLeads,
+    // which stays "leads created in the window" — the honest answer to "how many
+    // leads did I get this week" even when the conversation started earlier.
+    let convertedConversations = 0
     let totalContacts = 0
     let totalCreditsUsed = 0
     let monthlyCreditsUsed = 0
@@ -82,21 +88,12 @@ export async function GET(req: NextRequest) {
 
     if (runtime === "orchestrator") {
       if (runtimeAgentIds.length > 0) {
-        const [convCount, aiMsgCount, leadCount, contacts, creditsTotal, creditsMonthly, creditsBreakdown] = await Promise.all([
-          db.conversation.count({
-            where: {
-              agentId: { in: runtimeAgentIds },
-              ...(createdAtFilter ? { createdAt: createdAtFilter } : {}),
-            },
-          }),
-          db.message.count({
-            where: {
-              direction: "outbound",
-              senderRole: "ai",
-              conversation: { agentId: { in: runtimeAgentIds } },
-              ...(createdAtFilter ? { createdAt: createdAtFilter } : {}),
-            },
-          }),
+        // Replaces four Prisma aggregates: this excludes the chats the Chats tab
+        // hides (soft-deleted, empty embed visits) and counts contacts with
+        // COUNT(DISTINCT) rather than materialising every distinct phone number
+        // in Node just to read .length.
+        const [counts, leadCount, creditsTotal, creditsMonthly, creditsBreakdown] = await Promise.all([
+          getOverviewCounts(runtimeAgentIds, ownerId, since),
           db.lead.count({
             where: {
               userId: ownerId,
@@ -104,22 +101,15 @@ export async function GET(req: NextRequest) {
               ...(createdAtFilter ? { createdAt: createdAtFilter } : {}),
             },
           }),
-          db.conversation.groupBy({
-            by: ["phoneNumber"],
-            where: {
-              agentId: { in: runtimeAgentIds },
-              phoneNumber: { not: "" },
-              ...(createdAtFilter ? { createdAt: createdAtFilter } : {}),
-            },
-          }),
           sumCreditsForAgents(runtimeAgentIds),
           sumCreditsForAgents(runtimeAgentIds, monthStart, monthEnd),
           sumCreditsBySourceForAgents(runtimeAgentIds, monthStart, monthEnd),
         ])
-        totalConversations = convCount
-        totalAiMessages = aiMsgCount
+        totalConversations = counts.conversations
+        totalAiMessages = counts.aiMessages
+        totalContacts = counts.contacts
+        convertedConversations = counts.converted
         totalLeads = leadCount
-        totalContacts = contacts.length
         totalCreditsUsed = creditsTotal
         monthlyCreditsUsed = creditsMonthly
         monthlyAiCredits = creditsBreakdown.ai
@@ -160,6 +150,9 @@ export async function GET(req: NextRequest) {
         totalConversations = convCount
         totalAiMessages = convCount
         totalLeads = leadCount
+        // Legacy runtime: ConversationLog has no per-conversation lead link, so
+        // the cohort numerator can only be bounded, not derived.
+        convertedConversations = Math.min(leadCount, convCount)
         totalContacts = contacts.length
         totalCreditsUsed = creditsAgg?._sum?.creditsUsed ?? 0
         monthlyCreditsUsed = monthlyCreditsAgg?._sum?.creditsUsed ?? 0
@@ -179,6 +172,10 @@ export async function GET(req: NextRequest) {
       totalConversations,
       totalAiMessages,
       totalLeads,
+      convertedConversations,
+      // Computed server-side so the cohort that produced it can't drift from the
+      // one the card divides by. null = no conversations in range (render "—").
+      leadsRate: leadsRate(convertedConversations, totalConversations),
       totalContacts,
       totalCreditsUsed,
       monthlyCreditsUsed,

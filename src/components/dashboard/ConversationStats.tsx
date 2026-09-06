@@ -47,6 +47,7 @@ export function ConversationStats({ runtime, agentId }: ConversationStatsProps) 
     totalConversations: number
     totalAiMessages: number
     totalLeads: number
+    leadsRate: number | null
     totalContacts: number
     totalCreditsUsed: number
     monthlyCreditsUsed: number
@@ -65,11 +66,12 @@ export function ConversationStats({ runtime, agentId }: ConversationStatsProps) 
     staleTime: 60 * 1000,
   })
 
-  const total = data?.totalConversations ?? 0
   const aiMessages = data?.totalAiMessages ?? 0
   const leads = data?.totalLeads ?? 0
   const contacts = data?.totalContacts ?? 0
-  const leadsRate = total > 0 ? Math.round((leads / total) * 100) : 0
+  // Server-computed: the numerator has to come from the same cohort as the
+  // denominator, and null means there were no conversations to divide by.
+  const leadsRate = data?.leadsRate ?? null
 
   return (
     <section className={styles.statsSection}>
@@ -133,7 +135,7 @@ export function ConversationStats({ runtime, agentId }: ConversationStatsProps) 
                 <ArrowTrendingUpIcon width={18} height={18} />
               </div>
               <div className={styles.statLabel}>Leads Rate</div>
-              <div className={styles.statValue}>{leadsRate}%</div>
+              <div className={styles.statValue}>{leadsRate === null ? "—" : `${leadsRate}%`}</div>
               <div className={styles.statSub}>Of conversations become leads</div>
             </div>
           </>
