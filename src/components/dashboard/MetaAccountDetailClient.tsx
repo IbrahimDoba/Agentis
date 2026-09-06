@@ -28,6 +28,7 @@ interface NumberStatus {
   nameStatus: string | null
   codeVerificationStatus: string | null
   accountReviewStatus: string | null
+  businessVerificationStatus: string | null
 }
 
 interface Props {
@@ -40,6 +41,7 @@ interface Props {
 // swallowed, so a new tier Meta invents still shows something truthful.
 function formatTier(tier: string | null): string {
   if (!tier) return "Unknown"
+  if (tier === "TIER_UNLIMITED") return "Unlimited"
   const match = /^TIER_(\d+)([KM]?)$/.exec(tier)
   if (!match) return tier
   const [, digits, scale] = match
@@ -338,6 +340,10 @@ export function MetaAccountDetailClient({ connection, agents }: Props) {
             <div>
               <dt>Number verification</dt>
               <dd>{status ? (status.codeVerificationStatus ?? "Unknown") : "…"}</dd>
+            </div>
+            <div>
+              <dt>Business verification</dt>
+              <dd>{status ? (status.businessVerificationStatus ?? "Unknown") : "…"}</dd>
             </div>
             <div>
               <dt>Account review</dt>

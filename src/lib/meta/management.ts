@@ -245,6 +245,12 @@ export interface NumberStatus {
   codeVerificationStatus: string | null
   /** WABA-level review state, e.g. APPROVED / PENDING. */
   accountReviewStatus: string | null
+  /**
+   * Verification of the owning business portfolio — "verified" / "rejected" /
+   * "not_verified". This, not code_verification_status, is what governs the
+   * messaging tier, so it is shown right beside it.
+   */
+  businessVerificationStatus: string | null
 }
 
 export async function getNumberStatus(
@@ -261,9 +267,11 @@ export async function getNumberStatus(
       "display_phone_number,verified_name,messaging_limit_tier,quality_rating,name_status,code_verification_status",
       { accessToken }
     ),
-    graphGet<{ account_review_status?: string }>(wabaId, "account_review_status", {
-      accessToken,
-    }).catch(() => null),
+    graphGet<{ account_review_status?: string; business_verification_status?: string }>(
+      wabaId,
+      "account_review_status,business_verification_status",
+      { accessToken }
+    ).catch(() => null),
   ])
 
   return {
@@ -274,5 +282,6 @@ export async function getNumberStatus(
     nameStatus: number.name_status ?? null,
     codeVerificationStatus: number.code_verification_status ?? null,
     accountReviewStatus: waba?.account_review_status ?? null,
+    businessVerificationStatus: waba?.business_verification_status ?? null,
   }
 }
