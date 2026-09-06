@@ -136,9 +136,14 @@ try {
   // Auto-reconnect sessions that were CONNECTED before restart
   const { sql } = await import("./db/client.js")
   const { sessionManager } = await import("./baileys/session-manager.js")
+  // Skip agents whose owner is SUSPENDED — a suspended account must not silently
+  // come back online (and resume billing) on a worker restart.
   const activeSessions = await sql<{ agentId: string }[]>`
-    SELECT "agentId" FROM "BaileysSession"
-    WHERE "status" IN ('CONNECTED', 'QR_PENDING', 'CONNECTING')
+    SELECT s."agentId" FROM "BaileysSession" s
+    JOIN "Agent" a ON a.id = s."agentId"
+    JOIN "User" u ON u.id = a."userId"
+    WHERE s."status" IN ('CONNECTED', 'QR_PENDING', 'CONNECTING')
+      AND u."status" <> 'SUSPENDED'
   `
   for (const row of activeSessions) {
     logger.info({ agentId: row.agentId }, "Auto-reconnecting session")

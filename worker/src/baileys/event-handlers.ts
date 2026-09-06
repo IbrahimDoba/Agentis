@@ -13,7 +13,7 @@ import {
 import { isAddressedToUs, resolveSelfJids, addressingDebug } from "./group-mention.js"
 import { transcribeVoiceNote } from "../voice/transcribe.js"
 import { creditsForVoice } from "../billing/credits.js"
-import { chargeIncurredCredits } from "../billing/charge.js"
+import { chargeIncurredCredits, hasCreditHeadroom } from "../billing/charge.js"
 import { recordEvent } from "../lib/event-log.js"
 import { wasSentByUs } from "./sent-message-cache.js"
 import { markInboundActivity } from "./activity-tracker.js"
@@ -258,6 +258,22 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
       if (!text && msg.message?.audioMessage?.ptt) {
         if (!config.OPENAI_API_KEY) {
           logger.debug({ agentId, senderJid }, "Voice note received but OPENAI_API_KEY not set, skipping")
+          continue
+        }
+        // Gate BEFORE Whisper runs — transcription costs money the moment it's
+        // called, and the charge below is best-effort/non-blocking, so without
+        // this an out-of-allowance account could burn unlimited transcription
+        // spend (each note billed only after the fact). No headroom → skip the
+        // note rather than transcribe it for free.
+        if (!(await hasCreditHeadroom(agentId))) {
+          void recordEvent({
+            level: "warn",
+            category: "billing.voice_skipped_no_credit",
+            agentId,
+            message: "voice note skipped — no credit headroom",
+            detail: { senderJid },
+          })
+          logger.info({ agentId, senderJid }, "Voice note skipped — out of credit allowance")
           continue
         }
         try {

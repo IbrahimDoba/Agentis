@@ -4,6 +4,7 @@ import { db } from "@/lib/db"
 import { z } from "zod"
 import { sendAccountSuspendedEmail } from "@/lib/email"
 import { calcCommission } from "@/lib/plans"
+import { baileysClient } from "@/lib/baileys-client"
 
 const updateSchema = z.object({
   status: z.enum(["PENDING", "APPROVED", "REJECTED", "SUSPENDED"]).optional(),
@@ -77,6 +78,22 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     if (parsed.data.status === "SUSPENDED") {
       sendAccountSuspendedEmail({ name: user.name, email: user.email })
         .catch((err) => console.error("[PATCH /api/users/:id] suspended email error:", err))
+
+      // Drop every live WhatsApp session for this user. Setting the DB status
+      // alone leaves the socket running in the worker — it keeps receiving,
+      // replying and billing until torn down. Best-effort; the worker also
+      // refuses to auto-reconnect a suspended user's sessions on restart.
+      db.agent.findMany({ where: { userId: id }, select: { id: true } })
+        .then((agents) =>
+          Promise.all(
+            agents.map((a) =>
+              baileysClient.disconnectSession(a.id).catch((err) =>
+                console.error(`[PATCH /api/users/:id] disconnect ${a.id} error:`, err),
+              ),
+            ),
+          ),
+        )
+        .catch((err) => console.error("[PATCH /api/users/:id] suspend-disconnect error:", err))
     }
 
     const { passwordHash, ...safeUser } = user
