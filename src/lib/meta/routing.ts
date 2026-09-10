@@ -15,6 +15,8 @@ export interface NumberContext {
   accessToken: string
   agentId: string
   userId: string
+  /** Per-number setting: mark inbound read and show the typing bubble. */
+  typingIndicator: boolean
 }
 
 export async function resolveNumberContext(
@@ -22,7 +24,13 @@ export async function resolveNumberContext(
 ): Promise<NumberContext | null> {
   const connection = await db.metaConnection.findUnique({
     where: { phoneNumberId },
-    select: { phoneNumberId: true, accessToken: true, userId: true, agentId: true },
+    select: {
+      phoneNumberId: true,
+      accessToken: true,
+      userId: true,
+      agentId: true,
+      typingIndicator: true,
+    },
   })
 
   // A connection with no agent can't answer — the number is connected but
@@ -34,6 +42,7 @@ export async function resolveNumberContext(
     accessToken: decryptToken(connection.accessToken),
     agentId: connection.agentId,
     userId: connection.userId,
+    typingIndicator: connection.typingIndicator,
   }
 }
 

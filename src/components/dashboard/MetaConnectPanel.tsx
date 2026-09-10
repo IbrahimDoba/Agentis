@@ -43,6 +43,12 @@ declare global {
 interface MetaConnectPanelProps {
   appId: string | null
   configId: string | null
+  /**
+   * Rendered inside the accounts modal rather than as a standalone panel: the
+   * modal supplies the title, and the accounts table behind it already lists
+   * every connection — so only the not-yet-activated ones are worth repeating.
+   */
+  embedded?: boolean
 }
 
 // Fire-and-forget breadcrumb so a failure that never reaches /api/meta/connect
@@ -55,8 +61,12 @@ function trace(stage: string, detail?: string) {
   }).catch(() => {})
 }
 
-export function MetaConnectPanel({ appId, configId }: MetaConnectPanelProps) {
+export function MetaConnectPanel({ appId, configId, embedded = false }: MetaConnectPanelProps) {
   const [connections, setConnections] = useState<Connection[]>([])
+  // Embedded: only rows still needing "Register + subscribe". Standalone: all.
+  const visibleConnections = embedded
+    ? connections.filter((c) => !c.subscribedAt)
+    : connections
   const [agents, setAgents] = useState<Array<{ id: string; businessName: string }>>([])
   // Which agent answers on the number about to be connected. Chosen before
   // launching the flow, because Meta's popup returns straight to the exchange
@@ -260,18 +270,34 @@ export function MetaConnectPanel({ appId, configId }: MetaConnectPanelProps) {
 
   return (
     <section className={`${styles.panel} ${styles.businessPanel}`}>
-      <h2 className={styles.panelTitle}>
-        Connect a WhatsApp account
-        <span className={styles.scopeTag}>Embedded Signup</span>
-        <button
-          type="button"
-          className={styles.refresh}
-          onClick={handleConnect}
-          disabled={!sdkReady || busy}
-        >
-          {busy ? "Connecting…" : sdkReady ? "Connect your WhatsApp" : "Loading…"}
-        </button>
-      </h2>
+      {/* The modal already carries this title, so when embedded the heading is
+          dropped entirely rather than left holding just the button — an <h2>
+          with no text is an empty heading in the accessibility tree. */}
+      {embedded ? (
+        <div className={styles.panelTitle}>
+          <button
+            type="button"
+            className={styles.refresh}
+            onClick={handleConnect}
+            disabled={!sdkReady || busy}
+          >
+            {busy ? "Connecting…" : sdkReady ? "Connect your WhatsApp" : "Loading…"}
+          </button>
+        </div>
+      ) : (
+        <h2 className={styles.panelTitle}>
+          Connect a WhatsApp account
+          <span className={styles.scopeTag}>Embedded Signup</span>
+          <button
+            type="button"
+            className={styles.refresh}
+            onClick={handleConnect}
+            disabled={!sdkReady || busy}
+          >
+            {busy ? "Connecting…" : sdkReady ? "Connect your WhatsApp" : "Loading…"}
+          </button>
+        </h2>
+      )}
 
       {/* A disabled button with no explanation is a dead end — say which piece
           is missing rather than leaving it inert. */}
@@ -317,7 +343,7 @@ export function MetaConnectPanel({ appId, configId }: MetaConnectPanelProps) {
       {error && <p className={styles.error}>{error}</p>}
       {status && <p className={styles.hint}>{status}</p>}
 
-      {connections.length > 0 && (
+      {visibleConnections.length > 0 && (
         <table className={styles.table}>
           <thead>
             <tr>
@@ -329,7 +355,7 @@ export function MetaConnectPanel({ appId, configId }: MetaConnectPanelProps) {
             </tr>
           </thead>
           <tbody>
-            {connections.map((c) => (
+            {visibleConnections.map((c) => (
               <tr key={c.id}>
                 <td>{c.displayPhoneNumber ?? c.phoneNumberId}</td>
                 <td>{c.verifiedName ?? "—"}</td>
@@ -359,7 +385,7 @@ export function MetaConnectPanel({ appId, configId }: MetaConnectPanelProps) {
         </table>
       )}
 
-      {connections.length === 0 && (
+      {!embedded && connections.length === 0 && (
         <p className={styles.hint}>
           No numbers connected yet. The button above opens Meta&apos;s hosted signup — you
           pick your business and WhatsApp number there, so there is nothing to type in here.
@@ -369,13 +395,18 @@ export function MetaConnectPanel({ appId, configId }: MetaConnectPanelProps) {
       {/* Only relevant once something is connected but not yet activated. */}
       {connections.some((c) => !c.subscribedAt) && (
       <div className={styles.field} style={{ marginTop: "1rem" }}>
-        <label className={styles.label}>Two-step PIN for registration</label>
+        <label className={styles.label} htmlFor="meta-connect-pin">
+          Two-step PIN for registration
+        </label>
         <input
+          id="meta-connect-pin"
           className={styles.input}
-          placeholder="6 digits"
+          placeholder="6 digits, e.g. 042195"
           value={pin}
           onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
           inputMode="numeric"
+          autoComplete="off"
+          spellCheck={false}
         />
         <span className={styles.hint}>
           Registering claims the number for the Cloud API and sets its two-step PIN. Only do

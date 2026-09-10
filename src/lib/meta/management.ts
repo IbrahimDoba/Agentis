@@ -222,3 +222,66 @@ export async function deleteTemplate(
 ): Promise<void> {
   await graphDelete(`${wabaId}/message_templates`, { name }, { accessToken })
 }
+
+// ---------------------------------------------------------------------------
+// Number status
+//
+// The fields that explain *why* a number behaves the way it does — chiefly its
+// messaging tier, which is what caps how many people you can start a
+// conversation with in a rolling 24 hours. It is governed by the owning business
+// portfolio's verification, not by the number's own code verification, so
+// showing all four side by side is what stops the two being confused.
+
+export interface NumberStatus {
+  displayPhoneNumber: string | null
+  verifiedName: string | null
+  /** e.g. TIER_250, TIER_1K — how many unique customers you may initiate with. */
+  messagingLimitTier: string | null
+  /** GREEN / YELLOW / RED, or UNKNOWN until enough has been sent. */
+  qualityRating: string | null
+  /** Display-name review outcome: APPROVED / PENDING / DECLINED. */
+  nameStatus: string | null
+  /** Whether the number itself passed SMS/voice code verification. */
+  codeVerificationStatus: string | null
+  /** WABA-level review state, e.g. APPROVED / PENDING. */
+  accountReviewStatus: string | null
+  /**
+   * Verification of the owning business portfolio — "verified" / "rejected" /
+   * "not_verified". This, not code_verification_status, is what governs the
+   * messaging tier, so it is shown right beside it.
+   */
+  businessVerificationStatus: string | null
+}
+
+export async function getNumberStatus(
+  phoneNumberId: string,
+  wabaId: string,
+  accessToken: string
+): Promise<NumberStatus> {
+  // The WABA read is allowed to fail on its own: account_review_status needs a
+  // permission the number read doesn't, and a number's own status is still worth
+  // showing when that one edge is refused.
+  const [number, waba] = await Promise.all([
+    graphGet<Record<string, string>>(
+      phoneNumberId,
+      "display_phone_number,verified_name,messaging_limit_tier,quality_rating,name_status,code_verification_status",
+      { accessToken }
+    ),
+    graphGet<{ account_review_status?: string; business_verification_status?: string }>(
+      wabaId,
+      "account_review_status,business_verification_status",
+      { accessToken }
+    ).catch(() => null),
+  ])
+
+  return {
+    displayPhoneNumber: number.display_phone_number ?? null,
+    verifiedName: number.verified_name ?? null,
+    messagingLimitTier: number.messaging_limit_tier ?? null,
+    qualityRating: number.quality_rating ?? null,
+    nameStatus: number.name_status ?? null,
+    codeVerificationStatus: number.code_verification_status ?? null,
+    accountReviewStatus: waba?.account_review_status ?? null,
+    businessVerificationStatus: waba?.business_verification_status ?? null,
+  }
+}

@@ -21,6 +21,8 @@ export interface Conversation {
   adContext: AdContext | null
   channel: "whatsapp" | "embed" | "api" | "whatsapp_group" | "meta"
   visitorId: string | null
+  /** Cloud API only: which of our numbers this conversation belongs to. */
+  metaPhoneNumberId: string | null
 }
 
 export interface Message {
@@ -75,7 +77,7 @@ export async function getOrCreateConversation(
   // Try to find existing
   const existing = await sql<Conversation[]>`
     SELECT "id", "agentId", "orchestratorAgentId", "phoneNumber", "mode",
-           "lastActivityAt", "adContext", "channel", "visitorId"
+           "lastActivityAt", "adContext", "channel", "visitorId", "metaPhoneNumberId"
     FROM "Conversation"
     WHERE "agentId" = ${agentId} AND "phoneNumber" = ${phoneNumber}
       AND "channel" = ${channel}
@@ -106,7 +108,7 @@ export async function getOrCreateConversation(
       ${contactName ?? null}, ${senderJid}, ${defaultMode}, ${channel}, ${visitorId},
       ${metaPhoneNumberId}, NOW(), NOW())
     RETURNING "id", "agentId", "orchestratorAgentId", "phoneNumber", "mode",
-              "lastActivityAt", "adContext", "channel", "visitorId"
+              "lastActivityAt", "adContext", "channel", "visitorId", "metaPhoneNumberId"
   `
   return rows[0]
 }
@@ -117,7 +119,7 @@ export async function getOrCreateConversation(
 export async function getConversationById(conversationId: string): Promise<Conversation | null> {
   const rows = await sql<Conversation[]>`
     SELECT "id", "agentId", "orchestratorAgentId", "phoneNumber", "mode",
-           "lastActivityAt", "adContext", "channel", "visitorId"
+           "lastActivityAt", "adContext", "channel", "visitorId", "metaPhoneNumberId"
     FROM "Conversation"
     WHERE "id" = ${conversationId}
     LIMIT 1

@@ -1155,6 +1155,15 @@ model MetaConnection {
   // calls that finish the handshake, each of which can fail independently.
   registeredAt       DateTime? @db.Timestamptz()
   subscribedAt       DateTime? @db.Timestamptz()
+  // Per-number switch, checked by the orchestrator before it generates. Off
+  // means inbound is still saved and shown in Conversations — only the AI stays
+  // quiet, so a human can answer. Separate from Agent.aiRepliesEnabled because
+  // one agent can answer on several numbers.
+  aiRepliesEnabled   Boolean   @default(true)
+  // Mark inbound as read and show a typing indicator while the AI composes.
+  // Defaults OFF: every already-connected number pre-dates this, and a deploy
+  // must not silently change what a customer sees mid-conversation.
+  typingIndicator    Boolean   @default(false)
   createdAt          DateTime  @default(now()) @db.Timestamptz()
   updatedAt          DateTime  @updatedAt @db.Timestamptz()
 
