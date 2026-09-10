@@ -36,11 +36,11 @@
   color: var(--text-primary);
 }
 
+/* Fixed, not absolute: the menu is portalled to <body> to escape the table's
+   scroll container, so it is positioned in viewport coordinates from JS. */
 .menu {
-  position: absolute;
-  top: calc(100% + 4px);
-  right: 0;
-  z-index: 40;
+  position: fixed;
+  z-index: 100;
   min-width: 210px;
   padding: 6px;
   border: 1px solid var(--border);
