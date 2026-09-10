@@ -1,6 +1,7 @@
 "use client"
 
-import { useCallback, useEffect, useId, useRef, useState } from "react"
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from "react"
+import { createPortal } from "react-dom"
 import styles from "./DropdownMenu.module.css"
 
 export interface DropdownItem {
@@ -25,8 +26,12 @@ interface DropdownMenuProps {
 export function DropdownMenu({ items, label }: DropdownMenuProps) {
   const [open, setOpen] = useState(false)
   const [activeIndex, setActiveIndex] = useState(-1)
+  // Viewport coordinates for the portalled menu. Null until measured, so the
+  // menu never paints at 0,0 for a frame before being placed.
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
   const itemRefs = useRef<Array<HTMLButtonElement | null>>([])
   const menuId = useId()
 
@@ -42,10 +47,63 @@ export function DropdownMenu({ items, label }: DropdownMenuProps) {
   useEffect(() => {
     if (!open) return
     const onPointerDown = (e: PointerEvent) => {
-      if (!wrapRef.current?.contains(e.target as Node)) close(false)
+      const target = e.target as Node
+      // The menu lives on <body> now, so it is NOT inside wrapRef — without the
+      // second test every menu click would count as an outside click and close
+      // the menu before the item's own handler ran.
+      if (wrapRef.current?.contains(target) || menuRef.current?.contains(target)) return
+      close(false)
     }
     document.addEventListener("pointerdown", onPointerDown)
     return () => document.removeEventListener("pointerdown", onPointerDown)
+  }, [open, close])
+
+  // The menu renders in a portal on <body> because its natural parent is a
+  // table with `overflow-x: auto` for narrow screens — and a scroll container
+  // clips absolutely-positioned children on BOTH axes (per spec, setting one
+  // axis to auto forces the other from visible to auto). Positioning is
+  // therefore viewport-relative and measured from the trigger.
+  useLayoutEffect(() => {
+    // No reset on close — the menu is unmounted then, and this effect runs
+    // before paint on the next open, so a stale position is never visible.
+    if (!open) return
+    const trigger = triggerRef.current
+    const menu = menuRef.current
+    if (!trigger) return
+
+    const rect = trigger.getBoundingClientRect()
+    const menuHeight = menu?.offsetHeight ?? 0
+    const menuWidth = menu?.offsetWidth ?? 210
+    const GAP = 4
+    const MARGIN = 8
+
+    // Flip above the trigger when there isn't room below — otherwise the last
+    // row's menu opens off the bottom of the window.
+    const roomBelow = window.innerHeight - rect.bottom
+    const flip = menuHeight > 0 && roomBelow < menuHeight + GAP + MARGIN
+    const top = flip ? rect.top - menuHeight - GAP : rect.bottom + GAP
+
+    // Right-aligned to the trigger, clamped so it can't leave the viewport.
+    const left = Math.max(MARGIN, Math.min(
+      rect.right - menuWidth,
+      window.innerWidth - menuWidth - MARGIN
+    ))
+
+    setPos({ top, left })
+  }, [open])
+
+  // Fixed coordinates stop matching the trigger the moment anything scrolls, so
+  // close instead of chasing it. Capture phase catches scrolls in the table
+  // wrapper and any other ancestor, not just the window.
+  useEffect(() => {
+    if (!open) return
+    const onScroll = () => close(false)
+    window.addEventListener("scroll", onScroll, true)
+    window.addEventListener("resize", onScroll)
+    return () => {
+      window.removeEventListener("scroll", onScroll, true)
+      window.removeEventListener("resize", onScroll)
+    }
   }, [open, close])
 
   // Move focus onto the menu once it opens so arrow keys and Escape work
@@ -99,33 +157,50 @@ export function DropdownMenu({ items, label }: DropdownMenuProps) {
         </svg>
       </button>
 
-      {open && (
-        <div className={styles.menu} id={menuId} role="menu">
-          {items.map((item, i) => (
-            <button
-              key={item.label}
-              ref={(el) => {
-                itemRefs.current[i] = el
-              }}
-              type="button"
-              role="menuitem"
-              disabled={item.disabled}
-              className={`${styles.item} ${item.destructive ? styles.destructive : ""}`}
-              onClick={() => {
-                item.onSelect()
-                close()
-              }}
-            >
-              <span>{item.label}</span>
-              {item.external && (
-                <span className={styles.external} aria-hidden="true">
-                  ↗
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
-      )}
+      {open &&
+        createPortal(
+          <div
+            ref={menuRef}
+            className={styles.menu}
+            id={menuId}
+            role="menu"
+            // No onKeyDown here: React propagates events through the component
+            // tree rather than the DOM tree, so keystrokes inside the portal
+            // already reach the wrapper's handler. A second one would step the
+            // active index twice per arrow press.
+            style={{
+              top: pos?.top ?? 0,
+              left: pos?.left ?? 0,
+              // Hidden until measured, so it can't flash in the wrong place.
+              visibility: pos ? "visible" : "hidden",
+            }}
+          >
+            {items.map((item, i) => (
+              <button
+                key={item.label}
+                ref={(el) => {
+                  itemRefs.current[i] = el
+                }}
+                type="button"
+                role="menuitem"
+                disabled={item.disabled}
+                className={`${styles.item} ${item.destructive ? styles.destructive : ""}`}
+                onClick={() => {
+                  item.onSelect()
+                  close()
+                }}
+              >
+                <span>{item.label}</span>
+                {item.external && (
+                  <span className={styles.external} aria-hidden="true">
+                    ↗
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>,
+          document.body
+        )}
     </div>
   )
 }
