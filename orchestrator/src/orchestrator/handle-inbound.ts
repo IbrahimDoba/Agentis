@@ -11,6 +11,7 @@ import {
   type Conversation,
 } from "../db/queries/conversations.js"
 import { buildSystemPrompt, buildMessages } from "./context-builder.js"
+import { loadConversationMemory, refreshConversationMemory } from "./conversation-memory.js"
 import { dispatchReply, chargeTurnOutsideWorker, canAffordReply } from "./response-dispatcher.js"
 import { buildRichContent } from "./rich-content.js"
 import { publishSseEvent } from "../lib/sse-publish.js"
@@ -399,7 +400,15 @@ async function generateReply(agent: OrchestratorAgent, conversation: Conversatio
   // unrelated questions.
   const messageCount = await getConversationMessageCount(conversationId)
   const adContextForPrompt = conversation.adContext && messageCount <= 6 ? conversation.adContext : null
-  let systemPrompt = await buildSystemPrompt(agent, "Africa/Lagos", latestText, adContextForPrompt)
+  // What the short-term window can no longer show. Never fatal: a thread with no
+  // record yet (or a failed read) just falls back to the recent messages.
+  let memory: string | null = null
+  try {
+    memory = (await loadConversationMemory(conversationId))?.summary ?? null
+  } catch (err: any) {
+    logger.warn({ conversationId, err: err?.message }, "Failed to load conversation memory — continuing without it")
+  }
+  let systemPrompt = await buildSystemPrompt(agent, "Africa/Lagos", latestText, adContextForPrompt, memory)
 
   // Without this the model writes a DM-shaped reply into a room of 40 people:
   // over-familiar, too long, and addressed to nobody in particular.
@@ -427,6 +436,10 @@ async function generateReply(agent: OrchestratorAgent, conversation: Conversatio
     senderJid: groupJid ?? senderJid,
     imageDataUrl,
   })
+  // Update the record in the background — the customer's reply must not wait on
+  // a summarisation call. It no-ops unless enough history has aged out.
+  void refreshConversationMemory(conversationId, agent.shortTermWindow)
+
   const totalInputTokens = turn.inputTokens
   const totalOutputTokens = turn.outputTokens
   const collectedToolResults = turn.collectedToolResults
