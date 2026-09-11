@@ -104,6 +104,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
         orchestratorModel: adminOrchModel,
         orchestratorTemperature: adminOrchTemp,
         orchestratorMaxTokens: adminOrchTokens,
+        orchestratorShortTermWindow: adminOrchWindow,
         agentRuntime: _adminRt,
         ...adminAgentFields
       } = parsed.data as any
@@ -159,6 +160,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
         if (adminOrchModel) orchestratorUpdate.model = adminOrchModel
         if (adminOrchTemp != null) orchestratorUpdate.temperature = adminOrchTemp
         if (adminOrchTokens != null) orchestratorUpdate.maxOutputTokens = adminOrchTokens
+        if (adminOrchWindow != null) orchestratorUpdate.shortTermWindow = adminOrchWindow
         await db.orchestratorAgent.updateMany({
           where: { agentId: id },
           data: orchestratorUpdate,
@@ -194,7 +196,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       }
 
       // Strip orchestrator-only fields before passing to Agent table
-      const { orchestratorModel, orchestratorTemperature, orchestratorMaxTokens, agentRuntime: _rt, ...agentFields } = parsed.data
+      const { orchestratorModel, orchestratorTemperature, orchestratorMaxTokens, orchestratorShortTermWindow, agentRuntime: _rt, ...agentFields } = parsed.data
 
       let updated = await db.agent.update({
         where: { id },
@@ -227,6 +229,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
         if (orchestratorModel) orchestratorUpdate.model = orchestratorModel
         if (orchestratorTemperature != null) orchestratorUpdate.temperature = orchestratorTemperature
         if (orchestratorMaxTokens != null) orchestratorUpdate.maxOutputTokens = orchestratorMaxTokens
+        if (orchestratorShortTermWindow != null) orchestratorUpdate.shortTermWindow = orchestratorShortTermWindow
         await db.orchestratorAgent.updateMany({
           where: { agentId: id },
           data: orchestratorUpdate,

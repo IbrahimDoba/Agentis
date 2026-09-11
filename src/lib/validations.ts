@@ -123,6 +123,10 @@ export const agentSchema = z.object({
   orchestratorModel: z.string().optional(),
   orchestratorTemperature: z.coerce.number().min(0).max(2).optional(),
   orchestratorMaxTokens: z.coerce.number().min(100).max(4096).optional(),
+  // How many recent messages the agent sees verbatim. Anything older is carried
+  // by the conversation-memory record instead, so this trades prompt cost
+  // against how much detail survives word-for-word.
+  orchestratorShortTermWindow: z.coerce.number().int().min(5).max(200).optional(),
 })
 
 export const adminAgentUpdateSchema = z.object({
