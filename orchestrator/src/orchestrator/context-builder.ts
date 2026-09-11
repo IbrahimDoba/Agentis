@@ -17,7 +17,11 @@ export async function buildSystemPrompt(
   agent: OrchestratorAgent,
   timezone: string,
   queryText?: string,
-  adContext?: AdContext | null
+  adContext?: AdContext | null,
+  // The running record of what fell out of the short-term window
+  // (conversation-memory.ts). Null when the thread is still short enough that
+  // the model can see all of it.
+  memory?: string | null
 ): Promise<string> {
   const sections: string[] = []
 
@@ -235,8 +239,21 @@ WhatsApp has its own formatting, not markdown. Use ONLY these:
 
 NEVER use any of these — WhatsApp cannot render them and they appear as broken literal characters: **double asterisks**, # or ## headings, [text](url) markdown links, tables, or underline.`)
 
-  // §7: Summaries, facts — added in later PRs
-  sections.push(`## Conversation memory\nYou have access to the full conversation history with this contact shown in the messages below. You CAN and DO remember everything said in this conversation. Reference previous messages naturally when relevant. Never claim you cannot remember the conversation.`)
+  // The messages below are only the last `shortTermWindow` of the thread. This
+  // section used to promise total recall ("you CAN and DO remember everything"),
+  // which is how the model ended up denying an address the customer had given
+  // and re-asking for a size it had been told — past the window it had nothing
+  // to recall and was instructed not to admit it. State what it actually has.
+  const record = memory?.trim()
+  if (record) {
+    sections.push(`## Earlier in this conversation
+This is what was already settled with this customer, before the messages shown below. Treat it as true, and NEVER ask again for anything recorded here.
+
+${record}`)
+  }
+  sections.push(`## Conversation memory
+You can see the recent messages below${record ? ", plus the record above of what came before them" : ""}. Reference them naturally when relevant.
+If the customer refers to something you cannot see — an address, a size, a price you quoted, an order they placed — do NOT guess it and do NOT tell them they never said it. Say you're confirming and ask them to repeat it, or hand off to the team.`)
 
   // Include the weekday explicitly — gpt-4o-mini can't reliably derive the day
   // of week from a bare date, which broke "are you open now / today?" answers
