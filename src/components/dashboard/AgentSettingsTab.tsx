@@ -8,6 +8,18 @@ import { useToast } from "@/context/ToastContext"
 import type { AgentPublic } from "@/types"
 import styles from "./AgentSettingsTab.module.css"
 
+// Mirrors the zod cap in validations.ts. Above this the debounce token expires
+// before the delayed job fires and the reply is dropped.
+const MAX_REPLY_DELAY_SECONDS = 300
+
+// Typing is allowed to pass through freely except for the bounds, so a value the
+// API would reject with a 400 can't be entered in the first place.
+function clampDelay(raw: string): number {
+  const n = Math.floor(Number(raw))
+  if (!Number.isFinite(n) || n < 0) return 0
+  return Math.min(n, MAX_REPLY_DELAY_SECONDS)
+}
+
 interface AgentSettingsTabProps {
   agent: AgentPublic
   onDirtyChange?: (dirty: boolean) => void
@@ -224,23 +236,32 @@ export function AgentSettingsTab({ agent, onDirtyChange }: AgentSettingsTabProps
           <div className={styles.rowText}>
             <label className={styles.rowTitle} htmlFor="replyDelay">Wait before replying</label>
             <p className={styles.rowDesc}>
-              Hold each reply for a few seconds so the AI feels less robotic — and if the customer
-              fires several messages in a row within that window, the AI waits for them to finish and
-              answers them all in <strong>one</strong> combined reply instead of one reply per message.
-              Choose <strong>Off</strong> to reply instantly.
+              Hold each reply so the AI feels less robotic — and if the customer fires several
+              messages in a row within that window, the AI waits for them to finish and answers them
+              all in <strong>one</strong> combined reply instead of one reply per message. Worth
+              raising once your number reaches <strong>tier 4</strong>, where sends are paced only
+              5-15 seconds apart and an instant answer is what gives the bot away.
             </p>
-            <select
-              id="replyDelay"
-              className={styles.select}
-              value={replyDelaySeconds}
-              onChange={(e) => setReplyDelaySeconds(Number(e.target.value))}
-            >
-              <option value={0}>Off (reply instantly)</option>
-              <option value={5}>5 seconds</option>
-              <option value={10}>10 seconds</option>
-              <option value={15}>15 seconds</option>
-              <option value={30}>30 seconds</option>
-            </select>
+            <div className={styles.inputRow}>
+              <input
+                id="replyDelay"
+                type="number"
+                inputMode="numeric"
+                min={0}
+                max={MAX_REPLY_DELAY_SECONDS}
+                step={1}
+                className={styles.numberInput}
+                value={replyDelaySeconds}
+                onChange={(e) => setReplyDelaySeconds(clampDelay(e.target.value))}
+              />
+              <span className={styles.inputSuffix}>seconds</span>
+            </div>
+            <p className={styles.rowHint}>
+              {replyDelaySeconds === 0
+                ? "Replies go out as soon as they're ready."
+                : `The AI waits ${replyDelaySeconds} second${replyDelaySeconds === 1 ? "" : "s"} before answering.`}{" "}
+              Set 0 to turn it off. Maximum {MAX_REPLY_DELAY_SECONDS} seconds.
+            </p>
           </div>
         </div>
       </div>
