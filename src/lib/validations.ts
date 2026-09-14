@@ -106,8 +106,11 @@ export const agentSchema = z.object({
   // Minutes of inactivity before a human-mode chat auto-resumes to AI. null = off.
   autoResumeAiAfterMinutes: z.coerce.number().int().min(0).max(1440).nullable().optional(),
   // Seconds to wait before replying; also the window in which rapid messages are
-  // batched into one reply. 0 = instant. Capped at 60s to bound the queue delay.
-  replyDelaySeconds: z.coerce.number().int().min(0).max(60).optional(),
+  // batched into one reply. 0 = instant. Capped at 300s (5 min) — not for taste:
+  // handle-inbound's debounce token (seqKey) expires after 3600s, so a delay
+  // anywhere near that fires with a stale token and the reply is silently
+  // dropped. 300 keeps a wide margin.
+  replyDelaySeconds: z.coerce.number().int().min(0).max(300).optional(),
   agentRuntime: z.enum(["elevenlabs", "orchestrator"]).optional(),
   productsData: z.array(z.object({
     id: z.string(),

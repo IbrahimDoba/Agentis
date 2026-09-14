@@ -79,6 +79,41 @@
   outline: none;
 }
 
+.inputRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.numberInput {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 13px;
+  padding: 8px 10px;
+  width: 96px;
+}
+
+.numberInput:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.inputSuffix {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.rowHint {
+  margin: 6px 0 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .rowDesc strong {
   color: var(--text-primary);
   font-weight: 600;
