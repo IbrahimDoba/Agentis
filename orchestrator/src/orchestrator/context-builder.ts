@@ -260,12 +260,20 @@ If the customer refers to something you cannot see — an address, a size, a pri
   // Include the weekday explicitly — gpt-4o-mini can't reliably derive the day
   // of week from a bare date, which broke "are you open now / today?" answers
   // for agents whose hours vary by day.
-  const now = new Date().toLocaleString("en-US", {
+  const nowDate = new Date()
+  const now = nowDate.toLocaleString("en-US", {
     timeZone: timezone,
     weekday: "long", year: "numeric", month: "long", day: "numeric",
     hour: "numeric", minute: "2-digit",
   })
-  sections.push(`## Current time\n${now} (${timezone})`)
+  // Derive the part of day in code and state it explicitly — models otherwise
+  // misread "12:03 AM" as midday and greet "Good afternoon" at midnight.
+  const hour = parseInt(
+    new Intl.DateTimeFormat("en-US", { timeZone: timezone, hour: "2-digit", hourCycle: "h23" }).format(nowDate),
+    10,
+  ) % 24
+  const partOfDay = hour >= 5 && hour < 12 ? "morning" : hour >= 12 && hour < 17 ? "afternoon" : "evening"
+  sections.push(`## Current time\n${now} (${timezone}). It is currently ${partOfDay} — when greeting by time of day, say "Good ${partOfDay}".`)
 
   return sections.join("\n\n")
 }
