@@ -7,7 +7,7 @@ import { StatusBadge } from "@/components/ui/Badge"
 import Button from "@/components/ui/Button"
 import { Modal } from "@/components/ui/Modal"
 import { formatDate } from "@/lib/utils"
-import { formatNaira } from "@/lib/plans"
+import { formatNaira, PLAN_ORDER, PLAN_LABELS } from "@/lib/plans"
 import type { UserPublic } from "@/types"
 
 interface UserWithAgentCount extends UserPublic {
@@ -354,11 +354,16 @@ function UserDetailModal({ user, onClose, onStatusChange, loading }: {
                   <span className={styles.modalLabel}>Plan</span>
                   <span className={styles.modalValue}>
                     <div className={styles.agentLimitRow}>
+                      {/* Driven by PLAN_ORDER so this can't drift from the ladder
+                          again — it was hand-written and silently missing Basic,
+                          which the PATCH route has always accepted.
+                          A plan that isn't ON the ladder (reseller) is prepended
+                          so the select shows what the user is actually on; without
+                          it the value matches no option and the box reads "Free". */}
                       <select value={plan} onChange={(e) => setPlan(e.target.value)} className={styles.agentLimitInput}>
-                        <option value="free">Free</option>
-                        <option value="starter">Starter</option>
-                        <option value="pro">Pro</option>
-                        <option value="enterprise">Enterprise</option>
+                        {(PLAN_ORDER.includes(plan) ? PLAN_ORDER : [plan, ...PLAN_ORDER]).map((p) => (
+                          <option key={p} value={p}>{PLAN_LABELS[p] ?? p}</option>
+                        ))}
                       </select>
                       <button className={styles.agentLimitSaveBtn} onClick={handleSavePlan}
                         disabled={savingPlan || plan === (user.plan ?? "free")}>
