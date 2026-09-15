@@ -52,6 +52,32 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       dataWithFlagReset.expiredEmailSentAt = null
     }
 
+    // When an admin moves a user onto (or between) a PAID plan without giving a
+    // future expiry, start a fresh billing cycle. Otherwise the new plan keeps a
+    // lapsed/old expiry and its monthly credits never apply — the user appears
+    // to lose all their credits on a plan change. Skip if they explicitly set a
+    // future expiry, or are still mid-cycle (leave that cycle intact).
+    if (parsed.data.plan && parsed.data.plan !== "free") {
+      const providedExpiry = parsed.data.subscriptionExpiresAt
+      const hasFutureExpiry = providedExpiry instanceof Date && providedExpiry > new Date()
+      if (!hasFutureExpiry) {
+        const existing = await db.user.findUnique({
+          where: { id },
+          select: { subscriptionExpiresAt: true },
+        })
+        const stillActive =
+          existing?.subscriptionExpiresAt != null && existing.subscriptionExpiresAt > new Date()
+        if (!stillActive) {
+          const start = new Date()
+          const end = new Date(start)
+          end.setMonth(end.getMonth() + 1)
+          dataWithFlagReset.subscriptionExpiresAt = end
+          dataWithFlagReset.currentPeriodStart = start
+          dataWithFlagReset.subscriptionStatus = "active"
+        }
+      }
+    }
+
     const user = await db.user.update({
       where: { id },
       data: dataWithFlagReset,
