@@ -264,10 +264,40 @@ export async function runAgentTurn(
     }
   }
 
+  // Belt-and-suspenders: small models sometimes VERBALISE a tool call as text
+  // (e.g. appending "*request_human_handoff*") instead of, or as well as,
+  // actually calling it. Strip any tool-name token from the customer-facing
+  // reply so it can never leak, whatever the model does.
+  if (finalReply) {
+    const toolNames = [
+      "request_human_handoff", "mark_qualified_lead", "schedule_appointment",
+      "send_media", "send_image", "send_product_photos", "send_product_catalog",
+      "send_product_album", "send_product_image", "tag_conversation",
+      ...externalTools.map((t) => t.name),
+    ]
+    finalReply = stripToolLeaks(finalReply, toolNames) || "One moment please \u{1F64F}"
+  }
+
   return {
     finalReply,
     inputTokens: totalInputTokens,
     outputTokens: totalOutputTokens,
     collectedToolResults,
   }
+}
+
+// Remove any tool-name token from customer-facing text. Small models sometimes
+// print the tool name (often wrapped like "*request_human_handoff*") rather than
+// calling it. Strips the name plus any wrapping markdown/parens and adjacent
+// punctuation, then tidies the whitespace it leaves behind.
+function stripToolLeaks(text: string, toolNames: string[]): string {
+  let out = text
+  for (const raw of toolNames) {
+    const name = raw?.trim()
+    if (!name) continue
+    const esc = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+    const re = new RegExp(`\\s*[*_\`(]{0,2}\\s*${esc}\\s*[*_\`)]{0,2}\\s*[.!:]?`, "gi")
+    out = out.replace(re, " ")
+  }
+  return out.replace(/[ \t]{2,}/g, " ").replace(/ +\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim()
 }
