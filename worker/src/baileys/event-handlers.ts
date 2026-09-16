@@ -8,6 +8,7 @@ import {
   getConversationMode,
   saveHumanOutboundMessage,
   isGroupChatEnabled,
+  isAiRepliesEnabled,
   recordGroupActivity,
 } from "../db/queries.js"
 import { isAddressedToUs, resolveSelfJids, addressingDebug } from "./group-mention.js"
@@ -254,10 +255,21 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
 
       let voiceCredits = 0
 
+      // Master "AI replies" switch. When off the bot goes quiet: no blue ticks,
+      // no transcription. The message still forwards so the operator sees it in
+      // Conversations; the orchestrator's own check skips the AI reply.
+      const aiRepliesEnabled = await isAiRepliesEnabled(agentId).catch(() => true)
+
       // Handle voice notes — transcribe if OpenAI key is configured
       if (!text && msg.message?.audioMessage?.ptt) {
         if (!config.OPENAI_API_KEY) {
           logger.debug({ agentId, senderJid }, "Voice note received but OPENAI_API_KEY not set, skipping")
+          continue
+        }
+        // AI replies off — don't spend on Whisper for a note the AI won't answer.
+        // The operator hears the voice note on their own device.
+        if (!aiRepliesEnabled) {
+          logger.info({ agentId, senderJid }, "AI replies off — skipping voice transcription")
           continue
         }
         // Gate BEFORE Whisper runs — transcription costs money the moment it's
@@ -308,9 +320,11 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
 
       logger.info({ agentId, senderJid, pushName: msg.pushName ?? null, preview: text.slice(0, 60) }, "Inbound message")
 
-      // §7.7 — Mark read with natural delay (skip in human mode — let the human operator read it themselves)
+      // §7.7 — Mark read with natural delay (skip in human mode — let the human
+      // operator read it themselves; likewise when AI replies are switched off,
+      // so the bot never leaves blue ticks the operator hasn't earned).
       const convMode = await getConversationMode(phoneNumber, agentId).catch(() => "ai" as const)
-      if (convMode !== "human") {
+      if (convMode !== "human" && aiRepliesEnabled) {
         setTimeout(async () => {
           try {
             await sock.readMessages([msg.key])

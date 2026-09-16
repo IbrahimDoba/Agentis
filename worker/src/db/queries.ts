@@ -559,6 +559,22 @@ export async function getConversationMode(phoneNumber: string, agentId: string):
   return (rows[0]?.mode === "human") ? "human" : "ai"
 }
 
+// The agent's master "AI replies" switch. When it's off the worker stops
+// "touching" the chat the way a bot would — no read receipts (blue ticks) and
+// no voice transcription — so the operator handles it manually on their own
+// device. (The message is still forwarded so it lands in Conversations for the
+// human, and the orchestrator's own master-switch check skips the AI reply.)
+// Uncached on purpose: a kill switch has to bite on the very next message, and
+// per-agent inbound volume is low enough that one extra SELECT is cheap.
+// Defaults to enabled (true) if the row is somehow missing, so a lookup miss
+// never silences a working agent.
+export async function isAiRepliesEnabled(agentId: string): Promise<boolean> {
+  const rows = await sql<{ aiRepliesEnabled: boolean }[]>`
+    SELECT "aiRepliesEnabled" FROM "Agent" WHERE "id" = ${agentId} LIMIT 1
+  `
+  return rows[0]?.aiRepliesEnabled !== false
+}
+
 // Has a HUMAN taken over this conversation since `since`? True when the
 // conversation is in human mode OR an operator reply (dashboard or their own
 // phone — both write senderRole='human' outbound rows) landed after `since`.
