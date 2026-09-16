@@ -46,9 +46,41 @@ export function AgentSettingsTab({ agent, onDirtyChange }: AgentSettingsTabProps
   const [autoResumeAiAfterMinutes, setAutoResumeAiAfterMinutes] = useState(initialAutoResume)
   const [replyDelaySeconds, setReplyDelaySeconds] = useState(initialReplyDelay)
   const [saving, setSaving] = useState(false)
+  const [savingAi, setSavingAi] = useState(false)
+
+  // The AI master switch saves on its own, the instant it's flipped — it's a
+  // kill switch, so "off" has to mean off immediately, not "off once you also
+  // find and click Save Settings." (Operators were flipping it, leaving the
+  // page, and the AI kept replying because the batch save never ran.) It is
+  // therefore excluded from isDirty and from the batch payload below.
+  const toggleAiReplies = async () => {
+    if (savingAi) return
+    const next = !aiRepliesEnabled
+    setAiRepliesEnabled(next) // optimistic
+    setSavingAi(true)
+    try {
+      const res = await fetch(`/api/agents/${agent.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ aiRepliesEnabled: next }),
+      })
+      if (!res.ok) {
+        setAiRepliesEnabled(!next) // revert
+        showToast("Couldn't update AI replies. Please try again.", "error")
+        return
+      }
+      showToast(next ? "AI replies turned on." : "AI replies turned off — you'll handle every message.")
+      queryClient.invalidateQueries({ queryKey: ["agent", agent.id] })
+      queryClient.invalidateQueries({ queryKey: ["agents"] })
+    } catch {
+      setAiRepliesEnabled(!next) // revert
+      showToast("Something went wrong. Please try again.", "error")
+    } finally {
+      setSavingAi(false)
+    }
+  }
 
   const isDirty =
-    aiRepliesEnabled !== initialAiReplies ||
     groupChatEnabled !== initialGroupChat ||
     replyGuardEnabled !== initialReplyGuard ||
     autoPauseOnHumanReply !== initialAutoPause ||
@@ -69,7 +101,6 @@ export function AgentSettingsTab({ agent, onDirtyChange }: AgentSettingsTabProps
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          aiRepliesEnabled,
           groupChatEnabled,
           replyGuardEnabled,
           autoPauseOnHumanReply,
@@ -104,8 +135,10 @@ export function AgentSettingsTab({ agent, onDirtyChange }: AgentSettingsTabProps
             type="button"
             role="switch"
             aria-checked={aiRepliesEnabled}
+            aria-busy={savingAi}
+            disabled={savingAi}
             className={`${styles.switch} ${aiRepliesEnabled ? styles.switchOn : ""}`}
-            onClick={() => setAiRepliesEnabled((v) => !v)}
+            onClick={() => void toggleAiReplies()}
           >
             <span className={styles.switchKnob} />
           </button>
