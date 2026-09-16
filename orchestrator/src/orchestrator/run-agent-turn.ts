@@ -58,6 +58,16 @@ export interface AgentTurnOptions {
 // already 5 by itself, leaving no room for retries or extra lookups).
 const MAX_TOOL_ITERATIONS = 8
 
+// Per-turn input-token circuit breaker. Each iteration re-sends the full
+// context, so a tool that returns large bodies (search endpoints slice to
+// 12k chars) makes input compound across iterations — one JustFits turn hit
+// 137k input tokens looping on product search. This bounds the worst case
+// without lowering MAX_TOOL_ITERATIONS (load-bearing for the order flows
+// above): legit multi-step flows carry small tool payloads and stay well
+// under this; a runaway trips it and we force a closing reply. ~$0.012/turn
+// ceiling on gpt-4o-mini.
+const MAX_TOTAL_INPUT_TOKENS = 80_000
+
 // The agent's LLM tool-calling loop: given an agent config, a system prompt, and
 // the message history, drive the provider through tool calls until it produces a
 // text reply (forcing a tools-disabled closing turn if it never does), and
@@ -148,7 +158,23 @@ export async function runAgentTurn(
     totalInputTokens += result.usage.input_tokens
     totalOutputTokens += result.usage.output_tokens
 
-    if (result.finish_reason === "tool_calls" && result.tool_calls.length > 0) {
+    // Circuit breaker: if this turn has already spent its input-token budget,
+    // stop calling tools even if the model wants more — fall through to take
+    // whatever text it produced (or the forced closing reply below). Prevents a
+    // runaway tool loop from ballooning cost.
+    const overTokenBudget = totalInputTokens > MAX_TOTAL_INPUT_TOKENS
+    if (overTokenBudget) {
+      logger.warn(
+        { agentId, conversationId, totalInputTokens, iteration },
+        "Per-turn input-token budget exceeded — cutting off the tool loop"
+      )
+    }
+
+    if (
+      !overTokenBudget &&
+      result.finish_reason === "tool_calls" &&
+      result.tool_calls.length > 0
+    ) {
       // Append assistant message with tool calls to history
       currentMessages.push({
         role: "assistant",
