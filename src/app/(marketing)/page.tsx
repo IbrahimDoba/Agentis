@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
 import { getTenant } from "@/lib/tenant"
+import { getPublicStats } from "@/lib/queries/publicStats"
 import styles from "./page.module.css"
 import { Navbar } from "@/components/landing/Navbar"
 import { Hero } from "@/components/landing/Hero"
@@ -40,10 +41,15 @@ export default async function LandingPage() {
   const tenant = await getTenant()
   if (tenant.id !== "platform") redirect("/signup")
 
+  // Rendered server-side so the hero counters are already correct on first
+  // paint (and with JS off). They keep ticking from /api/public/stats after
+  // that. Both read the same 60s cache, so this is not a query per visitor.
+  const stats = await getPublicStats()
+
   return (
     <>
       <Navbar />
-      <Hero />
+      <Hero stats={stats} />
       <Features />
       <HowItWorks />
 

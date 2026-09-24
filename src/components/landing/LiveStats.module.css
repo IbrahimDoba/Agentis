@@ -1,0 +1,137 @@
+.stats {
+  max-width: 1200px;
+  margin: 3rem auto 0;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.card {
+  position: relative;
+  background: color-mix(in srgb, var(--bg-card) 85%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Opacity-only overlay rather than a transitioned border or box-shadow, so the
+   flash on each increment stays on the compositor. */
+.card::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  border: 1px solid var(--accent);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 700ms ease;
+}
+
+.cardBumped::after {
+  opacity: 0.5;
+  transition-duration: 120ms;
+}
+
+.icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: var(--accent-light);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.value {
+  --cell-height: 1.15em;
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  line-height: var(--cell-height);
+}
+
+.odometer {
+  display: inline-flex;
+  align-items: flex-start;
+  /* Digits must share one advance width or the row shifts as they roll. */
+  font-variant-numeric: tabular-nums;
+}
+
+.digit {
+  display: inline-block;
+  width: 1ch;
+  height: var(--cell-height);
+  overflow: hidden;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  will-change: transform;
+  transition: transform 520ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* During the arrival spin the value changes every frame, so a transition would
+   be chasing a target that has already moved. The rAF loop is the animation. */
+.odometer[data-spinning] .column {
+  transition: none;
+}
+
+.digitCell {
+  display: block;
+  height: var(--cell-height);
+  line-height: var(--cell-height);
+  text-align: center;
+}
+
+.separator {
+  display: inline-block;
+  height: var(--cell-height);
+  line-height: var(--cell-height);
+}
+
+.label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .column {
+    transition: none;
+  }
+
+  /* Without a fade this would snap on and off, which is worse than no flash at
+     all. The count itself still updates. */
+  .cardBumped::after {
+    opacity: 0;
+    transition: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .stats {
+    grid-template-columns: 1fr;
+  }
+}
