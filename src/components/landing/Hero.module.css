@@ -222,51 +222,6 @@
   50% { opacity: 1; }
 }
 
-.stats {
-  max-width: 1200px;
-  margin: 3rem auto 0;
-  width: 100%;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-}
-
-.statCard {
-  background: color-mix(in srgb, var(--bg-card) 85%, transparent);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 1.25rem 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.statIcon {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-md);
-  background: var(--accent-light);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.statValue {
-  font-size: 1.375rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  letter-spacing: -0.02em;
-}
-
-.statLabel {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  margin-top: 2px;
-}
-
 @media (max-width: 900px) {
   .inner {
     grid-template-columns: 1fr;
@@ -275,10 +230,6 @@
 
   .globeContainer {
     order: -1;
-  }
-
-  .stats {
-    grid-template-columns: 1fr;
   }
 
   .subtitle {
