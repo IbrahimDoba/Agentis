@@ -3,7 +3,7 @@ import { getRedis } from "./redis.js"
 import { isLeader } from "../lib/leader.js"
 import { config } from "../config.js"
 import { sessionManager } from "../baileys/session-manager.js"
-import { sendWithPacing } from "../anti-ban/pacing.js"
+import { sendWithPacing, sendImageWithPacing } from "../anti-ban/pacing.js"
 import { checkAndIncrement } from "../anti-ban/rate-limiter.js"
 import { getSessionByAgentId, getAgentBroadcastConfig } from "../db/queries.js"
 import {
@@ -62,6 +62,7 @@ export interface BroadcastJob {
   agentId: string
   toJid: string
   message: string
+  imageUrl: string | null  // when set, send image with `message` as caption
   contactName: string | null
   batchIndex: number  // position within the broadcast (0-based)
 }
@@ -79,7 +80,7 @@ const queue = new Queue<BroadcastJob>(QUEUE_NAME, {
 const worker = new Worker<BroadcastJob>(
   QUEUE_NAME,
   async (job: Job<BroadcastJob>) => {
-    const { broadcastId, recipientId, agentId, toJid, message, contactName, batchIndex } = job.data
+    const { broadcastId, recipientId, agentId, toJid, message, imageUrl, contactName, batchIndex } = job.data
 
     // Only the leader holds WhatsApp sockets — a standby must not process sends.
     // Bounce the job back so the leader picks it up.
@@ -221,16 +222,23 @@ const worker = new Worker<BroadcastJob>(
       : message.replace(/\{name\},?\s*/gi, "")
 
     try {
-      await sendWithPacing(sock, sendJid, personalizedMessage, session.warmupTier)
+      // With an image, send it with the personalized message as its caption;
+      // otherwise a plain text send exactly as before.
+      if (imageUrl) {
+        await sendImageWithPacing(sock, sendJid, imageUrl, personalizedMessage, session.warmupTier)
+      } else {
+        await sendWithPacing(sock, sendJid, personalizedMessage, session.warmupTier)
+      }
       await updateRecipientStatus(recipientId, "sent")
       await incrementBroadcastSent(broadcastId)
 
-      // Bill the delivered message: 5 credits, same as a normal text send,
-      // tagged source "broadcast" for separate accounting. Best-effort — it
-      // already went out, so a billing hiccup must never fail the send (the
-      // headroom gate above already stopped broke accounts before sending).
+      // Bill the delivered message, tagged source "broadcast" for separate
+      // accounting: an image send costs the image rate, a text send the text
+      // rate. Best-effort — it already went out, so a billing hiccup must never
+      // fail the send (the headroom gate above already stopped broke accounts).
       try {
-        await chargeAiCredits({ agentId, credits: creditsForMessageType("text"), messageType: "text", source: "broadcast" })
+        const msgType = imageUrl ? "image" : "text"
+        await chargeAiCredits({ agentId, credits: creditsForMessageType(msgType), messageType: msgType, source: "broadcast" })
       } catch (err: any) {
         logger.warn({ broadcastId, recipientId, err: err?.message }, "Broadcast credit charge failed after send")
       }
@@ -379,6 +387,7 @@ export async function enqueueBroadcast(broadcastId: string, opts?: {
         agentId: broadcast.agentId,
         toJid: r.jid,
         message: broadcast.message,
+        imageUrl: broadcast.imageUrl,
         contactName: r.contactName,
         batchIndex: i,
       },
