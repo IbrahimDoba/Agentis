@@ -9,6 +9,8 @@ export interface BroadcastCampaign {
   id: string
   agentId: string
   message: string
+  // Optional image URL sent with the message as its caption (Baileys only).
+  imageUrl: string | null
   status: BroadcastStatus
   totalCount: number
   sentCount: number
@@ -57,16 +59,18 @@ export async function createBroadcast(
     metaPhoneNumberId: string
     templateName: string
     templateLanguage: string
-  } | null
+  } | null,
+  // Optional image URL — sent with the message as its caption (Baileys only).
+  imageUrl: string | null = null
 ): Promise<BroadcastCampaign> {
   const id = randomUUID()
   const channel = meta ? "meta" : "whatsapp"
 
   const rows = await sql<BroadcastCampaign[]>`
-    INSERT INTO "BroadcastCampaign" ("id", "agentId", "message", "status", "totalCount",
+    INSERT INTO "BroadcastCampaign" ("id", "agentId", "message", "imageUrl", "status", "totalCount",
       "sentCount", "failedCount", "spreadHours", "channel", "metaPhoneNumberId",
       "templateName", "templateLanguage", "createdAt")
-    VALUES (${id}, ${agentId}, ${message}, 'pending', ${recipients.length}, 0, 0,
+    VALUES (${id}, ${agentId}, ${message}, ${imageUrl}, 'pending', ${recipients.length}, 0, 0,
       ${spreadHours}, ${channel}, ${meta?.metaPhoneNumberId ?? null},
       ${meta?.templateName ?? null}, ${meta?.templateLanguage ?? null}, NOW())
     RETURNING *

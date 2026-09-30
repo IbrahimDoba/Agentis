@@ -420,6 +420,10 @@ model BroadcastCampaign {
   agentId     String
   agent       Agent                @relation(fields: [agentId], references: [id], onDelete: Cascade)
   message     String               @db.Text
+  // Optional image sent with the broadcast: a fetchable URL. When set (Baileys
+  // channel only), each recipient gets the image with `message` as its caption
+  // instead of a plain text message. null = text-only, as before.
+  imageUrl    String?
   status      String               @default("pending") // pending | running | paused | completed | cancelled | failed
   // Which transport this campaign sends over. "whatsapp" = a paired Baileys
   // number, free-form text. "meta" = the Cloud API, where reaching someone

@@ -29,6 +29,9 @@ const CreateSchema = z.object({
   agentId: z.string().min(1),
   // Empty for Cloud API campaigns — the template is the message there.
   message: z.string().max(1000),
+  // Optional image sent with the broadcast (Baileys channel only): a fetchable
+  // URL. Each recipient gets the image with `message` as its caption.
+  imageUrl: z.string().url().max(2000).optional(),
   phoneNumbers: z.array(z.string().min(7)).min(1).max(MAX_BROADCAST_RECIPIENTS),
   // Hours to spread the whole send over (paced evenly, like AI follow-ups).
   // Omitted → default 24h. 0 disables even-spreading entirely, leaving only the
@@ -160,7 +163,9 @@ export const broadcastRoutes: FastifyPluginAsync = async (app) => {
             templateName: body.templateName,
             templateLanguage: body.templateLanguage ?? "en_US",
           }
-        : null
+        : null,
+      // Image is a Baileys-channel feature; Cloud API needs a media template.
+      body.channel === "meta" ? null : (body.imageUrl ?? null)
     )
 
     // Start enqueuing asynchronously — don't block the HTTP response
