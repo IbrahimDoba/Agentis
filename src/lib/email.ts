@@ -825,6 +825,76 @@ function esc(s: string | null | undefined): string {
 
 // A new high-intent lead (the AI's mark_qualified_lead — confirmed product +
 // budget/quantity/timeline). Deliberately NOT sent for background-scan leads.
+// Free-plan usage nudges. Led by what the account has DONE with its credits,
+// not by what it owes — the argument that lands is "here is what stops", not
+// "you are running low". Both say plainly that sends stop at the cap: free has
+// no overage, so softening it would only surprise them later.
+export async function sendCreditHalfwayEmail(data: {
+  ownerName: string
+  email: string
+  used: number
+  limit: number
+  conversations: number
+  leads: number
+}, brand?: EmailBrand) {
+  const appUrl = brand?.appUrl ?? APP_URL
+  return await sendEmail({
+    from: senderFrom(brand),
+    to: data.email,
+    subject: `You've used half your free credits`,
+    html: baseTemplate(`
+      <h2 style="margin:0 0 8px;font-size:22px;color:#111111;">Your AI has been busy</h2>
+      <p style="margin:0 0 20px;color:#4b5563;">
+        Hi ${esc(data.ownerName)}, here's what your agent has done this cycle.
+      </p>
+      <table cellpadding="0" cellspacing="0" style="width:100%;">
+        ${infoRow("Conversations handled", String(data.conversations))}
+        ${infoRow("Leads captured", String(data.leads))}
+        ${infoRow("Credits used", `${data.used} of ${data.limit}`)}
+      </table>
+      <p style="margin:20px 0 0;color:#4b5563;">
+        You're about halfway through this cycle's free credits. When they run out the AI
+        stops replying until the cycle resets — a paid plan keeps it answering.
+      </p>
+      ${btn("See plans", `${appUrl}/dashboard/billing`)}
+    `, brand),
+  })
+}
+
+export async function sendCreditNearCapEmail(data: {
+  ownerName: string
+  email: string
+  used: number
+  limit: number
+  repliesLeft: number
+  conversations: number
+  leads: number
+}, brand?: EmailBrand) {
+  const appUrl = brand?.appUrl ?? APP_URL
+  return await sendEmail({
+    from: senderFrom(brand),
+    to: data.email,
+    subject: `About ${data.repliesLeft} AI replies left on your free plan`,
+    html: baseTemplate(`
+      <h2 style="margin:0 0 8px;font-size:22px;color:#111111;">Your AI is about to stop replying</h2>
+      <p style="margin:0 0 20px;color:#4b5563;">
+        Hi ${esc(data.ownerName)}, you've used ${data.used} of your ${data.limit} free credits —
+        roughly <strong>${data.repliesLeft} more AI replies</strong> before it goes quiet.
+      </p>
+      <table cellpadding="0" cellspacing="0" style="width:100%;">
+        ${infoRow("Conversations handled", String(data.conversations))}
+        ${infoRow("Leads captured", String(data.leads))}
+        ${infoRow("Credits used", `${data.used} of ${data.limit}`)}
+      </table>
+      <p style="margin:20px 0 0;color:#4b5563;">
+        At the cap the agent stops answering your customers until your cycle resets.
+        Messages still arrive — nobody replies to them automatically.
+      </p>
+      ${btn("Upgrade now", `${appUrl}/dashboard/billing`)}
+    `, brand),
+  })
+}
+
 export async function sendQualifiedLeadEmail(data: {
   ownerName: string
   email: string
