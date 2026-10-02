@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { runInstantNotifications, runActivityDigest } from "@/lib/lead-notifications-job"
 import { runAppointmentReminders, runAppointmentBookedNotifications } from "@/lib/appointment-reminders-job"
+import { runCreditNudges } from "@/lib/credit-nudges-job"
 
 // Digests do real Resend round-trips across the whole base; give them headroom.
 export const maxDuration = 300
@@ -10,6 +11,7 @@ export const maxDuration = 300
 //
 //   every ~1-2 min:  curl -H "Authorization: Bearer $CRON_SECRET" \
 //                      "https://www.dailzero.com/api/cron/notifications?job=instant"
+//   hourly:          ...?job=credit-nudges
 //   once daily:      ...?job=daily
 //   once weekly:     ...?job=weekly
 //
@@ -51,8 +53,12 @@ export async function GET(req: NextRequest) {
       const reminders = await runAppointmentReminders()
       return NextResponse.json({ ok: true, job, durationMs: Date.now() - startedAt, result: { booked, reminders } })
     }
+    case "credit-nudges": {
+      const result = await runCreditNudges()
+      return NextResponse.json({ ok: true, job, durationMs: Date.now() - startedAt, result })
+    }
     default:
-      return NextResponse.json({ error: `Unknown job "${job}" — use instant | daily | weekly | appointment-reminders` }, { status: 400 })
+      return NextResponse.json({ error: `Unknown job "${job}" — use instant | daily | weekly | appointment-reminders | credit-nudges` }, { status: 400 })
   }
 }
 

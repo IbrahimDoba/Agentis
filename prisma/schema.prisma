@@ -95,6 +95,12 @@ model User {
   // from leadNotificationsEnabled so owners can toggle handoff emails on their
   // own. Existing rows backfill to their leadNotificationsEnabled value.
   handoffEmailsEnabled         Boolean              @default(true)
+  // Free-plan usage nudges, one per threshold per billing cycle. Named by what
+  // they mark rather than by a number so the thresholds can move without the
+  // columns lying. No reset job: a stamp older than the CURRENT period start is
+  // treated as stale, which re-arms both nudges on every renewal.
+  creditHalfNotifiedAt         DateTime?            @db.Timestamptz()
+  creditNearCapNotifiedAt      DateTime?            @db.Timestamptz()
   // Opt-in (default OFF) to also receive lead/handoff alerts as a WhatsApp
   // message on the owner's own number (sent from the relevant agent's session).
   // Independent of the email toggles above. See src/lib/lead-whatsapp.ts.
