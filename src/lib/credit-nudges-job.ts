@@ -8,6 +8,11 @@ import { sendCreditHalfwayEmail, sendCreditNearCapEmail, type EmailBrand } from 
 // Thresholds as FRACTIONS of the plan allowance, not absolute credits: the free
 // allowance has moved before, and 500/900 hardcoded would quietly become the
 // wrong nudges the next time it does.
+// Only accounts that signed up on or after launch get these. Existing free
+// users were never told to expect upgrade emails, so the nudges are scoped to
+// people who join knowing the free plan works this way.
+export const NUDGES_ELIGIBLE_FROM = new Date("2026-10-03T00:00:00Z")
+
 export const HALF_AT = 0.5
 export const NEAR_CAP_AT = 0.9
 
@@ -71,7 +76,7 @@ export async function runCreditNudges(now: Date = new Date()): Promise<CreditNud
   if (!limit || limit < 0) return summary // unlimited/!configured — nothing to warn about
 
   const users = await db.user.findMany({
-    where: { plan: "free", status: "APPROVED" },
+    where: { plan: "free", status: "APPROVED", createdAt: { gte: NUDGES_ELIGIBLE_FROM } },
     select: {
       id: true, name: true, email: true, resellerId: true,
       subscriptionExpiresAt: true, currentPeriodStart: true,
