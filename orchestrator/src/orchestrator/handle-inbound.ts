@@ -20,7 +20,7 @@ import { stripImageUrls } from "../lib/strip-image-urls.js"
 import { detachUrlPunctuation } from "../lib/detach-url-punctuation.js"
 import { runAgentTurn } from "./run-agent-turn.js"
 import { guardReply } from "./reply-guard.js"
-import { isChatTaggingEnabled, chatHasAiDisabledLabel } from "../db/queries/labels.js"
+import { isChatTaggingEnabled, chatHasAiDisabledLabel, isBlockedByLabelAllowlist } from "../db/queries/labels.js"
 import { getGroupChat, linkGroupConversation } from "../db/queries/groups.js"
 import { classifyAndTagInBackground } from "./background-tagger.js"
 import { getRedis } from "../queue/redis.js"
@@ -373,6 +373,16 @@ async function generateReply(agent: OrchestratorAgent, conversation: Conversatio
   if (isWhatsApp(channel) && await chatHasAiDisabledLabel(agentId, conversation.phoneNumber, groupJid ?? senderJid)) {
     await maybeBackgroundTag()
     logger.info({ agentId, conversationId }, "Chat has an AI-off label — skipping AI reply")
+    return
+  }
+
+  // Label-allowlist mode (opt-in from agent Settings): the AI answers ONLY chats
+  // carrying a label the owner marked as allowed. Untagged chats — including
+  // every brand-new customer — get no reply until someone tags them. Runs after
+  // the AI-off check, so an AI-off label still wins over an allowed one.
+  if (isWhatsApp(channel) && await isBlockedByLabelAllowlist(agentId, conversation.phoneNumber, groupJid ?? senderJid)) {
+    await maybeBackgroundTag()
+    logger.info({ agentId, conversationId }, "Label allowlist on and chat has no allowed label — skipping AI reply")
     return
   }
 
