@@ -238,6 +238,11 @@ model Agent {
   // Opt-in for WhatsApp group chats. While false the worker drops group
   // messages at ingest exactly as before this feature existed.
   groupChatEnabled             Boolean              @default(false)
+  // "all" (default) = the AI answers every chat, as it always has. "allowlist"
+  // = the AI answers ONLY chats carrying a WhatsAppLabel with aiEnabled — new,
+  // untagged chats get no reply until someone tags them. Opt-in from agent
+  // Settings; a String rather than a Boolean so a third mode needs no migration.
+  labelReplyPolicy             String               @default("all")
   autoPauseOnHumanReply        Boolean              @default(true)
   // Broadcasts pause overnight — no sends between 23:00 and 06:00 in the agent's
   // timezone (BaileysSession.timezone); the run resumes at 6am. Default on so
@@ -339,6 +344,10 @@ model WhatsAppLabel {
   // When true, the AI does NOT reply to any chat carrying this label — it stays
   // silent for a human to handle (dynamic: remove the label and the AI resumes).
   aiDisabled   Boolean  @default(false)
+  // Allowlist membership: under Agent.labelReplyPolicy = "allowlist" the AI
+  // replies only to chats carrying one of these. aiDisabled still wins — a chat
+  // with an AI-off label stays silent even if it also has an allowed one.
+  aiEnabled    Boolean  @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

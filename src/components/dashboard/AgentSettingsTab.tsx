@@ -7,6 +7,7 @@ import Button from "@/components/ui/Button"
 import { useToast } from "@/context/ToastContext"
 import type { AgentPublic } from "@/types"
 import styles from "./AgentSettingsTab.module.css"
+import { LabelReplyPolicy } from "./LabelReplyPolicy"
 
 // Mirrors the zod cap in validations.ts. Above this the debounce token expires
 // before the delayed job fires and the reply is dropped.
@@ -298,6 +299,8 @@ export function AgentSettingsTab({ agent, onDirtyChange }: AgentSettingsTabProps
           </div>
         </div>
       </div>
+
+      <LabelReplyPolicy agentId={agent.id} />
 
       <div className={styles.actions}>
         <Button type="submit" loading={saving} disabled={!isDirty}>
