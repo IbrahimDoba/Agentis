@@ -588,7 +588,7 @@ async function generateReply(agent: OrchestratorAgent, conversation: Conversatio
  * "- " / "1. " lists · "> " quote. It does NOT support ** , #/## headings,
  * [text](url) links (handled separately), tables, or underline.
  */
-function sanitizeWhatsAppFormatting(text: string): string {
+export function sanitizeWhatsAppFormatting(text: string): string {
   return text
     // ***bold italic*** → WhatsApp *_bold italic_*  (do before ** so it isn't half-matched)
     .replace(/\*\*\*([^*\n]+)\*\*\*/g, "*_$1_*")
@@ -608,7 +608,7 @@ function sanitizeWhatsAppFormatting(text: string): string {
  * every other channel). The label is dropped because the surrounding sentence
  * already provides the context.
  */
-function sanitizeWhatsAppLinks(text: string): string {
+export function sanitizeWhatsAppLinks(text: string): string {
   // [label](url) | [label(url) | [label] (url) — label optional, closing ] and
   // whitespace optional. Only rewrites when the parenthetical is a real URL, so
   // ordinary "[note](see above)" text is left untouched.

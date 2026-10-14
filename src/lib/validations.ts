@@ -111,6 +111,11 @@ export const agentSchema = z.object({
   // anywhere near that fires with a stale token and the reply is silently
   // dropped. 300 keeps a wide margin.
   replyDelaySeconds: z.coerce.number().int().min(0).max(300).optional(),
+  autoFollowUpEnabled: z.boolean().optional(),
+  // Minutes of customer silence after an AI reply before the one auto follow-up
+  // fires. 60-720 (1-12h). null = not configured (feature stays inert).
+  autoFollowUpAfterMinutes: z.coerce.number().int().min(60).max(720).nullable().optional(),
+  autoFollowUpInstructions: z.string().max(1000).optional(),
   agentRuntime: z.enum(["elevenlabs", "orchestrator"]).optional(),
   productsData: z.array(z.object({
     id: z.string(),

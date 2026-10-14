@@ -262,6 +262,14 @@ model Agent {
   // messages within it are batched into a single combined reply instead of one
   // reply each. 0 = reply instantly (no batching).
   replyDelaySeconds            Int                  @default(0)
+  // Auto follow-up: when the AI sent the last message and the customer has been
+  // silent for autoFollowUpAfterMinutes (60-720), the orchestrator sends ONE
+  // personalized nudge. One per customer-lull — a new follow-up needs a new
+  // inbound first (guard lives on Conversation.lastFollowedUpAt).
+  autoFollowUpEnabled          Boolean              @default(false)
+  autoFollowUpAfterMinutes     Int?
+  // Optional owner guidance injected into the follow-up prompt (tone, offers).
+  autoFollowUpInstructions     String?              @db.Text
   isVerified                   Boolean              @default(false)
   autoConfigStatus             String?
   autoConfigInputs             Json?

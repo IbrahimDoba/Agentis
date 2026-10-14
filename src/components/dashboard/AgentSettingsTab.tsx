@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useQueryClient } from "@tanstack/react-query"
+import { ClipboardDocumentIcon, CheckIcon } from "@heroicons/react/24/outline"
 import Button from "@/components/ui/Button"
 import { useToast } from "@/context/ToastContext"
 import type { AgentPublic } from "@/types"
@@ -38,6 +39,9 @@ export function AgentSettingsTab({ agent, onDirtyChange }: AgentSettingsTabProps
   const initialAiReplies = agent.aiRepliesEnabled ?? true
   const initialReplyGuard = agent.replyGuardEnabled ?? false // off by default
   const initialGroupChat = agent.groupChatEnabled ?? false // off by default
+  const initialAutoFollowUp = agent.autoFollowUpEnabled ?? false // off by default
+  const initialFollowUpMinutes = agent.autoFollowUpAfterMinutes ?? 120
+  const initialFollowUpInstructions = agent.autoFollowUpInstructions ?? ""
   const [aiRepliesEnabled, setAiRepliesEnabled] = useState(initialAiReplies)
   const [groupChatEnabled, setGroupChatEnabled] = useState(initialGroupChat)
   const [replyGuardEnabled, setReplyGuardEnabled] = useState(initialReplyGuard)
@@ -46,8 +50,23 @@ export function AgentSettingsTab({ agent, onDirtyChange }: AgentSettingsTabProps
   const [pauseOnQualifiedLead, setPauseOnQualifiedLead] = useState(initialPauseOnLead)
   const [autoResumeAiAfterMinutes, setAutoResumeAiAfterMinutes] = useState(initialAutoResume)
   const [replyDelaySeconds, setReplyDelaySeconds] = useState(initialReplyDelay)
+  const [autoFollowUpEnabled, setAutoFollowUpEnabled] = useState(initialAutoFollowUp)
+  const [autoFollowUpAfterMinutes, setAutoFollowUpAfterMinutes] = useState(initialFollowUpMinutes)
+  const [autoFollowUpInstructions, setAutoFollowUpInstructions] = useState(initialFollowUpInstructions)
   const [saving, setSaving] = useState(false)
   const [savingAi, setSavingAi] = useState(false)
+  const [idCopied, setIdCopied] = useState(false)
+
+  const copyAgentId = async () => {
+    try {
+      await navigator.clipboard.writeText(agent.id)
+      setIdCopied(true)
+      showToast("Agent ID copied")
+      window.setTimeout(() => setIdCopied(false), 1500)
+    } catch {
+      showToast("Couldn't copy — select the ID and copy it manually.", "error")
+    }
+  }
 
   // The AI master switch saves on its own, the instant it's flipped — it's a
   // kill switch, so "off" has to mean off immediately, not "off once you also
@@ -88,7 +107,10 @@ export function AgentSettingsTab({ agent, onDirtyChange }: AgentSettingsTabProps
     pauseOnAiHandoff !== initialPauseOnHandoff ||
     pauseOnQualifiedLead !== initialPauseOnLead ||
     autoResumeAiAfterMinutes !== initialAutoResume ||
-    replyDelaySeconds !== initialReplyDelay
+    replyDelaySeconds !== initialReplyDelay ||
+    autoFollowUpEnabled !== initialAutoFollowUp ||
+    autoFollowUpAfterMinutes !== initialFollowUpMinutes ||
+    autoFollowUpInstructions !== initialFollowUpInstructions
 
   useEffect(() => {
     onDirtyChange?.(isDirty)
@@ -109,6 +131,9 @@ export function AgentSettingsTab({ agent, onDirtyChange }: AgentSettingsTabProps
           pauseOnQualifiedLead,
           autoResumeAiAfterMinutes: autoResumeAiAfterMinutes || null,
           replyDelaySeconds,
+          autoFollowUpEnabled,
+          autoFollowUpAfterMinutes,
+          autoFollowUpInstructions,
         }),
       })
       if (!res.ok) {
@@ -127,6 +152,24 @@ export function AgentSettingsTab({ agent, onDirtyChange }: AgentSettingsTabProps
 
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
+      <div className={styles.section}>
+        <h2 className={styles.sectionTitle}>Agent ID</h2>
+        <p className={styles.sectionDesc}>
+          Use this as the <code className={styles.inlineCode}>agentId</code> in Developer API calls. The ID itself isn&apos;t secret — requests still need one of your API keys.
+        </p>
+        <div className={styles.idRow}>
+          <code className={styles.idCode}>{agent.id}</code>
+          <button
+            type="button"
+            className={styles.copyBtn}
+            onClick={() => void copyAgentId()}
+            title="Copy agent ID"
+          >
+            {idCopied ? <CheckIcon width={15} height={15} /> : <ClipboardDocumentIcon width={15} height={15} />}
+          </button>
+        </div>
+      </div>
+
       <div className={styles.section}>
         <h2 className={styles.sectionTitle}>Conversation behaviour</h2>
         <p className={styles.sectionDesc}>Control how this agent behaves during live customer conversations.</p>
@@ -296,6 +339,56 @@ export function AgentSettingsTab({ agent, onDirtyChange }: AgentSettingsTabProps
                 : `The AI waits ${replyDelaySeconds} second${replyDelaySeconds === 1 ? "" : "s"} before answering.`}{" "}
               Set 0 to turn it off. Maximum {MAX_REPLY_DELAY_SECONDS} seconds.
             </p>
+          </div>
+        </div>
+
+        <div className={styles.row}>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={autoFollowUpEnabled}
+            className={`${styles.switch} ${autoFollowUpEnabled ? styles.switchOn : ""}`}
+            onClick={() => setAutoFollowUpEnabled((v) => !v)}
+          >
+            <span className={styles.switchKnob} />
+          </button>
+          <div className={styles.rowText}>
+            <label className={styles.rowTitle}>Auto follow-up</label>
+            <p className={styles.rowDesc}>
+              When the AI sent the last message and the customer goes quiet, send <strong>one</strong> personalized
+              follow-up after the wait you choose — it picks up from what they asked about, so a customer who
+              requested your catalogue and went silent gets a gentle nudge, not a generic blast. One follow-up per
+              lull: the AI won&apos;t follow up again until the customer replies. Never sent at night (only
+              9am&#8201;-&#8201;9pm), and skipped the moment you or the customer writes anything.
+            </p>
+            {autoFollowUpEnabled && (
+              <>
+                <select
+                  id="autoFollowUpAfter"
+                  aria-label="Follow up after"
+                  className={styles.select}
+                  value={autoFollowUpAfterMinutes}
+                  onChange={(e) => setAutoFollowUpAfterMinutes(Number(e.target.value))}
+                >
+                  <option value={60}>After 1 hour of silence</option>
+                  <option value={120}>After 2 hours of silence</option>
+                  <option value={180}>After 3 hours of silence</option>
+                  <option value={240}>After 4 hours of silence</option>
+                  <option value={360}>After 6 hours of silence</option>
+                  <option value={480}>After 8 hours of silence</option>
+                  <option value={720}>After 12 hours of silence</option>
+                </select>
+                <textarea
+                  aria-label="Follow-up guidance"
+                  className={styles.textarea}
+                  value={autoFollowUpInstructions}
+                  onChange={(e) => setAutoFollowUpInstructions(e.target.value)}
+                  maxLength={1000}
+                  rows={3}
+                  placeholder="Optional guidance for follow-ups, e.g. 'Mention that delivery within Lagos is free' or 'Keep it casual, pidgin is fine.'"
+                />
+              </>
+            )}
           </div>
         </div>
       </div>
