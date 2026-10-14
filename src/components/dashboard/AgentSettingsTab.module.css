@@ -86,6 +86,26 @@
   margin-top: 10px;
 }
 
+.textarea {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+  padding: 8px 10px;
+  resize: vertical;
+}
+
+.textarea:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
 .numberInput {
   background: var(--bg-secondary);
   border: 1px solid var(--border);
@@ -117,6 +137,55 @@
 .rowDesc strong {
   color: var(--text-primary);
   font-weight: 600;
+}
+
+.inlineCode {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 12px;
+}
+
+.idRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.idCode {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 13px;
+  padding: 8px 10px;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.copyBtn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.copyBtn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 /* Switch */

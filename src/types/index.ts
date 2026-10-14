@@ -109,6 +109,9 @@ export interface AgentPublic {
   pauseOnQualifiedLead?: boolean
   autoResumeAiAfterMinutes?: number | null
   replyDelaySeconds?: number
+  autoFollowUpEnabled?: boolean
+  autoFollowUpAfterMinutes?: number | null
+  autoFollowUpInstructions?: string | null
   isVerified?: boolean
   autoConfigStatus?: string | null
   category?: string | null
