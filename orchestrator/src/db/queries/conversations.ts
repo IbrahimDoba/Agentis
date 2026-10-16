@@ -268,7 +268,14 @@ export async function getConversationMessageCount(conversationId: string): Promi
 // phone — both write senderRole='human' outbound rows) landed after `since`.
 // Used to abort a pending AI reply the moment a human answers first, instead
 // of sending a stale double-answer after the anti-ban delay.
-export async function humanIntervenedSince(conversationId: string, since: Date): Promise<boolean> {
+// ignoreMode: the caller's own turn switched the chat to human (an AI handoff),
+// so human mode is not evidence an operator stepped in — only a real operator
+// message after `since` is.
+export async function humanIntervenedSince(
+  conversationId: string,
+  since: Date,
+  opts: { ignoreMode?: boolean } = {},
+): Promise<boolean> {
   const rows = await sql<{ mode: string; humanReplied: boolean }[]>`
     SELECT c."mode",
       EXISTS(
@@ -284,5 +291,5 @@ export async function humanIntervenedSince(conversationId: string, since: Date):
   `
   const row = rows[0]
   if (!row) return false
-  return row.mode === "human" || row.humanReplied
+  return (!opts.ignoreMode && row.mode === "human") || row.humanReplied
 }
