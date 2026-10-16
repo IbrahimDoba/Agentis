@@ -1,9 +1,11 @@
-import { getOrchestratorAgent, isAiRepliesPaused, isReplyGuardEnabled, getReplyDelayMs, type OrchestratorAgent } from "../db/queries/agents.js"
+import { getOrchestratorAgent, isAiRepliesPaused, isReplyGuardEnabled, getReplyDelayMs, getAdHandoffConfig, type OrchestratorAgent } from "../db/queries/agents.js"
+import { matchAdHandoffKeyword, DEFAULT_AD_HANDOFF_MESSAGE } from "./ad-handoff.js"
 import { isMetaAiRepliesPaused } from "../db/queries/meta.js"
 import {
   getOrCreateConversation,
   getConversationById,
   insertMessage,
+  handOffConversation,
   setConversationAdContextIfEmpty,
   getConversationMessageCount,
   humanIntervenedSince,
@@ -202,6 +204,41 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
     conversationId: conversation.id,
     direction: "inbound",
   })
+
+  // 3b. Ad-based handoff. A customer from an ad matching the agent's handoff
+  // keywords (e.g. a car ad on a caps store's number) goes straight to a human
+  // — decided here in code, before any AI turn, because the model can't be
+  // relied on to call the handoff tool (it says "a team member will attend to
+  // you" and stops). Checks this message's ad and the chat's stored one, so a
+  // caps customer who later clicks a car ad is handed off too. Skipped once the
+  // chat is already with a human (no repeat), for groups/embed, and when the
+  // agent's AI replies are switched off (everything is already the human's).
+  if ((channel === "whatsapp" || channel === "meta") && conversation.mode !== "human") {
+    const adHandoff = await getAdHandoffConfig(agentId)
+    const matched =
+      matchAdHandoffKeyword(incomingAdContext, adHandoff.keywords) ??
+      matchAdHandoffKeyword(conversation.adContext, adHandoff.keywords)
+    if (matched && !(await isAiRepliesPaused(agentId))) {
+      const ackText = adHandoff.message?.trim() || DEFAULT_AD_HANDOFF_MESSAGE
+      const ackId = await insertMessage({ conversationId: conversation.id, direction: "outbound", content: ackText })
+      await publishSseEvent(agentId, "message", { conversationId: conversation.id, direction: "outbound" })
+      // Human mode first, then send as a system ("human") message: the worker
+      // drops queued AI-source sends once a chat is human, and this isn't an
+      // AI turn (no LLM, nothing to bill as one).
+      await handOffConversation(conversation.id, `Customer came from an ad matching "${matched}" — routed straight to the team.`)
+      await dispatchReply({
+        agentId,
+        conversationId: conversation.id,
+        toJid: senderJid,
+        text: ackText,
+        source: "human",
+        messageId: ackId,
+        channel,
+      })
+      logger.info({ agentId, conversationId: conversation.id, keyword: matched }, "Ad handoff — routed to a human, AI skipped")
+      return
+    }
+  }
 
   // 4. Debounce decision. When the agent has a reply delay, bump the
   // conversation's sequence token and schedule a delayed reply job instead of

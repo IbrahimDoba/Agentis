@@ -176,6 +176,20 @@ export async function markProductAlbumSent(conversationId: string): Promise<void
   `
 }
 
+// Switch a conversation to human mode and stamp a handoff, re-arming the
+// owner's handoff alert (the notifier fires when handoffNotifiedAt IS NULL).
+export async function handOffConversation(conversationId: string, reason: string): Promise<void> {
+  await sql`
+    UPDATE "Conversation"
+    SET "mode" = 'human',
+        "handoffReason" = ${reason},
+        "handoffUrgency" = 'normal',
+        "handoffAt" = NOW(),
+        "handoffNotifiedAt" = NULL
+    WHERE "id" = ${conversationId}
+  `
+}
+
 export async function insertMessage(msg: {
   conversationId: string
   direction: "inbound" | "outbound"

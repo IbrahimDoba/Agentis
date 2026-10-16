@@ -92,6 +92,19 @@ export async function getReplyDelayMs(agentId: string): Promise<number> {
   }
 }
 
+// Ad-based handoff config (see Agent.adHandoffKeywords). Fails safe to "off" so
+// a deploy that lands before the migration can't break inbound handling.
+export async function getAdHandoffConfig(agentId: string): Promise<{ keywords: string[]; message: string | null }> {
+  try {
+    const rows = await sql<{ adHandoffKeywords: string[] | null; adHandoffMessage: string | null }[]>`
+      SELECT "adHandoffKeywords", "adHandoffMessage" FROM "Agent" WHERE "id" = ${agentId} LIMIT 1
+    `
+    return { keywords: rows[0]?.adHandoffKeywords ?? [], message: rows[0]?.adHandoffMessage ?? null }
+  } catch {
+    return { keywords: [], message: null }
+  }
+}
+
 // True when the agent's global "AI replies" master switch is OFF — the
 // orchestrator should skip the AI for every conversation of this agent.
 export async function isAiRepliesPaused(agentId: string): Promise<boolean> {
