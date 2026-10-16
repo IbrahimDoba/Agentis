@@ -9,7 +9,7 @@ import { publishSseEvent } from "../lib/sse-publish.js"
 import { sanitizeWhatsAppFormatting, sanitizeWhatsAppLinks } from "./handle-inbound.js"
 import { stripImageUrls } from "../lib/strip-image-urls.js"
 import { detachUrlPunctuation } from "../lib/detach-url-punctuation.js"
-import { withinSendWindow, hourInLagos, capPerAgent, buildFollowUpInstruction } from "./auto-followup-rules.js"
+import { withinSendWindow, hourInLagos, capPerAgent, buildFollowUpInstruction, buildFollowUpTrigger, isNearDuplicate } from "./auto-followup-rules.js"
 import { logger as rootLogger } from "../lib/logger.js"
 
 const logger = rootLogger.child({ module: "auto-followup" })
@@ -132,23 +132,61 @@ async function processCandidate(c: FollowUpCandidate): Promise<void> {
     (await buildSystemPrompt(agent, "Africa/Lagos", undefined, null, memory)) +
     buildFollowUpInstruction(hoursSilent, c.instructions)
   const messages = await buildMessages(c.conversationId, agent.shortTermWindow)
+  // What the duplicate guard compares against: the agent's own recent messages.
+  const recentOutbound = messages
+    .filter((m) => m.role === "assistant" && typeof m.content === "string" && m.content.length > 0)
+    .slice(-3)
+    .map((m) => m.content as string)
+  const trigger = { role: "user" as const, content: buildFollowUpTrigger(hoursSilent) }
+
+  const sanitize = (raw: string | null) =>
+    detachUrlPunctuation(sanitizeWhatsAppLinks(sanitizeWhatsAppFormatting(stripImageUrls(raw ?? "")))).trim()
 
   // Plain completion, no tools: a follow-up is one short nudge. Letting the
   // tool loop run here could re-send catalogues/albums into a silent chat.
-  const result = await resolveProvider(agent.model).chat({
-    model: agent.model,
-    system: systemPrompt,
-    messages,
-    // Number(): postgres.js returns the decimal temperature column as a string,
-    // and the OpenAI API 400s on a string temperature (run-agent-turn does the
-    // same coercion for the normal reply path).
-    temperature: Number(agent.temperature),
-    max_output_tokens: Number(agent.maxOutputTokens),
-  })
+  const chat = (msgs: typeof messages) =>
+    resolveProvider(agent.model).chat({
+      model: agent.model,
+      system: systemPrompt,
+      messages: msgs,
+      // Number(): postgres.js returns the decimal temperature column as a string,
+      // and the OpenAI API 400s on a string temperature (run-agent-turn does the
+      // same coercion for the normal reply path).
+      temperature: Number(agent.temperature),
+      max_output_tokens: Number(agent.maxOutputTokens),
+    })
 
-  const text = detachUrlPunctuation(
-    sanitizeWhatsAppLinks(sanitizeWhatsAppFormatting(stripImageUrls(result.content ?? "")))
-  ).trim()
+  const result = await chat([...messages, trigger])
+  let text = sanitize(result.content)
+  let tokensInput = result.usage.input_tokens
+  let tokensOutput = result.usage.output_tokens
+
+  // The model sometimes re-sends its own last message instead of checking in.
+  // One retry with explicit feedback; if it still comes back as a repeat, skip —
+  // sending the customer the same message twice is worse than sending nothing.
+  if (text && isNearDuplicate(text, recentOutbound)) {
+    const retry = await chat([
+      ...messages,
+      trigger,
+      { role: "assistant" as const, content: text },
+      {
+        role: "user" as const,
+        content:
+          "[Your draft repeats your previous message. Write a DIFFERENT short check-in — no content, prices, or links you already shared. Ask whether they're still interested or have any questions.]",
+      },
+    ])
+    text = sanitize(retry.content)
+    tokensInput += retry.usage.input_tokens
+    tokensOutput += retry.usage.output_tokens
+    if (text && isNearDuplicate(text, recentOutbound)) {
+      logger.warn(
+        { agentId: c.agentId, conversationId: c.conversationId },
+        "Auto follow-up still duplicated the previous message after retry — skipping"
+      )
+      return
+    }
+  }
+
   if (!text) {
     logger.warn({ agentId: c.agentId, conversationId: c.conversationId }, "Auto follow-up LLM returned empty — skipping")
     return
@@ -162,8 +200,8 @@ async function processCandidate(c: FollowUpCandidate): Promise<void> {
     conversationId: c.conversationId,
     direction: "outbound",
     content: text,
-    tokensInput: result.usage.input_tokens,
-    tokensOutput: result.usage.output_tokens,
+    tokensInput,
+    tokensOutput,
     modelUsed: agent.model,
   })
 
@@ -183,8 +221,8 @@ async function processCandidate(c: FollowUpCandidate): Promise<void> {
       text,
       source: "ai",
       messageId,
-      tokensInput: result.usage.input_tokens,
-      tokensOutput: result.usage.output_tokens,
+      tokensInput,
+      tokensOutput,
       channel: "whatsapp",
     })
   } catch (err) {
