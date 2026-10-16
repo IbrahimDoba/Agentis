@@ -235,6 +235,13 @@ model Agent {
   // AI for ALL of this agent's conversations (every message goes to a human),
   // regardless of per-conversation mode. Default true.
   aiRepliesEnabled             Boolean              @default(true)
+  // Ad-based handoff. When a customer arrives from a click-to-WhatsApp ad whose
+  // text contains any of these keywords (case-insensitive), the AI never
+  // answers: the customer gets adHandoffMessage and the chat goes straight to a
+  // human. Lets one number run ads for a second line of business (e.g. cars on
+  // a caps store) that the owner handles personally. Empty = off.
+  adHandoffKeywords            String[]             @default([])
+  adHandoffMessage             String?
   // Opt-in for WhatsApp group chats. While false the worker drops group
   // messages at ingest exactly as before this feature existed.
   groupChatEnabled             Boolean              @default(false)

@@ -40,6 +40,11 @@ export interface AgentTurnResult {
   inputTokens: number
   outputTokens: number
   collectedToolResults: CollectedToolResult[]
+  // True when this turn called request_human_handoff and it switched the chat to
+  // human mode. The caller must still deliver the acknowledgement: without this
+  // flag the "a human took over" checks mistake the AI's own handoff for an
+  // operator stepping in and silently drop the reply.
+  handedOff: boolean
 }
 
 export interface AgentTurnOptions {
@@ -144,6 +149,7 @@ export async function runAgentTurn(
   // Capture every external-tool result this turn so callers can post-process
   // them into structured UI payloads (product cards, etc.).
   const collectedToolResults: CollectedToolResult[] = []
+  let handedOff = false
 
   for (let iteration = 0; iteration < MAX_TOOL_ITERATIONS; iteration++) {
     const result = await provider.chat({
@@ -221,6 +227,9 @@ export async function runAgentTurn(
             agentId,
             conversationId,
           })
+          try {
+            if (JSON.parse(toolResult).pausedAi === true) handedOff = true
+          } catch { /* malformed tool result — treat as no handoff */ }
         } else if (tc.name === "mark_qualified_lead") {
           toolResult = await executeMarkQualifiedLead(tc.arguments, {
             agentId,
@@ -309,6 +318,7 @@ export async function runAgentTurn(
     inputTokens: totalInputTokens,
     outputTokens: totalOutputTokens,
     collectedToolResults,
+    handedOff,
   }
 }
 

@@ -1,9 +1,11 @@
-import { getOrchestratorAgent, isAiRepliesPaused, isReplyGuardEnabled, getReplyDelayMs, type OrchestratorAgent } from "../db/queries/agents.js"
+import { getOrchestratorAgent, isAiRepliesPaused, isReplyGuardEnabled, getReplyDelayMs, getAdHandoffConfig, type OrchestratorAgent } from "../db/queries/agents.js"
+import { matchAdHandoffKeyword, DEFAULT_AD_HANDOFF_MESSAGE } from "./ad-handoff.js"
 import { isMetaAiRepliesPaused } from "../db/queries/meta.js"
 import {
   getOrCreateConversation,
   getConversationById,
   insertMessage,
+  handOffConversation,
   setConversationAdContextIfEmpty,
   getConversationMessageCount,
   humanIntervenedSince,
@@ -202,6 +204,41 @@ export async function handleInbound(payload: InboundPayload): Promise<void> {
     conversationId: conversation.id,
     direction: "inbound",
   })
+
+  // 3b. Ad-based handoff. A customer from an ad matching the agent's handoff
+  // keywords (e.g. a car ad on a caps store's number) goes straight to a human
+  // — decided here in code, before any AI turn, because the model can't be
+  // relied on to call the handoff tool (it says "a team member will attend to
+  // you" and stops). Checks this message's ad and the chat's stored one, so a
+  // caps customer who later clicks a car ad is handed off too. Skipped once the
+  // chat is already with a human (no repeat), for groups/embed, and when the
+  // agent's AI replies are switched off (everything is already the human's).
+  if ((channel === "whatsapp" || channel === "meta") && conversation.mode !== "human") {
+    const adHandoff = await getAdHandoffConfig(agentId)
+    const matched =
+      matchAdHandoffKeyword(incomingAdContext, adHandoff.keywords) ??
+      matchAdHandoffKeyword(conversation.adContext, adHandoff.keywords)
+    if (matched && !(await isAiRepliesPaused(agentId))) {
+      const ackText = adHandoff.message?.trim() || DEFAULT_AD_HANDOFF_MESSAGE
+      const ackId = await insertMessage({ conversationId: conversation.id, direction: "outbound", content: ackText })
+      await publishSseEvent(agentId, "message", { conversationId: conversation.id, direction: "outbound" })
+      // Human mode first, then send as a system ("human") message: the worker
+      // drops queued AI-source sends once a chat is human, and this isn't an
+      // AI turn (no LLM, nothing to bill as one).
+      await handOffConversation(conversation.id, `Customer came from an ad matching "${matched}" — routed straight to the team.`)
+      await dispatchReply({
+        agentId,
+        conversationId: conversation.id,
+        toJid: senderJid,
+        text: ackText,
+        source: "human",
+        messageId: ackId,
+        channel,
+      })
+      logger.info({ agentId, conversationId: conversation.id, keyword: matched }, "Ad handoff — routed to a human, AI skipped")
+      return
+    }
+  }
 
   // 4. Debounce decision. When the agent has a reply delay, bump the
   // conversation's sequence token and schedule a delayed reply job instead of
@@ -454,6 +491,12 @@ async function generateReply(agent: OrchestratorAgent, conversation: Conversatio
   const totalOutputTokens = turn.outputTokens
   const collectedToolResults = turn.collectedToolResults
   const finalReply = turn.finalReply
+  // The AI handed this chat to a human this turn. Its acknowledgement ("a team
+  // member will attend to you") must still reach the customer, so the checks
+  // below must not read that self-made human mode as an operator interjection,
+  // and the send goes out as a system message (the worker drops AI-source sends
+  // in human-mode chats) with the turn billed here instead of by the worker.
+  const handedOff = turn.handedOff
 
   if (!finalReply) {
     logger.warn({ agentId, conversationId }, "LLM returned empty reply")
@@ -488,7 +531,7 @@ async function generateReply(agent: OrchestratorAgent, conversation: Conversatio
   // human mode while we were generating, drop the reply BEFORE it's persisted or
   // dispatched. The worker re-checks again at send time (after the anti-ban
   // delays), so both windows are covered.
-  if (await humanIntervenedSince(conversationId, inboundSavedAt)) {
+  if (await humanIntervenedSince(conversationId, inboundSavedAt, { ignoreMode: handedOff })) {
     logger.info(
       { agentId, conversationId },
       "Human replied first — dropping the AI reply (not persisted, not sent)"
@@ -531,7 +574,7 @@ async function generateReply(agent: OrchestratorAgent, conversation: Conversatio
         // tagged us; sending there would DM them instead of answering in the room.
         toJid: groupJid ?? senderJid,
         text: replyParts[i],
-        source: "ai",
+        source: handedOff ? "human" : "ai",
         // Quote the triggering message on the first part only — quoting every
         // part of a split reply is noise.
         ...(channel === "whatsapp_group" && i === 0
@@ -542,8 +585,8 @@ async function generateReply(agent: OrchestratorAgent, conversation: Conversatio
         messageId: partMessageIds[i],
         // PAYG: charge the full turn's tokens against the FIRST part only.
         // Subsequent parts pass 0/0 so the worker doesn't double-charge.
-        tokensInput: i === 0 ? totalInputTokens : 0,
-        tokensOutput: i === 0 ? totalOutputTokens : 0,
+        tokensInput: i === 0 && !handedOff ? totalInputTokens : 0,
+        tokensOutput: i === 0 && !handedOff ? totalOutputTokens : 0,
         channel,
       })
     }
@@ -552,7 +595,9 @@ async function generateReply(agent: OrchestratorAgent, conversation: Conversatio
   // Channels that never reach the Baileys worker never hit its per-message
   // billing, so charge the turn here — once — or they reply for free. Embed is
   // delivered by the orchestrator itself; "meta" goes out over the Cloud API.
-  if (channel === "embed" || channel === "meta") {
+  // A handed-off reply is sent as a system message, which the worker doesn't
+  // bill — so it's charged here too.
+  if (channel === "embed" || channel === "meta" || handedOff) {
     await chargeTurnOutsideWorker({
       agentId,
       conversationId,
