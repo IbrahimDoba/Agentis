@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { withinSendWindow, capPerAgent, buildFollowUpInstruction, hourInLagos } from "./auto-followup-rules.js"
+import { withinSendWindow, capPerAgent, buildFollowUpInstruction, hourInLagos, buildFollowUpTrigger, isNearDuplicate } from "./auto-followup-rules.js"
 
 describe("withinSendWindow", () => {
   it("allows daytime hours", () => {
@@ -61,5 +61,44 @@ describe("buildFollowUpInstruction", () => {
     expect(buildFollowUpInstruction(3, "Mention free Lagos delivery")).toContain("Mention free Lagos delivery")
     expect(buildFollowUpInstruction(3, "   ")).not.toContain("Owner guidance")
     expect(buildFollowUpInstruction(3, null)).not.toContain("Owner guidance")
+  })
+
+  it("forbids repeating the previous message", () => {
+    expect(buildFollowUpInstruction(2, null)).toContain("NEVER re-send")
+    expect(buildFollowUpInstruction(2, null)).toContain("still interested")
+  })
+})
+
+describe("buildFollowUpTrigger", () => {
+  it("states the silence duration and marks itself as automated", () => {
+    const t = buildFollowUpTrigger(2.4)
+    expect(t).toContain("about 2 hours")
+    expect(t).toContain("not from the customer")
+  })
+})
+
+describe("isNearDuplicate", () => {
+  const prev = ["Good evening! Here are our caps: https://justfitsng.com/shop/caps\nWhich one catches your eye?"]
+
+  it("catches a verbatim re-send", () => {
+    expect(isNearDuplicate(prev[0], prev)).toBe(true)
+  })
+
+  it("catches the same message with a greeting bolted on", () => {
+    expect(
+      isNearDuplicate("Hi again! Here are our caps: https://justfitsng.com/shop/caps — which one catches your eye?", prev)
+    ).toBe(true)
+  })
+
+  it("passes a genuinely different check-in", () => {
+    expect(isNearDuplicate("Just checking in — are you still interested in the caps? Happy to help with sizes.", prev)).toBe(false)
+  })
+
+  it("treats an empty draft as a duplicate (never send it)", () => {
+    expect(isNearDuplicate("", prev)).toBe(true)
+  })
+
+  it("ignores empty history", () => {
+    expect(isNearDuplicate("Are you still interested?", [])).toBe(false)
   })
 })
