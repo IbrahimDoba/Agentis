@@ -139,8 +139,11 @@ async function processCandidate(c: FollowUpCandidate): Promise<void> {
     model: agent.model,
     system: systemPrompt,
     messages,
-    temperature: agent.temperature,
-    max_output_tokens: agent.maxOutputTokens,
+    // Number(): postgres.js returns the decimal temperature column as a string,
+    // and the OpenAI API 400s on a string temperature (run-agent-turn does the
+    // same coercion for the normal reply path).
+    temperature: Number(agent.temperature),
+    max_output_tokens: Number(agent.maxOutputTokens),
   })
 
   const text = detachUrlPunctuation(
