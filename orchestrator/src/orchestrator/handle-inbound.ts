@@ -1,5 +1,7 @@
 import { getOrchestratorAgent, isAiRepliesPaused, isReplyGuardEnabled, getReplyDelayMs, getAdHandoffConfig, type OrchestratorAgent } from "../db/queries/agents.js"
 import { matchAdHandoffKeyword, DEFAULT_AD_HANDOFF_MESSAGE } from "./ad-handoff.js"
+import { promisesHumanFollowUp } from "./human-promise.js"
+import { executeRequestHumanHandoff } from "../tools/built-in/request-human-handoff.js"
 import { isMetaAiRepliesPaused } from "../db/queries/meta.js"
 import {
   getOrCreateConversation,
@@ -496,7 +498,7 @@ async function generateReply(agent: OrchestratorAgent, conversation: Conversatio
   // below must not read that self-made human mode as an operator interjection,
   // and the send goes out as a system message (the worker drops AI-source sends
   // in human-mode chats) with the turn billed here instead of by the worker.
-  const handedOff = turn.handedOff
+  let handedOff = turn.handedOff
 
   if (!finalReply) {
     logger.warn({ agentId, conversationId }, "LLM returned empty reply")
@@ -520,6 +522,22 @@ async function generateReply(agent: OrchestratorAgent, conversation: Conversatio
   // formatting (**bold** → *bold*, headings, etc.), convert markdown links to
   // plain URLs, then split long replies into multiple messages.
   const replyParts = splitReply(detachUrlPunctuation(sanitizeWhatsAppLinks(sanitizeWhatsAppFormatting(stripImageUrls(effectiveReply)))))
+
+  // The AI promised a person ("let me confirm with the team and get back to
+  // you", "a team member will attend to you") but didn't call the handoff tool —
+  // it does that only ~1 in 6 times. Hand off for it, exactly as the tool would
+  // (same alert, same pause-on-handoff setting), so the chat doesn't stay in AI
+  // mode and the AI doesn't answer the very next message. 1:1 chats only.
+  if (!handedOff && channel !== "whatsapp_group" && promisesHumanFollowUp(effectiveReply)) {
+    const result = await executeRequestHumanHandoff(
+      { reason: "The AI told the customer a team member would follow up.", urgency: "normal" },
+      { agentId, conversationId },
+    )
+    try {
+      handedOff = JSON.parse(result).pausedAi === true
+    } catch { /* malformed result — leave the chat as it is */ }
+    logger.info({ agentId, conversationId, paused: handedOff }, "AI promised a human without handing off — handoff applied")
+  }
 
   // Build structured payload (product cards etc.) from the tool results captured
   // during the LLM loop. Attaches only to the first part so the cards don't
