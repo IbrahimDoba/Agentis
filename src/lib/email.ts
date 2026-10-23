@@ -1067,6 +1067,10 @@ export async function sendAppointmentBookedEmail(data: {
   customerName?: string | null
   customerNumber?: string | null
   notes?: string | null
+  // iCalendar invite (buildAppointmentInvite). Attached as text/calendar with
+  // method=REQUEST so Gmail/Outlook/Apple treat the email as a meeting invite
+  // and add it to the recipient's calendar.
+  calendarInvite?: string
 }, brand?: EmailBrand) {
   const appUrl = brand?.appUrl ?? APP_URL
   const who = esc(data.customerName) || esc(data.customerNumber) || "a customer"
@@ -1075,11 +1079,14 @@ export async function sendAppointmentBookedEmail(data: {
     from: senderFrom(brand),
     to: data.email,
     subject: `📅 New appointment booked — ${esc(data.title)} with ${who}`,
+    ...(data.calendarInvite
+      ? { attachments: [{ filename: "invite.ics", content: data.calendarInvite, contentType: "text/calendar; method=REQUEST; charset=UTF-8" }] }
+      : {}),
     html: baseTemplate(`
       <h2 style="margin:0 0 8px;font-size:22px;color:#111111;">New appointment booked</h2>
       <p style="margin:0 0 20px;color:#4b5563;">
         Hi ${esc(data.recipientName) || "there"}, ${how} <strong>${esc(data.title)}</strong> with ${who}.
-        We'll remind you and your team before it's due.
+        We'll remind you and your team before it's due.${data.calendarInvite ? " A calendar invite is attached so it shows up in your calendar." : ""}
       </p>
       <table cellpadding="0" cellspacing="0" style="width:100%;">
         ${infoRow("When", esc(data.whenLabel))}
