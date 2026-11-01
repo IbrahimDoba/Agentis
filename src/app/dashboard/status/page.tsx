@@ -49,6 +49,12 @@ const COMING_SOON: Record<Exclude<Tab, "contacts" | "posts" | "analytics">, stri
   autopilot: "Keep your status fresh automatically: pick your products and times, and your status gets posted for you every day.",
 }
 
+function sessionLabel(status: SessionStatus["status"] | undefined): string {
+  if (!status) return "No session"
+  const text = status.replaceAll("_", " ").toLowerCase()
+  return text.charAt(0).toUpperCase() + text.slice(1)
+}
+
 export default function StatusPage() {
   const [tab, setTab] = useState<Tab>("posts")
   const [manualAgentId, setManualAgentId] = useState<string | null>(null)
@@ -137,11 +143,12 @@ export default function StatusPage() {
                   <div className={styles.agentInfo}>
                     <div className={styles.agentName}>{agent.businessName}</div>
                     <div className={styles.agentMeta}>
+                      <span className={`${styles.dot} ${session?.status === "CONNECTED" ? styles.dotOn : ""}`} aria-hidden />
                       {isLoading
                         ? "Checking connection…"
                         : session?.status === "CONNECTED"
-                          ? `Connected${session.phoneNumber ? ` · ${session.phoneNumber}` : ""}`
-                          : session?.status.replaceAll("_", " ") ?? "No session"}
+                          ? `Connected${session.phoneNumber ? ` · +${session.phoneNumber}` : ""}`
+                          : sessionLabel(session?.status)}
                     </div>
                   </div>
                 </button>
@@ -153,14 +160,14 @@ export default function StatusPage() {
         <section className={styles.mainCard}>
           {tab === "autopilot" ? (
             <div className={styles.emptyState}>
-              <PhotoIcon width={28} height={28} />
-              <div className={styles.soonTitle}>Coming soon</div>
-              <div>{COMING_SOON[tab]}</div>
+              <span className={styles.emptyIcon}><PhotoIcon width={24} height={24} /></span>
+              <div className={styles.soonTitle}>Autopilot is coming soon</div>
+              <div className={styles.emptyText}>{COMING_SOON[tab]}</div>
             </div>
           ) : !selected ? (
             <div className={styles.emptyState}>
-              <PhotoIcon width={28} height={28} />
-              <div>Select an agent with a linked WhatsApp number.</div>
+              <span className={styles.emptyIcon}><PhotoIcon width={24} height={24} /></span>
+              <div className={styles.emptyText}>Select an agent with a linked WhatsApp number.</div>
             </div>
           ) : tab === "analytics" ? (
             <AnalyticsTab key={selected.agent.id} agentId={selected.agent.id} />

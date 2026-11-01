@@ -278,7 +278,7 @@ export function PostsTab({ agentId, isConnected }: { agentId: string; isConnecte
           ) : (
             <>
               <div className={styles.field}>
-                <span className={styles.label}>{kind === "video" ? "Video" : "Image"}</span>
+                <span className={styles.label}>{kind === "video" ? "Choose a video" : "Choose an image"}</span>
                 <label className={styles.upload}>
                   <input
                     type="file"
@@ -372,7 +372,7 @@ export function PostsTab({ agentId, isConnected }: { agentId: string; isConnecte
       </section>
 
       <section className={styles.list}>
-        <div className={shared.cardTitle}>Your posts</div>
+        <div className={shared.sectionTitle}>Your posts</div>
         {data.posts.length === 0 ? (
           <div className={shared.muted}>Nothing posted yet.</div>
         ) : (

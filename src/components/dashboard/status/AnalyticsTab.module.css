@@ -13,7 +13,8 @@
 .post {
   border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 0.8rem 1rem;
+  background: var(--bg-card);
+  padding: 0.85rem 1.1rem;
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
@@ -136,7 +137,8 @@
 
 .tagLiked {
   color: var(--success);
-  border-color: rgba(34, 197, 94, 0.3);
+  border-color: var(--success-light);
+  background: var(--success-light);
 }
 
 .tagReplied {
