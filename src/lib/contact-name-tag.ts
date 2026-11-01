@@ -1,7 +1,7 @@
-// Name tag appended to contacts Dailzero saves ("Ada Obi - DZ"). Shared by the
-// Contacts tab and the settings route, so no server-only imports here.
+// Optional tag the owner picks, appended to every contact saved for them
+// ("Ada Obi - Shop"). Shared by the Contacts tab and the settings route, so no
+// server-only imports here. No preset: it's the owner's word, not the platform's.
 
-export const NAME_TAG_PRESETS = ["- DZ", "· DZ"] as const
 export const NAME_TAG_MAX = 12
 
 // Letters, digits and a few separators. Keeps emoji-soup and anything that

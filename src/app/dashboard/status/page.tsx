@@ -46,7 +46,7 @@ const TABS: Array<{ id: Tab; label: string; ready: boolean }> = [
 ]
 
 const COMING_SOON: Record<Exclude<Tab, "contacts" | "posts" | "analytics">, string> = {
-  autopilot: "Keep your status fresh automatically: pick your products and times, and Dailzero posts for you every day.",
+  autopilot: "Keep your status fresh automatically: pick your products and times, and your status gets posted for you every day.",
 }
 
 export default function StatusPage() {

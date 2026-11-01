@@ -1,9 +1,10 @@
 import { describe, it, expect } from "vitest"
-import { normalizeNameTag, previewSavedName, NAME_TAG_PRESETS } from "./contact-name-tag"
+import { normalizeNameTag, previewSavedName } from "./contact-name-tag"
 
 describe("normalizeNameTag", () => {
-  it("accepts the presets as-is", () => {
-    for (const p of NAME_TAG_PRESETS) expect(normalizeNameTag(p)).toEqual({ ok: true, tag: p })
+  it("accepts the owner's own short tag as-is", () => {
+    expect(normalizeNameTag("- Shop")).toEqual({ ok: true, tag: "- Shop" })
+    expect(normalizeNameTag("· Customer")).toEqual({ ok: true, tag: "· Customer" })
   })
 
   it("treats empty as no tag", () => {
@@ -25,7 +26,7 @@ describe("normalizeNameTag", () => {
 
 describe("previewSavedName", () => {
   it("shows the name the owner will see in their phone", () => {
-    expect(previewSavedName("Ada Obi", "- DZ")).toBe("Ada Obi - DZ")
+    expect(previewSavedName("Ada Obi", "- Shop")).toBe("Ada Obi - Shop")
     expect(previewSavedName("Ada Obi", null)).toBe("Ada Obi")
   })
 })
