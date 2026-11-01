@@ -6,6 +6,7 @@ import { useQueries, useQuery } from "@tanstack/react-query"
 import { DevicePhoneMobileIcon, PhotoIcon } from "@heroicons/react/24/outline"
 import { ContactsTab } from "@/components/dashboard/status/ContactsTab"
 import { PostsTab } from "@/components/dashboard/status/PostsTab"
+import { AnalyticsTab } from "@/components/dashboard/status/AnalyticsTab"
 import styles from "./page.module.css"
 
 interface Agent {
@@ -41,12 +42,11 @@ const TABS: Array<{ id: Tab; label: string; ready: boolean }> = [
   { id: "posts", label: "Posts", ready: true },
   { id: "autopilot", label: "Autopilot", ready: false },
   { id: "contacts", label: "Contacts", ready: true },
-  { id: "analytics", label: "Analytics", ready: false },
+  { id: "analytics", label: "Analytics", ready: true },
 ]
 
-const COMING_SOON: Record<Exclude<Tab, "contacts" | "posts">, string> = {
+const COMING_SOON: Record<Exclude<Tab, "contacts" | "posts" | "analytics">, string> = {
   autopilot: "Keep your status fresh automatically: pick your products and times, and Dailzero posts for you every day.",
-  analytics: "See who viewed, liked and replied to each status, and which posts turned into customers.",
 }
 
 export default function StatusPage() {
@@ -151,7 +151,7 @@ export default function StatusPage() {
         </section>
 
         <section className={styles.mainCard}>
-          {tab === "autopilot" || tab === "analytics" ? (
+          {tab === "autopilot" ? (
             <div className={styles.emptyState}>
               <PhotoIcon width={28} height={28} />
               <div className={styles.soonTitle}>Coming soon</div>
@@ -162,6 +162,8 @@ export default function StatusPage() {
               <PhotoIcon width={28} height={28} />
               <div>Select an agent with a linked WhatsApp number.</div>
             </div>
+          ) : tab === "analytics" ? (
+            <AnalyticsTab key={selected.agent.id} agentId={selected.agent.id} />
           ) : tab === "posts" ? (
             <PostsTab key={selected.agent.id} agentId={selected.agent.id} isConnected={selected.session?.status === "CONNECTED"} />
           ) : (

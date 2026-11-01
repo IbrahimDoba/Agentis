@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { statusCredits, recipientCapFor, statusJidList, transcodeArgs, statusReplyLabel } from "./status-post.js"
+import { statusCredits, recipientCapFor, statusJidList, transcodeArgs, statusReplyLabel, receiptEvents, statusLikeTarget } from "./status-post.js"
 
 describe("statusCredits", () => {
   it("bills a post like one sent message of the same type", () => {
@@ -67,5 +67,39 @@ describe("statusReplyLabel", () => {
     expect(statusReplyLabel({ videoMessage: {} }, " Red gown, ₦45,000, sizes 8-16 "))
       .toBe("[Replying to your WhatsApp status: a video with no caption]\n[What this status is about: Red gown, ₦45,000, sizes 8-16]")
     expect(statusReplyLabel({ videoMessage: {} }, "  ")).toBe("[Replying to your WhatsApp status: a video with no caption]")
+  })
+})
+
+describe("receiptEvents", () => {
+  it("turns a delivery receipt into delivered", () => {
+    expect(receiptEvents({ receiptTimestamp: 1_800_000_000 })).toEqual([{ kind: "delivered", at: new Date(1_800_000_000_000) }])
+  })
+
+  it("counts a read as delivered too", () => {
+    const events = receiptEvents({ readTimestamp: 1_800_000_100 })
+    expect(events.map((e) => e.kind)).toEqual(["delivered", "viewed"])
+  })
+
+  it("treats a played video as viewed and handles protobuf Longs", () => {
+    const events = receiptEvents({ playedTimestamp: { toNumber: () => 1_800_000_200 } })
+    expect(events.map((e) => e.kind)).toEqual(["delivered", "viewed"])
+    expect(receiptEvents({})).toEqual([])
+  })
+})
+
+describe("statusLikeTarget", () => {
+  const like = (text: string, over: Record<string, unknown> = {}) => ({
+    key: { remoteJid: "status@broadcast", fromMe: false, participant: "12345@lid", ...over },
+    message: { reactionMessage: { text, key: { id: "3EB0STATUS" } } },
+  })
+
+  it("finds the liked status and the liker", () => {
+    expect(statusLikeTarget(like("💚"))).toEqual({ statusId: "3EB0STATUS", likerJid: "12345@lid" })
+  })
+
+  it("ignores un-likes, our own reactions and other chats", () => {
+    expect(statusLikeTarget(like(""))).toBeNull()
+    expect(statusLikeTarget(like("💚", { fromMe: true }))).toBeNull()
+    expect(statusLikeTarget(like("💚", { remoteJid: "2348011111111@s.whatsapp.net" }))).toBeNull()
   })
 })

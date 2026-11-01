@@ -28,6 +28,9 @@ interface Post {
   recipientCount: number
   creditsUsed: number
   error: string | null
+  viewed: number
+  liked: number
+  replied: number
 }
 
 interface PostsData {
@@ -382,7 +385,9 @@ export function PostsTab({ agentId, isConnected }: { agentId: string; isConnecte
                 </div>
                 <div className={styles.postText}>{post.text || post.aiNote || `${KIND_LABEL[post.kind]} post`}</div>
                 {post.status === "posted" && (
-                  <div className={shared.muted}>Sent to {post.recipientCount.toLocaleString()} contacts · {post.creditsUsed} credits</div>
+                  <div className={shared.muted}>
+                    Sent to {post.recipientCount.toLocaleString()} · {post.viewed} viewed · {post.liked} liked · {post.replied} replied · {post.creditsUsed} credits
+                  </div>
                 )}
                 {post.error && <div className={shared.error}>{post.error}</div>}
               </div>

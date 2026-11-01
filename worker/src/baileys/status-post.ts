@@ -82,3 +82,44 @@ export function statusReplyLabel(quoted: QuotedStatus | null | undefined, note: 
     : `[Replying to your WhatsApp status: ${what} with no caption]`
   return note?.trim() ? `${label}\n[What this status is about: ${note.trim()}]` : label
 }
+
+export type StatusEventKind = "delivered" | "viewed" | "liked" | "replied"
+
+interface StatusReceipt {
+  receiptTimestamp?: number | Long | null
+  readTimestamp?: number | Long | null
+  playedTimestamp?: number | Long | null
+}
+type Long = { toNumber(): number }
+
+const seconds = (v: number | Long | null | undefined): number | null => {
+  const n = typeof v === "number" ? v : v ? v.toNumber() : 0
+  return n > 0 ? n : null
+}
+
+// A read (or a played video) implies delivery, so a viewer who never sent a
+// separate delivery receipt still counts as delivered.
+export function receiptEvents(receipt: StatusReceipt): Array<{ kind: StatusEventKind; at: Date }> {
+  const delivered = seconds(receipt.receiptTimestamp)
+  const viewed = seconds(receipt.readTimestamp) ?? seconds(receipt.playedTimestamp)
+  const events: Array<{ kind: StatusEventKind; at: Date }> = []
+  const deliveredAt = delivered ?? viewed
+  if (deliveredAt) events.push({ kind: "delivered", at: new Date(deliveredAt * 1000) })
+  if (viewed) events.push({ kind: "viewed", at: new Date(viewed * 1000) })
+  return events
+}
+
+interface MaybeStatusLike {
+  key: { remoteJid?: string | null; fromMe?: boolean | null; participant?: string | null }
+  message?: { reactionMessage?: { text?: string | null; key?: { id?: string | null } | null } | null } | null
+}
+
+// A like on a status arrives as a reaction whose target is the status id. An
+// empty reaction is the like being taken back; that's ignored, not un-counted.
+export function statusLikeTarget(msg: MaybeStatusLike): { statusId: string; likerJid: string } | null {
+  if (msg.key.remoteJid !== "status@broadcast" || msg.key.fromMe) return null
+  const reaction = msg.message?.reactionMessage
+  const statusId = reaction?.key?.id
+  if (!reaction?.text || !statusId || !msg.key.participant) return null
+  return { statusId, likerJid: msg.key.participant }
+}

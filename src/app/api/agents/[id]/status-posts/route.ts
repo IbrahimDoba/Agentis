@@ -50,6 +50,15 @@ export async function GET(_req: NextRequest, { params }: Params) {
       db.statusPost.count({ where: { agentId: id, scheduledAt: { gte: start, lt: end }, status: { notIn: ["cancelled", "failed"] } } }),
     ])
 
+    // _count on a nullable column counts the non-null rows: people who got to
+    // that step.
+    const funnel = await db.statusView.groupBy({
+      by: ["postId"],
+      where: { postId: { in: posts.map((p) => p.id) } },
+      _count: { deliveredAt: true, viewedAt: true, likedAt: true, repliedAt: true },
+    })
+    const funnelByPost = new Map(funnel.map((f) => [f.postId, f._count]))
+
     return NextResponse.json({
       posts: posts.map((p) => ({
         id: p.id,
@@ -64,6 +73,10 @@ export async function GET(_req: NextRequest, { params }: Params) {
         recipientCount: p.recipientCount,
         creditsUsed: p.creditsUsed,
         error: p.error,
+        delivered: funnelByPost.get(p.id)?.deliveredAt ?? 0,
+        viewed: funnelByPost.get(p.id)?.viewedAt ?? 0,
+        liked: funnelByPost.get(p.id)?.likedAt ?? 0,
+        replied: funnelByPost.get(p.id)?.repliedAt ?? 0,
       })),
       audience: { contacts, cap: recipientCapFor(access.agent.user.plan) },
       postsToday,

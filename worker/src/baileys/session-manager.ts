@@ -11,6 +11,7 @@ import { importProfileFromWhatsApp } from "./profile-import.js"
 import { updateContacts, setLidMappingStore, resolvePhone } from "./contacts-store.js"
 import { addressBookEntries } from "./contact-save.js"
 import { upsertAddressBook } from "../db/queries/contacts.js"
+import { recordStatusReceipts } from "./status-tracking.js"
 import { updateSessionStatus, upsertSession, deleteSession, getSessionByAgentId, getHistorySyncStatus } from "../db/queries.js"
 import { webhookEmitter } from "../dashboard/webhook-emitter.js"
 import { logger as rootLogger } from "../lib/logger.js"
@@ -399,6 +400,13 @@ async function startSession(agentId: string, reconnectAttempt = 0): Promise<void
 
   // Attach inbound message handlers
   createEventHandlers(sock, agentId)
+
+  // Status → Analytics: per-viewer delivered/read receipts for our own posts.
+  sock.ev.on("message-receipt.update", (updates) => {
+    recordStatusReceipts(sock, agentId, updates).catch((err) => {
+      logger.warn({ err, agentId }, "Failed to record status receipts")
+    })
+  })
 
   // Always attach the history-sync handler. WhatsApp sends a small amount
   // of history on every new link even when syncFullHistory is false, and
