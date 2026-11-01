@@ -306,6 +306,13 @@ model Agent {
   // whose business actually books appointments/inspections get it. Manual
   // (human) appointment creation works regardless of this flag.
   appointmentSchedulingEnabled Boolean              @default(false)
+  // Status → Contacts. When on, a chat that messages in and isn't in the phone's
+  // address book yet is saved there automatically (1 credit each), so status
+  // reach grows on its own. Off by default.
+  autoSaveContacts             Boolean              @default(false)
+  // Appended to every name Dailzero saves ("Ada - DZ") so the owner can find
+  // those contacts in their phone. Null = save the plain WhatsApp name.
+  contactNameTag               String?
   toolsData                    Json?
   openaiApiKey                 String?
   transportType                String               @default("waba")
@@ -330,6 +337,8 @@ model Agent {
   promptEdits                  PromptEdit[]
   baileysAuthKeys              BaileysAuthKey[]
   metaConnections              MetaConnection[]
+  whatsappContacts             WhatsAppContact[]
+  contactSaveRuns              ContactSaveRun[]
 
   // Postgres does not auto-index FKs. `userId` is the app's hottest filter
   // (dashboard, billing, stats poll); `agentRuntime`/`elevenlabsAgentId` gate
@@ -337,6 +346,48 @@ model Agent {
   @@index([userId, status])
   @@index([agentRuntime])
   @@index([elevenlabsAgentId])
+}
+
+// The connected phone's address book, mirrored by the worker from WhatsApp's
+// contact sync. A row means "this number is saved on the owner's phone" — the
+// audience a status reaches, and the list a bulk save must never rename.
+// savedBy "phone" = the owner had it already; "dailzero" = we saved it.
+model WhatsAppContact {
+  id        String   @id @default(cuid())
+  agentId   String
+  agent     Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  phone     String
+  name      String
+  savedBy   String   @default("phone")
+  createdAt DateTime @default(now()) @db.Timestamptz()
+  updatedAt DateTime @updatedAt @db.Timestamptz()
+
+  @@unique([agentId, phone])
+}
+
+// One "save my chats to contacts" run. The worker walks the agent's chats in id
+// order (cursor) saving each unsaved, well-named one, so a pause or restart
+// resumes exactly where it stopped. At most one running/paused run per agent —
+// enforced in the worker under an advisory lock.
+model ContactSaveRun {
+  id           String    @id @default(cuid())
+  agentId      String
+  agent        Agent     @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  status       String    @default("running") // running | paused | completed | cancelled
+  // Why a run is paused: no_credits | disconnected | owner. A run that hit the
+  // daily cap stays "running" with waitingUntil set and continues by itself.
+  pauseReason  String?
+  waitingUntil DateTime? @db.Timestamptz()
+  nameTag      String?
+  cursor       String?
+  totalCount   Int
+  savedCount   Int       @default(0)
+  failedCount  Int       @default(0)
+  creditsUsed  Int       @default(0)
+  createdAt    DateTime  @default(now()) @db.Timestamptz()
+  completedAt  DateTime? @db.Timestamptz()
+
+  @@index([agentId, createdAt])
 }
 
 // A WhatsApp Business label synced from the connected phone (read-only mirror of

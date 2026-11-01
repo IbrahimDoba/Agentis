@@ -8,7 +8,9 @@ import { createEventHandlers } from "./event-handlers.js"
 import { attachHistorySyncHandler } from "./history-sync.js"
 import { attachLabelHandlers } from "./labels.js"
 import { importProfileFromWhatsApp } from "./profile-import.js"
-import { updateContacts, setLidMappingStore } from "./contacts-store.js"
+import { updateContacts, setLidMappingStore, resolvePhone } from "./contacts-store.js"
+import { addressBookEntries } from "./contact-save.js"
+import { upsertAddressBook } from "../db/queries/contacts.js"
 import { updateSessionStatus, upsertSession, deleteSession, getSessionByAgentId, getHistorySyncStatus } from "../db/queries.js"
 import { webhookEmitter } from "../dashboard/webhook-emitter.js"
 import { logger as rootLogger } from "../lib/logger.js"
@@ -376,6 +378,14 @@ async function startSession(agentId: string, reconnectAttempt = 0): Promise<void
     )
     logger.info({ agentId, total: contacts.length, lidContacts: JSON.stringify(lidContacts.slice(0, 10)) }, "contacts.upsert fired")
     updateContacts(agentId, contacts)
+    // Mirror the phone's address book (Status → Contacts). Only contacts.upsert
+    // carries the owner-saved `name`; contacts.update is push-name noise.
+    const entries = addressBookEntries(contacts, (jid) => resolvePhone(agentId, jid))
+    if (entries.length > 0) {
+      upsertAddressBook(agentId, entries).catch((err) => {
+        logger.warn({ err, agentId, count: entries.length }, "Failed to mirror address book")
+      })
+    }
   })
   sock.ev.on("contacts.update", (updates) => {
     const lidUpdates = updates.filter((c) =>

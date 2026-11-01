@@ -18,6 +18,8 @@ import { followUpRoutes } from "./routes/followup.js"
 import { closeFollowUpQueue } from "./queue/followup-queue.js"
 import { labelRoutes } from "./routes/labels.js"
 import { billingRoutes } from "./routes/billing.js"
+import { contactRoutes } from "./routes/contacts.js"
+import { closeContactSaveQueue } from "./queue/contact-save-queue.js"
 import { becomeLeader, releaseLeadership } from "./lib/leader.js"
 import { ensureAuthBase } from "./baileys/auth-health.js"
 
@@ -50,6 +52,7 @@ await app.register(broadcastRoutes, { prefix: "/v1" })
 await app.register(followUpRoutes, { prefix: "/v1" })
 await app.register(labelRoutes, { prefix: "/v1" })
 await app.register(billingRoutes, { prefix: "/v1" })
+await app.register(contactRoutes, { prefix: "/v1" })
 
 // Graceful shutdown
 const shutdown = async () => {
@@ -59,6 +62,7 @@ const shutdown = async () => {
   stopDeafSessionWatchdog()
   await closeBroadcastQueue()
   await closeFollowUpQueue()
+  await closeContactSaveQueue()
   await app.close()
   // Release leadership so a standby instance takes over immediately (before we
   // drop the Redis connection).
