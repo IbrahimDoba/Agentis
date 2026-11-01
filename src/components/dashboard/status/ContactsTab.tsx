@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useToast } from "@/context/ToastContext"
 import Button from "@/components/ui/Button"
-import { NAME_TAG_PRESETS, NAME_TAG_MAX, normalizeNameTag, previewSavedName } from "@/lib/contact-name-tag"
+import { NAME_TAG_MAX, normalizeNameTag, previewSavedName } from "@/lib/contact-name-tag"
 import type { WorkerContactsSummary, WorkerContactSaveRun } from "@/lib/baileys-client"
 import styles from "./ContactsTab.module.css"
 
@@ -94,9 +94,9 @@ export function ContactsTab({ agentId, isConnected }: { agentId: string; isConne
   const { addressBook, unsaved, run, settings, syncing, dailyCap, creditsPerContact } = data
   const activeRun = run && (run.status === "running" || run.status === "paused") ? run : null
   const tag = settings.contactNameTag
-  const isPreset = tag === null || (NAME_TAG_PRESETS as readonly string[]).includes(tag)
-  const customValue = customTag ?? (isPreset ? "" : tag ?? "")
-  const customCheck = normalizeNameTag(customValue)
+  const draft = customTag ?? tag ?? ""
+  const draftCheck = normalizeNameTag(draft)
+  const draftPreview = previewSavedName(SAMPLE_NAME, draftCheck.ok ? draftCheck.tag : null)
 
   return (
     <div className={styles.wrap}>
@@ -105,7 +105,7 @@ export function ContactsTab({ agentId, isConnected }: { agentId: string; isConne
           <div className={styles.statValue}>{addressBook.total.toLocaleString()}</div>
           <div className={styles.statLabel}>In your phone&apos;s contacts</div>
           {addressBook.byDailzero > 0 && (
-            <div className={styles.statHint}>{addressBook.byDailzero.toLocaleString()} saved by Dailzero</div>
+            <div className={styles.statHint}>{addressBook.byDailzero.toLocaleString()} saved from here</div>
           )}
         </div>
         <div className={styles.stat}>
@@ -178,54 +178,55 @@ export function ContactsTab({ agentId, isConnected }: { agentId: string; isConne
       )}
 
       <section className={styles.card}>
-        <div className={styles.cardTitle}>Name tag</div>
+        <div className={styles.cardTitle}>Name tag (optional)</div>
         <div className={styles.cardDesc}>
-          Added to the end of every name Dailzero saves, so you can find them in your phone. Search &quot;DZ&quot; to see them all.
+          A short word added to the end of every contact saved from here, so you can tell them apart in your phone. Use
+          anything that means something to you, like your shop name or &quot;Customer&quot;. Later, search that word in your
+          contacts to find them all.
         </div>
         <div className={styles.tagOptions} role="radiogroup" aria-label="Name tag">
-          {[null, ...NAME_TAG_PRESETS].map((option) => (
-            <label key={option ?? "none"} className={`${styles.tagOption} ${tag === option ? styles.tagOptionOn : ""}`}>
-              <input
-                type="radio"
-                name="name-tag"
-                checked={tag === option}
-                disabled={busy}
-                onChange={() => {
-                  setCustomTag(null)
-                  void saveSettings({ contactNameTag: option }, option ? `New contacts will be saved as "${previewSavedName(SAMPLE_NAME, option)}".` : "New contacts will be saved with their plain name.")
-                }}
-              />
-              <span className={styles.tagLabel}>{option ? `"${option}"` : "None"}</span>
-              <span className={styles.tagPreview}>{previewSavedName(SAMPLE_NAME, option)}</span>
-            </label>
-          ))}
-          <div className={`${styles.tagOption} ${!isPreset ? styles.tagOptionOn : ""}`}>
-            <span className={styles.tagLabel}>Custom</span>
+          <label className={`${styles.tagOption} ${tag === null ? styles.tagOptionOn : ""}`}>
+            <input
+              type="radio"
+              name="name-tag"
+              checked={tag === null}
+              disabled={busy}
+              onChange={() => {
+                setCustomTag(null)
+                void saveSettings({ contactNameTag: null }, "New contacts will be saved with their plain name.")
+              }}
+            />
+            <span className={styles.tagLabel}>No tag</span>
+            <span className={styles.tagPreview}>{SAMPLE_NAME}</span>
+          </label>
+          <div className={`${styles.tagOption} ${tag !== null ? styles.tagOptionOn : ""}`}>
+            <span className={styles.tagLabel}>Your tag</span>
             <input
               className={styles.input}
-              value={customValue}
+              value={draft}
               maxLength={NAME_TAG_MAX}
-              placeholder="e.g. VIP"
-              aria-label="Custom name tag"
+              placeholder="Type a word"
+              aria-label="Your name tag"
               onChange={(e) => setCustomTag(e.target.value)}
             />
             <Button
               type="button"
               size="sm"
               variant="secondary"
-              disabled={busy || !customValue.trim() || !customCheck.ok || (customCheck.ok && customCheck.tag === tag)}
+              disabled={busy || !draft.trim() || !draftCheck.ok || draftCheck.tag === tag}
               onClick={() => {
-                if (!customCheck.ok) return
-                void saveSettings({ contactNameTag: customCheck.tag }, `New contacts will be saved as "${previewSavedName(SAMPLE_NAME, customCheck.tag)}".`)
+                if (!draftCheck.ok) return
+                void saveSettings({ contactNameTag: draftCheck.tag }, `New contacts will be saved as "${draftPreview}".`)
                   .then((ok) => { if (ok) setCustomTag(null) })
               }}
             >
-              Use
+              Save tag
             </Button>
+            {draft.trim() && draftCheck.ok && <span className={styles.tagPreview}>Saves as {draftPreview}</span>}
           </div>
-          {!customCheck.ok && <p className={styles.error}>{customCheck.error}</p>}
+          {!draftCheck.ok && <p className={styles.error}>{draftCheck.error}</p>}
         </div>
-        <p className={styles.muted}>Changing the tag only affects contacts saved from now on.</p>
+        <p className={styles.muted}>Up to {NAME_TAG_MAX} characters. Changing it only affects contacts saved from now on.</p>
       </section>
 
       <section className={styles.card}>
