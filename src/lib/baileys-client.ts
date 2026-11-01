@@ -331,6 +331,22 @@ export const baileysClient = {
     })
   },
 
+  async scheduleStatusPost(agentId: string, postId: string): Promise<WorkerReply<{ ok: true }>> {
+    return workerReply(await fetch(`${WORKER_URL}/v1/status/posts/${encodeURIComponent(postId)}/schedule`, {
+      method: "POST",
+      headers: jsonHeaders(),
+      body: JSON.stringify({ agentId }),
+    }))
+  },
+
+  async deleteStatusPost(agentId: string, postId: string): Promise<WorkerReply<{ ok: true }>> {
+    return workerReply(await fetch(`${WORKER_URL}/v1/status/posts/${encodeURIComponent(postId)}/delete`, {
+      method: "POST",
+      headers: jsonHeaders(),
+      body: JSON.stringify({ agentId }),
+    }))
+  },
+
   async getHealth(): Promise<{ status: string; redis: string; uptime: number } | null> {
     try {
       const res = await fetch(`${WORKER_URL}/v1/health`, { cache: "no-store" })

@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useQueries, useQuery } from "@tanstack/react-query"
 import { DevicePhoneMobileIcon, PhotoIcon } from "@heroicons/react/24/outline"
 import { ContactsTab } from "@/components/dashboard/status/ContactsTab"
+import { PostsTab } from "@/components/dashboard/status/PostsTab"
 import styles from "./page.module.css"
 
 interface Agent {
@@ -35,24 +36,21 @@ async function fetchSession(agentId: string): Promise<SessionStatus | null> {
   return res.json()
 }
 
-// Contacts ships first: status only reaches saved contacts, so it's the
-// foundation the other tabs build on.
 type Tab = "posts" | "autopilot" | "contacts" | "analytics"
 const TABS: Array<{ id: Tab; label: string; ready: boolean }> = [
-  { id: "posts", label: "Posts", ready: false },
+  { id: "posts", label: "Posts", ready: true },
   { id: "autopilot", label: "Autopilot", ready: false },
   { id: "contacts", label: "Contacts", ready: true },
   { id: "analytics", label: "Analytics", ready: false },
 ]
 
-const COMING_SOON: Record<Exclude<Tab, "contacts">, string> = {
-  posts: "Post images and videos to your WhatsApp status, now or on a schedule, with a note that tells the AI what each post is about.",
+const COMING_SOON: Record<Exclude<Tab, "contacts" | "posts">, string> = {
   autopilot: "Keep your status fresh automatically: pick your products and times, and Dailzero posts for you every day.",
   analytics: "See who viewed, liked and replied to each status, and which posts turned into customers.",
 }
 
 export default function StatusPage() {
-  const [tab, setTab] = useState<Tab>("contacts")
+  const [tab, setTab] = useState<Tab>("posts")
   const [manualAgentId, setManualAgentId] = useState<string | null>(null)
 
   const { data: agents = [], isLoading: loadingAgents } = useQuery({
@@ -153,7 +151,7 @@ export default function StatusPage() {
         </section>
 
         <section className={styles.mainCard}>
-          {tab !== "contacts" ? (
+          {tab === "autopilot" || tab === "analytics" ? (
             <div className={styles.emptyState}>
               <PhotoIcon width={28} height={28} />
               <div className={styles.soonTitle}>Coming soon</div>
@@ -164,6 +162,8 @@ export default function StatusPage() {
               <PhotoIcon width={28} height={28} />
               <div>Select an agent with a linked WhatsApp number.</div>
             </div>
+          ) : tab === "posts" ? (
+            <PostsTab key={selected.agent.id} agentId={selected.agent.id} isConnected={selected.session?.status === "CONNECTED"} />
           ) : (
             <ContactsTab key={selected.agent.id} agentId={selected.agent.id} isConnected={selected.session?.status === "CONNECTED"} />
           )}

@@ -19,6 +19,8 @@ import { recordEvent } from "../lib/event-log.js"
 import { wasSentByUs } from "./sent-message-cache.js"
 import { markInboundActivity } from "./activity-tracker.js"
 import { maybeAutoSave } from "../queue/contact-save-queue.js"
+import { getStatusNote } from "../db/queries/status-posts.js"
+import { statusReplyLabel } from "./status-post.js"
 import { createHash } from "crypto"
 
 const logger = rootLogger.child({ module: "event-handlers" })
@@ -75,6 +77,12 @@ async function extractInboundImage(msg: WAMessage): Promise<string | null> {
     m?.viewOnceMessageV2?.message?.imageMessage
   const quotedCtx = m?.extendedTextMessage?.contextInfo
   const quoted = quotedCtx?.quotedMessage?.imageMessage
+  // A reply to the owner's video status only carries a low-res thumbnail, but
+  // that's enough for the AI to see which product it was. Status replies only,
+  // so ordinary quoted videos in chats behave exactly as before.
+  const quotedVideoThumb = quotedCtx?.remoteJid === "status@broadcast"
+    ? quotedCtx?.quotedMessage?.videoMessage?.jpegThumbnail
+    : undefined
 
   let downloadable: WAMessage | null = null
   let mimetype = "image/jpeg"
@@ -87,6 +95,10 @@ async function extractInboundImage(msg: WAMessage): Promise<string | null> {
       message: quotedCtx.quotedMessage,
     } as WAMessage
     mimetype = quoted.mimetype || mimetype
+  }
+  if (!downloadable && quotedVideoThumb) {
+    const thumb = typeof quotedVideoThumb === "string" ? Buffer.from(quotedVideoThumb, "base64") : Buffer.from(quotedVideoThumb)
+    return thumb.length ? `data:image/jpeg;base64,${thumb.toString("base64")}` : null
   }
   if (!downloadable) return null
 
@@ -241,7 +253,15 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
         null
 
       // If this is a quoted reply, prepend the referenced message so the AI has context
-      if (text) {
+      const replyCtx = _m?.extendedTextMessage?.contextInfo
+      if (text && replyCtx?.remoteJid === "status@broadcast") {
+        // A reply to the owner's status. The note is what the owner told the AI
+        // about a post made from Status → Posts; phone-posted statuses have none.
+        const note = replyCtx.stanzaId
+          ? await getStatusNote(agentId, replyCtx.stanzaId).catch(() => null)
+          : null
+        text = `${statusReplyLabel(replyCtx.quotedMessage, note)}\n${text}`
+      } else if (text) {
         const quoted = _m?.extendedTextMessage?.contextInfo?.quotedMessage
         const quotedText: string | null =
           quoted?.conversation ||
