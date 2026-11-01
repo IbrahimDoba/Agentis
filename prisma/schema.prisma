@@ -339,6 +339,7 @@ model Agent {
   metaConnections              MetaConnection[]
   whatsappContacts             WhatsAppContact[]
   contactSaveRuns              ContactSaveRun[]
+  statusPosts                  StatusPost[]
 
   // Postgres does not auto-index FKs. `userId` is the app's hottest filter
   // (dashboard, billing, stats poll); `agentRuntime`/`elevenlabsAgentId` gate
@@ -388,6 +389,38 @@ model ContactSaveRun {
   completedAt  DateTime? @db.Timestamptz()
 
   @@index([agentId, createdAt])
+}
+
+// One WhatsApp status post from Status → Posts. Scheduling lives in the worker's
+// queue; this row is the source of truth it is rebuilt from after a restart.
+model StatusPost {
+  id              String    @id @default(cuid())
+  agentId         String
+  agent           Agent     @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  kind            String // text | image | video
+  // The text status itself, or the caption for image/video.
+  text            String?   @db.Text
+  backgroundColor String?
+  font            Int?
+  // Image/video come from the agent's media library (private R2); the worker
+  // signs the file when the post goes out.
+  mediaItemId     String?
+  // Read by the worker when a customer replies to this status, so the AI knows
+  // what a captionless post is about.
+  aiNote          String?   @db.Text
+  status          String    @default("scheduled") // scheduled | posting | posted | failed | cancelled | deleting | deleted
+  scheduledAt     DateTime  @db.Timestamptz()
+  postedAt        DateTime? @db.Timestamptz()
+  waMessageId     String?
+  recipientCount  Int       @default(0)
+  creditsUsed     Int       @default(0)
+  error           String?
+  createdAt       DateTime  @default(now()) @db.Timestamptz()
+  updatedAt       DateTime  @updatedAt @db.Timestamptz()
+
+  @@index([agentId, scheduledAt])
+  @@index([agentId, waMessageId])
+  @@index([status, scheduledAt])
 }
 
 // A WhatsApp Business label synced from the connected phone (read-only mirror of

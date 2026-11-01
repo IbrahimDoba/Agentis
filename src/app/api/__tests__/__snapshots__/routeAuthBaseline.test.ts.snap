@@ -91,6 +91,11 @@ exports[`unauthenticated response baseline > matches the recorded responses 1`] 
     },
   },
   "admin/outreach/messages": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
     "PATCH": {
       "body": "{"error":"Unauthorized"}",
       "contentType": "application/json",
@@ -606,6 +611,51 @@ exports[`unauthenticated response baseline > matches the recorded responses 1`] 
     },
   },
   "agents/[id]/send-message": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/status-contacts": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "PATCH": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/status-contacts/runs": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/status-contacts/runs/[runId]": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/status-posts": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/status-posts/[postId]": {
     "POST": {
       "body": "{"error":"Unauthorized"}",
       "contentType": "application/json",
@@ -1155,6 +1205,25 @@ exports[`unauthenticated response baseline > matches the recorded responses 1`] 
       "status": 401,
     },
   },
+  "meta/connections/[phoneNumberId]": {
+    "DELETE": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "PATCH": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "meta/connections/[phoneNumberId]/status": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
   "meta/internal/send": {
     "POST": {
       "body": "{"error":"Unauthorized"}",
@@ -1217,6 +1286,13 @@ exports[`unauthenticated response baseline > matches the recorded responses 1`] 
       "body": "Invalid signature",
       "contentType": "text/plain;charset=UTF-8",
       "status": 401,
+    },
+  },
+  "public/stats": {
+    "GET": {
+      "body": "{"aiMessages":0,"leads":0,"conversations":0}",
+      "contentType": "application/json",
+      "status": 200,
     },
   },
   "referrals": {

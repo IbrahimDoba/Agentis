@@ -20,6 +20,8 @@ import { labelRoutes } from "./routes/labels.js"
 import { billingRoutes } from "./routes/billing.js"
 import { contactRoutes } from "./routes/contacts.js"
 import { closeContactSaveQueue } from "./queue/contact-save-queue.js"
+import { statusRoutes } from "./routes/status.js"
+import { closeStatusQueue, restoreStatusSchedule } from "./queue/status-queue.js"
 import { becomeLeader, releaseLeadership } from "./lib/leader.js"
 import { ensureAuthBase } from "./baileys/auth-health.js"
 
@@ -53,6 +55,7 @@ await app.register(followUpRoutes, { prefix: "/v1" })
 await app.register(labelRoutes, { prefix: "/v1" })
 await app.register(billingRoutes, { prefix: "/v1" })
 await app.register(contactRoutes, { prefix: "/v1" })
+await app.register(statusRoutes, { prefix: "/v1" })
 
 // Graceful shutdown
 const shutdown = async () => {
@@ -63,6 +66,7 @@ const shutdown = async () => {
   await closeBroadcastQueue()
   await closeFollowUpQueue()
   await closeContactSaveQueue()
+  await closeStatusQueue()
   await app.close()
   // Release leadership so a standby instance takes over immediately (before we
   // drop the Redis connection).
@@ -123,6 +127,10 @@ try {
       logger.warn({ err }, "Startup migrated-auth-dir reclaim failed (continuing)")
     }
   }
+
+  // Leader-only: posts due while the worker was down fire once their number
+  // reconnects (the job retries until then).
+  restoreStatusSchedule().catch((err) => logger.warn({ err }, "Status schedule restore failed (continuing)"))
 
   // Periodic sweep: resume AI on human-mode conversations idle past their
   // agent's auto-resume threshold.

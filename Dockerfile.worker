@@ -5,6 +5,10 @@ WORKDIR /app
 # Install pnpm and pm2
 RUN npm install -g pnpm@10.31.0 pm2
 
+# ffmpeg converts status videos to the 720p H.264 Main profile WhatsApp plays
+# when the post comes from a linked device (higher profiles arrive but won't play).
+RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg && rm -rf /var/lib/apt/lists/*
+
 # Copy workspace root files first (for better caching)
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
