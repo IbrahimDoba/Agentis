@@ -9,6 +9,7 @@ import {
   listCandidateChats,
   markSavedByDailzero,
   isInAddressBook,
+  countAddressBook,
   recordRunProgress,
   setRunStatus,
   setRunWaiting,
@@ -153,6 +154,9 @@ async function processAuto(job: ContactSaveJob & { kind: "auto" }): Promise<void
   const settings = await getContactSaveSettings(agentId)
   if (!settings.autoSaveContacts) return
   if (await isInAddressBook(agentId, phone)) return
+  // Same guard as starting a run: until the address book has been read, "not
+  // in it" means "unknown", and saving could rename an existing contact.
+  if ((await countAddressBook(agentId)).total === 0) return
   if ((await usedToday(agentId)) >= DAILY_SAVE_CAP) return
   if (!(await hasCreditHeadroom(agentId))) return
   const sock = await connectedSocket(agentId)
