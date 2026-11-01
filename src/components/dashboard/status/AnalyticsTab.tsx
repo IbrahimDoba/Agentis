@@ -86,6 +86,7 @@ export function AnalyticsTab({ agentId }: { agentId: string }) {
       </p>
 
       <section className={styles.list}>
+        <div className={shared.sectionTitle}>Each post</div>
         {posted.map((p) => (
           <div key={p.id} className={styles.post}>
             <button
