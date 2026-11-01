@@ -48,6 +48,37 @@ export interface WorkerBroadcastCampaign {
   completedAt: string | null
 }
 
+export interface WorkerContactSaveRun {
+  id: string
+  status: "running" | "paused" | "completed" | "cancelled"
+  pauseReason: "no_credits" | "disconnected" | "owner" | "failing" | null
+  waitingUntil: string | null
+  nameTag: string | null
+  totalCount: number
+  savedCount: number
+  failedCount: number
+  creditsUsed: number
+  createdAt: string
+  completedAt: string | null
+}
+
+export interface WorkerContactsSummary {
+  addressBook: { total: number; byDailzero: number }
+  unsaved: number
+  run: WorkerContactSaveRun | null
+  syncing: boolean
+  dailyCap: number
+  creditsPerContact: number
+}
+
+export type WorkerReply<T> = { ok: true; status: number; data: T } | { ok: false; status: number; error: string }
+
+async function workerReply<T>(res: Response): Promise<WorkerReply<T>> {
+  const body = await res.json().catch(() => null)
+  if (res.ok) return { ok: true, status: res.status, data: body as T }
+  return { ok: false, status: res.status, error: body?.error ?? `Worker error: ${res.status}` }
+}
+
 export const baileysClient = {
   async createSession(agentId: string, initialTier?: number): Promise<{ agentId: string; status: string }> {
     const res = await fetch(`${WORKER_URL}/v1/sessions`, {
@@ -264,6 +295,40 @@ export const baileysClient = {
       throw new Error(`Worker error ${res.status}: ${body || "resume failed"}`)
     }
     return res.json() as Promise<{ requeued: number }>
+  },
+
+  // Status → Contacts. These return the worker's status and body as-is: its
+  // 402/409s ("not enough credits", "run already in progress") are messages the
+  // owner should see, not errors to flatten into a 502.
+  async contactsSummary(agentId: string): Promise<WorkerReply<WorkerContactsSummary>> {
+    return workerReply(await fetch(`${WORKER_URL}/v1/contacts/summary?agentId=${encodeURIComponent(agentId)}`, {
+      headers: authHeaders(),
+      cache: "no-store",
+    }))
+  },
+
+  async startContactSaveRun(agentId: string): Promise<WorkerReply<{ run: WorkerContactSaveRun }>> {
+    return workerReply(await fetch(`${WORKER_URL}/v1/contacts/runs`, {
+      method: "POST",
+      headers: jsonHeaders(),
+      body: JSON.stringify({ agentId }),
+    }))
+  },
+
+  async contactSaveRunAction(agentId: string, runId: string, action: "pause" | "resume" | "cancel"): Promise<WorkerReply<{ run: WorkerContactSaveRun }>> {
+    return workerReply(await fetch(`${WORKER_URL}/v1/contacts/runs/${encodeURIComponent(runId)}/${action}`, {
+      method: "POST",
+      headers: jsonHeaders(),
+      body: JSON.stringify({ agentId }),
+    }))
+  },
+
+  async invalidateContactSettings(agentId: string): Promise<void> {
+    await fetch(`${WORKER_URL}/v1/contacts/settings/invalidate`, {
+      method: "POST",
+      headers: jsonHeaders(),
+      body: JSON.stringify({ agentId }),
+    })
   },
 
   async getHealth(): Promise<{ status: string; redis: string; uptime: number } | null> {

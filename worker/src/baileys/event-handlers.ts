@@ -18,6 +18,7 @@ import { chargeIncurredCredits, hasCreditHeadroom } from "../billing/charge.js"
 import { recordEvent } from "../lib/event-log.js"
 import { wasSentByUs } from "./sent-message-cache.js"
 import { markInboundActivity } from "./activity-tracker.js"
+import { maybeAutoSave } from "../queue/contact-save-queue.js"
 import { createHash } from "crypto"
 
 const logger = rootLogger.child({ module: "event-handlers" })
@@ -368,6 +369,14 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
           groupJid: groupJid ?? undefined,
           senderName: isGroup ? pushName : undefined,
         })
+
+        // Status → Contacts auto-save. Push name only (msg.pushName): the
+        // cached fallback can be the owner's saved name, and those are saved.
+        if (!isGroup) {
+          maybeAutoSave(agentId, phoneNumber, msg.pushName).catch((err) => {
+            logger.warn({ err, agentId }, "Auto-save contact check failed")
+          })
+        }
 
         // Bill the voice transcription. It used to ride along on the forward as
         // `extraCredits`, but the orchestrator's inbound schema never listed the

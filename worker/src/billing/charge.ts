@@ -120,9 +120,9 @@ export async function chargeAiCredits(opts: {
 export async function chargeIncurredCredits(opts: {
   agentId: string
   credits: number
-  messageType: "text" | "image" | "video" | "document"
+  messageType: "text" | "image" | "video" | "document" | "contact"
   conversationId?: string
-  source?: "ai" | "broadcast" | "followup"
+  source?: "ai" | "broadcast" | "followup" | "contact_save"
 }): Promise<{ creditsUsed: number; billedTo: "plan" | "wallet" } | null> {
   const { agentId, credits, messageType, conversationId } = opts
   const source = opts.source ?? "ai"
