@@ -21,6 +21,7 @@ import { markInboundActivity } from "./activity-tracker.js"
 import { maybeAutoSave } from "../queue/contact-save-queue.js"
 import { getStatusNote } from "../db/queries/status-posts.js"
 import { statusReplyLabel } from "./status-post.js"
+import { recordStatusLike, recordStatusReply } from "./status-tracking.js"
 import { createHash } from "crypto"
 
 const logger = rootLogger.child({ module: "event-handlers" })
@@ -129,6 +130,12 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
       // §9 — Ignore broadcasts. Groups are ingested only for agents opted in;
       // without the flag this stays the hard skip it has always been.
       if (!msg.key.remoteJid) continue
+      // Likes on the owner's status arrive here as reactions; record them for
+      // analytics, then drop the message like every other broadcast.
+      if (msg.key.remoteJid === "status@broadcast") {
+        recordStatusLike(sock, agentId, msg).catch((err) => logger.warn({ err, agentId }, "Failed to record status like"))
+        continue
+      }
       if (isNonConversationJid(msg.key.remoteJid)) continue
 
       const isGroup = msg.key.remoteJid.endsWith("@g.us")
@@ -261,6 +268,10 @@ export function createEventHandlers(sock: WASocket, agentId: string) {
           ? await getStatusNote(agentId, replyCtx.stanzaId).catch(() => null)
           : null
         text = `${statusReplyLabel(replyCtx.quotedMessage, note)}\n${text}`
+        if (replyCtx.stanzaId) {
+          const repliedAt = new Date(Number(msg.messageTimestamp ?? 0) * 1000 || Date.now())
+          recordStatusReply(agentId, replyCtx.stanzaId, phoneNumber, repliedAt).catch(() => {})
+        }
       } else if (text) {
         const quoted = _m?.extendedTextMessage?.contextInfo?.quotedMessage
         const quotedText: string | null =

@@ -656,6 +656,11 @@ exports[`unauthenticated response baseline > matches the recorded responses 1`] 
     },
   },
   "agents/[id]/status-posts/[postId]": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
     "POST": {
       "body": "{"error":"Unauthorized"}",
       "contentType": "application/json",

@@ -18,6 +18,7 @@ import {
 import { statusCredits, recipientCapFor, statusJidList } from "../baileys/status-post.js"
 import { transcodeStatusVideo } from "../baileys/video-transcode.js"
 import { markSentByUs } from "../baileys/sent-message-cache.js"
+import { rememberStatusPost, flushStatusEvents } from "../db/queries/status-views.js"
 import { assertStorageWritable } from "../baileys/auth-health.js"
 import { chargeIncurredCredits, hasCreditHeadroom } from "../billing/charge.js"
 import { recordEvent } from "../lib/event-log.js"
@@ -107,6 +108,7 @@ async function processPost(job: Job<StatusJob>, data: StatusJob & { kind: "post"
     const waId = sent?.key?.id
     if (!waId) throw new Error("WhatsApp didn't return a message id")
     markSentByUs(waId)
+    rememberStatusPost(post.agentId, waId, post.id)
 
     const credits = statusCredits(post.kind)
     let charged = 0
@@ -203,4 +205,5 @@ export async function restoreStatusSchedule(): Promise<void> {
 export async function closeStatusQueue(): Promise<void> {
   await worker.close()
   await queue.close()
+  await flushStatusEvents()
 }

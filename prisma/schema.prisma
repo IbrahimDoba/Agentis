@@ -417,10 +417,30 @@ model StatusPost {
   error           String?
   createdAt       DateTime  @default(now()) @db.Timestamptz()
   updatedAt       DateTime  @updatedAt @db.Timestamptz()
+  views           StatusView[]
 
   @@index([agentId, scheduledAt])
   @@index([agentId, waMessageId])
   @@index([status, scheduledAt])
+}
+
+// One person's reaction to one status post, from WhatsApp receipts, likes and
+// replies. Undercounts views: people with read receipts off never report one.
+model StatusView {
+  id          String     @id @default(cuid())
+  postId      String
+  post        StatusPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  agentId     String
+  phone       String
+  deliveredAt DateTime?  @db.Timestamptz()
+  viewedAt    DateTime?  @db.Timestamptz()
+  likedAt     DateTime?  @db.Timestamptz()
+  repliedAt   DateTime?  @db.Timestamptz()
+  createdAt   DateTime   @default(now()) @db.Timestamptz()
+  updatedAt   DateTime   @updatedAt @db.Timestamptz()
+
+  @@unique([postId, phone])
+  @@index([agentId])
 }
 
 // A WhatsApp Business label synced from the connected phone (read-only mirror of
