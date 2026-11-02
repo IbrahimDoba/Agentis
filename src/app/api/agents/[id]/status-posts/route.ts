@@ -4,35 +4,14 @@ import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { baileysClient } from "@/lib/baileys-client"
 import { assertContactsAccess } from "@/lib/contacts-access"
-import {
-  AI_NOTE_MAX,
-  CAPTION_MAX,
-  MAX_POSTS_PER_DAY,
-  MAX_SCHEDULE_DAYS,
-  STATUS_CREDITS,
-  TEXT_BACKGROUNDS,
-  TEXT_STATUS_MAX,
-  isVideoMime,
-  lagosDayBounds,
-  recipientCapFor,
-} from "@/lib/status-post"
+import { MAX_POSTS_PER_DAY, MAX_SCHEDULE_DAYS, STATUS_CREDITS, lagosDayBounds, recipientCapFor } from "@/lib/status-post"
+import { StatusContentSchema, checkMediaItem, contentColumns, refineStatusContent, upsertGalleryItem } from "@/lib/status-gallery"
 
 interface Params {
   params: Promise<{ id: string }>
 }
 
-const CreateSchema = z
-  .object({
-    kind: z.enum(["text", "image", "video"]),
-    text: z.string().trim().max(Math.max(TEXT_STATUS_MAX, CAPTION_MAX)).optional(),
-    backgroundColor: z.enum(TEXT_BACKGROUNDS).optional(),
-    mediaItemId: z.string().uuid().optional(),
-    aiNote: z.string().trim().max(AI_NOTE_MAX).optional(),
-    scheduledAt: z.string().datetime({ offset: true }).optional(),
-  })
-  .refine((b) => b.kind !== "text" || !!b.text, { path: ["text"], message: "Write something for a text status" })
-  .refine((b) => b.kind !== "text" || (b.text?.length ?? 0) <= TEXT_STATUS_MAX, { path: ["text"], message: `Keep a text status to ${TEXT_STATUS_MAX} characters` })
-  .refine((b) => b.kind === "text" || !!b.mediaItemId, { path: ["mediaItemId"], message: "Add an image or video" })
+const CreateSchema = refineStatusContent(StatusContentSchema.extend({ scheduledAt: z.string().datetime({ offset: true }).optional() }))
 
 export async function GET(_req: NextRequest, { params }: Params) {
   const session = await auth()
@@ -67,6 +46,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
         backgroundColor: p.backgroundColor,
         mediaItemId: p.mediaItemId,
         aiNote: p.aiNote,
+        galleryItemId: p.galleryItemId,
         status: p.status,
         scheduledAt: p.scheduledAt.toISOString(),
         postedAt: p.postedAt?.toISOString() ?? null,
@@ -111,12 +91,8 @@ export async function POST(req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: `Schedule up to ${MAX_SCHEDULE_DAYS} days ahead` }, { status: 400 })
     }
 
-    if (body.mediaItemId) {
-      const item = await db.mediaItem.findFirst({ where: { id: body.mediaItemId, agentId: id }, select: { mimeType: true } })
-      if (!item) return NextResponse.json({ error: "That file is no longer in your media library" }, { status: 404 })
-      const fits = body.kind === "video" ? isVideoMime(item.mimeType) : item.mimeType.startsWith("image/")
-      if (!fits) return NextResponse.json({ error: `That library file isn't ${body.kind === "video" ? "a video" : "an image"}` }, { status: 400 })
-    }
+    const mediaError = await checkMediaItem(id, body)
+    if (mediaError) return NextResponse.json({ error: mediaError.error }, { status: mediaError.status })
 
     if ((await db.whatsAppContact.count({ where: { agentId: id } })) === 0) {
       return NextResponse.json({ error: "Status only reaches saved contacts. Save your chats in the Contacts tab first." }, { status: 409 })
@@ -130,16 +106,14 @@ export async function POST(req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: `You can post up to ${MAX_POSTS_PER_DAY} statuses a day` }, { status: 409 })
     }
 
+    const galleryItemId = await upsertGalleryItem(id, body)
     const post = await db.statusPost.create({
       data: {
         agentId: id,
-        kind: body.kind,
-        text: body.text || null,
-        backgroundColor: body.kind === "text" ? (body.backgroundColor ?? TEXT_BACKGROUNDS[0]) : null,
+        ...contentColumns(body),
         font: body.kind === "text" ? 1 : null,
-        mediaItemId: body.kind === "text" ? null : (body.mediaItemId ?? null),
-        aiNote: body.aiNote || null,
         scheduledAt,
+        galleryItemId,
       },
     })
 

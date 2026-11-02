@@ -340,6 +340,7 @@ model Agent {
   whatsappContacts             WhatsAppContact[]
   contactSaveRuns              ContactSaveRun[]
   statusPosts                  StatusPost[]
+  statusGalleryItems           StatusGalleryItem[]
 
   // Postgres does not auto-index FKs. `userId` is the app's hottest filter
   // (dashboard, billing, stats poll); `agentRuntime`/`elevenlabsAgentId` gate
@@ -391,6 +392,32 @@ model ContactSaveRun {
   @@index([agentId, createdAt])
 }
 
+// Status → Gallery: one card per distinct thing the owner has posted (or saved
+// without posting), so it can go out again without re-uploading. Media posts are
+// one card per library file; text posts one per text + background. contentKey
+// makes reposts land on the same card. Times posted and results are read from
+// the StatusPost rows that point here, not stored.
+model StatusGalleryItem {
+  id              String       @id @default(cuid())
+  agentId         String
+  agent           Agent        @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  contentKey      String
+  kind            String // text | image | video
+  text            String?      @db.Text
+  backgroundColor String?
+  mediaItemId     String?
+  aiNote          String?      @db.Text
+  // Removed from the gallery by the owner; posting the same content again
+  // brings the card back.
+  hiddenAt        DateTime?    @db.Timestamptz()
+  createdAt       DateTime     @default(now()) @db.Timestamptz()
+  updatedAt       DateTime     @updatedAt @db.Timestamptz()
+  posts           StatusPost[]
+
+  @@unique([agentId, contentKey])
+  @@index([agentId, updatedAt])
+}
+
 // One WhatsApp status post from Status → Posts. Scheduling lives in the worker's
 // queue; this row is the source of truth it is rebuilt from after a restart.
 model StatusPost {
@@ -418,8 +445,13 @@ model StatusPost {
   createdAt       DateTime  @default(now()) @db.Timestamptz()
   updatedAt       DateTime  @updatedAt @db.Timestamptz()
   views           StatusView[]
+  // The gallery card this post was made from (or created). Reposts of the same
+  // content all point at one card.
+  galleryItemId   String?
+  galleryItem     StatusGalleryItem? @relation(fields: [galleryItemId], references: [id], onDelete: SetNull)
 
   @@index([agentId, scheduledAt])
+  @@index([galleryItemId])
   @@index([agentId, waMessageId])
   @@index([status, scheduledAt])
 }

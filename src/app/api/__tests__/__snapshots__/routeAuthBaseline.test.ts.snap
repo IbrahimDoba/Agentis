@@ -549,6 +549,13 @@ exports[`unauthenticated response baseline > matches the recorded responses 1`] 
       "status": 401,
     },
   },
+  "agents/[id]/media/[mediaId]/preview": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
   "agents/[id]/messaging": {
     "PATCH": {
       "body": "{"error":"Unauthorized"}",
@@ -638,6 +645,25 @@ exports[`unauthenticated response baseline > matches the recorded responses 1`] 
   },
   "agents/[id]/status-contacts/runs/[runId]": {
     "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/status-gallery": {
+    "GET": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/status-gallery/[itemId]": {
+    "DELETE": {
       "body": "{"error":"Unauthorized"}",
       "contentType": "application/json",
       "status": 401,
