@@ -10,6 +10,8 @@ import {
   TEXT_BACKGROUNDS,
   TEXT_STATUS_MAX,
   isVideoMime,
+  mediaPreviewUrl,
+  type StatusDraft,
   type StatusKind,
 } from "@/lib/status-post"
 import shared from "./ContactsTab.module.css"
@@ -77,16 +79,16 @@ function localInputValue(d: Date): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
-export function PostsTab({ agentId, isConnected }: { agentId: string; isConnected: boolean }) {
+export function PostsTab({ agentId, isConnected, draft }: { agentId: string; isConnected: boolean; draft?: StatusDraft | null }) {
   const { showToast } = useToast()
   const queryClient = useQueryClient()
 
-  const [kind, setKind] = useState<StatusKind>("image")
-  const [text, setText] = useState("")
-  const [background, setBackground] = useState<string>(TEXT_BACKGROUNDS[0])
-  const [mediaItemId, setMediaItemId] = useState<string | null>(null)
+  const [kind, setKind] = useState<StatusKind>(draft?.kind ?? "image")
+  const [text, setText] = useState(draft?.text ?? "")
+  const [background, setBackground] = useState<string>(draft?.backgroundColor ?? TEXT_BACKGROUNDS[0])
+  const [mediaItemId, setMediaItemId] = useState<string | null>(draft?.mediaItemId ?? null)
   const [file, setFile] = useState<File | null>(null)
-  const [aiNote, setAiNote] = useState("")
+  const [aiNote, setAiNote] = useState(draft?.aiNote ?? "")
   const [schedule, setSchedule] = useState(false)
   const [scheduledFor, setScheduledFor] = useState(() => localInputValue(new Date(Date.now() + 60 * 60_000)))
   const [busy, setBusy] = useState(false)
@@ -119,6 +121,18 @@ export function PostsTab({ agentId, isConnected }: { agentId: string; isConnecte
     setFile(null)
   }
 
+  // Reuses the post's library file, so nothing is uploaded again.
+  const applyDraft = (d: StatusDraft) => {
+    setKind(d.kind)
+    setText(d.text ?? "")
+    setBackground(d.backgroundColor ?? TEXT_BACKGROUNDS[0])
+    setMediaItemId(d.mediaItemId)
+    setFile(null)
+    setAiNote(d.aiNote ?? "")
+    setSchedule(false)
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }
+
   const pickLibrary = (item: MediaItem) => {
     setFile(null)
     setMediaItemId(item.id)
@@ -142,44 +156,89 @@ export function PostsTab({ agentId, isConnected }: { agentId: string; isConnecte
     return body?.id ?? null
   }
 
+  function validate(): boolean {
+    const problem =
+      kind === "text" && !text.trim() ? "Write something for your status."
+      : kind !== "text" && !file && !mediaItemId ? `Choose ${kind === "video" ? "a video" : "an image"}.`
+      : file && !aiNote.trim() ? "Tell the AI what this post is about, so it can answer replies."
+      : null
+    if (problem) showToast(problem, "error")
+    return !problem
+  }
+
+  // A new file is uploaded once here; after that the post (or gallery card)
+  // points at the library item.
+  async function contentBody(): Promise<Record<string, unknown> | null> {
+    let itemId = mediaItemId
+    if (kind !== "text" && file) {
+      itemId = await uploadToLibrary(file, aiNote.trim())
+      if (!itemId) return null
+      setFile(null)
+      setMediaItemId(itemId)
+    }
+    return {
+      kind,
+      text: text.trim() || undefined,
+      backgroundColor: kind === "text" ? background : undefined,
+      mediaItemId: kind === "text" ? undefined : itemId,
+      aiNote: aiNote.trim() || undefined,
+    }
+  }
+
+  function resetComposer() {
+    setText("")
+    setFile(null)
+    setMediaItemId(null)
+    setAiNote("")
+    setSchedule(false)
+  }
+
   async function submit() {
-    if (kind === "text" && !text.trim()) return showToast("Write something for your status.", "error")
-    if (kind !== "text" && !file && !mediaItemId) return showToast(`Choose ${kind === "video" ? "a video" : "an image"}.`, "error")
-    if (file && !aiNote.trim()) return showToast("Tell the AI what this post is about, so it can answer replies.", "error")
+    if (!validate()) return
     if (schedule && new Date(scheduledFor).getTime() < Date.now()) return showToast("Pick a time in the future.", "error")
 
     setBusy(true)
     try {
-      let itemId = mediaItemId
-      if (kind !== "text" && file) {
-        itemId = await uploadToLibrary(file, aiNote.trim())
-        if (!itemId) return
-      }
+      const content = await contentBody()
+      if (!content) return
       const res = await fetch(`/api/agents/${agentId}/status-posts`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          kind,
-          text: text.trim() || undefined,
-          backgroundColor: kind === "text" ? background : undefined,
-          mediaItemId: kind === "text" ? undefined : itemId,
-          aiNote: aiNote.trim() || undefined,
-          scheduledAt: schedule ? new Date(scheduledFor).toISOString() : undefined,
-        }),
+        body: JSON.stringify({ ...content, scheduledAt: schedule ? new Date(scheduledFor).toISOString() : undefined }),
       })
       const body = await res.json().catch(() => null)
       if (!res.ok) return showToast(body?.error ?? "Couldn't create the post.", "error")
       showToast(schedule ? `Scheduled for ${when(new Date(scheduledFor).toISOString())}.` : "Posting to your status now.")
-      setText("")
-      setFile(null)
-      setMediaItemId(null)
-      setAiNote("")
-      setSchedule(false)
+      resetComposer()
     } catch {
       showToast("Something went wrong. Please try again.", "error")
     } finally {
       setBusy(false)
       void refresh()
+      void queryClient.invalidateQueries({ queryKey: ["status-gallery", agentId] })
+    }
+  }
+
+  async function saveToGallery() {
+    if (!validate()) return
+    setBusy(true)
+    try {
+      const content = await contentBody()
+      if (!content) return
+      const res = await fetch(`/api/agents/${agentId}/status-gallery`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(content),
+      })
+      const body = await res.json().catch(() => null)
+      if (!res.ok) return showToast(body?.error ?? "Couldn't save to the gallery.", "error")
+      showToast("Saved to your gallery.")
+      resetComposer()
+    } catch {
+      showToast("Something went wrong. Please try again.", "error")
+    } finally {
+      setBusy(false)
+      void queryClient.invalidateQueries({ queryKey: ["status-gallery", agentId] })
     }
   }
 
@@ -349,9 +408,14 @@ export function PostsTab({ agentId, isConnected }: { agentId: string; isConnecte
             <span className={shared.muted}>
               {data.credits[kind]} credits · up to {reach.toLocaleString()} contacts
             </span>
-            <Button type="button" disabled={busy || data.audience.contacts === 0 || atDailyLimit} onClick={() => void submit()}>
-              {busy ? "Working…" : schedule ? "Schedule post" : "Post now"}
-            </Button>
+            <div className={shared.actions}>
+              <Button type="button" variant="secondary" disabled={busy} onClick={() => void saveToGallery()}>
+                Save to gallery
+              </Button>
+              <Button type="button" disabled={busy || data.audience.contacts === 0 || atDailyLimit} onClick={() => void submit()}>
+                {busy ? "Working…" : schedule ? "Schedule post" : "Post now"}
+              </Button>
+            </div>
           </div>
           {atDailyLimit && <span className={shared.error}>You&apos;ve reached today&apos;s {data.maxPostsPerDay} posts. Schedule this one for tomorrow.</span>}
         </div>
@@ -364,6 +428,11 @@ export function PostsTab({ agentId, isConnected }: { agentId: string; isConnecte
           ) : preview ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img className={styles.phoneMedia} src={preview} alt="" />
+          ) : mediaItemId && kind === "video" ? (
+            <video className={styles.phoneMedia} src={mediaPreviewUrl(agentId, mediaItemId)} muted loop autoPlay playsInline />
+          ) : mediaItemId ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img className={styles.phoneMedia} src={mediaPreviewUrl(agentId, mediaItemId)} alt="" />
           ) : (
             <div className={styles.phoneEmpty}>{selectedItem ? selectedItem.filename : `Your ${kind} appears here`}</div>
           )}
@@ -391,12 +460,17 @@ export function PostsTab({ agentId, isConnected }: { agentId: string; isConnecte
                 )}
                 {post.error && <div className={shared.error}>{post.error}</div>}
               </div>
-              {post.status === "scheduled" && (
-                <Button type="button" size="sm" variant="secondary" disabled={busy} onClick={() => void act(post, "cancel")}>Cancel</Button>
-              )}
-              {post.status === "posted" && (
-                <Button type="button" size="sm" variant="ghost" disabled={busy} onClick={() => void act(post, "delete")}>Delete</Button>
-              )}
+              <div className={styles.postActions}>
+                {post.status !== "scheduled" && post.status !== "posting" && (
+                  <Button type="button" size="sm" variant="secondary" disabled={busy} onClick={() => applyDraft(post)}>Post again</Button>
+                )}
+                {post.status === "scheduled" && (
+                  <Button type="button" size="sm" variant="secondary" disabled={busy} onClick={() => void act(post, "cancel")}>Cancel</Button>
+                )}
+                {post.status === "posted" && (
+                  <Button type="button" size="sm" variant="ghost" disabled={busy} onClick={() => void act(post, "delete")}>Delete</Button>
+                )}
+              </div>
             </div>
           ))
         )}

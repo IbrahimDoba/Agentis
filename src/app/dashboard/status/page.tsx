@@ -7,6 +7,8 @@ import { DevicePhoneMobileIcon, PhotoIcon } from "@heroicons/react/24/outline"
 import { ContactsTab } from "@/components/dashboard/status/ContactsTab"
 import { PostsTab } from "@/components/dashboard/status/PostsTab"
 import { AnalyticsTab } from "@/components/dashboard/status/AnalyticsTab"
+import { GalleryTab } from "@/components/dashboard/status/GalleryTab"
+import type { StatusDraft } from "@/lib/status-post"
 import styles from "./page.module.css"
 
 interface Agent {
@@ -37,15 +39,17 @@ async function fetchSession(agentId: string): Promise<SessionStatus | null> {
   return res.json()
 }
 
-type Tab = "posts" | "autopilot" | "contacts" | "analytics"
+type Tab = "posts" | "gallery" | "contacts" | "analytics" | "autopilot"
+// Unreleased tabs sit at the end.
 const TABS: Array<{ id: Tab; label: string; ready: boolean }> = [
   { id: "posts", label: "Posts", ready: true },
-  { id: "autopilot", label: "Autopilot", ready: false },
+  { id: "gallery", label: "Gallery", ready: true },
   { id: "contacts", label: "Contacts", ready: true },
   { id: "analytics", label: "Analytics", ready: true },
+  { id: "autopilot", label: "Autopilot", ready: false },
 ]
 
-const COMING_SOON: Record<Exclude<Tab, "contacts" | "posts" | "analytics">, string> = {
+const COMING_SOON: Record<Exclude<Tab, "contacts" | "posts" | "analytics" | "gallery">, string> = {
   autopilot: "Keep your status fresh automatically: pick your products and times, and your status gets posted for you every day.",
 }
 
@@ -58,6 +62,8 @@ function sessionLabel(status: SessionStatus["status"] | undefined): string {
 export default function StatusPage() {
   const [tab, setTab] = useState<Tab>("posts")
   const [manualAgentId, setManualAgentId] = useState<string | null>(null)
+  // "Post again" from the gallery: the Posts tab remounts with this content.
+  const [draft, setDraft] = useState<{ seq: number; content: StatusDraft } | null>(null)
 
   const { data: agents = [], isLoading: loadingAgents } = useQuery({
     queryKey: ["agents"],
@@ -109,7 +115,11 @@ export default function StatusPage() {
             role="tab"
             aria-selected={tab === t.id}
             className={`${styles.tabBtn} ${tab === t.id ? styles.tabBtnActive : ""}`}
-            onClick={() => setTab(t.id)}
+            onClick={() => {
+              setTab(t.id)
+              // A "Post again" draft is used once; coming back to Posts later starts empty.
+              if (t.id !== "posts") setDraft(null)
+            }}
           >
             {t.label}
             {!t.ready && <span className={styles.soon}>Soon</span>}
@@ -137,7 +147,10 @@ export default function StatusPage() {
                   key={agent.id}
                   type="button"
                   className={`${styles.agentRow} ${selectedAgentId === agent.id ? styles.agentRowActive : ""}`}
-                  onClick={() => setManualAgentId(agent.id)}
+                  onClick={() => {
+                    setManualAgentId(agent.id)
+                    setDraft(null)
+                  }}
                 >
                   <div className={styles.agentAvatar}>{agent.businessName.slice(0, 2).toUpperCase()}</div>
                   <div className={styles.agentInfo}>
@@ -171,8 +184,22 @@ export default function StatusPage() {
             </div>
           ) : tab === "analytics" ? (
             <AnalyticsTab key={selected.agent.id} agentId={selected.agent.id} />
+          ) : tab === "gallery" ? (
+            <GalleryTab
+              key={selected.agent.id}
+              agentId={selected.agent.id}
+              onPostAgain={(content) => {
+                setDraft((d) => ({ seq: (d?.seq ?? 0) + 1, content }))
+                setTab("posts")
+              }}
+            />
           ) : tab === "posts" ? (
-            <PostsTab key={selected.agent.id} agentId={selected.agent.id} isConnected={selected.session?.status === "CONNECTED"} />
+            <PostsTab
+              key={`${selected.agent.id}:${draft?.seq ?? 0}`}
+              agentId={selected.agent.id}
+              isConnected={selected.session?.status === "CONNECTED"}
+              draft={draft?.content}
+            />
           ) : (
             <ContactsTab key={selected.agent.id} agentId={selected.agent.id} isConnected={selected.session?.status === "CONNECTED"} />
           )}

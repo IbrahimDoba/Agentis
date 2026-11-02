@@ -271,6 +271,12 @@
   background: var(--bg-card);
 }
 
+.postActions {
+  display: flex;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
 .postMain {
   display: flex;
   flex-direction: column;

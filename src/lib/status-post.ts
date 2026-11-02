@@ -44,3 +44,17 @@ export function lagosDayBounds(at: Date): { start: Date; end: Date } {
 export function isVideoMime(mime: string | null | undefined): boolean {
   return !!mime && mime.startsWith("video/")
 }
+
+// A post's content, carried from the gallery or the posts list into the
+// composer for "Post again".
+export interface StatusDraft {
+  kind: StatusKind
+  text: string | null
+  backgroundColor: string | null
+  mediaItemId: string | null
+  aiNote: string | null
+}
+
+export function mediaPreviewUrl(agentId: string, mediaItemId: string): string {
+  return `/api/agents/${agentId}/media/${mediaItemId}/preview`
+}
