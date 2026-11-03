@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Sidebar, BusinessAvatar } from "./Sidebar"
 import { ToastProvider } from "@/context/ToastContext"
+import { StatusJobsProvider } from "@/components/dashboard/status/StatusJobs"
 import styles from "./DashboardShell.module.css"
 
 interface Props {
@@ -67,7 +68,9 @@ export function DashboardShell({ userName, businessName, currentUserId, currentW
       />
 
       <main className={styles.main}>
-        <ToastProvider>{children}</ToastProvider>
+        <ToastProvider>
+          <StatusJobsProvider>{children}</StatusJobsProvider>
+        </ToastProvider>
       </main>
     </div>
   )

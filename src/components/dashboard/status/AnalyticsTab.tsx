@@ -2,15 +2,21 @@
 
 import { useState } from "react"
 import { useQuery } from "@tanstack/react-query"
+import Button from "@/components/ui/Button"
+import { postProgress, type StatusKind } from "@/lib/status-post"
+import { JobProgress, ProgressBar, useStatusJobs, type StatusJob } from "./StatusJobs"
 import shared from "./ContactsTab.module.css"
 import styles from "./AnalyticsTab.module.css"
 
 interface PostStats {
   id: string
-  kind: "text" | "image" | "video"
+  kind: StatusKind
   text: string | null
+  backgroundColor: string | null
+  mediaItemId: string | null
   aiNote: string | null
   status: string
+  error: string | null
   scheduledAt: string
   postedAt: string | null
   recipientCount: number
@@ -46,16 +52,36 @@ function pct(part: number, whole: number): string {
   return whole > 0 ? `${Math.round((part / whole) * 100)}%` : "–"
 }
 
+const DISMISSED_KEY = "status-dismissed-failures"
+
+function readDismissed(): string[] {
+  try {
+    return JSON.parse(localStorage.getItem(DISMISSED_KEY) ?? "[]")
+  } catch {
+    return []
+  }
+}
+
 export function AnalyticsTab({ agentId }: { agentId: string }) {
+  const { jobs, enqueue } = useStatusJobs()
+  const running = jobs.filter((j) => j.agentId === agentId && j.target === "post")
+  const [dismissed, setDismissed] = useState<string[]>(readDismissed)
   const [openId, setOpenId] = useState<string | null>(null)
   // Fixed at mount: the 7-day window doesn't need to slide while the tab is open.
   const [now] = useState(() => Date.now())
 
   // Same query as the Posts tab, so switching tabs doesn't refetch.
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error, dataUpdatedAt } = useQuery({
     queryKey: ["status-posts", agentId],
     queryFn: () => fetchJson<{ posts: PostStats[] }>(`/api/agents/${agentId}/status-posts`),
-    refetchInterval: 30_000,
+    // Quick while something is on its way, so "Posted" shows up soon after it happens.
+    refetchInterval: (q) => {
+      const active = q.state.data?.posts.some((p) => {
+        const progress = postProgress(p, Date.now())
+        return progress === "waiting" || progress === "posting"
+      })
+      return active ? 4_000 : 30_000
+    },
   })
 
   if (isLoading) return <div className={shared.empty}>Loading analytics…</div>
@@ -67,12 +93,75 @@ export function AnalyticsTab({ agentId }: { agentId: string }) {
   const sum = (k: "recipientCount" | "delivered" | "viewed" | "liked" | "replied") => recent.reduce((n, p) => n + p[k], 0)
   const totals = { sent: sum("recipientCount"), delivered: sum("delivered"), viewed: sum("viewed"), liked: sum("liked"), replied: sum("replied") }
 
+  const inProgress = data.posts
+    .map((post) => ({ post, progress: postProgress(post, dataUpdatedAt) }))
+    .filter((p) => p.progress && !(p.progress === "failed" && dismissed.includes(p.post.id)))
+
+  function dismissPost(id: string) {
+    const next = [...dismissed, id].slice(-100)
+    setDismissed(next)
+    try {
+      localStorage.setItem(DISMISSED_KEY, JSON.stringify(next))
+    } catch { /* only costs the row coming back after a reload */ }
+  }
+
+  function retryPost(post: PostStats) {
+    dismissPost(post.id)
+    enqueue({
+      agentId,
+      target: "post",
+      kind: post.kind,
+      file: null,
+      mediaItemId: post.mediaItemId,
+      text: post.text ?? undefined,
+      backgroundColor: post.backgroundColor ?? undefined,
+      aiNote: post.aiNote ?? undefined,
+    })
+  }
+
+  const progressSection = (running.length > 0 || inProgress.length > 0) && (
+    <section className={styles.list} aria-live="polite">
+      <div className={shared.sectionTitle}>In progress</div>
+      {running.map((job) => (
+        <div key={job.id} className={styles.post}>
+          <JobTitle job={job} />
+          <JobProgress job={job} />
+        </div>
+      ))}
+      {inProgress.map(({ post, progress }) => (
+        <div key={post.id} className={styles.post}>
+          <div className={`${styles.postInfo} ${styles.progressInfo}`}>
+            <span className={shared.muted}>{KIND_LABEL[post.kind]}</span>
+            <span className={styles.postText}>{post.text || post.aiNote || `${KIND_LABEL[post.kind]} post`}</span>
+          </div>
+          {progress === "failed" ? (
+            <>
+              <p className={shared.error}>{post.error ?? "This post failed."}</p>
+              <div className={styles.progressActions}>
+                <Button type="button" size="sm" onClick={() => retryPost(post)}>Try again</Button>
+                <Button type="button" size="sm" variant="ghost" onClick={() => dismissPost(post.id)}>Dismiss</Button>
+              </div>
+            </>
+          ) : (
+            <ServerProgress kind={post.kind} progress={progress} />
+          )}
+        </div>
+      ))}
+    </section>
+  )
+
   if (posted.length === 0) {
-    return <div className={shared.empty}>Post a status and its views, likes and replies show up here.</div>
+    return (
+      <div className={shared.wrap}>
+        {progressSection}
+        {!progressSection && <div className={shared.empty}>Post a status and its views, likes and replies show up here.</div>}
+      </div>
+    )
   }
 
   return (
     <div className={shared.wrap}>
+      {progressSection}
       <div className={styles.totals}>
         <Stat label="Sent to" value={totals.sent} />
         <Stat label="Delivered" value={totals.delivered} hint={pct(totals.delivered, totals.sent)} />
@@ -113,6 +202,25 @@ export function AnalyticsTab({ agentId }: { agentId: string }) {
           </div>
         ))}
       </section>
+    </div>
+  )
+}
+
+function JobTitle({ job }: { job: StatusJob }) {
+  return (
+    <div className={`${styles.postInfo} ${styles.progressInfo}`}>
+      <span className={shared.muted}>{KIND_LABEL[job.kind]}{job.scheduledAt ? ` · scheduled for ${when(job.scheduledAt)}` : ""}</span>
+      <span className={styles.postText}>{job.text || job.aiNote || job.file?.name || `${KIND_LABEL[job.kind]} post`}</span>
+    </div>
+  )
+}
+
+function ServerProgress({ kind, progress }: { kind: StatusKind; progress: "waiting" | "posting" | "failed" | null }) {
+  const label = progress === "waiting" ? "Saved, waiting to post…" : kind === "video" ? "Preparing your video and posting…" : "Posting…"
+  return (
+    <div className={styles.serverProgress}>
+      <span className={shared.muted}>{label}</span>
+      <ProgressBar label={label} />
     </div>
   )
 }
