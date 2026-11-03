@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
+import { formatMb, mediaSizeError, MAX_DOCUMENT_BYTES } from "@/lib/media-limits"
 
 interface Params {
     params: Promise<{ id: string }>
@@ -8,6 +9,8 @@ interface Params {
 
 const ORCHESTRATOR_URL = process.env.ORCHESTRATOR_URL || "http://localhost:4100"
 const ORCHESTRATOR_API_KEY = process.env.ORCHESTRATOR_API_KEY
+// Room for the multipart boundary and the description field around the file.
+const MAX_REQUEST_BYTES = MAX_DOCUMENT_BYTES + 1024 * 1024
 
 async function authorize(id: string) {
     const session = await auth()
@@ -47,11 +50,19 @@ export async function POST(req: NextRequest, { params }: Params) {
         const gate = await authorize(id)
         if ("error" in gate) return gate.error
 
+        // Checked before parsing: formData() buffers the whole body in memory.
+        if (Number(req.headers.get("content-length") ?? 0) > MAX_REQUEST_BYTES) {
+            return NextResponse.json({ error: `This file is too large. The limit is ${formatMb(MAX_DOCUMENT_BYTES)}.` }, { status: 400 })
+        }
+
         const formData = await req.formData()
         const file = formData.get("file") as File | null
         const description = (formData.get("description") as string | null)?.trim() || ""
         if (!file) return NextResponse.json({ error: "No file provided" }, { status: 400 })
         if (!description) return NextResponse.json({ error: "A description is required so the AI knows when to send it" }, { status: 400 })
+
+        const sizeError = mediaSizeError(file.size, file.type)
+        if (sizeError) return NextResponse.json({ error: sizeError }, { status: 400 })
 
         const buffer = Buffer.from(await file.arrayBuffer())
         const payload = {
@@ -69,14 +80,18 @@ export async function POST(req: NextRequest, { params }: Params) {
         })
         if (!res.ok) {
             const t = await res.text().catch(() => "")
-            // Surface the orchestrator's own validation message (type/size) to the UI.
-            let msg = `Upload failed (${res.status})`
-            try { msg = JSON.parse(t).error ?? msg } catch { if (t) msg = t }
-            return NextResponse.json({ error: msg }, { status: res.status === 400 ? 400 : 500 })
+            console.error("[POST /api/agents/:id/media] orchestrator rejected upload", { status: res.status, size: file.size, type: file.type, body: t.slice(0, 200) })
+            // Only its 400s are written for the user (type/size). Anything else is
+            // a framework or proxy error, like Fastify's "Payload Too Large".
+            if (res.status === 413) return NextResponse.json({ error: "This file is too large to upload." }, { status: 400 })
+            if (res.status !== 400) return NextResponse.json({ error: "Failed to upload media" }, { status: 500 })
+            let msg = "Upload failed"
+            try { msg = JSON.parse(t).error ?? msg } catch { /* not JSON: keep the generic message */ }
+            return NextResponse.json({ error: msg }, { status: 400 })
         }
         return NextResponse.json(await res.json())
-    } catch (error: any) {
+    } catch (error) {
         console.error("[POST /api/agents/:id/media]", error)
-        return NextResponse.json({ error: error?.message ?? "Failed to upload media" }, { status: 500 })
+        return NextResponse.json({ error: "Failed to upload media" }, { status: 500 })
     }
 }

@@ -14,6 +14,7 @@ import {
   type StatusDraft,
   type StatusKind,
 } from "@/lib/status-post"
+import { formatMb, mediaSizeError, MAX_IMAGE_BYTES, MAX_VIDEO_BYTES } from "@/lib/media-limits"
 import shared from "./ContactsTab.module.css"
 import styles from "./PostsTab.module.css"
 
@@ -344,11 +345,16 @@ export function PostsTab({ agentId, isConnected, draft }: { agentId: string; isC
                     accept={kind === "video" ? "video/mp4,video/quicktime,video/*" : "image/jpeg,image/png,image/webp"}
                     onChange={(e) => {
                       const f = e.target.files?.[0] ?? null
+                      const tooLarge = f && mediaSizeError(f.size, f.type)
+                      if (tooLarge) {
+                        e.target.value = ""
+                        return showToast(tooLarge, "error")
+                      }
                       setFile(f)
                       if (f) setMediaItemId(null)
                     }}
                   />
-                  {file ? file.name : `Upload ${kind === "video" ? "a video (up to 16MB)" : "an image (up to 5MB)"}`}
+                  {file ? file.name : `Upload ${kind === "video" ? `a video (up to ${formatMb(MAX_VIDEO_BYTES)})` : `an image (up to ${formatMb(MAX_IMAGE_BYTES)})`}`}
                 </label>
                 {choices.length > 0 && (
                   <div className={styles.library}>

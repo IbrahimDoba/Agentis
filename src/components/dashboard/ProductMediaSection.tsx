@@ -6,6 +6,7 @@ import {
     VideoCameraIcon, DocumentIcon, TrashIcon,
     ArrowUpTrayIcon, ArrowPathIcon, ExclamationCircleIcon,
 } from "@heroicons/react/24/outline"
+import { mediaSizeError } from "@/lib/media-limits"
 import styles from "./KnowledgeBaseTab.module.css"
 
 interface MediaItem {
@@ -119,7 +120,13 @@ export function ProductMediaSection({ agentId }: ProductMediaSectionProps) {
                         type="file"
                         accept="video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv"
                         className={styles.hiddenInput}
-                        onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                        onChange={(e) => {
+                            const f = e.target.files?.[0] ?? null
+                            const tooLarge = f && mediaSizeError(f.size, f.type)
+                            if (tooLarge) e.target.value = ""
+                            setErrorMsg(tooLarge || "")
+                            setFile(tooLarge ? null : f)
+                        }}
                     />
                     {file && <span className={styles.docName} style={{ flex: "1 1 160px" }}>{file.name}</span>}
                     <input
