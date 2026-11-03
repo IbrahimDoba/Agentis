@@ -14,7 +14,8 @@ import {
   type StatusDraft,
   type StatusKind,
 } from "@/lib/status-post"
-import { formatMb, mediaSizeError, MAX_IMAGE_BYTES, MAX_VIDEO_BYTES } from "@/lib/media-limits"
+import { formatMb, needsDirectUpload, statusMediaSizeError, MAX_IMAGE_BYTES, MAX_STATUS_VIDEO_BYTES, MAX_VIDEO_BYTES } from "@/lib/media-limits"
+import { uploadLargeVideo } from "./uploadLargeVideo"
 import shared from "./ContactsTab.module.css"
 import styles from "./PostsTab.module.css"
 
@@ -93,6 +94,7 @@ export function PostsTab({ agentId, isConnected, draft }: { agentId: string; isC
   const [schedule, setSchedule] = useState(false)
   const [scheduledFor, setScheduledFor] = useState(() => localInputValue(new Date(Date.now() + 60 * 60_000)))
   const [busy, setBusy] = useState(false)
+  const [uploadPercent, setUploadPercent] = useState<number | null>(null)
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["status-posts", agentId],
@@ -144,6 +146,19 @@ export function PostsTab({ agentId, isConnected, draft }: { agentId: string; isC
   // A new file goes into the media library first (that's where the worker reads
   // it from), described by the AI note so the agent can also send it in chats.
   async function uploadToLibrary(f: File, description: string): Promise<string | null> {
+    if (needsDirectUpload(f.size, f.type)) {
+      setUploadPercent(0)
+      try {
+        const id = await uploadLargeVideo(agentId, f, description, setUploadPercent)
+        void queryClient.invalidateQueries({ queryKey: ["media", agentId] })
+        return id
+      } catch (err) {
+        showToast((err as Error).message, "error")
+        return null
+      } finally {
+        setUploadPercent(null)
+      }
+    }
     const form = new FormData()
     form.append("file", f)
     form.append("description", description)
@@ -345,7 +360,7 @@ export function PostsTab({ agentId, isConnected, draft }: { agentId: string; isC
                     accept={kind === "video" ? "video/mp4,video/quicktime,video/*" : "image/jpeg,image/png,image/webp"}
                     onChange={(e) => {
                       const f = e.target.files?.[0] ?? null
-                      const tooLarge = f && mediaSizeError(f.size, f.type)
+                      const tooLarge = f && statusMediaSizeError(f.size, f.type)
                       if (tooLarge) {
                         e.target.value = ""
                         return showToast(tooLarge, "error")
@@ -354,8 +369,13 @@ export function PostsTab({ agentId, isConnected, draft }: { agentId: string; isC
                       if (f) setMediaItemId(null)
                     }}
                   />
-                  {file ? file.name : `Upload ${kind === "video" ? `a video (up to ${formatMb(MAX_VIDEO_BYTES)})` : `an image (up to ${formatMb(MAX_IMAGE_BYTES)})`}`}
+                  {file ? file.name : `Upload ${kind === "video" ? `a video (up to ${formatMb(MAX_STATUS_VIDEO_BYTES)})` : `an image (up to ${formatMb(MAX_IMAGE_BYTES)})`}`}
                 </label>
+                {kind === "video" && (
+                  <span className={shared.muted}>
+                    Videos are cut to 60 seconds. Over {formatMb(MAX_VIDEO_BYTES)}, they can go on your status but your AI can&rsquo;t send them in chats.
+                  </span>
+                )}
                 {choices.length > 0 && (
                   <div className={styles.library}>
                     <span className={shared.muted}>Or pick from your media library</span>
@@ -419,7 +439,7 @@ export function PostsTab({ agentId, isConnected, draft }: { agentId: string; isC
                 Save to gallery
               </Button>
               <Button type="button" disabled={busy || data.audience.contacts === 0 || atDailyLimit} onClick={() => void submit()}>
-                {busy ? "Working…" : schedule ? "Schedule post" : "Post now"}
+                {uploadPercent !== null ? `Uploading ${uploadPercent}%` : busy ? "Working…" : schedule ? "Schedule post" : "Post now"}
               </Button>
             </div>
           </div>

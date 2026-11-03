@@ -53,6 +53,9 @@ export function transcodeArgs(input: string, output: string): string[] {
     "-vf", "scale='if(gt(iw,ih),-2,min(720,iw))':'if(gt(iw,ih),min(720,ih),-2)'",
     "-c:v", "libx264", "-profile:v", "main", "-level", "3.1", "-pix_fmt", "yuv420p",
     "-preset", "veryfast", "-crf", "26",
+    // A busy 60 seconds at this quality alone came out at 31MB. This keeps it
+    // around 14MB, under WhatsApp's usual 16MB video limit.
+    "-maxrate", "1800k", "-bufsize", "3600k",
     "-c:a", "aac", "-b:a", "96k", "-ac", "2",
     "-movflags", "+faststart",
     "-threads", "1",

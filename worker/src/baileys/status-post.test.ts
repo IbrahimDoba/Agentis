@@ -46,6 +46,7 @@ describe("transcodeArgs", () => {
     expect(args).toContain("-profile:v main -level 3.1")
     expect(args).toContain("-movflags +faststart")
     expect(args).toContain("-t 60")
+    expect(args).toContain("-maxrate 1800k")
     expect(args).toContain("-threads 1")
     expect(args.endsWith("out.mp4")).toBe(true)
   })
