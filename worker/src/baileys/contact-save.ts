@@ -1,9 +1,10 @@
 // Pure helpers for saving chats into the phone's address book. Deliberately
 // free of config/db imports so they stay unit-testable (see CLAUDE.md landmines).
 
-// Proven safe in the Oct 2026 spike (143 saves, 0 failures at ~4s pacing);
-// 500 leaves headroom without looking like a bot clearing its whole inbox.
-export const DAILY_SAVE_CAP = 500
+// Raised from 500 after a Nov 2026 run saved 1,500 contacts over 3 days with 0
+// failures at ~4.5s pacing. WhatsApp publishes no limit, so this is judgement,
+// not a known safe number: if numbers start getting restricted, lower it first.
+export const DAILY_SAVE_CAP = 1000
 export const CREDITS_PER_CONTACT = 1
 
 // Nigerian and most international numbers. LIDs (14-15 digit privacy ids that
