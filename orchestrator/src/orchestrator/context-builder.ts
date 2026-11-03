@@ -4,6 +4,7 @@ import type { AdContext, Message } from "../db/queries/conversations.js"
 import { getRecentMessages } from "../db/queries/conversations.js"
 import { retrieveRelevantChunks } from "../rag/indexer.js"
 import { listMediaItems } from "../db/queries/media.js"
+import { sendableInChat } from "../lib/media-upload.js"
 import { isChatTaggingEnabled, listAgentLabels } from "../db/queries/labels.js"
 import { logger as rootLogger } from "../lib/logger.js"
 
@@ -66,7 +67,7 @@ Greet them with awareness of what brought them here. Do NOT ask a generic "how c
   try {
     const media = await listMediaItems(agent.agentId)
     mediaImages = media.filter((m) => m.mimeType.startsWith("image/"))
-    mediaDocs = media.filter((m) => !m.mimeType.startsWith("image/"))
+    mediaDocs = media.filter((m) => !m.mimeType.startsWith("image/") && sendableInChat(m))
   } catch (err: any) {
     logger.warn({ agentId: agent.agentId, err: err.message }, "Failed to fetch media library")
   }

@@ -556,6 +556,20 @@ exports[`unauthenticated response baseline > matches the recorded responses 1`] 
       "status": 401,
     },
   },
+  "agents/[id]/media/complete": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/media/upload-url": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
   "agents/[id]/messaging": {
     "PATCH": {
       "body": "{"error":"Unauthorized"}",
