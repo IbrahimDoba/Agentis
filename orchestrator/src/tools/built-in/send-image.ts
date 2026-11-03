@@ -4,6 +4,7 @@ import { getSignedDownloadUrl } from "../../storage/r2.js"
 import { dispatchMedia } from "../../orchestrator/response-dispatcher.js"
 import { insertMessage } from "../../db/queries/conversations.js"
 import { logger as rootLogger } from "../../lib/logger.js"
+import { sendableInChat } from "../../lib/media-upload.js"
 
 const logger = rootLogger.child({ module: "tool:send_media" })
 
@@ -55,6 +56,11 @@ export async function executeSendMedia(args: Record<string, unknown>, opts: {
     const item = await getMediaItem(mediaId)
     if (!item || item.agentId !== opts.agentId) {
         return JSON.stringify({ error: `Media ID ${mediaId} not found in library` })
+    }
+
+    // The prompt doesn't list these, but an ID can survive in chat history.
+    if (!sendableInChat(item)) {
+        return JSON.stringify({ error: "This video is too large to send in a chat. Tell the customer it's unavailable." })
     }
 
     const kind = mediaKindFromMime(item.mimeType)

@@ -1,7 +1,8 @@
 import type { FastifyInstance } from "fastify"
 import { z } from "zod"
 import { randomUUID } from "crypto"
-import { uploadFile, deleteFile, r2Keys, getSignedDownloadUrl } from "../storage/r2.js"
+import { uploadFile, deleteFile, r2Keys, getSignedDownloadUrl, getSignedUploadUrl, statFile } from "../storage/r2.js"
+import { STATUS_VIDEO_MAX_BYTES, isAgentMediaKey, safeFilename, tagsForVideo } from "../lib/media-upload.js"
 import {
     insertMediaItem,
     listMediaItems,
@@ -14,6 +15,18 @@ const logger = rootLogger.child({ module: "routes/media" })
 
 const ListQuerySchema = z.object({ agentId: z.string().min(1) })
 const MediaIdSchema = z.object({ id: z.string().uuid() })
+const UploadUrlSchema = z.object({
+    agentId: z.string().min(1),
+    filename: z.string().min(1).max(500),
+    mimeType: z.string().startsWith("video/").max(100),
+    sizeBytes: z.number().int().positive().max(STATUS_VIDEO_MAX_BYTES),
+})
+const CompleteSchema = z.object({
+    agentId: z.string().min(1),
+    r2Key: z.string().min(1).max(1024),
+    filename: z.string().min(1).max(500),
+    description: z.string().min(1),
+})
 
 export async function mediaRoutes(app: FastifyInstance) {
     /**
@@ -84,6 +97,53 @@ export async function mediaRoutes(app: FastifyInstance) {
 
         logger.info({ mediaId: item.id, agentId: body.agentId, filename: body.filename }, "Media uploaded")
 
+        return reply.status(201).send(item)
+    })
+
+    /**
+     * POST /v1/media/upload-url
+     * Signed URL for a status video too big for the base64 route above; the
+     * browser PUTs it straight to R2, then calls /media/complete.
+     */
+    app.post("/media/upload-url", async (req, reply) => {
+        const parsed = UploadUrlSchema.safeParse(req.body)
+        if (!parsed.success) return reply.status(400).send({ error: "Only videos up to 100MB can be uploaded this way." })
+
+        const { agentId, filename, mimeType, sizeBytes } = parsed.data
+        const r2Key = r2Keys.media(agentId, randomUUID(), safeFilename(filename))
+        const uploadUrl = await getSignedUploadUrl(r2Key, mimeType, sizeBytes)
+        return reply.send({ uploadUrl, r2Key })
+    })
+
+    /**
+     * POST /v1/media/complete
+     * Adds a directly uploaded video to the library. Size and type are read back
+     * from R2, because nothing the browser says about the file can be trusted.
+     */
+    app.post("/media/complete", async (req, reply) => {
+        const parsed = CompleteSchema.safeParse(req.body)
+        if (!parsed.success) return reply.status(400).send({ error: "agentId, r2Key, filename, description are required" })
+
+        const { agentId, r2Key, filename, description } = parsed.data
+        if (!isAgentMediaKey(r2Key, agentId)) return reply.status(400).send({ error: "Invalid upload" })
+
+        const stat = await statFile(r2Key)
+        if (!stat) return reply.status(400).send({ error: "The upload didn't finish. Please try again." })
+        if (stat.sizeBytes > STATUS_VIDEO_MAX_BYTES || !stat.contentType.startsWith("video/")) {
+            await deleteFile(r2Key)
+            return reply.status(400).send({ error: "Only videos up to 100MB can be uploaded." })
+        }
+
+        const item = await insertMediaItem({
+            agentId,
+            filename: safeFilename(filename),
+            mimeType: stat.contentType,
+            r2Key,
+            description,
+            tags: tagsForVideo(stat.sizeBytes),
+        })
+
+        logger.info({ mediaId: item.id, agentId, sizeBytes: stat.sizeBytes }, "Media uploaded directly")
         return reply.status(201).send(item)
     })
 
