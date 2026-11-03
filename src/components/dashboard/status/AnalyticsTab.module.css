@@ -146,3 +146,20 @@
   border-color: var(--accent);
   background: var(--accent-light);
 }
+
+.progressActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.serverProgress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* .postInfo's flex-basis is a width in the rows above; in this column it'd be a height. */
+.progressInfo {
+  flex: none;
+}

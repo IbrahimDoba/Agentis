@@ -58,3 +58,21 @@ export interface StatusDraft {
 export function mediaPreviewUrl(agentId: string, mediaItemId: string): string {
   return `/api/agents/${agentId}/media/${mediaItemId}/preview`
 }
+
+export type PostProgress = "waiting" | "posting" | "failed"
+
+// How long a failed post stays in the "In progress" list.
+const FAILED_VISIBLE_MS = 24 * 60 * 60 * 1000
+// Allows for the browser's clock running behind the server's: a post made just
+// now shouldn't read as scheduled for later.
+const DUE_SLACK_MS = 60_000
+
+// Where a post that hasn't finished stands. A post scheduled for later isn't in
+// progress yet, and an old failure is history.
+export function postProgress(post: { status: string; scheduledAt: string }, at: number): PostProgress | null {
+  const due = new Date(post.scheduledAt).getTime()
+  if (post.status === "posting") return "posting"
+  if (post.status === "scheduled") return due <= at + DUE_SLACK_MS ? "waiting" : null
+  if (post.status === "failed") return at - due <= FAILED_VISIBLE_MS ? "failed" : null
+  return null
+}

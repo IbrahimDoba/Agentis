@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useToast } from "@/context/ToastContext"
 import Button from "@/components/ui/Button"
 import { mediaPreviewUrl, type StatusDraft, type StatusKind } from "@/lib/status-post"
+import { JobProgress, useStatusJobs } from "./StatusJobs"
 import shared from "./ContactsTab.module.css"
 import styles from "./GalleryTab.module.css"
 
@@ -39,6 +40,8 @@ export function GalleryTab({ agentId, onPostAgain }: { agentId: string; onPostAg
   const { showToast } = useToast()
   const queryClient = useQueryClient()
   const [busyId, setBusyId] = useState<string | null>(null)
+  const { jobs } = useStatusJobs()
+  const saving = jobs.filter((j) => j.agentId === agentId && j.target === "gallery")
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["status-gallery", agentId],
@@ -63,7 +66,7 @@ export function GalleryTab({ agentId, onPostAgain }: { agentId: string; onPostAg
   if (isLoading) return <div className={shared.empty}>Loading gallery…</div>
   if (error || !data) return <div className={shared.empty}>{(error as Error)?.message ?? "Couldn't load the gallery."}</div>
 
-  if (data.items.length === 0) {
+  if (data.items.length === 0 && saving.length === 0) {
     return (
       <div className={shared.empty}>
         Everything you post shows up here, ready to post again. You can also save a post here from the Posts tab without posting it.
@@ -77,6 +80,17 @@ export function GalleryTab({ agentId, onPostAgain }: { agentId: string; onPostAg
         Everything you&apos;ve posted or saved. Post any of it again with its caption and AI note, without uploading it again.
       </p>
       <div className={styles.grid}>
+        {saving.map((job) => (
+          <article key={job.id} className={styles.card}>
+            <div className={styles.preview}>
+              <div className={styles.pending}>{job.file?.name ?? job.text ?? "Saving…"}</div>
+              <span className={styles.kind}>{KIND_LABEL[job.kind]}</span>
+            </div>
+            <div className={styles.body}>
+              <JobProgress job={job} />
+            </div>
+          </article>
+        ))}
         {data.items.map((item) => (
           <article key={item.id} className={styles.card}>
             <div className={styles.preview}>

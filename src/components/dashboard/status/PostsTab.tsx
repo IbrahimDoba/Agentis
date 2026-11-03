@@ -14,8 +14,8 @@ import {
   type StatusDraft,
   type StatusKind,
 } from "@/lib/status-post"
-import { formatMb, needsDirectUpload, statusMediaSizeError, MAX_IMAGE_BYTES, MAX_STATUS_VIDEO_BYTES, MAX_VIDEO_BYTES } from "@/lib/media-limits"
-import { uploadLargeVideo } from "./uploadLargeVideo"
+import { formatMb, statusMediaSizeError, MAX_IMAGE_BYTES, MAX_STATUS_VIDEO_BYTES, MAX_VIDEO_BYTES } from "@/lib/media-limits"
+import { useStatusJobs } from "./StatusJobs"
 import shared from "./ContactsTab.module.css"
 import styles from "./PostsTab.module.css"
 
@@ -81,9 +81,15 @@ function localInputValue(d: Date): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
-export function PostsTab({ agentId, isConnected, draft }: { agentId: string; isConnected: boolean; draft?: StatusDraft | null }) {
+export function PostsTab({ agentId, isConnected, draft, onQueued }: {
+  agentId: string
+  isConnected: boolean
+  draft?: StatusDraft | null
+  onQueued: (target: "post" | "gallery") => void
+}) {
   const { showToast } = useToast()
   const queryClient = useQueryClient()
+  const { enqueue } = useStatusJobs()
 
   const [kind, setKind] = useState<StatusKind>(draft?.kind ?? "image")
   const [text, setText] = useState(draft?.text ?? "")
@@ -94,7 +100,6 @@ export function PostsTab({ agentId, isConnected, draft }: { agentId: string; isC
   const [schedule, setSchedule] = useState(false)
   const [scheduledFor, setScheduledFor] = useState(() => localInputValue(new Date(Date.now() + 60 * 60_000)))
   const [busy, setBusy] = useState(false)
-  const [uploadPercent, setUploadPercent] = useState<number | null>(null)
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["status-posts", agentId],
@@ -143,35 +148,6 @@ export function PostsTab({ agentId, isConnected, draft }: { agentId: string; isC
     if (!aiNote.trim()) setAiNote(item.description)
   }
 
-  // A new file goes into the media library first (that's where the worker reads
-  // it from), described by the AI note so the agent can also send it in chats.
-  async function uploadToLibrary(f: File, description: string): Promise<string | null> {
-    if (needsDirectUpload(f.size, f.type)) {
-      setUploadPercent(0)
-      try {
-        const id = await uploadLargeVideo(agentId, f, description, setUploadPercent)
-        void queryClient.invalidateQueries({ queryKey: ["media", agentId] })
-        return id
-      } catch (err) {
-        showToast((err as Error).message, "error")
-        return null
-      } finally {
-        setUploadPercent(null)
-      }
-    }
-    const form = new FormData()
-    form.append("file", f)
-    form.append("description", description)
-    const res = await fetch(`/api/agents/${agentId}/media`, { method: "POST", body: form })
-    const body = await res.json().catch(() => null)
-    if (!res.ok) {
-      showToast(body?.error ?? "Upload failed", "error")
-      return null
-    }
-    void queryClient.invalidateQueries({ queryKey: ["media", agentId] })
-    return body?.id ?? null
-  }
-
   function validate(): boolean {
     const problem =
       kind === "text" && !text.trim() ? "Write something for your status."
@@ -182,26 +158,20 @@ export function PostsTab({ agentId, isConnected, draft }: { agentId: string; isC
     return !problem
   }
 
-  // A new file is uploaded once here; after that the post (or gallery card)
-  // points at the library item.
-  async function contentBody(): Promise<Record<string, unknown> | null> {
-    let itemId = mediaItemId
-    if (kind !== "text" && file) {
-      itemId = await uploadToLibrary(file, aiNote.trim())
-      if (!itemId) return null
-      setFile(null)
-      setMediaItemId(itemId)
-    }
-    return {
+  // Everything in the job is copied out of the composer, so it can clear straight
+  // away and the owner can start on the next post while this one uploads.
+  function queue(target: "post" | "gallery", scheduledAt?: string) {
+    enqueue({
+      agentId,
+      target,
       kind,
+      file: kind === "text" ? null : file,
+      mediaItemId: kind === "text" ? null : mediaItemId,
       text: text.trim() || undefined,
       backgroundColor: kind === "text" ? background : undefined,
-      mediaItemId: kind === "text" ? undefined : itemId,
       aiNote: aiNote.trim() || undefined,
-    }
-  }
-
-  function resetComposer() {
+      scheduledAt,
+    })
     setText("")
     setFile(null)
     setMediaItemId(null)
@@ -209,53 +179,19 @@ export function PostsTab({ agentId, isConnected, draft }: { agentId: string; isC
     setSchedule(false)
   }
 
-  async function submit() {
+  function submit() {
     if (!validate()) return
     if (schedule && new Date(scheduledFor).getTime() < Date.now()) return showToast("Pick a time in the future.", "error")
-
-    setBusy(true)
-    try {
-      const content = await contentBody()
-      if (!content) return
-      const res = await fetch(`/api/agents/${agentId}/status-posts`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...content, scheduledAt: schedule ? new Date(scheduledFor).toISOString() : undefined }),
-      })
-      const body = await res.json().catch(() => null)
-      if (!res.ok) return showToast(body?.error ?? "Couldn't create the post.", "error")
-      showToast(schedule ? `Scheduled for ${when(new Date(scheduledFor).toISOString())}.` : "Posting to your status now.")
-      resetComposer()
-    } catch {
-      showToast("Something went wrong. Please try again.", "error")
-    } finally {
-      setBusy(false)
-      void refresh()
-      void queryClient.invalidateQueries({ queryKey: ["status-gallery", agentId] })
-    }
+    // A scheduled post with nothing to upload has no progress to watch.
+    const showProgress = !schedule || (kind !== "text" && !!file)
+    queue("post", schedule ? new Date(scheduledFor).toISOString() : undefined)
+    if (showProgress) onQueued("post")
   }
 
-  async function saveToGallery() {
+  function saveToGallery() {
     if (!validate()) return
-    setBusy(true)
-    try {
-      const content = await contentBody()
-      if (!content) return
-      const res = await fetch(`/api/agents/${agentId}/status-gallery`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(content),
-      })
-      const body = await res.json().catch(() => null)
-      if (!res.ok) return showToast(body?.error ?? "Couldn't save to the gallery.", "error")
-      showToast("Saved to your gallery.")
-      resetComposer()
-    } catch {
-      showToast("Something went wrong. Please try again.", "error")
-    } finally {
-      setBusy(false)
-      void queryClient.invalidateQueries({ queryKey: ["status-gallery", agentId] })
-    }
+    queue("gallery")
+    onQueued("gallery")
   }
 
   async function act(post: Post, action: "cancel" | "delete") {
@@ -435,11 +371,11 @@ export function PostsTab({ agentId, isConnected, draft }: { agentId: string; isC
               {data.credits[kind]} credits · up to {reach.toLocaleString()} contacts
             </span>
             <div className={shared.actions}>
-              <Button type="button" variant="secondary" disabled={busy} onClick={() => void saveToGallery()}>
+              <Button type="button" variant="secondary" disabled={busy} onClick={saveToGallery}>
                 Save to gallery
               </Button>
-              <Button type="button" disabled={busy || data.audience.contacts === 0 || atDailyLimit} onClick={() => void submit()}>
-                {uploadPercent !== null ? `Uploading ${uploadPercent}%` : busy ? "Working…" : schedule ? "Schedule post" : "Post now"}
+              <Button type="button" disabled={busy || data.audience.contacts === 0 || atDailyLimit} onClick={submit}>
+                {schedule ? "Schedule post" : "Post now"}
               </Button>
             </div>
           </div>

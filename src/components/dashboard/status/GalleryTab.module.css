@@ -124,3 +124,15 @@
   gap: 0.4rem;
   padding: 0.75rem 0.85rem 0.85rem;
 }
+
+.pending {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 1rem;
+  text-align: center;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+  color: var(--text-muted);
+}

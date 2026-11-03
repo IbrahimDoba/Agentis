@@ -199,6 +199,10 @@ export default function StatusPage() {
               agentId={selected.agent.id}
               isConnected={selected.session?.status === "CONNECTED"}
               draft={draft?.content}
+              onQueued={(target) => {
+                setDraft(null)
+                setTab(target === "gallery" ? "gallery" : "analytics")
+              }}
             />
           ) : (
             <ContactsTab key={selected.agent.id} agentId={selected.agent.id} isConnected={selected.session?.status === "CONNECTED"} />

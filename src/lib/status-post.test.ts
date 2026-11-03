@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { STATUS_CREDITS, recipientCapFor, lagosDayBounds } from "./status-post"
+import { STATUS_CREDITS, recipientCapFor, lagosDayBounds, postProgress } from "./status-post"
 
 describe("status post rules", () => {
   it("prices posts like sent messages", () => {
@@ -19,5 +19,32 @@ describe("status post rules", () => {
 
     const midday = lagosDayBounds(new Date("2026-11-01T11:00:00Z"))
     expect(midday.start.toISOString()).toBe("2026-10-31T23:00:00.000Z")
+  })
+})
+
+describe("postProgress", () => {
+  const at = Date.parse("2026-11-03T12:00:00Z")
+  const post = (status: string, offsetMs: number) => ({ status, scheduledAt: new Date(at + offsetMs).toISOString() })
+
+  it("shows a post that's being worked on", () => {
+    expect(postProgress(post("posting", -1000), at)).toBe("posting")
+    expect(postProgress(post("scheduled", -1000), at)).toBe("waiting")
+  })
+
+  it("treats a post made just now as due, even if this clock runs behind the server's", () => {
+    expect(postProgress(post("scheduled", 30_000), at)).toBe("waiting")
+  })
+
+  it("leaves out posts scheduled for later", () => {
+    expect(postProgress(post("scheduled", 3_600_000), at)).toBeNull()
+  })
+
+  it("keeps a failure visible for a day", () => {
+    expect(postProgress(post("failed", -3_600_000), at)).toBe("failed")
+    expect(postProgress(post("failed", -25 * 3_600_000), at)).toBeNull()
+  })
+
+  it("ignores finished posts", () => {
+    for (const status of ["posted", "cancelled", "deleted", "deleting"]) expect(postProgress(post(status, -1000), at)).toBeNull()
   })
 })
