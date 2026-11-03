@@ -1,6 +1,5 @@
 "use client"
 import { useEffect, useLayoutEffect, useRef, useState } from "react"
-import { MessagesSquare, UserRoundCheck, MessageCircleMore } from "lucide-react"
 import { useVisibleInterval } from "@/lib/useVisibleInterval"
 import { toTickerCells, formatCount } from "@/lib/odometer"
 import type { PublicStats } from "@/lib/queries/publicStats"
@@ -50,30 +49,25 @@ export function LiveStats({ initial }: { initial: PublicStats | null }) {
   return (
     <div className={styles.stats}>
       <StatTicker
-        icon={<MessagesSquare size={20} strokeWidth={1.75} aria-hidden="true" />}
         value={stats.aiMessages}
-        label="AI Messages Sent"
+        label="AI messages sent"
       />
       <StatTicker
-        icon={<UserRoundCheck size={20} strokeWidth={1.75} aria-hidden="true" />}
         value={stats.leads}
-        label="Leads Captured"
+        label="Leads captured"
       />
       <StatTicker
-        icon={<MessageCircleMore size={20} strokeWidth={1.75} aria-hidden="true" />}
         value={stats.conversations}
-        label="Conversations Handled"
+        label="Conversations handled"
       />
     </div>
   )
 }
 
 function StatTicker({
-  icon,
   value,
   label,
 }: {
-  icon: React.ReactNode
   value: number
   label: string
 }) {
@@ -132,7 +126,6 @@ function StatTicker({
 
   return (
     <div className={bumped ? `${styles.card} ${styles.cardBumped}` : styles.card}>
-      <span className={styles.icon}>{icon}</span>
       <div>
         <div className={styles.value}>
           <span className={styles.srOnly}>{formatCount(display)}</span>

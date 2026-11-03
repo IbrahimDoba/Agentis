@@ -114,7 +114,7 @@ export function aiMessagesPerMonth(plan: string): string {
 // Plain-language explainer of the credit system, shared by the marketing pricing
 // pages and the dashboard so the wording stays consistent everywhere.
 export const CREDITS_NOTE =
-  "Credits are what your AI spends to reply — a typical AI message costs about 5 credits (longer replies, images and voice notes use a little more). Your monthly plan credits are used first, then any pay-as-you-go top-ups. When both run out your agent simply pauses until you renew or top up — no surprise charges."
+  "Credits are what your AI spends to reply: a typical AI message costs about 5 credits (longer replies, images and voice notes use a little more). Your monthly plan credits are used first, then any pay-as-you-go top-ups. When both run out your agent simply pauses until you renew or top up, so there are no surprise charges."
 
 // Overage rate in Naira per 1,000 credits (null = no overage allowed)
 // Overage is REMOVED platform-wide: no plan overshoots its allowance. Every

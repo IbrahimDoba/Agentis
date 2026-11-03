@@ -20,7 +20,7 @@
   align-items: center;
   gap: 8px;
   font-size: 1.125rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--text-primary);
   letter-spacing: -0.02em;
   margin-bottom: 1rem;
@@ -50,7 +50,7 @@
   align-items: center;
   justify-content: center;
   color: var(--text-muted);
-  transition: all var(--transition);
+  transition: color var(--transition), background-color var(--transition), border-color var(--transition), opacity var(--transition);
 }
 
 .social:hover {
@@ -63,9 +63,7 @@
 
 .colTitle {
   font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
+  font-weight: 500;
   color: var(--text-primary);
   margin-bottom: 1rem;
 }

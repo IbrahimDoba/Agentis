@@ -1,23 +1,16 @@
 .stats {
   max-width: 1200px;
-  margin: 3rem auto 0;
+  margin: 48px auto 0;
   width: 100%;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
+  gap: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
 }
 
 .card {
   position: relative;
-  background: color-mix(in srgb, var(--bg-card) 85%, transparent);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 1.25rem 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
 }
 
 /* Opacity-only overlay rather than a transitioned border or box-shadow, so the
@@ -25,9 +18,8 @@
 .card::after {
   content: '';
   position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  border: 1px solid var(--accent);
+  inset: -24px 0 auto;
+  border-top: 1px solid var(--accent-ink);
   opacity: 0;
   pointer-events: none;
   transition: opacity 700ms ease;
@@ -38,24 +30,12 @@
   transition-duration: 120ms;
 }
 
-.icon {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-md);
-  background: var(--accent-light);
-  color: var(--accent);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
 .value {
   --cell-height: 1.15em;
-  font-size: 1.375rem;
-  font-weight: 700;
+  font-size: 32px;
+  font-weight: 500;
   color: var(--text-primary);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
   line-height: var(--cell-height);
 }
 
@@ -100,9 +80,10 @@
 }
 
 .label {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  margin-top: 2px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--text-secondary);
+  margin-top: 4px;
 }
 
 .srOnly {
@@ -130,8 +111,17 @@
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 720px) {
   .stats {
     grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .card::after {
+    display: none;
+  }
+
+  .value {
+    font-size: 28px;
   }
 }
