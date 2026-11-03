@@ -14,6 +14,7 @@ interface MediaItem {
     filename: string
     mimeType: string
     description: string
+    tags?: string[]
     createdAt: string
 }
 
@@ -168,6 +169,12 @@ export function ProductMediaSection({ agentId }: ProductMediaSectionProps) {
                                     <span>{isVideo(m.mimeType) ? "Video" : "Document"}</span>
                                     <span>•</span>
                                     <span>{m.filename}</span>
+                                    {m.tags?.includes("status_only") && (
+                                        <>
+                                            <span>•</span>
+                                            <span title="Too large to send in a chat, so the AI won't offer it">Status only</span>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                             <button
