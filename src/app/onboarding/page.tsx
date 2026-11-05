@@ -4,7 +4,7 @@ import { redirect } from "next/navigation"
 import { buildOrchestratorSystemPrompt } from "@/lib/orchestratorSync"
 import { AUTO_BUILD_WAITING } from "@/lib/autoBuild"
 
-// Signup lands here and goes straight on to the QR page, with a blank agent
+// Signup lands here and goes straight on to the connect screen, with a blank agent
 // waiting to be built from WhatsApp on first connect. The AI stays off until the
 // build finishes so no customer ever gets a reply from an empty prompt.
 export default async function OnboardingPage() {
@@ -18,36 +18,41 @@ export default async function OnboardingPage() {
   })
   if (!user || user.onboardingCompleted) redirect("/dashboard")
 
-  let agentId = user.agents[0]?.id
-  if (!agentId) {
+  if (user.agents.length === 0) {
     if (user.maxAgents < 1) redirect("/dashboard")
     const businessName = user.businessName || session.user.businessName || "My Business"
-    const agent = await db.agent.create({
-      data: {
-        businessName,
-        businessDescription: "",
-        productsServices: "",
-        faqs: "",
-        operatingHours: "",
-        userId: session.user.id,
-        agentRuntime: "orchestrator",
-        status: "ACTIVE",
-        transportType: "baileys",
-        aiRepliesEnabled: false,
-        autoConfigStatus: AUTO_BUILD_WAITING,
-        orchestratorAgents: {
-          create: {
-            name: businessName,
-            systemPrompt: buildOrchestratorSystemPrompt(null),
-            model: "gpt-4o-mini",
-            temperature: 0.7,
-            maxOutputTokens: 800,
+    const userId = session.user.id
+    // This page can render twice in a row during the post-login redirects. The lock
+    // makes the second render wait and then find the agent instead of adding another.
+    await db.$transaction(async (tx) => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${userId}))`
+      const existing = await tx.agent.count({ where: { userId } })
+      if (existing > 0) return
+      await tx.agent.create({
+        data: {
+          businessName,
+          businessDescription: "",
+          productsServices: "",
+          faqs: "",
+          operatingHours: "",
+          userId,
+          agentRuntime: "orchestrator",
+          status: "ACTIVE",
+          transportType: "baileys",
+          aiRepliesEnabled: false,
+          autoConfigStatus: AUTO_BUILD_WAITING,
+          orchestratorAgents: {
+            create: {
+              name: businessName,
+              systemPrompt: buildOrchestratorSystemPrompt(null),
+              model: "gpt-4o-mini",
+              temperature: 0.7,
+              maxOutputTokens: 800,
+            },
           },
         },
-      },
-      select: { id: true },
+      })
     })
-    agentId = agent.id
   }
 
   await db.user.update({
@@ -55,5 +60,5 @@ export default async function OnboardingPage() {
     data: { onboardingCompleted: true, historySyncEnabled: true },
   })
 
-  redirect(`/dashboard/channels/whatsapp-web?onboarding=1&agentId=${agentId}`)
+  redirect("/onboarding/connect")
 }

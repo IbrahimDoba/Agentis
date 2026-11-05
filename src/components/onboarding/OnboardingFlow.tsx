@@ -127,7 +127,7 @@ export function OnboardingFlow({ agentId, businessName }: Props) {
   }
 
   // Step 3: mark onboarding complete, then hand off to the QR connect page.
-  // On a successful link the channels page bounces to /onboarding/connected.
+  // On a successful link the connect screen moves on to /onboarding/connected.
   const connectWhatsApp = async () => {
     setSaving(true)
     await fetch("/api/onboarding/complete", {
@@ -135,7 +135,7 @@ export function OnboardingFlow({ agentId, businessName }: Props) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ businessDescription: description }),
     }).catch(() => {})
-    router.push(`/dashboard/channels/whatsapp-web?onboarding=1&agentId=${agentId}`)
+    router.push(`/onboarding/connect?agentId=${agentId}`)
   }
 
   const progress = (step / TOTAL_STEPS) * 100

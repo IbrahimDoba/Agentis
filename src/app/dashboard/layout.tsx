@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { AutoBuildBanner } from "@/components/dashboard/AutoBuildBanner"
+import { AUTO_BUILD_WAITING } from "@/lib/autoBuild"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { redirect } from "next/navigation"
@@ -41,8 +42,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
         creditBalance: true,
         creditsExpireAt: true,
         _count: { select: { agents: true } },
+        agents: { where: { autoConfigStatus: AUTO_BUILD_WAITING }, select: { id: true }, take: 1 },
       },
     })
+    // New signups stay on the connect screen until their number is linked or
+    // they choose the manual steps; the dashboard opens once the build starts.
+    if (user && user.agents.length > 0) redirect("/onboarding/connect")
     if (user) {
       trialUser = {
         plan: user.plan,
