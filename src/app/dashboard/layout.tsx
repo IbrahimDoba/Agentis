@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { AutoBuildBanner } from "@/components/dashboard/AutoBuildBanner"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { redirect } from "next/navigation"
@@ -87,6 +88,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           currentWorkspaceId={currentWorkspaceId}
         >
           {trialUser && <TrialBanner user={trialUser} />}
+          <AutoBuildBanner />
           {children}
         </DashboardShell>
       </div>

@@ -39,3 +39,17 @@ export function shouldAdvanceTier(currentTier: number, warmupStartedAt: Date): b
   const daysSince = (Date.now() - warmupStartedAt.getTime()) / 86_400_000
   return daysSince >= daysRequired
 }
+
+// A new number starts on tier 4 so AI replies aren't slowed down, which also
+// lifts its broadcast limits. Replies are what the tier is for; a big broadcast
+// from a days-old number is what gets lines restricted, so hold those back.
+export const NEW_AGENT_BROADCAST_HOLD = {
+  days: 3,
+  maxRecipients: 50,
+}
+
+export function isBroadcastHeldForNewAgent(agentCreatedAt: Date, recipients: number, now = Date.now()): boolean {
+  if (recipients <= NEW_AGENT_BROADCAST_HOLD.maxRecipients) return false
+  const ageDays = (now - agentCreatedAt.getTime()) / 86_400_000
+  return ageDays < NEW_AGENT_BROADCAST_HOLD.days
+}

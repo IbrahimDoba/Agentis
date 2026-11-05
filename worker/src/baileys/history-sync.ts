@@ -9,7 +9,7 @@ import {
   type HistoryMessageInsert,
 } from "../db/queries.js"
 import { resolvePhone, resolveContactName, updateContacts } from "./contacts-store.js"
-import { extractChatsForAutoConfig } from "./chat-extractor.js"
+import { markAutoBuildChatsArriving, markAutoBuildChatsSettled } from "./auto-build.js"
 
 // Snapshots live OUTSIDE auth_sessions/ so the auth-store's
 // encryptLocalFiles loop (which walks auth_sessions/<agentId>/) doesn't
@@ -281,14 +281,11 @@ export function attachHistorySyncHandler(sock: WASocket, agentId: string): void 
       "history sync chunk processed"
     )
 
-    // Schedule chat extraction with a 5s debounce. The scheduler also
-    // re-checks pendingChunks at fire time and re-arms if any chunks are
+    // Tell the auto-build the chats are in, with a 5s debounce. The scheduler
+    // also re-checks pendingChunks at fire time and re-arms if any chunks are
     // still mid-flight (bulk insert can take 30-60s).
-    scheduleExtraction(agentId, () =>
-      extractChatsForAutoConfig(agentId).catch((err) => {
-        logger.warn({ err, agentId }, "Chat extraction after history sync failed")
-      })
-    )
+    void markAutoBuildChatsArriving(agentId)
+    scheduleExtraction(agentId, () => markAutoBuildChatsSettled(agentId))
     } finally {
       decrementPending(agentId)
     }

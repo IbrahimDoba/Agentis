@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
 import QRCode from "qrcode"
+import { AUTO_BUILD_MANUAL, AUTO_BUILD_WAITING } from "@/lib/autoBuild"
 import { Modal } from "@/components/ui/Modal"
 import Button from "@/components/ui/Button"
 import styles from "./page.module.css"
@@ -34,6 +35,7 @@ interface Agent {
   elevenlabsAgentId: string | null
   status: string
   transportType: string
+  autoConfigStatus: string | null
 }
 
 interface SessionStatus {
@@ -99,10 +101,9 @@ export default function WhatsAppWebPage() {
   const qc = useQueryClient()
   const router = useRouter()
   const searchParams = useSearchParams()
-  // Onboarding mode: user landed here from /onboarding's final step. The
-  // query string carries the freshly-created agent id; we pre-select it,
-  // and on successful link we redirect to /onboarding/auto-configure to
-  // continue the auto-configure flow (history sync + LLM draft + review).
+  // Onboarding mode: user landed here from signup or the manual steps. The
+  // query string carries their agent id; we pre-select it, start the QR by
+  // itself, and move them on as soon as the number links.
   const onboardingMode = searchParams.get("onboarding") === "1"
   const onboardingAgentId = searchParams.get("agentId")
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(onboardingAgentId)
@@ -128,7 +129,7 @@ export default function WhatsAppWebPage() {
   }
 
   const { data: agents = [] } = useQuery({ queryKey: ["agents"], queryFn: fetchAgents })
-  const { data: session, refetch: refetchSession } = useQuery({
+  const { data: session, isFetched: sessionFetched, refetch: refetchSession } = useQuery({
     queryKey: ["baileys-session", selectedAgentId],
     queryFn: () => fetchSession(selectedAgentId!),
     enabled: !!selectedAgentId,
@@ -306,23 +307,44 @@ export default function WhatsAppWebPage() {
     if (session?.status === "CONNECTED") setPairingCode(null)
   }, [session?.status])
 
-  // Onboarding bounce: once WhatsApp links successfully during onboarding, send
-  // them to the success screen (confetti + "agent connected"). Small delay so
-  // the "Connected" UI flashes before we navigate.
-  // NOTE: the old chat-scan auto-configure step is disabled — we no longer
-  // bounce to /onboarding/auto-configure. That route + AutoConfigureClient are
-  // kept in the repo (dormant) in case we want to revive them.
+  const selectedAgent = agents.find((a) => a.id === selectedAgentId)
+  // A new number starts on tier 4 so AI replies aren't held back by warmup delays.
+  // Large broadcasts are limited separately for its first days (see warmup.ts).
+  const connectTier = onboardingMode ? 4 : selectedTier
+  const autoBuildPending = selectedAgent?.autoConfigStatus === AUTO_BUILD_WAITING
+  const buildsFromChats = !!selectedAgent?.autoConfigStatus?.startsWith("auto_")
+
+  // Show the QR straight away for a new signup, with nothing to click first.
+  const autoStarted = useRef(false)
+  useEffect(() => {
+    if (!onboardingMode || autoStarted.current || !sessionFetched || session) return
+    if (!autoBuildPending && selectedAgent?.autoConfigStatus !== AUTO_BUILD_MANUAL) return
+    autoStarted.current = true
+    connect.mutate({ agentId: selectedAgentId!, initialTier: connectTier })
+  }, [onboardingMode, sessionFetched, session, autoBuildPending, selectedAgent?.autoConfigStatus, selectedAgentId, connectTier, connect])
+
+  const manualSetup = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/agents/${selectedAgentId}/auto-build/manual`, { method: "POST" })
+      if (!res.ok) throw new Error("Couldn't switch to manual setup. Please try again.")
+    },
+    onSuccess: () => router.push(`/onboarding/manual?agentId=${selectedAgentId}`),
+    onError: (err: Error) => setActionError(err.message),
+  })
+
+  // Once WhatsApp links during onboarding, move on. A build runs in the background
+  // so they go straight to the dashboard, where the banner shows its progress.
+  // Small delay so the "Connected" UI flashes before we navigate.
   useEffect(() => {
     if (!onboardingMode) return
     if (session?.status !== "CONNECTED") return
-    if (!selectedAgentId) return
+    if (!selectedAgentId || !selectedAgent) return
     const id = setTimeout(() => {
-      router.push(`/onboarding/connected?agentId=${selectedAgentId}`)
+      router.push(buildsFromChats ? "/dashboard" : `/onboarding/connected?agentId=${selectedAgentId}`)
     }, 800)
     return () => clearTimeout(id)
-  }, [onboardingMode, session?.status, selectedAgentId, router])
+  }, [onboardingMode, session?.status, selectedAgentId, selectedAgent, buildsFromChats, router])
 
-  const selectedAgent = agents.find((a) => a.id === selectedAgentId)
   const isConnected = session?.status === "CONNECTED"
   const isConnecting = session?.status === "QR_PENDING" || session?.status === "CONNECTING"
   const isBanned = session?.status === "BANNED"
@@ -435,7 +457,7 @@ export default function WhatsAppWebPage() {
                 </div>
               )}
 
-              {(!wasConnected && (!session || session.status === "DISCONNECTED" || session.status === "LOGGED_OUT")) && (
+              {!onboardingMode && (!wasConnected && (!session || session.status === "DISCONNECTED" || session.status === "LOGGED_OUT")) && (
                 <div className={styles.ageSection}>
                   <div className={styles.ageLabel}>How old is this number?</div>
                   <div className={styles.ageOptions}>
@@ -571,7 +593,7 @@ export default function WhatsAppWebPage() {
                       onClick={async () => {
                         try {
                           const needsCreate = !session || session.status === "DISCONNECTED" || session.status === "LOGGED_OUT"
-                          if (needsCreate) await connect.mutateAsync({ agentId: selectedAgentId!, initialTier: selectedTier })
+                          if (needsCreate) await connect.mutateAsync({ agentId: selectedAgentId!, initialTier: connectTier })
                           requestPairingCode.mutate({ agentId: selectedAgentId!, phoneNumber: buildPairingNumber() })
                         } catch {
                           // connect.onError already sets actionError
@@ -584,7 +606,7 @@ export default function WhatsAppWebPage() {
                   ) : connectMethod === "qr" ? (
                     <button
                       className={styles.btnPrimary}
-                      onClick={() => connect.mutate({ agentId: selectedAgentId!, initialTier: selectedTier })}
+                      onClick={() => connect.mutate({ agentId: selectedAgentId!, initialTier: connectTier })}
                       disabled={connect.isPending}
                     >
                       {connect.isPending ? "Starting…" : "Connect WhatsApp"}
@@ -619,6 +641,35 @@ export default function WhatsAppWebPage() {
                   </div>
                 )}
               </div>
+
+              {autoBuildPending && !isConnected && (
+                <div
+                  style={{
+                    marginTop: 16,
+                    padding: "14px 16px",
+                    borderRadius: 10,
+                    border: "1px solid var(--border, #e5e7eb)",
+                    fontSize: 14,
+                    lineHeight: 1.55,
+                    color: "var(--text-secondary, #6b7280)",
+                  }}
+                >
+                  <strong style={{ display: "block", marginBottom: 4, color: "var(--text, #111111)" }}>
+                    We&apos;ll create your AI agent for you
+                  </strong>
+                  Scan the code and we&apos;ll set up your agent automatically from your WhatsApp profile and recent
+                  chats. You can always update this later.
+                  <button
+                    type="button"
+                    onClick={() => manualSetup.mutate()}
+                    disabled={manualSetup.isPending}
+                    className={styles.btnSecondary}
+                    style={{ display: "block", marginTop: 12 }}
+                  >
+                    {manualSetup.isPending ? "Opening…" : "Create my agent manually"}
+                  </button>
+                </div>
+              )}
 
               {!isConnected && (
                 <div

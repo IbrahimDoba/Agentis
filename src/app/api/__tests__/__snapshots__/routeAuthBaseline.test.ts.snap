@@ -273,6 +273,20 @@ exports[`unauthenticated response baseline > matches the recorded responses 1`] 
       "status": 401,
     },
   },
+  "agents/[id]/auto-build/dismiss": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/[id]/auto-build/manual": {
+    "POST": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
   "agents/[id]/auto-configure": {
     "GET": {
       "body": "{"error":"Unauthorized"}",
@@ -752,6 +766,13 @@ exports[`unauthenticated response baseline > matches the recorded responses 1`] 
       "status": 401,
     },
     "PUT": {
+      "body": "{"error":"Unauthorized"}",
+      "contentType": "application/json",
+      "status": 401,
+    },
+  },
+  "agents/auto-build": {
+    "GET": {
       "body": "{"error":"Unauthorized"}",
       "contentType": "application/json",
       "status": 401,

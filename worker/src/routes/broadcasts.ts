@@ -1,6 +1,7 @@
 import type { FastifyPluginAsync } from "fastify"
 import { z } from "zod"
 import { getRedis } from "../queue/redis.js"
+import { sql } from "../db/client.js"
 import { getSessionByAgentId } from "../db/queries.js"
 import {
   createBroadcast,
@@ -14,7 +15,7 @@ import {
 import { broadcastQueue } from "../queue/broadcast-queue.js"
 import { SMALL_LIST_MAX_RECIPIENTS } from "../anti-ban/spread-window.js"
 import { sessionManager } from "../baileys/session-manager.js"
-import { getTierConfig } from "../anti-ban/warmup.js"
+import { getTierConfig, isBroadcastHeldForNewAgent, NEW_AGENT_BROADCAST_HOLD } from "../anti-ban/warmup.js"
 import { logger as rootLogger } from "../lib/logger.js"
 import type { WASocket } from "@whiskeysockets/baileys"
 
@@ -106,6 +107,18 @@ export const broadcastRoutes: FastifyPluginAsync = async (app) => {
     const session = await getSessionByAgentId(body.agentId)
     if (!session) return reply.status(404).send({ error: "No session found for agent" })
     if (session.status !== "CONNECTED") return reply.status(400).send({ error: "WhatsApp session is not connected" })
+
+    if (body.channel !== "meta") {
+      const agentRows = await sql<{ createdAt: Date }[]>`
+        SELECT "createdAt" FROM "Agent" WHERE "id" = ${body.agentId} LIMIT 1
+      `
+      const createdAt = agentRows[0]?.createdAt
+      if (createdAt && isBroadcastHeldForNewAgent(new Date(createdAt), body.phoneNumbers.length)) {
+        return reply.status(400).send({
+          error: `New numbers can send to at most ${NEW_AGENT_BROADCAST_HOLD.maxRecipients} contacts per broadcast for their first ${NEW_AGENT_BROADCAST_HOLD.days} days. This protects your number from being restricted by WhatsApp.`,
+        })
+      }
+    }
 
     // Enforce recipient cap: can't exceed remaining daily capacity for the tier
     const tier = getTierConfig(session.warmupTier)
