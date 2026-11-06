@@ -29,6 +29,42 @@ export async function sendLeadWhatsapp(opts: {
   await baileysClient.sendMessage({ agentId: opts.agentId, to: normalizePhone(opts.toNumber), text: lines.join("\n"), source: "human" })
 }
 
+// Instant "you've got a new booking" alert to the owner's own number, sent once
+// right after the appointment is created (the reminders fire later).
+export async function sendAppointmentBookedWhatsapp(opts: {
+  agentId: string
+  toNumber: string
+  agentName: string
+  title: string
+  whenLabel: string
+  bookedBy: "ai" | "human"
+  customerName?: string | null
+  customerNumber?: string | null
+  notes?: string | null
+}): Promise<void> {
+  const lines = [
+    `📅 *New appointment booked* — ${opts.agentName}`,
+    "",
+    `*${opts.title}* — ${opts.whenLabel}`,
+    opts.bookedBy === "ai" ? "Booked by your AI agent." : "Added by your team.",
+  ]
+  if (opts.customerName?.trim() || opts.customerNumber?.trim()) {
+    lines.push("", `👤 ${who(opts.customerName, opts.customerNumber)}`)
+  }
+  if (opts.customerNumber?.trim()) lines.push(`📱 ${opts.customerNumber.trim()}`)
+  if (opts.notes?.trim()) lines.push("", `📝 ${opts.notes.trim()}`)
+  lines.push("", "A calendar invite is in your email.")
+  // Not a reply to a live customer message, so mark it scheduled — the worker
+  // then won't drop it as something an operator may have already answered.
+  await baileysClient.sendMessage({
+    agentId: opts.agentId,
+    to: normalizePhone(opts.toNumber),
+    text: lines.join("\n"),
+    source: "human",
+    scheduledReminder: true,
+  })
+}
+
 export async function sendAppointmentReminderWhatsapp(opts: {
   agentId: string
   toNumber: string

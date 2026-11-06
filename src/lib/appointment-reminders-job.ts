@@ -4,8 +4,9 @@ import { mapWithConcurrency } from "@/lib/concurrency"
 import { emailBrandOf } from "@/lib/tenant"
 import { sendAppointmentReminderEmail, sendAppointmentBookedEmail, type EmailBrand } from "@/lib/email"
 import { baileysClient } from "@/lib/baileys-client"
-import { sendAppointmentReminderWhatsapp } from "@/lib/lead-whatsapp"
+import { sendAppointmentReminderWhatsapp, sendAppointmentBookedWhatsapp } from "@/lib/lead-whatsapp"
 import { normalizePhone } from "@/lib/phone"
+import { buildAppointmentInvite } from "@/lib/calendar-invite"
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
@@ -21,6 +22,9 @@ const MAX_LEAD_WINDOW_MS = 8 * 24 * 60 * 60 * 1000
 // The "booked" scan only emails appointments created this recently, so a first
 // run (or a run after downtime) can't blast a backlog of old bookings.
 const BOOKED_LOOKBACK_MS = 60 * 60 * 1000 // 1h
+// Appointments store only a start instant; the calendar invite needs an end.
+const INVITE_DURATION_MINUTES = 30
+const INVITE_ORGANIZER_EMAIL = "noreply@dailzero.com"
 
 // ---------------------------------------------------------------------------
 // Pure helpers (unit-tested in appointment-reminders-job.test.ts)
@@ -536,11 +540,13 @@ export async function runAppointmentReminders(now: Date = new Date()): Promise<R
 export interface BookedSummary {
   bookedSent: number   // appointments successfully claimed + emailed to ≥1 recipient
   emailsSent: number
+  ownerWaSent: number  // owner "new booking" WhatsApp alerts delivered
+  ownerWaFailed: number
   errors: Array<{ appointmentId: string; message: string }>
 }
 
 export async function runAppointmentBookedNotifications(now: Date = new Date()): Promise<BookedSummary> {
-  const summary: BookedSummary = { bookedSent: 0, emailsSent: 0, errors: [] }
+  const summary: BookedSummary = { bookedSent: 0, emailsSent: 0, ownerWaSent: 0, ownerWaFailed: 0, errors: [] }
   const since = new Date(now.getTime() - BOOKED_LOOKBACK_MS)
 
   // Freshly-created appointments not yet announced. The lookback stops a first
@@ -554,10 +560,10 @@ export async function runAppointmentBookedNotifications(now: Date = new Date()):
       scheduledAt: { gt: now },
     },
     select: {
-      id: true, userId: true, createdBy: true,
+      id: true, agentId: true, userId: true, createdBy: true,
       title: true, notes: true, customerName: true, customerNumber: true,
       scheduledAt: true,
-      agent: { select: { businessName: true } },
+      agent: { select: { businessName: true, baileysSession: { select: { phoneNumber: true } } } },
     },
     orderBy: { createdAt: "asc" },
     take: MAX_PER_RUN,
@@ -578,6 +584,13 @@ export async function runAppointmentBookedNotifications(now: Date = new Date()):
     if (claim.count === 0) return
 
     const brand = brandFor(rcpt.owner.resellerId)
+    const who = appt.customerName?.trim() || appt.customerNumber?.trim() || null
+    const inviteDescription = [
+      who ? `Customer: ${who}` : null,
+      appt.customerNumber?.trim() ? `WhatsApp: ${appt.customerNumber.trim()}` : null,
+      appt.notes?.trim() ? `Notes: ${appt.notes.trim()}` : null,
+      `Booked via ${appt.agent.businessName}`,
+    ].filter(Boolean).join("\n")
     let anyDelivered = false
     for (const r of rcpt.list) {
       try {
@@ -592,6 +605,20 @@ export async function runAppointmentBookedNotifications(now: Date = new Date()):
             customerName: appt.customerName,
             customerNumber: appt.customerNumber,
             notes: appt.notes,
+            // Per recipient: the ATTENDEE must be the person receiving it, or
+            // Google Calendar won't treat it as their invite.
+            calendarInvite: buildAppointmentInvite({
+              uid: `appt-${appt.id}@dailzero.com`,
+              start: appt.scheduledAt,
+              durationMinutes: INVITE_DURATION_MINUTES,
+              summary: who ? `${appt.title} — ${who}` : appt.title,
+              description: inviteDescription,
+              organizerEmail: INVITE_ORGANIZER_EMAIL,
+              organizerName: brand?.appName ?? "D-Zero AI",
+              attendeeEmail: r.email,
+              attendeeName: r.name,
+              now,
+            }),
           },
           brand,
         )
@@ -603,6 +630,36 @@ export async function runAppointmentBookedNotifications(now: Date = new Date()):
       }
     }
     if (anyDelivered) summary.bookedSent++
+
+    // Owner WhatsApp alert — same opt-in and guard as the reminder alerts
+    // (whatsappNotificationsEnabled + a notify number that isn't the agent's own
+    // line, which a session can't message). Shares the booked claim, so it fires
+    // once. Best-effort: counted, never fatal.
+    const owner = rcpt.owner
+    if (
+      owner.whatsappNotificationsEnabled &&
+      owner.notifyWhatsappNumber?.trim() &&
+      !sameNumber(owner.notifyWhatsappNumber, appt.agent.baileysSession?.phoneNumber)
+    ) {
+      try {
+        await sendAppointmentBookedWhatsapp({
+          agentId: appt.agentId,
+          toNumber: owner.notifyWhatsappNumber.trim(),
+          agentName: appt.agent.businessName,
+          title: appt.title,
+          whenLabel: whenLabel(appt.scheduledAt),
+          bookedBy: appt.createdBy === "human" ? "human" : "ai",
+          customerName: appt.customerName,
+          customerNumber: appt.customerNumber,
+          notes: appt.notes,
+        })
+        summary.ownerWaSent++
+      } catch (err) {
+        summary.ownerWaFailed++
+        console.error("[appointment-booked] owner wa failed", { appointmentId: appt.id }, err)
+        summary.errors.push({ appointmentId: appt.id, message: err instanceof Error ? err.message : String(err) })
+      }
+    }
   })
 
   return summary
