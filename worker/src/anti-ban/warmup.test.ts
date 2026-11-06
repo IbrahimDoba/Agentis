@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { getTierConfig, shouldAdvanceTier, TIER_ADVANCE_DAYS, WARMUP_TIERS } from "./warmup.js"
+import { getTierConfig, shouldAdvanceTier, TIER_ADVANCE_DAYS, WARMUP_TIERS, isBroadcastHeldForNewAgent } from "./warmup.js"
 
 describe("getTierConfig", () => {
   it("returns correct config for each tier", () => {
@@ -36,5 +36,20 @@ describe("shouldAdvanceTier", () => {
     const tier1RequiredDays = TIER_ADVANCE_DAYS[1]
     const oldStart = new Date(Date.now() - (tier1RequiredDays + 1) * 86_400_000)
     expect(shouldAdvanceTier(1, oldStart)).toBe(true)
+  })
+})
+
+describe("isBroadcastHeldForNewAgent", () => {
+  const now = Date.parse("2026-11-05T12:00:00Z")
+  const daysAgo = (d: number) => new Date(now - d * 86_400_000)
+
+  it("holds a large broadcast from a new agent", () => {
+    expect(isBroadcastHeldForNewAgent(daysAgo(1), 51, now)).toBe(true)
+  })
+  it("allows a small broadcast from a new agent", () => {
+    expect(isBroadcastHeldForNewAgent(daysAgo(1), 50, now)).toBe(false)
+  })
+  it("allows a large broadcast once the hold has passed", () => {
+    expect(isBroadcastHeldForNewAgent(daysAgo(3), 2000, now)).toBe(false)
   })
 })

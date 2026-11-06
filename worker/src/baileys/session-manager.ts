@@ -8,6 +8,7 @@ import { createEventHandlers } from "./event-handlers.js"
 import { attachHistorySyncHandler } from "./history-sync.js"
 import { attachLabelHandlers } from "./labels.js"
 import { importProfileFromWhatsApp } from "./profile-import.js"
+import { markAutoBuildConnected } from "./auto-build.js"
 import { updateContacts, setLidMappingStore, resolvePhone } from "./contacts-store.js"
 import { addressBookEntries } from "./contact-save.js"
 import { upsertAddressBook } from "../db/queries/contacts.js"
@@ -44,6 +45,8 @@ interface ActiveSession {
 
 const sessions = new Map<string, ActiveSession>()
 const logger = rootLogger.child({ module: "session-manager" })
+
+const AUTO_BUILD_PROFILE_WAIT_MS = 8_000
 
 const RECONNECT_BASE_DELAY_MS = 5_000
 const MAX_RECONNECT_DELAY_MS = 120_000
@@ -277,9 +280,14 @@ async function startSession(agentId: string, reconnectAttempt = 0): Promise<void
       // Fire-and-forget profile import on first connect. Internally guarded
       // by Agent.autoConfigStartedAt — re-connects after the first one are
       // no-ops, so this is safe to call on every connect event.
-      importProfileFromWhatsApp(active.sock, agentId).catch((err) => {
+      const profileImport = importProfileFromWhatsApp(active.sock, agentId).catch((err) => {
         logger.warn({ agentId, err: err.message }, "Profile import failed (non-fatal)")
       })
+      // Starts the auto-build clock after the import, because the import's own
+      // guard reads the autoConfigStartedAt this stamps. The timeout keeps a
+      // hung WhatsApp profile call from holding up the agent indefinitely.
+      void Promise.race([profileImport, new Promise((r) => setTimeout(r, AUTO_BUILD_PROFILE_WAIT_MS))])
+        .then(() => markAutoBuildConnected(agentId))
     },
 
     onDisconnected: async (reason, shouldReconnect) => {

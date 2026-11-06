@@ -28,6 +28,7 @@ const PERSONALITIES: Personality[] = [
 ]
 
 interface Props {
+  agentId: string
   userName: string
   businessName: string
 }
@@ -40,7 +41,7 @@ function buildPrompt(p: Personality, businessName: string, description: string):
   return lines.join("\n")
 }
 
-export function OnboardingFlow({ businessName }: Props) {
+export function OnboardingFlow({ agentId, businessName }: Props) {
   const brand = useBrand()
   const router = useRouter()
   const [step, setStep] = useState(1)
@@ -56,7 +57,6 @@ export function OnboardingFlow({ businessName }: Props) {
   const [faqs, setFaqs] = useState("")
 
   // Shared
-  const [agentId, setAgentId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
   const selectPersonality = (p: Personality) => {
@@ -84,39 +84,24 @@ export function OnboardingFlow({ businessName }: Props) {
     }
   }
 
-  // Step 1 → 2: create the orchestrator agent so the knowledge upload + QR step
-  // have something to attach to. Re-entering step 1 won't create a duplicate.
-  const createAgentAndContinue = async () => {
+  // Step 1 → 2: the agent already exists from signup, so this fills it in.
+  const saveAgentAndContinue = async () => {
     if (!systemPrompt.trim()) {
       setError("Pick a personality first.")
-      return
-    }
-    if (agentId) {
-      setStep(2)
       return
     }
     setSaving(true)
     setError("")
     try {
-      const res = await fetch("/api/agents", {
+      const res = await fetch(`/api/agents/${agentId}/auto-build/manual`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          businessName,
-          businessDescription: description,
-          responseGuidelines: systemPrompt,
-          agentRuntime: "orchestrator",
-          transportType: "baileys",
-        }),
+        body: JSON.stringify({ responseGuidelines: systemPrompt, businessDescription: description }),
       })
       if (!res.ok) throw new Error()
-      const created = await res.json()
-      const id = created.id ?? created.agent?.id
-      if (!id) throw new Error()
-      setAgentId(id)
       setStep(2)
     } catch {
-      setError("Couldn't create your agent. Please try again.")
+      setError("Couldn't save your agent. Please try again.")
     } finally {
       setSaving(false)
     }
@@ -124,10 +109,6 @@ export function OnboardingFlow({ businessName }: Props) {
 
   // Step 2 → 3: persist FAQs onto the agent (non-blocking).
   const saveKnowledgeAndContinue = async () => {
-    if (!agentId) {
-      setStep(3)
-      return
-    }
     setSaving(true)
     try {
       if (faqs.trim()) {
@@ -146,16 +127,15 @@ export function OnboardingFlow({ businessName }: Props) {
   }
 
   // Step 3: mark onboarding complete, then hand off to the QR connect page.
-  // On a successful link the channels page bounces to /onboarding/connected.
+  // On a successful link the connect screen moves on to /onboarding/connected.
   const connectWhatsApp = async () => {
-    if (!agentId) return
     setSaving(true)
     await fetch("/api/onboarding/complete", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ businessDescription: description }),
     }).catch(() => {})
-    router.push(`/dashboard/channels/whatsapp-web?onboarding=1&agentId=${agentId}`)
+    router.push(`/onboarding/connect?agentId=${agentId}`)
   }
 
   const progress = (step / TOTAL_STEPS) * 100
@@ -228,8 +208,8 @@ export function OnboardingFlow({ businessName }: Props) {
 
             <div className={styles.actions}>
               <div className={styles.actionsRight}>
-                <button className={styles.btnPrimary} onClick={createAgentAndContinue} disabled={saving || !personalityId}>
-                  {saving ? "Creating…" : "Next →"}
+                <button className={styles.btnPrimary} onClick={saveAgentAndContinue} disabled={saving || !personalityId}>
+                  {saving ? "Saving…" : "Next →"}
                 </button>
               </div>
             </div>
@@ -262,7 +242,7 @@ export function OnboardingFlow({ businessName }: Props) {
               <label className={styles.label}>
                 Upload a document <span className={styles.optional}>(optional)</span>
               </label>
-              {agentId && <KnowledgeBaseTab agentId={agentId} />}
+              <KnowledgeBaseTab agentId={agentId} />
             </div>
 
             <div className={styles.actions}>
@@ -289,7 +269,7 @@ export function OnboardingFlow({ businessName }: Props) {
             <div className={styles.actions}>
               <button className={styles.btnSecondary} onClick={() => setStep(2)} disabled={saving}>← Back</button>
               <div className={styles.actionsRight}>
-                <button className={styles.btnPrimary} onClick={connectWhatsApp} disabled={saving || !agentId}>
+                <button className={styles.btnPrimary} onClick={connectWhatsApp} disabled={saving}>
                   {saving ? "Opening…" : "Connect WhatsApp →"}
                 </button>
               </div>

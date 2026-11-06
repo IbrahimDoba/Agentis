@@ -15,6 +15,7 @@ import { startInboundWorker } from "./queue/workers/inbound-worker.js"
 import { startEmbedWorker } from "./queue/workers/embed-worker.js"
 import { startCrawlWorker } from "./queue/workers/crawl-worker.js"
 import { startAutoFollowUpSweep, stopAutoFollowUpSweep } from "./orchestrator/auto-followup.js"
+import { startAutoBuildSweep, stopAutoBuildSweep } from "./orchestrator/auto-build.js"
 
 // 15MB covers a 10MB raw file after base64 (~33% overhead). Per-route handlers
 // still enforce stricter raw-byte limits (documents: 10MB, media: 5MB).
@@ -61,11 +62,13 @@ const crawlWorker = startCrawlWorker()
 // Interval sweep, not a queue: safe to run on every instance because each
 // candidate is claimed atomically on Conversation.lastFollowedUpAt.
 startAutoFollowUpSweep()
+startAutoBuildSweep()
 
 // Graceful shutdown
 const shutdown = async () => {
   logger.info("Shutting down orchestrator...")
   stopAutoFollowUpSweep()
+  stopAutoBuildSweep()
   await inboundWorker.close()
   await embedWorker.close()
   await crawlWorker.close()

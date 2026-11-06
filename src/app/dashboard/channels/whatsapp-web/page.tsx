@@ -8,22 +8,9 @@ import Link from "next/link"
 import QRCode from "qrcode"
 import { Modal } from "@/components/ui/Modal"
 import Button from "@/components/ui/Button"
+import { PAIRING_COUNTRIES } from "@/lib/pairingCountries"
 import styles from "./page.module.css"
 
-const PAIRING_COUNTRIES = [
-  { code: "NG", name: "Nigeria", dialCode: "234" },
-  { code: "GH", name: "Ghana", dialCode: "233" },
-  { code: "KE", name: "Kenya", dialCode: "254" },
-  { code: "ZA", name: "South Africa", dialCode: "27" },
-  { code: "UG", name: "Uganda", dialCode: "256" },
-  { code: "TZ", name: "Tanzania", dialCode: "255" },
-  { code: "RW", name: "Rwanda", dialCode: "250" },
-  { code: "GB", name: "United Kingdom", dialCode: "44" },
-  { code: "US", name: "United States", dialCode: "1" },
-  { code: "CA", name: "Canada", dialCode: "1" },
-  { code: "AE", name: "United Arab Emirates", dialCode: "971" },
-  { code: "IN", name: "India", dialCode: "91" },
-] as const
 
 const DEFAULT_PAIRING_COUNTRY = "NG"
 const PAIRING_COUNTRY_STORAGE_KEY = "dzero.pairing-country"
@@ -633,7 +620,7 @@ export default function WhatsAppWebPage() {
                     color: "var(--text-secondary, #6b7280)",
                   }}
                 >
-                  🔒 <strong style={{ color: "var(--text, #111111)" }}>Your data is safe.</strong> We connect to your
+                  🔒 <strong style={{ color: "var(--text-primary)" }}>Your data is safe.</strong> We connect to your
                   WhatsApp over an encrypted connection and use your conversations <em>only</em> to run your AI agent —
                   never to advertise, never sold, never shared with other businesses. Access is tightly restricted and
                   protected under our{" "}
