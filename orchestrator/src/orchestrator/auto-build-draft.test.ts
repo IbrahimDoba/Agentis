@@ -63,6 +63,19 @@ describe("parseAutoBuildDraft", () => {
     expect(parsed?.products).toEqual([])
     expect(parsed?.faqs).toEqual([])
   })
+  it("treats placeholder answers and prices as missing", () => {
+    const parsed = parseAutoBuildDraft(JSON.stringify({
+      instructions: "Hi",
+      products: [{ name: "Gown", price: "N/A", notes: "[]" }],
+      faqs: [
+        { question: "Opening hours?", answer: "[]" },
+        { question: "Delivery?", answer: "Not mentioned." },
+        { question: "Atamfa?", answer: "₦6,000 per yard" },
+      ],
+    }))
+    expect(parsed?.products).toEqual([{ name: "Gown", price: "", notes: "" }])
+    expect(parsed?.faqs.map((f) => f.question)).toEqual(["Atamfa?"])
+  })
 })
 
 describe("removeUnseenPrices", () => {

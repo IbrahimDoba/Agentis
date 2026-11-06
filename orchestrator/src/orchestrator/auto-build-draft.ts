@@ -33,7 +33,7 @@ Return ONLY a JSON object with these keys:
 Rules:
 - BUSINESS lines are the owner, CUSTOMER lines are the other person.
 - Ignore chats with friends and family, and chats where the owner is the one buying something. Learn only from chats about this business.
-- Never invent a product, price or policy. Leave it out if you didn't see it. Use [] when there is nothing to report.
+- Never invent a product, price or policy. Leave it out if you didn't see it. Use an empty list when there is nothing to report, and only include a question if you saw the owner answer it.
 - Write generally: no customer names or phone numbers.`
 
 export function buildAutoBuildUserPrompt(profile: AutoBuildProfile, chats: AutoBuildChat[]): string {
@@ -54,6 +54,8 @@ export function buildAutoBuildUserPrompt(profile: AutoBuildProfile, chats: AutoB
   return `# WhatsApp profile\n${profileLines.join("\n")}\n\n# Recent chats (${chats.length})\n\n${chatBlocks.join("\n\n")}`
 }
 
+const PLACEHOLDER = /^(\[\s*\]|\{\s*\}|-+|n\/?a|none|null|unknown|not (stated|mentioned|provided)\.?)$/i
+
 export function parseAutoBuildDraft(raw: string | null): AutoBuildDraft | null {
   if (!raw) return null
   const start = raw.indexOf("{")
@@ -67,7 +69,12 @@ export function parseAutoBuildDraft(raw: string | null): AutoBuildDraft | null {
     return null
   }
 
-  const text = (v: unknown) => (typeof v === "string" ? v.trim() : "")
+  // The model sometimes fills a field it has nothing for with "[]" or "N/A"
+  // instead of leaving it out, which would reach customers as a real answer.
+  const text = (v: unknown) => {
+    const s = typeof v === "string" ? v.trim() : ""
+    return PLACEHOLDER.test(s) ? "" : s
+  }
   const list = (v: unknown) =>
     Array.isArray(v) ? v.filter((x): x is Record<string, unknown> => !!x && typeof x === "object") : []
 
