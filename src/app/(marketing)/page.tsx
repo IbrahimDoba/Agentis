@@ -1,6 +1,9 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { getTenant } from "@/lib/tenant"
+import type { Metadata } from "next"
+import { getTenant, getTenantBranding } from "@/lib/tenant"
+import { BrandProvider } from "@/components/BrandProvider"
+import { Ticks } from "@/components/landing/Ticks"
 import { getPublicStats } from "@/lib/queries/publicStats"
 import styles from "./page.module.css"
 import { Navbar } from "@/components/landing/Navbar"
@@ -10,6 +13,12 @@ import { HowItWorks } from "@/components/landing/HowItWorks"
 import { Footer } from "@/components/landing/Footer"
 import { PLAN_PRICES, CREDITS_NOTE, formatNaira } from "@/lib/plans"
 import { PAYG_DEFAULT_NGN_PER_CREDIT } from "@/lib/credits"
+
+export const metadata: Metadata = {
+  title: "Dailzero: WhatsApp AI agents for Nigerian businesses",
+  openGraph: { title: "Dailzero: WhatsApp AI agents for Nigerian businesses", siteName: "Dailzero" },
+  twitter: { title: "Dailzero: WhatsApp AI agents for Nigerian businesses" },
+}
 
 const testimonials = [
   {
@@ -23,7 +32,7 @@ const testimonials = [
     quote:
       "Our customers love that they get instant responses even at midnight. The agent knows our entire product catalogue and handles orders perfectly. Worth every kobo.",
     name: "Ngozi Okonkwo",
-    role: "Founder, Mama's Kitchen Abuja",
+    role: "Founder, Mama’s Kitchen Abuja",
     initials: "NO",
   },
   {
@@ -36,7 +45,7 @@ const testimonials = [
 ]
 
 export default async function LandingPage() {
-  // White-label: a reseller's domain has no Dailzero marketing — send visitors
+  // White-label: a reseller’s domain has no Dailzero marketing — send visitors
   // straight to her branded signup. The platform tenant keeps the landing page.
   const tenant = await getTenant()
   if (tenant.id !== "platform") redirect("/signup")
@@ -44,162 +53,122 @@ export default async function LandingPage() {
   // Rendered server-side so the hero counters are already correct on first
   // paint (and with JS off). They keep ticking from /api/public/stats after
   // that. Both read the same 60s cache, so this is not a query per visitor.
-  const stats = await getPublicStats()
+  const [stats, branding] = await Promise.all([getPublicStats(), getTenantBranding()])
 
   return (
-    <>
-      <Navbar />
-      <Hero stats={stats} />
-      <Features />
-      <HowItWorks />
+    // The whole page’s palette lives on this wrapper, so the app’s global tokens
+    // stay as they are. The nested provider names the product Dailzero here only.
+    <BrandProvider branding={{ ...branding, appName: "Dailzero" }}>
+      <div className={styles.home}>
+        <Navbar />
+        <Hero stats={stats} />
+        <Features />
+        <HowItWorks />
 
-      {/* Testimonials */}
-      <section className={styles.testimonialsSection}>
-        <div className={styles.testimonialsInner}>
-          <div className={styles.testimonialsHeader}>
-            <div className={styles.sectionLabel}>Testimonials</div>
-            <h2 className={styles.sectionTitle}>Businesses that trust D-Zero AI</h2>
-            <p className={styles.sectionSubtitle}>
-              Real results from real businesses across Nigeria.
-            </p>
+        <section className={styles.testimonialsSection}>
+          <div className={styles.testimonialsInner}>
+            <h2 className={styles.sectionTitle}>What business owners say</h2>
+            <div className={styles.testimonialsGrid}>
+              {testimonials.map((t) => (
+                <figure key={t.name} className={styles.testimonialCard}>
+                  <blockquote className={styles.testimonialQuote}>&ldquo;{t.quote}&rdquo;</blockquote>
+                  <figcaption className={styles.testimonialAuthor}>
+                    <div className={styles.testimonialAvatar} aria-hidden="true">{t.initials}</div>
+                    <div>
+                      <div className={styles.testimonialName}>{t.name}</div>
+                      <div className={styles.testimonialRole}>{t.role}</div>
+                    </div>
+                  </figcaption>
+                </figure>
+              ))}
+            </div>
           </div>
-          <div className={styles.testimonialsGrid}>
-            {testimonials.map((t) => (
-              <div key={t.name} className={styles.testimonialCard}>
-                <div className={styles.testimonialStars}>
-                  {[...Array(5)].map((_, i) => (
-                    <span key={i} className={styles.star}>★</span>
+        </section>
+
+        <section className={styles.pricingSection}>
+          <div className={styles.pricingInner}>
+            <div className={styles.pricingHeader}>
+              <h2 className={styles.sectionTitle}>Pricing</h2>
+              <p className={styles.sectionSubtitle}>Start with a 7-day free trial. No credit card required.</p>
+              <p className={styles.pricingCreditsNote}>{CREDITS_NOTE}</p>
+            </div>
+
+            <div className={styles.pricingGrid}>
+              <div className={styles.pricingCard}>
+                <div className={styles.pricingPlan}>Starter</div>
+                <div className={styles.pricingPrice}>
+                  {formatNaira(PLAN_PRICES.starter)}<span>/month</span>
+                </div>
+                <p className={styles.pricingDesc}>For small businesses getting started with an AI agent on WhatsApp</p>
+                <ul className={styles.pricingFeatures}>
+                  {[
+                    "1 AI WhatsApp agent",
+                    "60,000 credits/month (about 12,000 AI messages)",
+                    "Text and image responses",
+                    "Advanced FAQ handling",
+                    "Conversation monitoring dashboard",
+                    "Lead detection and customer memory",
+                    "7-day free trial",
+                  ].map((f) => (
+                    <li key={f} className={styles.pricingFeature}>
+                      <Ticks className={styles.pricingCheck} />
+                      {f}
+                    </li>
                   ))}
-                </div>
-                <p className={styles.testimonialQuote}>"{t.quote}"</p>
-                <div className={styles.testimonialAuthor}>
-                  <div className={styles.testimonialAvatar}>{t.initials}</div>
-                  <div>
-                    <div className={styles.testimonialName}>{t.name}</div>
-                    <div className={styles.testimonialRole}>{t.role}</div>
-                  </div>
-                </div>
+                </ul>
+                <Link href="/pricing" className={`${styles.pricingBtn} ${styles.pricingBtnOutline}`}>Start free trial</Link>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
-      {/* Pricing teaser */}
-      <section className={styles.pricingSection}>
-        <div className={styles.pricingInner}>
-          <div className={styles.pricingHeader}>
-            <div className={styles.sectionLabel}>Pricing</div>
-            <h2 className={styles.sectionTitle}>Simple, transparent pricing</h2>
-            <p className={styles.sectionSubtitle}>
-              Start with a 7-day free trial. No credit card required.
-            </p>
-            <p className={styles.pricingCreditsNote}>{CREDITS_NOTE}</p>
-          </div>
-
-          <div className={styles.pricingGrid}>
-            {/* Starter */}
-            <div className={styles.pricingCard}>
-              <div className={styles.pricingPlan}>Starter</div>
-              <div className={styles.pricingPrice}>
-                {formatNaira(PLAN_PRICES.starter)}<span>/month</span>
+              <div className={`${styles.pricingCard} ${styles.pricingCardPro}`}>
+                <div className={styles.pricingPlan}>
+                  Pro
+                  <span className={styles.pricingBadge}>Most popular</span>
+                </div>
+                <div className={styles.pricingPrice}>
+                  {formatNaira(PLAN_PRICES.pro)}<span>/month</span>
+                </div>
+                <p className={styles.pricingDesc}>For growing businesses that need higher volume and more agents</p>
+                <ul className={styles.pricingFeatures}>
+                  {[
+                    "2 AI WhatsApp agents",
+                    "100,000 credits/month (about 20,000 AI messages)",
+                    "Text, image and media sending",
+                    "Automated follow-up messages",
+                    "Multi-language support",
+                    "Priority support and analytics",
+                    "7-day free trial",
+                  ].map((f) => (
+                    <li key={f} className={styles.pricingFeature}>
+                      <Ticks className={styles.pricingCheck} />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <Link href="/pricing" className={`${styles.pricingBtn} ${styles.pricingBtnSolid}`}>Start free trial</Link>
               </div>
-              <p className={styles.pricingDesc}>
-                Perfect for small businesses getting started with AI-powered customer service.
-              </p>
-              <ul className={styles.pricingFeatures}>
-                {[
-                  "1 AI WhatsApp Agent",
-                  "60,000 credits/month (≈ 12,000 AI messages)",
-                  "Text + image responses",
-                  "Advanced FAQ handling",
-                  "Conversation monitoring dashboard",
-                  "Lead detection & customer memory",
-                  "7-day free trial",
-                ].map((f) => (
-                  <li key={f} className={styles.pricingFeature}>
-                    <span className={styles.pricingCheck}>✓</span>
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <Link href="/pricing" className={`${styles.pricingBtn} ${styles.pricingBtnOutline}`}>
-                Start Free Trial
-              </Link>
             </div>
 
-            {/* Pro */}
-            <div className={`${styles.pricingCard} ${styles.pricingCardPro}`}>
-              <div className={styles.pricingBadge}>Most Popular</div>
-              <div className={styles.pricingPlan}>Pro</div>
-              <div className={styles.pricingPrice}>
-                {formatNaira(PLAN_PRICES.pro)}<span>/month</span>
-              </div>
-              <p className={styles.pricingDesc}>
-                For growing businesses that need higher volume and multiple agents.
-              </p>
-              <ul className={styles.pricingFeatures}>
-                {[
-                  "2 AI WhatsApp Agents",
-                  "100,000 credits/month (≈ 20,000 AI messages)",
-                  "Text + image + media sending",
-                  "Automated follow-up messages",
-                  "Multi-language support",
-                  "Priority support + analytics",
-                  "7-day free trial",
-                ].map((f) => (
-                  <li key={f} className={styles.pricingFeature}>
-                    <span className={styles.pricingCheck}>✓</span>
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <Link href="/pricing" className={`${styles.pricingBtn} ${styles.pricingBtnSolid}`}>
-                Start Free Trial
-              </Link>
-            </div>
-          </div>
-
-          <div className={styles.pricingCta}>
-            <p className={styles.sectionSubtitle}>
-              No monthly commitment? Pay as you go from ₦{PAYG_DEFAULT_NGN_PER_CREDIT.toFixed(2)}/credit — credits valid 12 months.
+            <p className={styles.pricingCta}>
+              Prefer no monthly commitment? Pay as you go from ₦{PAYG_DEFAULT_NGN_PER_CREDIT.toFixed(2)}/credit, valid for 12 months.{" "}
+              <Link href="/pricing" className={styles.pricingCtaLink}>Compare all plans</Link>
             </p>
-            <Link href="/pricing" className={styles.pricingCtaLink}>
-              Compare plans in full detail →{" "}
-              <span>See full pricing</span>
-            </Link>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Final CTA */}
-      <section className={styles.ctaSection}>
-        <div className={styles.ctaGlow} />
-        <div className={styles.ctaInner}>
-          <div className={styles.ctaLabel}>Get Started</div>
-          <h2 className={styles.ctaTitle}>
-            Your customers are messaging right now
-          </h2>
-          <p className={styles.ctaDesc}>
-            Every unanswered WhatsApp message is a missed opportunity. Deploy your AI agent today and
-            start responding to every customer, every time — automatically.
-          </p>
-          <div className={styles.ctaButtons}>
-            <Link href="/signup" className={styles.ctaPrimary}>
-              Start Free Trial
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </Link>
-            <Link href="/how-it-works" className={styles.ctaSecondary}>
-              Book a Demo
-            </Link>
+        <section className={styles.ctaSection}>
+          <div className={styles.ctaInner}>
+            <h2 className={styles.ctaTitle}>Your customers are messaging right now</h2>
+            <p className={styles.ctaDesc}>Every unanswered WhatsApp message is a customer who may buy elsewhere</p>
+            <div className={styles.ctaButtons}>
+              <Link href="/signup" className={styles.ctaPrimary}>Start free trial</Link>
+              <Link href="/how-it-works" className={styles.ctaSecondary}>See how it works</Link>
+            </div>
+            <p className={styles.ctaNote}>7-day free trial · No credit card required · Cancel anytime</p>
           </div>
-          <p className={styles.ctaNote}>7-day free trial · No credit card required · Cancel anytime</p>
-        </div>
-      </section>
+        </section>
 
-      <Footer />
-    </>
+        <Footer />
+      </div>
+    </BrandProvider>
   )
 }

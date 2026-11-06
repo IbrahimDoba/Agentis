@@ -63,7 +63,7 @@ export function Footer() {
             <BrandWordmark size={28} />
           </Link>
           <p className={styles.desc}>
-            AI-powered WhatsApp agents for Nigerian businesses. Automate conversations, delight customers, and scale without limits.
+            WhatsApp AI agents for Nigerian businesses. Answer customers, capture leads and follow up from one dashboard.
           </p>
           <NewsletterForm />
 

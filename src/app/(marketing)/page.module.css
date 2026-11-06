@@ -1,391 +1,422 @@
-/* CTA Section */
-.ctaSection {
-  padding: 7rem 2rem;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-  background: linear-gradient(180deg, var(--bg-primary) 0%, rgba(0, 220, 130, 0.04) 50%, var(--bg-primary) 100%);
-}
-
-.ctaGlow {
-  position: absolute;
-  width: 700px;
-  height: 500px;
-  background: radial-gradient(ellipse, rgba(0, 220, 130, 0.12) 0%, transparent 70%);
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-}
-
-.ctaInner {
-  position: relative;
-  z-index: 1;
-  max-width: 680px;
-  margin: 0 auto;
-}
-
-.ctaLabel {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--accent);
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  margin-bottom: 1rem;
-}
-
-.ctaTitle {
-  font-size: clamp(2rem, 4vw, 3.25rem);
-  font-weight: 700;
+.home {
+  --bg-primary: #0c100e;
+  --bg-secondary: #0f1411;
+  --bg-card: #141916;
+  --bg-hover: #1f2622;
+  --border: rgba(238, 241, 236, 0.1);
+  --border-subtle: rgba(238, 241, 236, 0.07);
+  --text-primary: #eef1ec;
+  --text-secondary: #a9b1ab;
+  --text-muted: #8a938c;
+  --accent: #00dc82;
+  --accent-hover: #2ee69a;
+  --accent-ink: #00dc82;
+  --accent-light: rgba(0, 220, 130, 0.1);
+  --accent-glow: transparent;
+  --on-accent: #06140c;
+  --shadow-glow: none;
+  --transition: 150ms cubic-bezier(0.22, 1, 0.36, 1);
+  --wa-wall: #0b141a;
+  --wa-head: #1f2c34;
+  --wa-in: #1f2c34;
+  --wa-out: #005c4b;
+  --wa-text: #e9edef;
+  --wa-time: #aebac1;
+  min-height: 100vh;
+  background: var(--bg-primary);
   color: var(--text-primary);
-  letter-spacing: -0.03em;
-  margin-bottom: 1.25rem;
-  line-height: 1.1;
 }
 
-.ctaDesc {
-  font-size: 1rem;
+:global([data-theme="light"]) .home {
+  --bg-primary: #f6f5f0;
+  --bg-secondary: #f0efe9;
+  --bg-card: #fffefb;
+  --bg-hover: #e9e7df;
+  --border: rgba(23, 32, 26, 0.12);
+  --border-subtle: rgba(23, 32, 26, 0.08);
+  --text-primary: #17201a;
+  --text-secondary: #4f5a52;
+  --text-muted: #667069;
+  --accent: #00dc82;
+  --accent-hover: #00c975;
+  --accent-ink: #00754a;
+  --accent-light: rgba(0, 117, 74, 0.1);
+  --wa-wall: #efeae2;
+  --wa-head: #f0f2f5;
+  --wa-in: #ffffff;
+  --wa-out: #d9fdd3;
+  --wa-text: #111b21;
+  --wa-time: #5b6b73;
+}
+
+.home :global(a):focus-visible,
+.home :global(button):focus-visible {
+  outline: 2px solid var(--accent-ink);
+  outline-offset: 2px;
+}
+
+.home :global(h1),
+.home :global(h2),
+.home :global(h3) {
+  text-wrap: balance;
+}
+
+/* Clears the fixed navigation when a link jumps to a section. */
+.home :global([id]) {
+  scroll-margin-top: 80px;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.sectionSubtitle {
+  margin: 12px 0 0;
+  font-size: 16px;
+  line-height: 24px;
   color: var(--text-secondary);
-  margin-bottom: 2.5rem;
-  line-height: 1.7;
 }
 
-.ctaButtons {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin-bottom: 1.5rem;
-}
-
-.ctaPrimary {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--accent);
-  color: #050c08;
-  font-weight: 700;
-  font-size: 1rem;
-  padding: 0.875rem 2rem;
-  border-radius: var(--radius-md);
-  transition: all 0.2s ease;
-  box-shadow: 0 0 30px rgba(0, 220, 130, 0.35);
-}
-
-.ctaPrimary:hover {
-  background: var(--accent-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 0 50px rgba(0, 220, 130, 0.45);
-  color: #050c08;
-}
-
-.ctaSecondary {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: transparent;
-  color: var(--text-primary);
-  font-weight: 600;
-  font-size: 1rem;
-  padding: 0.875rem 1.75rem;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border);
-  transition: all 0.2s ease;
-}
-
-.ctaSecondary:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.ctaNote {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-}
-
-/* Testimonials */
+/* Testimonials: the first quote leads, so the row isn't three equal cards. */
 .testimonialsSection {
-  padding: 6rem 2rem;
-  background: var(--bg-secondary);
-  border-top: 1px solid var(--border-subtle);
+  padding: 96px 32px;
+  border-top: 1px solid var(--border);
 }
 
-.testimonialsInner {
+.testimonialsInner,
+.pricingInner {
   max-width: 1200px;
   margin: 0 auto;
 }
 
-.testimonialsHeader {
-  text-align: center;
-  margin-bottom: 3rem;
-}
-
-.sectionLabel {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--accent);
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  margin-bottom: 1rem;
-}
-
-.sectionTitle {
-  font-size: clamp(1.75rem, 3vw, 2.5rem);
-  font-weight: 700;
-  color: var(--text-primary);
-  letter-spacing: -0.02em;
-  margin-bottom: 0.75rem;
-}
-
-.sectionSubtitle {
-  font-size: 1rem;
-  color: var(--text-secondary);
-  line-height: 1.7;
-}
-
-/* Credits explainer under the pricing header — small, muted, readable width. */
-.pricingCreditsNote {
-  max-width: 620px;
-  margin: 12px auto 0;
-  font-size: 0.85rem;
-  color: var(--text-tertiary, var(--text-secondary));
-  line-height: 1.6;
-}
-
 .testimonialsGrid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 40px 64px;
+  margin-top: 48px;
 }
 
 .testimonialCard {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 1.75rem;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
-  transition: border-color var(--transition);
+  justify-content: space-between;
+  gap: 20px;
+  margin: 0;
 }
 
-.testimonialCard:hover {
-  border-color: rgba(0, 220, 130, 0.3);
-}
-
-.testimonialStars {
-  display: flex;
-  gap: 3px;
-}
-
-.star {
-  color: var(--warning);
-  font-size: 0.875rem;
+.testimonialCard:first-child {
+  grid-row: span 2;
+  padding-right: 64px;
+  border-right: 1px solid var(--border);
 }
 
 .testimonialQuote {
-  font-size: 0.9rem;
+  margin: 0;
+  font-size: 16px;
+  line-height: 26px;
   color: var(--text-secondary);
-  line-height: 1.7;
-  flex: 1;
+}
+
+.testimonialCard:first-child .testimonialQuote {
+  font-size: 24px;
+  line-height: 36px;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
 }
 
 .testimonialAuthor {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 12px;
 }
 
 .testimonialAvatar {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  border: 2px solid var(--border);
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  font-size: 0.9rem;
-  font-weight: 700;
-  background: #1a3a2a;
-  color: #00dc82;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+  font-size: 12px;
 }
 
 .testimonialName {
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
   color: var(--text-primary);
 }
 
 .testimonialRole {
-  font-size: 0.75rem;
+  font-size: 13px;
+  line-height: 20px;
   color: var(--text-muted);
 }
 
-/* Pricing teaser */
+/* Pricing */
 .pricingSection {
-  padding: 6rem 2rem;
-}
-
-.pricingInner {
-  max-width: 1000px;
-  margin: 0 auto;
+  padding: 96px 32px;
+  border-top: 1px solid var(--border);
 }
 
 .pricingHeader {
-  text-align: center;
-  margin-bottom: 3rem;
+  max-width: 720px;
+}
+
+.pricingCreditsNote {
+  margin: 16px 0 0;
+  font-size: 14px;
+  line-height: 22px;
+  color: var(--text-muted);
 }
 
 .pricingGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 48px;
 }
 
 .pricingCard {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
-  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: inset 0 0 0 1px var(--border);
 }
 
 .pricingCardPro {
-  border-color: var(--accent);
-  box-shadow: 0 0 40px rgba(0, 220, 130, 0.12), var(--shadow-card);
-  position: relative;
-}
-
-.pricingBadge {
-  position: absolute;
-  top: -12px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--accent);
-  color: #050c08;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  padding: 4px 14px;
-  border-radius: 100px;
-  white-space: nowrap;
+  background: var(--bg-card);
 }
 
 .pricingPlan {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  color: var(--text-primary);
+}
+
+.pricingBadge {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--accent-ink);
 }
 
 .pricingPrice {
-  font-size: 2.25rem;
-  font-weight: 700;
-  color: var(--text-primary);
+  margin-top: 16px;
+  font-size: 40px;
+  font-weight: 500;
+  line-height: 48px;
   letter-spacing: -0.02em;
-  margin-bottom: 0.25rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
 }
 
 .pricingPrice span {
-  font-size: 1rem;
+  margin-left: 4px;
+  font-size: 15px;
   font-weight: 400;
-  color: var(--text-muted);
+  letter-spacing: 0;
+  color: var(--text-secondary);
 }
 
 .pricingDesc {
-  font-size: 0.875rem;
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 22px;
   color: var(--text-secondary);
-  margin-bottom: 1.5rem;
-  line-height: 1.5;
 }
 
 .pricingFeatures {
-  list-style: none;
   display: flex;
+  flex: 1;
   flex-direction: column;
-  gap: 0.625rem;
-  margin-bottom: 1.75rem;
+  gap: 8px;
+  margin: 24px 0;
+  padding: 24px 0 0;
+  border-top: 1px solid var(--border);
+  list-style: none;
 }
 
 .pricingFeature {
   display: flex;
-  align-items: flex-start;
-  gap: 0.625rem;
-  font-size: 0.875rem;
-  color: var(--text-secondary);
+  align-items: baseline;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 22px;
+  color: var(--text-primary);
 }
 
 .pricingCheck {
-  color: var(--accent);
-  font-weight: 700;
   flex-shrink: 0;
+  color: var(--accent-ink);
 }
 
 .pricingBtn {
-  display: block;
-  width: 100%;
-  text-align: center;
-  padding: 0.75rem;
-  border-radius: var(--radius-md);
-  font-weight: 600;
-  font-size: 0.9rem;
-  transition: all var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color var(--transition);
 }
 
 .pricingBtnOutline {
-  border: 1px solid var(--border);
+  box-shadow: inset 0 0 0 1px var(--border);
   color: var(--text-primary);
-  background: transparent;
 }
 
 .pricingBtnOutline:hover {
-  border-color: var(--accent);
-  color: var(--accent);
+  background: var(--bg-hover);
+  color: var(--text-primary);
 }
 
 .pricingBtnSolid {
   background: var(--accent);
-  color: #050c08;
-  border: none;
-  box-shadow: 0 0 20px var(--accent-glow);
+  color: var(--on-accent);
 }
 
 .pricingBtnSolid:hover {
   background: var(--accent-hover);
-  box-shadow: 0 0 30px var(--accent-glow);
-  transform: translateY(-1px);
-  color: #050c08;
+  color: var(--on-accent);
 }
 
 .pricingCta {
-  text-align: center;
-}
-
-.pricingCtaLink {
-  font-size: 0.875rem;
-  color: var(--text-muted);
-  transition: color var(--transition);
-}
-
-.pricingCtaLink span {
-  color: var(--accent);
-  font-weight: 600;
-}
-
-.pricingCtaLink:hover {
+  margin: 24px 0 0;
+  font-size: 14px;
+  line-height: 22px;
   color: var(--text-secondary);
 }
 
-@media (max-width: 700px) {
+.pricingCtaLink {
+  color: var(--text-primary);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-color: var(--border);
+  transition: text-decoration-color var(--transition);
+}
+
+.pricingCtaLink:hover {
+  text-decoration-color: currentColor;
+}
+
+/* Final call to action */
+.ctaSection {
+  padding: 96px 32px;
+  border-top: 1px solid var(--border);
+}
+
+.ctaInner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.ctaTitle {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  font-weight: 500;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+}
+
+.ctaDesc {
+  margin: 16px 0 0;
+  font-size: 18px;
+  line-height: 28px;
+  color: var(--text-secondary);
+}
+
+.ctaButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.ctaPrimary,
+.ctaSecondary {
+  display: inline-flex;
+  align-items: center;
+  height: 48px;
+  padding: 0 20px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color var(--transition);
+}
+
+.ctaPrimary {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.ctaPrimary:hover {
+  background: var(--accent-hover);
+  color: var(--on-accent);
+}
+
+.ctaSecondary {
+  background: var(--bg-card);
+  box-shadow: inset 0 0 0 1px var(--border);
+  color: var(--text-primary);
+}
+
+.ctaSecondary:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.ctaNote {
+  margin: 16px 0 0;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text-muted);
+}
+
+@media (max-width: 860px) {
   .testimonialsGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 32px;
+  }
+
+  .testimonialCard:first-child {
+    grid-row: auto;
+    padding-right: 0;
+    padding-bottom: 32px;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .testimonialCard:first-child .testimonialQuote {
+    font-size: 20px;
+    line-height: 30px;
   }
 
   .pricingGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .testimonialsSection,
+  .pricingSection,
+  .ctaSection {
+    padding: 64px 16px;
   }
 }
