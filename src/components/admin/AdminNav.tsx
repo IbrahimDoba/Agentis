@@ -61,8 +61,8 @@ export function AdminNav() {
   return (
     <nav className={styles.nav} aria-label="Admin">
       {groups.map((group) => (
-        <div key={group.label} className={styles.navGroup}>
-          <div className={styles.navLabel}>{group.label}</div>
+        <div key={group.label} className={styles.navGroup} role="group" aria-labelledby={`admin-nav-${group.label}`}>
+          <div className={styles.navLabel} id={`admin-nav-${group.label}`}>{group.label}</div>
           {group.items.map(({ href, label, icon: ItemIcon }) => {
             const active = isActive(href)
             return (
@@ -80,8 +80,8 @@ export function AdminNav() {
         </div>
       ))}
 
-      <div className={styles.navGroup}>
-        <div className={styles.navLabel}>Account</div>
+      <div className={styles.navGroup} role="group" aria-labelledby="admin-nav-Account">
+        <div className={styles.navLabel} id="admin-nav-Account">Account</div>
         <Link href="/dashboard" className={styles.navLink}>
           <ArrowUturnLeftIcon width={16} height={16} className={styles.navIcon} aria-hidden="true" />
           Back to dashboard

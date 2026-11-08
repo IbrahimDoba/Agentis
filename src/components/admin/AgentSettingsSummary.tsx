@@ -79,7 +79,7 @@ export function AgentSettingsSummary({ agent, labels, groups }: { agent: AgentSe
   return (
     <div className={adminStyles.grid}>
       <div className={adminStyles.infoCard}>
-        <div className={adminStyles.cardTitle}>Settings</div>
+        <h2 className={adminStyles.cardTitle}>Settings</h2>
         <p className={styles.note}>What the owner set in their dashboard. Read-only here.</p>
         {rows.map(([label, value]) => (
           <div key={label} className={adminStyles.infoRow}>
@@ -103,7 +103,7 @@ export function AgentSettingsSummary({ agent, labels, groups }: { agent: AgentSe
 
       <div className={styles.stack}>
         <div className={adminStyles.infoCard}>
-          <div className={adminStyles.cardTitle}>Labels ({labels.length})</div>
+          <h2 className={adminStyles.cardTitle}>Labels ({labels.length})</h2>
           {labels.length === 0 ? (
             <p className={styles.note}>No WhatsApp labels synced.</p>
           ) : (
@@ -126,7 +126,7 @@ export function AgentSettingsSummary({ agent, labels, groups }: { agent: AgentSe
         </div>
 
         <div className={adminStyles.infoCard}>
-          <div className={adminStyles.cardTitle}>Groups ({groups.length})</div>
+          <h2 className={adminStyles.cardTitle}>Groups ({groups.length})</h2>
           {groups.length === 0 ? (
             <p className={styles.note}>Not in any WhatsApp groups.</p>
           ) : (

@@ -134,3 +134,29 @@
 .pill[data-tone="good"] { background: var(--success-light); color: var(--success); }
 .pill[data-tone="bad"] { background: var(--danger-light); color: var(--danger); }
 .pill[data-tone="warn"] { background: var(--warning-light); color: var(--warning); }
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.retry {
+  margin-left: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.retry:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

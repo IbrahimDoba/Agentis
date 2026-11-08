@@ -245,7 +245,7 @@ export default async function AdminStatusPage({ searchParams }: { searchParams: 
                     </span>
                   </div>
                   <span className={styles.pill} data-tone={r.status === "paused" ? "warn" : "good"}>
-                    {r.status === "paused" && r.pauseReason ? `paused: ${r.pauseReason.replace("_", " ")}` : r.status}
+                    {r.status === "paused" && r.pauseReason ? `paused: ${r.pauseReason.replaceAll("_", " ")}` : r.status}
                   </span>
                 </li>
               ))}

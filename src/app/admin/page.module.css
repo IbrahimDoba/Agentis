@@ -217,6 +217,11 @@ a.statAlert:hover {
   text-decoration: underline;
 }
 
+a.statAlert:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 @media (max-width: 560px) {
   .statsGrid {
     grid-template-columns: 1fr;

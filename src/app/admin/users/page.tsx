@@ -132,6 +132,7 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: S
       </div>
 
       <UserTable
+        key={query.q}
         users={pageRows}
         query={{ ...query, page }}
         total={rows.length}

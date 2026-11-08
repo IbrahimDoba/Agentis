@@ -288,11 +288,21 @@ function UserDetailModal({ user, onClose, onStatusChange, loading }: {
         {MODAL_TABS.map((t) => (
           <button
             key={t.id}
+            id={`user-tab-${t.id}`}
             type="button"
             role="tab"
             aria-selected={tab === t.id}
+            aria-controls="user-tabpanel"
+            tabIndex={tab === t.id ? 0 : -1}
             className={tab === t.id ? styles.tabActive : styles.tabBtn}
             onClick={() => setTab(t.id)}
+            onKeyDown={(e) => {
+              if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return
+              const i = MODAL_TABS.findIndex((x) => x.id === tab)
+              const next = MODAL_TABS[(i + (e.key === "ArrowRight" ? 1 : MODAL_TABS.length - 1)) % MODAL_TABS.length]
+              setTab(next.id)
+              document.getElementById(`user-tab-${next.id}`)?.focus()
+            }}
           >
             {t.label}
             {t.id === "subscription" && user.billing.state === "payg" && (
@@ -308,7 +318,7 @@ function UserDetailModal({ user, onClose, onStatusChange, loading }: {
         ))}
       </div>
 
-      <div className={styles.modalBody}>
+      <div className={styles.modalBody} id="user-tabpanel" role="tabpanel" aria-labelledby={`user-tab-${tab}`}>
 
         {tab === "status" && <UserStatusPanel userId={user.id} />}
         {tab === "whatsapp" && <UserWhatsAppPanel userId={user.id} />}
@@ -799,7 +809,7 @@ export function UserTable({ users, query, total, matching, pageCount, stateCount
   return (
     <>
       <div className={styles.chips} role="group" aria-label="Filter by billing state">
-        <Link href={listHref(query, { billing: "" })} className={!query.billing ? styles.chipActive : styles.chip}>
+        <Link href={listHref(query, { billing: "" })} className={!query.billing ? styles.chipActive : styles.chip} aria-current={!query.billing ? "true" : undefined}>
           All <span className={styles.chipCount}>{total.toLocaleString()}</span>
         </Link>
         {BILLING_FILTERS.map((s) => (
@@ -906,7 +916,7 @@ export function UserTable({ users, query, total, matching, pageCount, stateCount
                 <td className={styles.td}><CreditsCell billing={user.billing} /></td>
                 <td className={`${styles.td} ${styles.num}`}>
                   {user.billing.walletBalance > 0
-                    ? <span className={user.billing.walletUsable ? "" : styles.mutedStrike} title={user.billing.walletUsable ? undefined : "Expired"}>{user.billing.walletBalance.toLocaleString()}</span>
+                    ? <span className={user.billing.walletUsable ? "" : styles.mutedStrike} title={user.billing.walletUsable ? undefined : "Expired"}>{user.billing.walletBalance.toLocaleString()}{!user.billing.walletUsable && <span className={styles.srOnly}> (expired)</span>}</span>
                     : <span className={styles.muted}>0</span>}
                 </td>
                 <td className={`${styles.td} ${styles.num}`}>{user.agentCount}</td>

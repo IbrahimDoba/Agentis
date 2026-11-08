@@ -7,6 +7,7 @@ import { formatDate } from "@/lib/utils"
 function useInsights<T>(userId: string, section: string) {
   const [data, setData] = useState<T | null>(null)
   const [error, setError] = useState(false)
+  const [attempt, setAttempt] = useState(0)
 
   useEffect(() => {
     let cancelled = false
@@ -15,15 +16,25 @@ function useInsights<T>(userId: string, section: string) {
       .then((d: T) => { if (!cancelled) setData(d) })
       .catch(() => { if (!cancelled) setError(true) })
     return () => { cancelled = true }
-  }, [userId, section])
+  }, [userId, section, attempt])
 
-  return { data, error }
+  const retry = () => { setError(false); setAttempt((n) => n + 1) }
+  return { data, error, retry }
 }
 
-function Loading({ data, error, children }: { data: unknown; error: boolean; children: () => React.ReactNode }) {
-  if (error) return <div className={styles.note}>Couldn&apos;t load this section.</div>
-  if (!data) return <div className={styles.note} aria-live="polite">Loading…</div>
-  return <>{children()}</>
+function Loading({ data, error, retry, children }: { data: unknown; error: boolean; retry: () => void; children: () => React.ReactNode }) {
+  // One status node that stays mounted, so screen readers hear both the
+  // loading text and a failure that replaces it.
+  return (
+    <>
+      <div role="status" className={data && !error ? styles.srOnly : styles.note}>
+        {error ? (
+          <>Couldn&apos;t load this section. <button type="button" className={styles.retry} onClick={retry}>Retry</button></>
+        ) : data ? "Loaded" : "Loading…"}
+      </div>
+      {data && !error ? children() : null}
+    </>
+  )
 }
 
 function Stat({ value, label, sub }: { value: string | number; label: string; sub?: string }) {
@@ -65,9 +76,9 @@ const POST_TONE: Record<string, "good" | "bad" | "warn" | "neutral"> = {
 }
 
 export function UserStatusPanel({ userId }: { userId: string }) {
-  const { data, error } = useInsights<StatusData>(userId, "status")
+  const { data, error, retry } = useInsights<StatusData>(userId, "status")
   return (
-    <Loading data={data} error={error}>
+    <Loading data={data} error={error} retry={retry}>
       {() => {
         const d = data!
         const total = d.byStatus.reduce((s, g) => s + g.count, 0)
@@ -112,7 +123,7 @@ export function UserStatusPanel({ userId }: { userId: string }) {
                   Latest contact save: <Pill tone={d.latestRun.status === "completed" ? "good" : d.latestRun.status === "paused" ? "warn" : "neutral"}>{d.latestRun.status}</Pill>
                   {" "}{d.latestRun.savedCount.toLocaleString()} of {d.latestRun.totalCount.toLocaleString()} saved
                   {d.latestRun.failedCount > 0 && `, ${d.latestRun.failedCount.toLocaleString()} failed`}
-                  {d.latestRun.pauseReason && ` · paused: ${d.latestRun.pauseReason.replace("_", " ")}`}
+                  {d.latestRun.pauseReason && ` · paused: ${d.latestRun.pauseReason.replaceAll("_", " ")}`}
                   {` · started ${formatDate(d.latestRun.createdAt)}`}
                 </div>
               )}
@@ -125,7 +136,7 @@ export function UserStatusPanel({ userId }: { userId: string }) {
                   {d.recent.map((p) => (
                     <div key={p.id} className={styles.listRow}>
                       <div className={styles.listMain}>
-                        <span className={styles.listTitle}>{p.text || `${p.kind.charAt(0).toUpperCase()}${p.kind.slice(1)} post`}</span>
+                        <span className={styles.listTitle} title={p.text ?? undefined}>{p.text || `${p.kind.charAt(0).toUpperCase()}${p.kind.slice(1)} post`}</span>
                         <span className={styles.listMeta}>
                           {formatDate(p.postedAt ?? p.scheduledAt)} · {p.kind}
                           {p.error && <span className={styles.errorText}> · {p.error}</span>}
@@ -171,9 +182,9 @@ const SESSION_TONE: Record<string, "good" | "bad" | "warn" | "neutral"> = {
 }
 
 export function UserWhatsAppPanel({ userId }: { userId: string }) {
-  const { data, error } = useInsights<WhatsAppData>(userId, "whatsapp")
+  const { data, error, retry } = useInsights<WhatsAppData>(userId, "whatsapp")
   return (
-    <Loading data={data} error={error}>
+    <Loading data={data} error={error} retry={retry}>
       {() => {
         const d = data!
         const linked = d.sessions.filter((s) => s.session)
@@ -196,7 +207,7 @@ export function UserWhatsAppPanel({ userId }: { userId: string }) {
                         </span>
                       </div>
                       <div className={styles.listSide}>
-                        <Pill tone={SESSION_TONE[s!.status] ?? "neutral"}>{s!.status.replace("_", " ").toLowerCase()}</Pill>
+                        <Pill tone={SESSION_TONE[s!.status] ?? "neutral"}>{s!.status.replaceAll("_", " ").toLowerCase()}</Pill>
                       </div>
                     </div>
                   ))}
@@ -246,9 +257,9 @@ interface ActivityData {
 }
 
 export function UserActivityPanel({ userId }: { userId: string }) {
-  const { data, error } = useInsights<ActivityData>(userId, "activity")
+  const { data, error, retry } = useInsights<ActivityData>(userId, "activity")
   return (
-    <Loading data={data} error={error}>
+    <Loading data={data} error={error} retry={retry}>
       {() => {
         const d = data!
         const appts = d.appointments.byStatus.reduce((s, g) => s + g.count, 0)
@@ -275,7 +286,7 @@ export function UserActivityPanel({ userId }: { userId: string }) {
                 <Stat value={appts} label="Appointments" />
                 <Stat value={d.appointments.upcoming} label="Upcoming" />
                 {d.appointments.byStatus.filter((g) => g.status !== "SCHEDULED").map((g) => (
-                  <Stat key={g.status} value={g.count} label={`${g.status.charAt(0)}${g.status.slice(1).replace("_", " ").toLowerCase()}`} />
+                  <Stat key={g.status} value={g.count} label={`${g.status.charAt(0)}${g.status.slice(1).replaceAll("_", " ").toLowerCase()}`} />
                 ))}
               </div>
             </section>
@@ -289,7 +300,7 @@ export function UserActivityPanel({ userId }: { userId: string }) {
                   {d.broadcasts.map((b) => (
                     <div key={b.id} className={styles.listRow}>
                       <div className={styles.listMain}>
-                        <span className={styles.listTitle}>{b.message}</span>
+                        <span className={styles.listTitle} title={b.message}>{b.message}</span>
                         <span className={styles.listMeta}>{formatDate(b.createdAt)} · {b.channel === "meta" ? "Cloud API" : "WhatsApp Web"}</span>
                       </div>
                       <div className={styles.listSide}>
@@ -342,9 +353,9 @@ interface TeamData {
 }
 
 export function UserTeamPanel({ userId }: { userId: string }) {
-  const { data, error } = useInsights<TeamData>(userId, "team")
+  const { data, error, retry } = useInsights<TeamData>(userId, "team")
   return (
-    <Loading data={data} error={error}>
+    <Loading data={data} error={error} retry={retry}>
       {() => {
         const d = data!
         if (d.members.length === 0) return <div className={styles.note}>No team members invited.</div>
