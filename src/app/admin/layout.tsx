@@ -1,26 +1,10 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import Link from "next/link"
-import { Squares2X2Icon, UsersIcon, CpuChipIcon, ArrowUturnLeftIcon, EnvelopeIcon, ChartBarIcon, GiftIcon, CreditCardIcon, SignalIcon, BuildingStorefrontIcon, ExclamationTriangleIcon, BanknotesIcon, ArrowTrendingUpIcon, PaperAirplaneIcon } from "@heroicons/react/24/outline"
 import { LogoIcon } from "@/components/landing/Logo"
 import { ToastProvider } from "@/context/ToastContext"
+import { AdminNav } from "@/components/admin/AdminNav"
 import styles from "./layout.module.css"
-
-const navItems = [
-  { href: "/admin", label: "Overview", icon: <Squares2X2Icon width={16} height={16} /> },
-  { href: "/admin/users", label: "Users", icon: <UsersIcon width={16} height={16} /> },
-  { href: "/admin/agents", label: "Agents", icon: <CpuChipIcon width={16} height={16} /> },
-  { href: "/admin/resellers", label: "Resellers", icon: <BuildingStorefrontIcon width={16} height={16} /> },
-  { href: "/admin/analytics", label: "Analytics", icon: <ChartBarIcon width={16} height={16} /> },
-  { href: "/admin/sessions", label: "Sessions", icon: <SignalIcon width={16} height={16} /> },
-  { href: "/admin/events", label: "Events", icon: <ExclamationTriangleIcon width={16} height={16} /> },
-  { href: "/admin/referrals", label: "Referrals", icon: <GiftIcon width={16} height={16} /> },
-  { href: "/admin/payments", label: "Payments", icon: <CreditCardIcon width={16} height={16} /> },
-  { href: "/admin/finances", label: "Finances", icon: <BanknotesIcon width={16} height={16} /> },
-  { href: "/admin/revenue", label: "Revenue", icon: <ArrowTrendingUpIcon width={16} height={16} /> },
-  { href: "/admin/newsletter", label: "Newsletter", icon: <EnvelopeIcon width={16} height={16} /> },
-  { href: "/admin/outreach", label: "Outreach", icon: <PaperAirplaneIcon width={16} height={16} /> },
-]
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await auth()
@@ -39,21 +23,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <span className={styles.adminBadge}>Admin</span>
         </Link>
 
-        <nav className={styles.nav}>
-          <div className={styles.navLabel}>Administration</div>
-          {navItems.map((item) => (
-            <Link key={item.href} href={item.href} className={styles.navLink}>
-              <span className={styles.navIcon}>{item.icon}</span>
-              {item.label}
-            </Link>
-          ))}
-
-          <div className={styles.navLabel}>Account</div>
-          <Link href="/dashboard" className={styles.navLink}>
-            <span className={styles.navIcon}><ArrowUturnLeftIcon width={16} height={16} /></span>
-            Back to Dashboard
-          </Link>
-        </nav>
+        <AdminNav />
       </aside>
 
       <main className={styles.main}>

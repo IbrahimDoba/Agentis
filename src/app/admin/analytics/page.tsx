@@ -1,6 +1,8 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
+import { BILLING_USER_SELECT, getCycleBillingForUsers } from "@/lib/adminUserUsage"
+import { hasUsableWallet } from "@/lib/walletStatus"
 import styles from "./page.module.css"
 import { AnalyticsCharts } from "@/components/admin/AnalyticsCharts"
 import { UserMetricsTable } from "@/components/admin/UserMetricsTable"
@@ -36,25 +38,6 @@ export default async function AdminAnalyticsPage() {
     db.user.count({ where: { agents: { some: {} } } }),
   ])
 
-  // ── Plans & billing states ───────────────────────────────────────────────
-  // Not just the raw plan string: a user whose plan lapsed but who is running
-  // on PAYG wallet credits shows as "payg", and a lapsed user with no usable
-  // wallet shows as "expired" — matching how the worker's send gate actually
-  // treats them. Resellers are their own bucket.
-  const billingGroups = await db.$queryRawUnsafe<Array<{ segment: string; count: number }>>(
-    `SELECT CASE
-       WHEN "plan" = 'reseller' THEN 'reseller'
-       WHEN "subscriptionExpiresAt" IS NOT NULL AND "subscriptionExpiresAt" < now()
-            AND "creditBalance" > 0 AND ("creditsExpireAt" IS NULL OR "creditsExpireAt" > now())
-         THEN 'payg'
-       WHEN "subscriptionExpiresAt" IS NOT NULL AND "subscriptionExpiresAt" < now()
-         THEN 'expired'
-       ELSE "plan"
-     END AS segment, COUNT(*)::int AS count
-     FROM "User"
-     GROUP BY 1`
-  )
-  const planData = billingGroups.map((g) => ({ plan: g.segment, count: Number(g.count) }))
 
   // ── Agent status distribution ────────────────────────────────────────────
   const agentStatusGroups = await db.agent.groupBy({
@@ -291,15 +274,11 @@ export default async function AdminAnalyticsPage() {
   const users = await db.user.findMany({
     orderBy: { createdAt: "desc" },
     select: {
-      id: true,
+      ...BILLING_USER_SELECT,
       name: true,
       email: true,
       status: true,
-      plan: true,
       createdAt: true,
-      creditBalance: true,
-      creditsExpireAt: true,
-      subscriptionExpiresAt: true,
       _count: { select: { agents: true, leads: true } },
       agents: {
         select: {
@@ -312,6 +291,18 @@ export default async function AdminAnalyticsPage() {
     },
   })
 
+  // ── Plans & billing states ───────────────────────────────────────────────
+  // Same rule as the Users list (lib/userBillingState), so "pay as you go"
+  // means one thing everywhere: past the allowance or lapsed, and on wallet.
+  const billing = await getCycleBillingForUsers(users)
+  const segmentCounts = new Map<string, number>()
+  for (const u of users) {
+    const state = billing.get(u.id)!.state
+    const segment = state === "plan" ? (u.plan ?? "free") : state
+    segmentCounts.set(segment, (segmentCounts.get(segment) ?? 0) + 1)
+  }
+  const planData = [...segmentCounts].map(([plan, count]) => ({ plan, count }))
+
   const userMetrics = users.map((u) => {
     // Contacts = distinct people (one Conversation per agent+phone).
     const contacts = u.agents.reduce((s, a) => s + a._count.conversations, 0)
@@ -320,10 +311,7 @@ export default async function AdminAnalyticsPage() {
     const aiSent = userAiSentMap[u.id] ?? 0
     const dzeroAgents = u.agents.filter((a) => a.agentRuntime === "orchestrator")
     const dzeroContacts = dzeroAgents.reduce((s, a) => s + a._count.conversations, 0)
-    // Wallet + PAYG state (mirrors the billing-segment query above): a lapsed
-    // plan funded by a usable wallet = running on pay-as-you-go.
-    const walletUsable = (u.creditBalance ?? 0) > 0 && (!u.creditsExpireAt || u.creditsExpireAt > now)
-    const lapsed = !!u.subscriptionExpiresAt && u.subscriptionExpiresAt < now
+    const walletUsable = hasUsableWallet(u.creditBalance, u.creditsExpireAt, now)
     return {
       id: u.id,
       name: u.name,
@@ -337,7 +325,7 @@ export default async function AdminAnalyticsPage() {
       contacts,
       credits: userCreditsMap[u.id] ?? 0,
       walletBalance: walletUsable ? u.creditBalance : 0,
-      payg: u.plan !== "reseller" && lapsed && walletUsable,
+      payg: billing.get(u.id)!.state === "payg",
       dzeroAgentCount: dzeroAgents.length,
       dzeroConversations: aiSent,
       dzeroContacts,
@@ -369,7 +357,7 @@ export default async function AdminAnalyticsPage() {
           <span className={styles.statSub}>{creditsAllTime.toLocaleString()} credits used</span>
         </div>
         <div className={styles.statCard}>
-          <span className={styles.statLabel}>Total Contacts</span>
+          <span className={styles.statLabel}>People Reached</span>
           <span className={styles.statNum}>{totalContacts.toLocaleString()}</span>
           <span className={styles.statSub}>{totalLeads} leads generated</span>
         </div>

@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import styles from "./SessionsTable.module.css"
+import { useToast } from "@/context/ToastContext"
 import type { WorkerSessionStatus } from "@/lib/baileys-client"
 
 interface SessionRow {
@@ -31,6 +32,7 @@ const STATUS_CLASS: Record<string, string> = {
 }
 
 export function SessionsTable({ rows }: { rows: SessionRow[] }) {
+  const { showToast } = useToast()
   const [actionState, setActionState] = useState<Record<string, "disconnecting" | "restarting" | null>>({})
   const [tierState, setTierState] = useState<Record<string, { value: number; saving: boolean; saved: boolean }>>(() =>
     Object.fromEntries(rows.map((r) => [r.agentId, { value: r.session?.warmupTier ?? 1, saving: false, saved: false }]))
@@ -54,7 +56,7 @@ export function SessionsTable({ rows }: { rows: SessionRow[] }) {
       setTimeout(() => setTierState((s) => ({ ...s, [agentId]: { ...s[agentId], saved: false } })), 2000)
     } catch {
       setTierState((s) => ({ ...s, [agentId]: { ...s[agentId], saving: false } }))
-      alert("Failed to update tier")
+      showToast("Couldn't update the warmup tier", "error")
     }
   }
 

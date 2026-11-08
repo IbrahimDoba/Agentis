@@ -21,8 +21,8 @@
 
 .statsGrid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
   margin-bottom: 2.5rem;
 }
 
@@ -39,6 +39,8 @@
 }
 
 .statValue {
+  font-variant-numeric: tabular-nums;
+  margin-top: 0.5rem;
   font-size: 2rem;
   font-weight: 700;
   color: var(--text-primary);
@@ -205,4 +207,12 @@
   .tables {
     grid-template-columns: 1fr;
   }
+}
+
+a.statAlert {
+  text-decoration: none;
+}
+
+a.statAlert:hover {
+  text-decoration: underline;
 }
