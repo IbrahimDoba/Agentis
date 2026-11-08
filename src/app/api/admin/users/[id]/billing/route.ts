@@ -67,6 +67,26 @@ export const GET = withAdmin(async (req: NextRequest, { params }: Params) => {
       )
     : []
 
+  // What the credits went on (AI replies, status posts, contact saving…) and how
+  // much of each the wallet paid for — the plan/wallet split is what makes a
+  // user pay-as-you-go.
+  const monthlyBySource = agentIds.length
+    ? await db.$queryRawUnsafe<Array<{ source: string; total: number; wallet: number }>>(
+        `SELECT "source",
+                COALESCE(SUM("creditsUsed"), 0)::int as total,
+                COALESCE(SUM("creditsUsed") FILTER (WHERE "billedTo" = 'wallet'), 0)::int as wallet
+         FROM "CreditUsage"
+         WHERE "agentId" = ANY($1::text[])
+           AND "createdAt" >= $2::timestamptz
+           AND "createdAt" < $3::timestamptz
+         GROUP BY "source"
+         ORDER BY total DESC`,
+        agentIds,
+        monthStart.toISOString(),
+        monthEnd.toISOString()
+      )
+    : []
+
   // All-time total credits
   const totalAgg = agentIds.length
     ? await db.$queryRawUnsafe<Array<{ total: number }>>(
@@ -150,6 +170,11 @@ export const GET = withAdmin(async (req: NextRequest, { params }: Params) => {
       image: Number(typeMap["image"] ?? 0),
       voice: voiceCredits,
     },
+    sourceBreakdown: monthlyBySource.map((r) => ({
+      source: r.source,
+      credits: Number(r.total),
+      walletCredits: Number(r.wallet),
+    })),
     agentBreakdown: agents.map((a) => ({
       id: a.id,
       businessName: a.businessName,
