@@ -9,9 +9,10 @@ interface ModalProps {
   title?: string
   children: React.ReactNode
   footer?: React.ReactNode
+  size?: "md" | "lg"
 }
 
-export function Modal({ open, onClose, title, children, footer }: ModalProps) {
+export function Modal({ open, onClose, title, children, footer, size = "md" }: ModalProps) {
   useEffect(() => {
     if (open) {
       document.body.style.overflow = "hidden"
@@ -27,7 +28,7 @@ export function Modal({ open, onClose, title, children, footer }: ModalProps) {
 
   return (
     <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+      <div className={`${styles.modal} ${size === "lg" ? styles.lg : ""}`} onClick={(e) => e.stopPropagation()}>
         {title && (
           <div className={styles.header}>
             <h2 className={styles.title}>{title}</h2>

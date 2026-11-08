@@ -1,21 +1,48 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import styles from "./UserTable.module.css"
 import { StatusBadge } from "@/components/ui/Badge"
 import Button from "@/components/ui/Button"
 import { Modal } from "@/components/ui/Modal"
+import { useToast } from "@/context/ToastContext"
 import { formatDate } from "@/lib/utils"
 import { formatNaira, PLAN_ORDER, PLAN_LABELS } from "@/lib/plans"
+import { BILLING_STATE_LABELS, type UserBillingState } from "@/lib/userBillingState"
+import { UserStatusPanel, UserWhatsAppPanel, UserActivityPanel, UserTeamPanel } from "./UserInsightsPanels"
 import type { UserPublic } from "@/types"
 
-interface UserWithAgentCount extends UserPublic {
-  _count?: { agents: number }
+export interface AdminUserRow extends UserPublic {
+  agentCount: number
+  billing: {
+    state: UserBillingState
+    creditsUsed: number
+    walletCreditsUsed: number
+    creditLimit: number
+    walletBalance: number
+    walletUsable: boolean
+  }
+}
+
+export interface UserListQuery {
+  q: string
+  billing: UserBillingState | ""
+  plan: string
+  status: string
+  onboarding: "incomplete" | ""
+  sort: "newest" | "credits" | "wallet" | "name"
+  page: number
 }
 
 interface UserTableProps {
-  users: UserWithAgentCount[]
+  users: AdminUserRow[]
+  query: UserListQuery
+  total: number
+  matching: number
+  pageCount: number
+  stateCounts: Record<UserBillingState, number>
 }
 
 interface BillingData {
@@ -29,6 +56,7 @@ interface BillingData {
   walletBalance: number
   walletExpiresAt: string | null
   monthlyBreakdown: { text: number; image: number; voice: number }
+  sourceBreakdown: Array<{ source: string; credits: number; walletCredits: number }>
   agentBreakdown: Array<{ id: string; businessName: string; runtime: string; transportType: string; monthlyCredits: number; conversationCount: number }>
   agents: { id: string; status: string; messagingEnabled: boolean; businessName: string; whatsappPhoneNumber: string | null; whatsappPhoneNumberId: string | null; whatsappAgentLink: string | null }[]
 }
@@ -49,15 +77,35 @@ function addMonthsToDate(base: string, months: number): string {
   return d.toISOString().split("T")[0]
 }
 
-type ModalTab = "account" | "subscription" | "agents"
+type ModalTab = "account" | "subscription" | "agents" | "status" | "whatsapp" | "activity" | "team"
+
+const MODAL_TABS: Array<{ id: ModalTab; label: string }> = [
+  { id: "account", label: "Account" },
+  { id: "subscription", label: "Billing" },
+  { id: "agents", label: "Agents" },
+  { id: "status", label: "Status" },
+  { id: "whatsapp", label: "WhatsApp" },
+  { id: "activity", label: "Activity" },
+  { id: "team", label: "Team" },
+]
+
+const SOURCE_LABELS: Record<string, string> = {
+  ai: "AI replies",
+  human: "Human replies",
+  broadcast: "Broadcasts",
+  followup: "Follow-ups",
+  status: "Status posts",
+  contact_save: "Contact saving",
+}
 
 function UserDetailModal({ user, onClose, onStatusChange, loading }: {
-  user: UserWithAgentCount
+  user: AdminUserRow
   onClose: () => void
   onStatusChange: (userId: string, status: "APPROVED" | "REJECTED" | "SUSPENDED") => void
   loading: string | null
 }) {
   const router = useRouter()
+  const { showToast } = useToast()
   const [tab, setTab] = useState<ModalTab>("account")
   const [maxAgents, setMaxAgents] = useState<number>(user.maxAgents ?? 1)
   const [savingMaxAgents, setSavingMaxAgents] = useState(false)
@@ -100,7 +148,7 @@ function UserDetailModal({ user, onClose, onStatusChange, loading }: {
       setAgentMessaging((prev) => ({ ...prev, [agentId]: { enabled, saving: false } }))
     } catch {
       setAgentMessaging((prev) => ({ ...prev, [agentId]: { ...prev[agentId], saving: false } }))
-      alert("Failed to update messaging status")
+      showToast("Couldn't update messaging", "error")
     }
   }
 
@@ -120,7 +168,7 @@ function UserDetailModal({ user, onClose, onStatusChange, loading }: {
       await patch({ maxAgents })
       setMaxAgentsSaved(true)
       setTimeout(() => setMaxAgentsSaved(false), 2000)
-    } catch { alert("Failed to update agent limit") }
+    } catch { showToast("Couldn't update the agent limit", "error") }
     finally { setSavingMaxAgents(false) }
   }
 
@@ -130,7 +178,7 @@ function UserDetailModal({ user, onClose, onStatusChange, loading }: {
       await patch({ plan })
       setPlanSaved(true)
       setTimeout(() => setPlanSaved(false), 2000)
-    } catch { alert("Failed to update plan") }
+    } catch { showToast("Couldn't update the plan", "error") }
     finally { setSavingPlan(false) }
   }
 
@@ -142,7 +190,7 @@ function UserDetailModal({ user, onClose, onStatusChange, loading }: {
       if (dateStr) setExpiresAt(dateStr)
       setExpirySaved(true)
       setTimeout(() => setExpirySaved(false), 2000)
-    } catch { alert("Failed to update subscription expiry") }
+    } catch { showToast("Couldn't update the expiry date", "error") }
     finally { setSavingExpiry(false) }
   }
 
@@ -169,7 +217,7 @@ function UserDetailModal({ user, onClose, onStatusChange, loading }: {
       setTimeout(() => setUsageReset(false), 2500)
       router.refresh()
     } catch {
-      alert("Failed to reset usage")
+      showToast("Couldn't reset usage", "error")
     } finally {
       setResettingUsage(false)
     }
@@ -210,6 +258,7 @@ function UserDetailModal({ user, onClose, onStatusChange, loading }: {
   return (
     <Modal
       open
+      size="lg"
       onClose={onClose}
       title={user.name}
       footer={
@@ -235,25 +284,46 @@ function UserDetailModal({ user, onClose, onStatusChange, loading }: {
       }
     >
       {/* Tab bar */}
-      <div className={styles.tabBar}>
-        <button className={tab === "account" ? styles.tabActive : styles.tabBtn} onClick={() => setTab("account")}>
-          Account
-        </button>
-        <button className={tab === "subscription" ? styles.tabActive : styles.tabBtn} onClick={() => setTab("subscription")}>
-          Subscription
-          {billing && creditPct >= 75 && (
-            <span className={styles.tabBadgeDanger}>{creditPct}%</span>
-          )}
-        </button>
-        <button className={tab === "agents" ? styles.tabActive : styles.tabBtn} onClick={() => setTab("agents")}>
-          Agents
-          {agentCount > 0 && (
-            <span className={pausedCount > 0 ? styles.tabBadgeDanger : styles.tabBadge}>{agentCount}</span>
-          )}
-        </button>
+      <div className={styles.tabBar} role="tablist" aria-label="User details">
+        {MODAL_TABS.map((t) => (
+          <button
+            key={t.id}
+            id={`user-tab-${t.id}`}
+            type="button"
+            role="tab"
+            aria-selected={tab === t.id}
+            aria-controls="user-tabpanel"
+            tabIndex={tab === t.id ? 0 : -1}
+            className={tab === t.id ? styles.tabActive : styles.tabBtn}
+            onClick={() => setTab(t.id)}
+            onKeyDown={(e) => {
+              if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return
+              const i = MODAL_TABS.findIndex((x) => x.id === tab)
+              const next = MODAL_TABS[(i + (e.key === "ArrowRight" ? 1 : MODAL_TABS.length - 1)) % MODAL_TABS.length]
+              setTab(next.id)
+              document.getElementById(`user-tab-${next.id}`)?.focus()
+            }}
+          >
+            {t.label}
+            {t.id === "subscription" && user.billing.state === "payg" && (
+              <span className={styles.tabBadge}>PAYG</span>
+            )}
+            {t.id === "subscription" && billing && creditPct >= 75 && user.billing.state !== "payg" && (
+              <span className={styles.tabBadgeDanger}>{creditPct}%</span>
+            )}
+            {t.id === "agents" && agentCount > 0 && (
+              <span className={pausedCount > 0 ? styles.tabBadgeDanger : styles.tabBadge}>{agentCount}</span>
+            )}
+          </button>
+        ))}
       </div>
 
-      <div className={styles.modalBody} style={{ marginTop: "1.25rem" }}>
+      <div className={styles.modalBody} id="user-tabpanel" role="tabpanel" aria-labelledby={`user-tab-${tab}`}>
+
+        {tab === "status" && <UserStatusPanel userId={user.id} />}
+        {tab === "whatsapp" && <UserWhatsAppPanel userId={user.id} />}
+        {tab === "activity" && <UserActivityPanel userId={user.id} />}
+        {tab === "team" && <UserTeamPanel userId={user.id} />}
 
         {/* ── Account tab ── */}
         {tab === "account" && (
@@ -440,7 +510,17 @@ function UserDetailModal({ user, onClose, onStatusChange, loading }: {
             </div>
 
             <div className={styles.modalSection}>
-              <div className={styles.modalSectionTitle}>Credits — This Month</div>
+              <div className={styles.modalSectionTitle}>Credits this cycle</div>
+              <div className={styles.billingStateRow}>
+                <span className={styles.stateBadge} data-state={user.billing.state}>{BILLING_STATE_LABELS[user.billing.state]}</span>
+                <span className={styles.billingStateHint}>
+                  {user.billing.state === "payg" && `${user.billing.walletCreditsUsed.toLocaleString()} credits paid from the wallet this cycle, after the plan allowance ran out.`}
+                  {user.billing.state === "over_limit" && "Plan allowance used up and no usable wallet, so sending is paused until they top up or upgrade."}
+                  {user.billing.state === "expired" && "Paid plan lapsed and no usable wallet."}
+                  {user.billing.state === "plan" && "Within the plan allowance."}
+                  {user.billing.state === "reseller" && "Billed from the reseller's credit pool through the wallet."}
+                </span>
+              </div>
               {billingLoading ? (
                 <div className={styles.billingLoading}>Loading…</div>
               ) : billing ? (
@@ -471,7 +551,7 @@ function UserDetailModal({ user, onClose, onStatusChange, loading }: {
 
                   {/* Progress bar */}
                   {billing.creditLimit !== -1 && (
-                    <div className={styles.creditBarTrack} style={{ marginTop: "0.25rem" }}>
+                    <div className={styles.creditBarTrack}>
                       <div
                         className={`${styles.creditBarFill} ${creditPct >= 90 ? styles.danger : creditPct >= 75 ? styles.warning : ""}`}
                         style={{ width: `${creditPct}%` }}
@@ -479,21 +559,37 @@ function UserDetailModal({ user, onClose, onStatusChange, loading }: {
                     </div>
                   )}
 
-                  {/* Breakdown by type */}
                   <div className={styles.breakdownGrid}>
                     <div className={styles.breakdownItem}>
-                      <span className={styles.breakdownLabel}>💬 Text AI</span>
+                      <span className={styles.breakdownLabel}>Text</span>
                       <span className={styles.breakdownVal}>{billing.monthlyBreakdown.text.toLocaleString()}</span>
                     </div>
                     <div className={styles.breakdownItem}>
-                      <span className={styles.breakdownLabel}>🖼 Image AI</span>
+                      <span className={styles.breakdownLabel}>Image</span>
                       <span className={styles.breakdownVal}>{billing.monthlyBreakdown.image.toLocaleString()}</span>
                     </div>
                     <div className={styles.breakdownItem}>
-                      <span className={styles.breakdownLabel}>🎙 Voice</span>
+                      <span className={styles.breakdownLabel}>Voice</span>
                       <span className={styles.breakdownVal}>{billing.monthlyBreakdown.voice.toLocaleString()}</span>
                     </div>
                   </div>
+
+                  {billing.sourceBreakdown.length > 0 && (
+                    <div className={styles.agentBreakdownList}>
+                      <div className={styles.sourceHeader}>
+                        <span>Spent on</span>
+                        <span>Credits</span>
+                        <span>From wallet</span>
+                      </div>
+                      {billing.sourceBreakdown.map((s) => (
+                        <div key={s.source} className={styles.sourceRow}>
+                          <span className={styles.agentBreakdownName}>{SOURCE_LABELS[s.source] ?? s.source}</span>
+                          <span className={styles.agentBreakdownNum}>{s.credits.toLocaleString()}</span>
+                          <span className={styles.agentBreakdownNum}>{s.walletCredits.toLocaleString()}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
                   {/* Per-agent breakdown */}
                   {billing.agentBreakdown.length > 0 && (
@@ -536,18 +632,18 @@ function UserDetailModal({ user, onClose, onStatusChange, loading }: {
             {/* ── Wallet credits (admin allocation, 12-month expiry) ── */}
             <div className={styles.modalSection}>
               <div className={styles.modalSectionTitle}>Adjust credits (12-month)</div>
-              <p style={{ fontSize: 13, color: "var(--text-secondary, #6b7280)", margin: "0 0 10px" }}>
+              <p className={styles.sectionNote}>
                 Add or remove a custom amount of the user&apos;s spendable credits. Adding tops up the balance and resets expiry to 12 months from today; removing corrects an over-grant and can&apos;t push the balance below zero.
               </p>
               {billing && (
-                <div style={{ fontSize: 13, marginBottom: 10 }}>
+                <div className={styles.walletLine}>
                   Current wallet: <strong>{billing.walletBalance.toLocaleString()}</strong> credits
                   {billing.walletExpiresAt
                     ? <> · expires {formatDate(billing.walletExpiresAt)}</>
                     : <> · no expiry set</>}
                 </div>
               )}
-              <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+              <div className={styles.inlineForm}>
                 <input
                   type="number"
                   min={1}
@@ -556,8 +652,8 @@ function UserDetailModal({ user, onClose, onStatusChange, loading }: {
                   placeholder="Amount of credits"
                   value={allocAmount}
                   onChange={(e) => setAllocAmount(e.target.value)}
-                  className={styles.agentLimitInput}
-                  style={{ width: 170 }}
+                  className={`${styles.agentLimitInput} ${styles.creditInput}`}
+                  aria-label="Amount of credits"
                 />
                 <button className={styles.agentLimitSaveBtn} onClick={() => handleAllocate("add")} disabled={allocating}>
                   {allocating ? "Saving…" : "Add credits"}
@@ -566,13 +662,13 @@ function UserDetailModal({ user, onClose, onStatusChange, loading }: {
                   className={styles.agentLimitSaveBtn}
                   onClick={() => handleAllocate("deduct")}
                   disabled={allocating}
-                  style={{ background: "var(--danger-bg, #fee2e2)", color: "var(--danger-text, #b91c1c)" }}
+                  data-variant="danger"
                 >
                   {allocating ? "Saving…" : "Reduce credits"}
                 </button>
               </div>
               {allocMsg && (
-                <div style={{ marginTop: 10, fontSize: 13, fontWeight: 600, color: "var(--text-primary, #18181b)" }}>{allocMsg}</div>
+                <div className={styles.allocMsg} role="status">{allocMsg}</div>
               )}
             </div>
           </>
@@ -603,7 +699,7 @@ function UserDetailModal({ user, onClose, onStatusChange, loading }: {
                               {a.whatsappPhoneNumber
                                 || (a.whatsappAgentLink ? a.whatsappAgentLink.replace("https://wa.me/", "+") : null)
                                 || (a.whatsappPhoneNumberId ? `ID: ${a.whatsappPhoneNumberId}` : null)
-                                || <span style={{ color: "var(--text-muted)" }}>No number linked</span>}
+                                || <span className={styles.muted}>No number linked</span>}
                             </div>
                           </div>
                         </div>
@@ -637,11 +733,57 @@ function UserDetailModal({ user, onClose, onStatusChange, loading }: {
   )
 }
 
-export function UserTable({ users }: UserTableProps) {
+const BILLING_FILTERS: UserBillingState[] = ["payg", "over_limit", "expired", "plan", "reseller"]
+const STATUS_OPTIONS = ["PENDING", "APPROVED", "SUSPENDED", "REJECTED"]
+const SORT_LABELS: Record<UserListQuery["sort"], string> = {
+  newest: "Newest",
+  credits: "Most credits used",
+  wallet: "Biggest wallet",
+  name: "Name",
+}
+
+function listHref(query: UserListQuery, overrides: Partial<UserListQuery>): string {
+  // Any filter change sends you back to page 1 unless the page itself is the change.
+  const next = { ...query, page: 1, ...overrides }
+  const params = new URLSearchParams()
+  if (next.q) params.set("q", next.q)
+  if (next.billing) params.set("billing", next.billing)
+  if (next.plan) params.set("plan", next.plan)
+  if (next.status) params.set("status", next.status)
+  if (next.onboarding) params.set("onboarding", next.onboarding)
+  if (next.sort !== "newest") params.set("sort", next.sort)
+  if (next.page > 1) params.set("page", String(next.page))
+  const qs = params.toString()
+  return qs ? `/admin/users?${qs}` : "/admin/users"
+}
+
+function CreditsCell({ billing }: { billing: AdminUserRow["billing"] }) {
+  if (billing.creditLimit === -1) {
+    return <span className={styles.creditsUnlimited}>{billing.creditsUsed.toLocaleString()} · unlimited</span>
+  }
+  const pct = billing.creditLimit > 0 ? Math.min(100, Math.round((billing.creditsUsed / billing.creditLimit) * 100)) : 100
+  return (
+    <div className={styles.creditsCell}>
+      <span className={styles.creditsNums}>
+        {billing.creditsUsed.toLocaleString()}
+        <span className={styles.creditsOf}> / {billing.creditLimit.toLocaleString()}</span>
+      </span>
+      <div className={styles.creditBarTrack} aria-hidden="true">
+        <div
+          className={`${styles.creditBarFill} ${pct >= 100 ? styles.danger : pct >= 75 ? styles.warning : ""}`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+    </div>
+  )
+}
+
+export function UserTable({ users, query, total, matching, pageCount, stateCounts }: UserTableProps) {
   const router = useRouter()
+  const { showToast } = useToast()
   const [loading, setLoading] = useState<string | null>(null)
-  const [selectedUser, setSelectedUser] = useState<UserWithAgentCount | null>(null)
-  const [search, setSearch] = useState("")
+  const [selectedUser, setSelectedUser] = useState<AdminUserRow | null>(null)
+  const [search, setSearch] = useState(query.q)
 
   const handleStatusChange = async (userId: string, status: "APPROVED" | "REJECTED" | "SUSPENDED") => {
     setLoading(`${userId}-${status}`)
@@ -654,120 +796,143 @@ export function UserTable({ users }: UserTableProps) {
       if (!res.ok) throw new Error("Failed to update")
       router.refresh()
       setSelectedUser(null)
+      showToast(`User ${status.toLowerCase()}`)
     } catch {
-      alert("Failed to update user status")
+      showToast("Couldn't update the user's status", "error")
     } finally {
       setLoading(null)
     }
   }
 
-  if (users.length === 0) {
-    return (
-      <div className={styles.wrapper}>
-        <div className={styles.empty}>No users found</div>
-      </div>
-    )
-  }
-
-  const q = search.trim().toLowerCase()
-  const filtered = q
-    ? users.filter((u) =>
-        (u.name ?? "").toLowerCase().includes(q) ||
-        (u.email ?? "").toLowerCase().includes(q) ||
-        (u.businessName ?? "").toLowerCase().includes(q)
-      )
-    : users
+  const filtersActive = Boolean(query.q || query.billing || query.plan || query.status || query.onboarding)
 
   return (
     <>
+      <div className={styles.chips} role="group" aria-label="Filter by billing state">
+        <Link href={listHref(query, { billing: "" })} className={!query.billing ? styles.chipActive : styles.chip} aria-current={!query.billing ? "true" : undefined}>
+          All <span className={styles.chipCount}>{total.toLocaleString()}</span>
+        </Link>
+        {BILLING_FILTERS.map((s) => (
+          <Link
+            key={s}
+            href={listHref(query, { billing: query.billing === s ? "" : s })}
+            className={query.billing === s ? styles.chipActive : styles.chip}
+            aria-current={query.billing === s ? "true" : undefined}
+          >
+            {BILLING_STATE_LABELS[s]} <span className={styles.chipCount}>{stateCounts[s].toLocaleString()}</span>
+          </Link>
+        ))}
+      </div>
+
       <div className={styles.wrapper}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", borderBottom: "1px solid var(--border-subtle, #e4e4e7)", flexWrap: "wrap" }}>
+        <form
+          className={styles.toolbar}
+          onSubmit={(e) => {
+            e.preventDefault()
+            router.push(listHref(query, { q: search.trim() }))
+          }}
+        >
+          <label className={styles.srOnly} htmlFor="user-search">Search users</label>
           <input
+            id="user-search"
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by name or email…"
-            style={{ flex: 1, minWidth: 220, border: "1px solid var(--border, #d4d4d8)", borderRadius: 8, padding: "8px 12px", fontSize: 14, background: "var(--bg-primary, #fff)", color: "inherit" }}
+            placeholder="Search name, email, business or phone…"
+            className={styles.searchInput}
+            autoComplete="off"
+            spellCheck={false}
           />
-          {q && <span style={{ fontSize: 13, color: "var(--text-secondary, #6b7280)" }}>{filtered.length} of {users.length}</span>}
-        </div>
+          <label className={styles.srOnly} htmlFor="user-plan">Plan</label>
+          <select id="user-plan" className={styles.select} value={query.plan}
+            onChange={(e) => router.push(listHref(query, { plan: e.target.value }))}>
+            <option value="">All plans</option>
+            {PLAN_ORDER.map((p) => <option key={p} value={p}>{PLAN_LABELS[p] ?? p}</option>)}
+            <option value="reseller">Reseller</option>
+          </select>
+          <label className={styles.srOnly} htmlFor="user-status">Account status</label>
+          <select id="user-status" className={styles.select} value={query.status}
+            onChange={(e) => router.push(listHref(query, { status: e.target.value }))}>
+            <option value="">All statuses</option>
+            {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s.charAt(0) + s.slice(1).toLowerCase()}</option>)}
+          </select>
+          <label className={styles.srOnly} htmlFor="user-sort">Sort</label>
+          <select id="user-sort" className={styles.select} value={query.sort}
+            onChange={(e) => router.push(listHref(query, { sort: e.target.value as UserListQuery["sort"] }))}>
+            {(Object.keys(SORT_LABELS) as UserListQuery["sort"][]).map((s) => <option key={s} value={s}>{SORT_LABELS[s]}</option>)}
+          </select>
+          <label className={styles.checkLabel}>
+            <input type="checkbox" checked={query.onboarding === "incomplete"}
+              onChange={(e) => router.push(listHref(query, { onboarding: e.target.checked ? "incomplete" : "" }))} />
+            Onboarding incomplete
+          </label>
+          {filtersActive && (
+            <Link href="/admin/users" className={styles.clearLink}>Clear filters</Link>
+          )}
+        </form>
+
         <table className={styles.table}>
           <thead className={styles.thead}>
             <tr>
-              <th className={styles.th}>User</th>
-              <th className={styles.th}>Business</th>
-              <th className={styles.th}>Phone</th>
-              <th className={styles.th}>Agents</th>
-              <th className={styles.th}>Plan</th>
-              <th className={styles.th}>Status</th>
-              <th className={styles.th}>Joined</th>
-              <th className={styles.th}>Actions</th>
+              <th className={styles.th} scope="col">User</th>
+              <th className={styles.th} scope="col">Business</th>
+              <th className={styles.th} scope="col">Billing</th>
+              <th className={styles.th} scope="col">Credits this cycle</th>
+              <th className={`${styles.th} ${styles.num}`} scope="col">Wallet</th>
+              <th className={`${styles.th} ${styles.num}`} scope="col">Agents</th>
+              <th className={styles.th} scope="col">Status</th>
+              <th className={styles.th} scope="col">Joined</th>
+              <th className={styles.th} scope="col"><span className={styles.srOnly}>Actions</span></th>
             </tr>
           </thead>
           <tbody>
-            {filtered.length === 0 ? (
+            {users.length === 0 ? (
               <tr>
-                <td colSpan={8} style={{ padding: "24px 16px", textAlign: "center", color: "var(--text-secondary, #6b7280)" }}>
-                  No users match &quot;{search}&quot;
+                <td colSpan={9} className={styles.emptyCell}>
+                  {filtersActive ? "No users match these filters." : "No users yet."}
                 </td>
               </tr>
-            ) : filtered.map((user) => (
-              <tr
-                key={user.id}
-                className={styles.tr}
-                onClick={() => setSelectedUser(user)}
-                style={{ cursor: "pointer" }}
-              >
+            ) : users.map((user) => (
+              <tr key={user.id} className={styles.tr}>
                 <td className={styles.td}>
-                  <div className={styles.name}>
-                    {user.name}
-                    {!user.onboardingCompleted && (
-                      <span title="Onboarding not completed" style={{ marginLeft: "0.4rem", fontSize: "10px", background: "var(--warning-light)", color: "var(--warning)", borderRadius: "4px", padding: "1px 5px", fontWeight: 600, verticalAlign: "middle" }}>
-                        onboarding
-                      </span>
-                    )}
-                  </div>
-                  <div className={styles.email}>{user.email}</div>
+                  <button type="button" className={styles.rowButton} onClick={() => setSelectedUser(user)}>
+                    <span className={styles.name}>{user.name}</span>
+                    <span className={styles.email}>{user.email}</span>
+                    {user.phone && <span className={styles.email}>{user.phone}</span>}
+                  </button>
+                  {!user.onboardingCompleted && <span className={styles.onboardingTag}>Onboarding</span>}
                 </td>
                 <td className={styles.td}>
                   <div className={styles.business}>{user.businessName}</div>
                 </td>
                 <td className={styles.td}>
-                  <div className={styles.business}>{user.phone ?? "—"}</div>
+                  <div className={styles.billingCell}>
+                    <span className={styles.planBadge} data-plan={user.plan ?? "free"}>{PLAN_LABELS[user.plan ?? "free"] ?? user.plan}</span>
+                    {user.billing.state !== "plan" && user.billing.state !== "reseller" && (
+                      <span className={styles.stateBadge} data-state={user.billing.state}>{BILLING_STATE_LABELS[user.billing.state]}</span>
+                    )}
+                  </div>
                 </td>
+                <td className={styles.td}><CreditsCell billing={user.billing} /></td>
+                <td className={`${styles.td} ${styles.num}`}>
+                  {user.billing.walletBalance > 0
+                    ? <span className={user.billing.walletUsable ? "" : styles.mutedStrike} title={user.billing.walletUsable ? undefined : "Expired"}>{user.billing.walletBalance.toLocaleString()}{!user.billing.walletUsable && <span className={styles.srOnly}> (expired)</span>}</span>
+                    : <span className={styles.muted}>0</span>}
+                </td>
+                <td className={`${styles.td} ${styles.num}`}>{user.agentCount}</td>
+                <td className={styles.td}><StatusBadge status={user.status} /></td>
+                <td className={styles.td}><span className={styles.nowrap}>{formatDate(user.createdAt)}</span></td>
                 <td className={styles.td}>
-                  {(user as any)._count?.agents ?? 0}
-                </td>
-                <td className={styles.td}>
-                  <span className={styles.planBadge} data-plan={user.plan ?? "free"}>
-                    {(user.plan ?? "free").charAt(0).toUpperCase() + (user.plan ?? "free").slice(1)}
-                  </span>
-                </td>
-                <td className={styles.td}>
-                  <StatusBadge status={user.status} />
-                </td>
-                <td className={styles.td}>
-                  {formatDate(user.createdAt)}
-                </td>
-                <td className={styles.td} onClick={(e) => e.stopPropagation()}>
                   <div className={styles.actions}>
                     {(user.status === "PENDING" || user.status === "REJECTED" || user.status === "SUSPENDED") && (
-                      <Button
-                        size="sm"
-                        variant="primary"
-                        loading={loading === `${user.id}-APPROVED`}
-                        onClick={() => handleStatusChange(user.id, "APPROVED")}
-                      >
+                      <Button size="sm" variant="primary" loading={loading === `${user.id}-APPROVED`}
+                        onClick={() => handleStatusChange(user.id, "APPROVED")}>
                         {user.status === "SUSPENDED" ? "Unsuspend" : "Approve"}
                       </Button>
                     )}
                     {user.status === "APPROVED" && (
-                      <Button
-                        size="sm"
-                        variant="danger"
-                        loading={loading === `${user.id}-SUSPENDED`}
-                        onClick={() => handleStatusChange(user.id, "SUSPENDED")}
-                      >
+                      <Button size="sm" variant="danger" loading={loading === `${user.id}-SUSPENDED`}
+                        onClick={() => handleStatusChange(user.id, "SUSPENDED")}>
                         Suspend
                       </Button>
                     )}
@@ -777,6 +942,21 @@ export function UserTable({ users }: UserTableProps) {
             ))}
           </tbody>
         </table>
+
+        <div className={styles.pager}>
+          <span className={styles.muted}>
+            {matching === 0 ? "0 users" : `${((query.page - 1) * 50 + 1).toLocaleString()}-${Math.min(query.page * 50, matching).toLocaleString()} of ${matching.toLocaleString()}`}
+          </span>
+          <div className={styles.pagerLinks}>
+            {query.page > 1
+              ? <Link href={listHref(query, { page: query.page - 1 })} className={styles.pagerLink}>Previous</Link>
+              : <span className={styles.pagerDisabled}>Previous</span>}
+            <span className={styles.muted}>Page {query.page} of {pageCount}</span>
+            {query.page < pageCount
+              ? <Link href={listHref(query, { page: query.page + 1 })} className={styles.pagerLink}>Next</Link>
+              : <span className={styles.pagerDisabled}>Next</span>}
+          </div>
+        </div>
       </div>
 
       {selectedUser && (

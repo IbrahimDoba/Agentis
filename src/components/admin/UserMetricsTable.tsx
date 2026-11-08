@@ -131,7 +131,7 @@ export function UserMetricsTable({ users }: Props) {
                   </span>
                   {u.payg && (
                     <span className={styles.planBadge} style={{ color: "#f59e0b", marginLeft: 6 }} title="Plan lapsed — running on pay-as-you-go wallet credits">
-                      💳 PAYG
+                      Pay as you go
                     </span>
                   )}
                 </td>

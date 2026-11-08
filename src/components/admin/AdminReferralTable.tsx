@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useToast } from "@/context/ToastContext"
 import styles from "./AdminReferralTable.module.css"
 import { formatDate } from "@/lib/utils"
 import { formatNaira, PLAN_LABELS, calcCommission } from "@/lib/plans"
@@ -34,6 +35,7 @@ interface Props {
 
 export function AdminReferralTable({ referrals: initial, users }: Props) {
   const router = useRouter()
+  const { showToast } = useToast()
   const [referrals, setReferrals] = useState(initial)
   const [filter, setFilter] = useState<"ALL" | "PENDING" | "COMPLETED" | "REWARDED">("ALL")
   const [loading, setLoading] = useState<string | null>(null)
@@ -63,7 +65,7 @@ export function AdminReferralTable({ referrals: initial, users }: Props) {
       })
       if (!res.ok) throw new Error()
       setReferrals((prev) => prev.map((r) => r.id === id ? { ...r, rewardGranted: true, status: "REWARDED" } : r))
-    } catch { alert("Failed to update") }
+    } catch { showToast("Couldn't update the referral", "error") }
     finally { setLoading(null) }
   }
 
@@ -101,7 +103,7 @@ export function AdminReferralTable({ referrals: initial, users }: Props) {
       })
       setReferrals((prev) => prev.map((r) => r.id === editId ? { ...r, commissionEarned: Number(editCommission), status: "COMPLETED" } : r))
       setEditId(null)
-    } catch { alert("Failed") }
+    } catch { showToast("Couldn't save the change", "error") }
     finally { setSaving(false) }
   }
 

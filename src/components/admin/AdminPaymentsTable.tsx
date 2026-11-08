@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useToast } from "@/context/ToastContext"
 import styles from "./AdminPaymentsTable.module.css"
 import { formatNaira, PLAN_LABELS } from "@/lib/plans"
 import { formatDate } from "@/lib/utils"
@@ -35,6 +36,7 @@ const PLAN_COLORS: Record<string, string> = {
 
 export function AdminPaymentsTable({ requests }: { requests: PaymentRequestRow[] }) {
   const router = useRouter()
+  const { showToast } = useToast()
   const [filter, setFilter] = useState<StatusFilter>("all")
   const [approving, setApproving] = useState<string | null>(null)
 
@@ -48,7 +50,7 @@ export function AdminPaymentsTable({ requests }: { requests: PaymentRequestRow[]
       if (!res.ok) throw new Error("Failed")
       router.refresh()
     } catch {
-      alert("Failed to approve. Please try again.")
+      showToast("Couldn't approve the payment. Try again.", "error")
     } finally {
       setApproving(null)
     }

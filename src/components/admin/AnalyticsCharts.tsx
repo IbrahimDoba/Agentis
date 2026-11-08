@@ -15,6 +15,7 @@ const PLAN_COLORS: Record<string, string> = {
   reseller: "#7c3aed",
   // Billing states (not plans): wallet-funded and lapsed accounts.
   payg: "#f59e0b",
+  over_limit: "#ef4444",
   expired: "#b91c1c",
 }
 
@@ -32,7 +33,8 @@ const PLAN_LABELS: Record<string, string> = {
   pro: "Pro",
   enterprise: "Enterprise",
   reseller: "Reseller",
-  payg: "Pay-as-you-go",
+  payg: "Pay as you go",
+  over_limit: "Over limit",
   expired: "Expired",
 }
 

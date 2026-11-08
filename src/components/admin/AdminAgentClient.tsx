@@ -13,6 +13,7 @@ import { TemplatesTab } from "@/components/dashboard/TemplatesTab"
 import { ToolsTab } from "@/components/dashboard/ToolsTab"
 
 import { AgentSetupForm } from "@/components/admin/AgentSetupForm"
+import { AgentSettingsSummary, type AgentLabelRow, type AgentGroupRow } from "@/components/admin/AgentSettingsSummary"
 import { CopyAllButton } from "@/components/admin/CopyAllButton"
 import { StatusBadge } from "@/components/ui/Badge"
 import { cn, formatDate } from "@/lib/utils"
@@ -30,6 +31,7 @@ function buildTabs(agentRuntime: string) {
             : { id: "knowledge-base", label: "Knowledge Base" },
         { id: "tools", label: "Tools" },
         { id: "templates", label: "Templates" },
+        { id: "settings", label: "Settings" },
     ]
 }
 
@@ -48,7 +50,7 @@ function AgentAvatar({ src, name, size = 48 }: { src?: string | null; name: stri
     )
 }
 
-export function AdminAgentClient({ agent }: { agent: any }) {
+export function AdminAgentClient({ agent, labels, groups }: { agent: any; labels: AgentLabelRow[]; groups: AgentGroupRow[] }) {
     const isOrchestrator = agent.agentRuntime === "orchestrator"
     const TABS = buildTabs(agent.agentRuntime ?? "elevenlabs")
     const [activeTab, setActiveTab] = useState("setup")
@@ -252,6 +254,7 @@ export function AdminAgentClient({ agent }: { agent: any }) {
                     />
                 )}
                 {activeTab === "templates" && <TemplatesTab agentId={agent.id} />}
+                {activeTab === "settings" && <AgentSettingsSummary agent={agent} labels={labels} groups={groups} />}
             </div>
         </div>
     )
