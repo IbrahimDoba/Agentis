@@ -22,8 +22,9 @@ export default async function AdminStatusPage({ searchParams }: { searchParams: 
   const sp = await searchParams
   const daysParam = Number(Array.isArray(sp.days) ? sp.days[0] : sp.days)
   const days = (RANGES as readonly number[]).includes(daysParam) ? daysParam : 30
-  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
-  const stuckBefore = new Date(Date.now() - STUCK_AFTER_MS)
+  const now = new Date()
+  const since = new Date(now.getTime() - days * 24 * 60 * 60 * 1000)
+  const stuckBefore = new Date(now.getTime() - STUCK_AFTER_MS)
 
   const [totals, funnel, credits, queue, topUsers, errors, failures, runs, savedInRange] = await Promise.all([
     db.$queryRawUnsafe<Array<{ posted: number; failed: number; reach: number; users: number }>>(

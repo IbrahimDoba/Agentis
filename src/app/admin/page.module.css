@@ -21,7 +21,7 @@
 
 .statsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
   margin-bottom: 2.5rem;
 }
@@ -215,4 +215,10 @@ a.statAlert {
 
 a.statAlert:hover {
   text-decoration: underline;
+}
+
+@media (max-width: 560px) {
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
 }

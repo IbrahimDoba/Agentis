@@ -275,7 +275,7 @@ export function UserActivityPanel({ userId }: { userId: string }) {
                 <Stat value={appts} label="Appointments" />
                 <Stat value={d.appointments.upcoming} label="Upcoming" />
                 {d.appointments.byStatus.filter((g) => g.status !== "SCHEDULED").map((g) => (
-                  <Stat key={g.status} value={g.count} label={g.status.replace("_", " ").toLowerCase()} />
+                  <Stat key={g.status} value={g.count} label={`${g.status.charAt(0)}${g.status.slice(1).replace("_", " ").toLowerCase()}`} />
                 ))}
               </div>
             </section>

@@ -258,6 +258,7 @@ function UserDetailModal({ user, onClose, onStatusChange, loading }: {
   return (
     <Modal
       open
+      size="lg"
       onClose={onClose}
       title={user.name}
       footer={
