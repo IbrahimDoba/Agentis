@@ -15,6 +15,7 @@ interface PostStats {
   backgroundColor: string | null
   mediaItemId: string | null
   aiNote: string | null
+  source: "manual" | "autopilot"
   status: string
   error: string | null
   scheduledAt: string
@@ -185,7 +186,7 @@ export function AnalyticsTab({ agentId }: { agentId: string }) {
               onClick={() => setOpenId(openId === p.id ? null : p.id)}
             >
               <div className={styles.postInfo}>
-                <span className={shared.muted}>{KIND_LABEL[p.kind]} · {when(p.postedAt!)}{p.status === "deleted" ? " · deleted" : ""}</span>
+                <span className={shared.muted}>{KIND_LABEL[p.kind]} · {when(p.postedAt!)}{p.source === "autopilot" ? " · Autopilot" : ""}{p.status === "deleted" ? " · deleted" : ""}</span>
                 <span className={styles.postText}>{p.text || p.aiNote || `${KIND_LABEL[p.kind]} post`}</span>
               </div>
               <div className={styles.funnel}>

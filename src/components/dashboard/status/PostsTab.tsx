@@ -26,6 +26,7 @@ interface Post {
   backgroundColor: string | null
   mediaItemId: string | null
   aiNote: string | null
+  source: "manual" | "autopilot"
   status: "scheduled" | "posting" | "posted" | "failed" | "cancelled" | "deleting" | "deleted"
   scheduledAt: string
   postedAt: string | null
@@ -412,7 +413,7 @@ export function PostsTab({ agentId, isConnected, draft, onQueued }: {
               <div className={styles.postMain}>
                 <div className={styles.postTop}>
                   <span className={`${styles.badge} ${styles[`badge_${post.status}`] ?? ""}`}>{STATUS_LABEL[post.status]}</span>
-                  <span className={shared.muted}>{KIND_LABEL[post.kind]} · {when(post.postedAt ?? post.scheduledAt)}</span>
+                  <span className={shared.muted}>{KIND_LABEL[post.kind]} · {when(post.postedAt ?? post.scheduledAt)}{post.source === "autopilot" ? " · Autopilot" : ""}</span>
                 </div>
                 <div className={styles.postText}>{post.text || post.aiNote || `${KIND_LABEL[post.kind]} post`}</div>
                 {post.status === "posted" && (

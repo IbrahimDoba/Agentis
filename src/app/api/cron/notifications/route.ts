@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { runInstantNotifications, runActivityDigest } from "@/lib/lead-notifications-job"
 import { runAppointmentReminders, runAppointmentBookedNotifications } from "@/lib/appointment-reminders-job"
 import { runCreditNudges } from "@/lib/credit-nudges-job"
+import { checkAutopilotFailures, runAutopilotTopUp } from "@/lib/status-autopilot-planner"
 
 // Digests do real Resend round-trips across the whole base; give them headroom.
 export const maxDuration = 300
@@ -17,6 +18,10 @@ export const maxDuration = 300
 //
 // Idempotent: instant alerts are gated by Lead.notifiedAt / Conversation
 // .handoffNotifiedAt, so re-running within the interval never double-sends.
+//
+// Status Autopilot rides on two of these instead of needing its own schedule:
+// instant pauses plans whose posts keep failing, daily tops every plan up to a
+// week ahead. Both are idempotent too.
 // Digests are cadence-driven — don't schedule them more than once per window.
 
 function authorized(req: NextRequest): boolean {
@@ -37,11 +42,19 @@ export async function GET(req: NextRequest) {
   switch (job) {
     case "instant": {
       const result = await runInstantNotifications()
-      return NextResponse.json({ ok: true, job, durationMs: Date.now() - startedAt, result })
+      const autopilot = await checkAutopilotFailures().catch((err) => {
+        console.error("[cron/notifications] autopilot failure check", err)
+        return null
+      })
+      return NextResponse.json({ ok: true, job, durationMs: Date.now() - startedAt, result, autopilot })
     }
     case "daily": {
       const result = await runActivityDigest("day")
-      return NextResponse.json({ ok: true, job, durationMs: Date.now() - startedAt, result })
+      const autopilot = await runAutopilotTopUp().catch((err) => {
+        console.error("[cron/notifications] autopilot top-up", err)
+        return null
+      })
+      return NextResponse.json({ ok: true, job, durationMs: Date.now() - startedAt, result, autopilot })
     }
     case "weekly": {
       const result = await runActivityDigest("week")
