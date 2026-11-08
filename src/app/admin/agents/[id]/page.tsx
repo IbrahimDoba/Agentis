@@ -20,6 +20,19 @@ export default async function AdminAgentDetailPage({ params }: PageProps) {
 
   if (!agent) notFound()
 
+  const [labels, groups] = await Promise.all([
+    db.whatsAppLabel.findMany({
+      where: { agentId: id, deleted: false },
+      orderBy: [{ isStage: "desc" }, { stageOrder: "asc" }, { name: "asc" }],
+      select: { id: true, name: true, isStage: true, stageOrder: true, applyRule: true, aiDisabled: true, aiEnabled: true },
+    }),
+    db.groupChat.findMany({
+      where: { agentId: id },
+      orderBy: { lastMessageAt: { sort: "desc", nulls: "last" } },
+      select: { id: true, subject: true, replyMode: true, lastMessageAt: true },
+    }),
+  ])
+
   // Pass the full agent through — previously we hand-picked fields and dropped
   // things like productsData, toolsData, category, address. The forms then saved
   // empty values back, silently wiping the user's data.
@@ -34,5 +47,11 @@ export default async function AdminAgentDetailPage({ params }: PageProps) {
     },
   }
 
-  return <AdminAgentClient agent={agentPublic} />
+  return (
+    <AdminAgentClient
+      agent={agentPublic}
+      labels={labels}
+      groups={groups.map((g) => ({ ...g, lastMessageAt: g.lastMessageAt?.toISOString() ?? null }))}
+    />
+  )
 }
