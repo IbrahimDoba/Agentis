@@ -121,7 +121,7 @@ export function AgentProfileForm({ agent, onDirtyChange }: AgentProfileFormProps
       {/* Info banner */}
       <div className={styles.infoBanner}>
         <InformationCircleIcon width={15} height={15} className={styles.infoIcon} />
-        <span>This information will be shown on your agent&apos;s WhatsApp Business profile, visible to customers who message you.</span>
+        <span>These details identify this agent in your dashboard. They don&apos;t change your WhatsApp profile.</span>
       </div>
 
       {/* Profile Picture */}
