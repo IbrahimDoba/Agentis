@@ -11,6 +11,7 @@ import {
 import { PAYG_DEFAULT_NGN_PER_CREDIT } from "@/lib/credits"
 import { useBrand } from "@/components/BrandProvider"
 import styles from "./page.module.css"
+import { TutorialLink } from "@/components/dashboard/Tutorials"
 
 interface SubStatus {
   plan: string
@@ -131,6 +132,7 @@ export default function SubscriptionPage() {
       <div className={styles.header}>
         <h1 className={styles.title}>Subscription Plans</h1>
         <p className={styles.subtitle}>Choose the plan that fits your business. Upgrade or downgrade anytime.</p>
+        <TutorialLink id="billing" />
       </div>
 
       {notice && <div className={styles.pendingBanner}><span>{notice}</span></div>}

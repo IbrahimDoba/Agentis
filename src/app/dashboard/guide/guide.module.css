@@ -266,3 +266,8 @@
   text-align: center;
   color: var(--text-muted);
 }
+
+.sectionLink {
+  color: var(--accent);
+  text-underline-offset: 3px;
+}

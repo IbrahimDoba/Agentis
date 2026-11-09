@@ -5,6 +5,7 @@ import styles from "./page.module.css"
 import { ChatsClient } from "@/components/dashboard/ChatsClient"
 import Link from "next/link"
 import Button from "@/components/ui/Button"
+import { TutorialLink } from "@/components/dashboard/Tutorials"
 
 export default async function ChatsPage() {
   const session = await auth()
@@ -29,6 +30,7 @@ export default async function ChatsPage() {
           <p className={styles.subtitle}>
             {hasAnyActive ? "All conversations with your AI agents" : "Connect your agent to see conversations"}
           </p>
+          <TutorialLink id="conversations" />
         </div>
       </div>
 

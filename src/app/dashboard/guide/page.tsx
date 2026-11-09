@@ -2,6 +2,8 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { GUIDE_CATEGORIES, GUIDE_TOPICS } from "@/lib/guide-content"
 import { getTenantBranding } from "@/lib/tenant"
+import { PUBLISHED_TUTORIALS, TUTORIAL_PLAYLIST_URL } from "@/lib/tutorial-videos"
+import { TutorialGrid } from "@/components/dashboard/Tutorials"
 import styles from "./guide.module.css"
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -25,6 +27,21 @@ export default async function GuideIndexPage() {
           Read top-to-bottom for a full walkthrough, or jump to the topic you need.
         </p>
       </header>
+
+      {branding.isPlatform && PUBLISHED_TUTORIALS.length > 0 && (
+        <section className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>Video tutorials</h2>
+            <p className={styles.sectionDesc}>
+              Short walkthroughs of each part of the app.{" "}
+              <a href={TUTORIAL_PLAYLIST_URL} target="_blank" rel="noopener noreferrer" className={styles.sectionLink}>
+                Watch them all on YouTube
+              </a>
+            </p>
+          </div>
+          <TutorialGrid videos={PUBLISHED_TUTORIALS} />
+        </section>
+      )}
 
       {GUIDE_CATEGORIES.map((category) => {
         const topics = GUIDE_TOPICS.filter((t) => t.category === category.id)

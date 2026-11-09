@@ -8,6 +8,7 @@ import { BroadcastsPanel } from "@/components/dashboard/BroadcastsPanel"
 import { FollowUpPanel } from "@/components/dashboard/FollowUpPanel"
 import { QuickSendPanel } from "@/components/dashboard/QuickSendPanel"
 import styles from "./page.module.css"
+import { TutorialLink } from "@/components/dashboard/Tutorials"
 
 interface Agent {
   id: string
@@ -101,6 +102,7 @@ export default function BroadcastsPage() {
         <div>
           <h1 className={styles.title}>Broadcasts</h1>
           <p className={styles.subtitle}>Send carefully paced WhatsApp campaigns to existing contacts only.</p>
+          <TutorialLink id="broadcasts" />
         </div>
         <Link href="/dashboard/channels/whatsapp-web" className={styles.linkCard}>
           <DevicePhoneMobileIcon width={16} height={16} />

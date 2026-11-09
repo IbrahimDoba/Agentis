@@ -4,6 +4,7 @@ import { usePlanStats } from "@/hooks/usePlanStats"
 import { useDashboardData } from "@/hooks/useDashboardData"
 import { TeamTab } from "@/components/dashboard/TeamTab"
 import styles from "./page.module.css"
+import { TutorialLink } from "@/components/dashboard/Tutorials"
 
 export default function TeamPage() {
   const { data: planStats } = usePlanStats()
@@ -19,6 +20,7 @@ export default function TeamPage() {
             ? "Invite team members and manage roles in your workspace."
             : "View the team members of this workspace."}
         </p>
+        <TutorialLink id="team" />
       </div>
       <TeamTab
         plan={planStats?.plan ?? "free"}

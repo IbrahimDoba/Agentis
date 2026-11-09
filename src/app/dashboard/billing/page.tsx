@@ -6,6 +6,7 @@ import { PLAN_LABELS, PLAN_PRICES, PLAN_CREDIT_LIMITS, PLAN_OVERAGE_RATE_PER_1K,
 import { hasUsableWallet, paygTakeover } from "@/lib/walletStatus"
 import { formatDate } from "@/lib/utils"
 import styles from "./page.module.css"
+import { TutorialLink } from "@/components/dashboard/Tutorials"
 
 function StatRow({ label, value, sub }: { label: string; value: React.ReactNode; sub?: string }) {
   return (
@@ -129,6 +130,7 @@ export default function BillingPage() {
       <div className={styles.header}>
         <h1 className={styles.title}>Subscription &amp; Usage</h1>
         <p className={styles.subtitle}>Your current plan and credit usage for {monthName}.</p>
+        <TutorialLink id="billing" />
       </div>
 
       <div className={styles.grid}>
