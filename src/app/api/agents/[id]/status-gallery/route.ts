@@ -69,6 +69,8 @@ export async function GET(_req: NextRequest, { params }: Params) {
           backgroundColor: i.backgroundColor,
           mediaItemId: i.mediaItemId,
           aiNote: i.aiNote,
+          tags: i.tags,
+          autopilot: i.autopilot,
           mediaMissing: i.kind !== "text" && !(i.mediaItemId && liveMedia.has(i.mediaItemId)),
           timesPosted: s?.timesPosted ?? 0,
           lastPostedAt: s?.lastPostedAt?.toISOString() ?? null,

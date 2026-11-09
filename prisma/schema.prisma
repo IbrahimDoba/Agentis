@@ -341,6 +341,7 @@ model Agent {
   contactSaveRuns              ContactSaveRun[]
   statusPosts                  StatusPost[]
   statusGalleryItems           StatusGalleryItem[]
+  statusAutopilot              StatusAutopilot?
 
   // Postgres does not auto-index FKs. `userId` is the app's hottest filter
   // (dashboard, billing, stats poll); `agentRuntime`/`elevenlabsAgentId` gate
@@ -410,6 +411,10 @@ model StatusGalleryItem {
   // Removed from the gallery by the owner; posting the same content again
   // brings the card back.
   hiddenAt        DateTime?    @db.Timestamptz()
+  // Owner's labels ("ankara", "offer") that Autopilot rules pick by.
+  tags            String[]     @default([])
+  // Unticked by the owner: Autopilot never picks this card.
+  autopilot       Boolean      @default(true)
   createdAt       DateTime     @default(now()) @db.Timestamptz()
   updatedAt       DateTime     @updatedAt @db.Timestamptz()
   posts           StatusPost[]
@@ -449,11 +454,39 @@ model StatusPost {
   // content all point at one card.
   galleryItemId   String?
   galleryItem     StatusGalleryItem? @relation(fields: [galleryItemId], references: [id], onDelete: SetNull)
+  source          String    @default("manual") // manual | autopilot
+  // "<Lagos day> <HH:MM>" for an Autopilot slot. Unique per agent so two
+  // planner runs can't fill the same slot twice, and a skipped slot (cancelled
+  // row) isn't planned again.
+  autopilotKey    String?
 
+  @@unique([agentId, autopilotKey])
   @@index([agentId, scheduledAt])
   @@index([galleryItemId])
   @@index([agentId, waMessageId])
   @@index([status, scheduledAt])
+}
+
+// Status → Autopilot: one plan per agent. The plan is rules (times, days, which
+// gallery cards, order); the planner turns it into ordinary scheduled
+// StatusPost rows a week ahead, so posting itself is the same path as a manual
+// post. See src/lib/status-autopilot.ts.
+model StatusAutopilot {
+  id           String    @id @default(cuid())
+  agentId      String    @unique
+  agent        Agent     @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  enabled      Boolean   @default(false)
+  // Set by the planner when it stops on its own (repeated failures, trial
+  // ended); cleared when the owner turns it back on.
+  pausedReason String?
+  mode         String // suggested | preset:<id> | custom
+  // The owner's own words, kept so a later "change it" builds on them.
+  instructions String?   @db.Text
+  plan         Json
+  // Failures before this don't count towards pausing again.
+  resumedAt    DateTime? @db.Timestamptz()
+  createdAt    DateTime  @default(now()) @db.Timestamptz()
+  updatedAt    DateTime  @updatedAt @db.Timestamptz()
 }
 
 // One person's reaction to one status post, from WhatsApp receipts, likes and

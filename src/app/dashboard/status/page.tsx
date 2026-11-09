@@ -8,6 +8,7 @@ import { ContactsTab } from "@/components/dashboard/status/ContactsTab"
 import { PostsTab } from "@/components/dashboard/status/PostsTab"
 import { AnalyticsTab } from "@/components/dashboard/status/AnalyticsTab"
 import { GalleryTab } from "@/components/dashboard/status/GalleryTab"
+import { AutopilotTab } from "@/components/dashboard/status/AutopilotTab"
 import type { StatusDraft } from "@/lib/status-post"
 import styles from "./page.module.css"
 
@@ -46,12 +47,8 @@ const TABS: Array<{ id: Tab; label: string; ready: boolean }> = [
   { id: "gallery", label: "Gallery", ready: true },
   { id: "contacts", label: "Contacts", ready: true },
   { id: "analytics", label: "Analytics", ready: true },
-  { id: "autopilot", label: "Autopilot", ready: false },
+  { id: "autopilot", label: "Autopilot", ready: true },
 ]
-
-const COMING_SOON: Record<Exclude<Tab, "contacts" | "posts" | "analytics" | "gallery">, string> = {
-  autopilot: "Keep your status fresh automatically: pick your products and times, and your status gets posted for you every day.",
-}
 
 function sessionLabel(status: SessionStatus["status"] | undefined): string {
   if (!status) return "No session"
@@ -171,17 +168,13 @@ export default function StatusPage() {
         </section>
 
         <section className={styles.mainCard}>
-          {tab === "autopilot" ? (
-            <div className={styles.emptyState}>
-              <span className={styles.emptyIcon}><PhotoIcon width={24} height={24} /></span>
-              <div className={styles.soonTitle}>Autopilot is coming soon</div>
-              <div className={styles.emptyText}>{COMING_SOON[tab]}</div>
-            </div>
-          ) : !selected ? (
+          {!selected ? (
             <div className={styles.emptyState}>
               <span className={styles.emptyIcon}><PhotoIcon width={24} height={24} /></span>
               <div className={styles.emptyText}>Select an agent with a linked WhatsApp number.</div>
             </div>
+          ) : tab === "autopilot" ? (
+            <AutopilotTab key={selected.agent.id} agentId={selected.agent.id} isConnected={selected.session?.status === "CONNECTED"} />
           ) : tab === "analytics" ? (
             <AnalyticsTab key={selected.agent.id} agentId={selected.agent.id} />
           ) : tab === "gallery" ? (

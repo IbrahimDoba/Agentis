@@ -24,7 +24,19 @@ export async function GET(_req: NextRequest, { params }: Params) {
 
     const { start, end } = lagosDayBounds(new Date())
     const [posts, contacts, postsToday] = await Promise.all([
-      db.statusPost.findMany({ where: { agentId: id }, orderBy: { scheduledAt: "desc" }, take: 50 }),
+      // Autopilot plans a week ahead; those posts live in the Autopilot tab
+      // until they're about to go out, or they'd crowd out everything else.
+      db.statusPost.findMany({
+        where: {
+          agentId: id,
+          NOT: {
+            source: "autopilot",
+            OR: [{ status: "cancelled", postedAt: null }, { status: "scheduled", scheduledAt: { gt: new Date(Date.now() + 10 * 60_000) } }],
+          },
+        },
+        orderBy: { scheduledAt: "desc" },
+        take: 50,
+      }),
       db.whatsAppContact.count({ where: { agentId: id } }),
       db.statusPost.count({ where: { agentId: id, scheduledAt: { gte: start, lt: end }, status: { notIn: ["cancelled", "failed"] } } }),
     ])
@@ -47,6 +59,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
         mediaItemId: p.mediaItemId,
         aiNote: p.aiNote,
         galleryItemId: p.galleryItemId,
+        source: p.source,
         status: p.status,
         scheduledAt: p.scheduledAt.toISOString(),
         postedAt: p.postedAt?.toISOString() ?? null,
