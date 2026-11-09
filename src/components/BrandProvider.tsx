@@ -27,15 +27,20 @@ export function useBrand(): Branding {
   return useContext(BrandContext)
 }
 
+// The platform's logo reads "Dailzero" while its product name (titles, emails,
+// copy) is still "D-Zero AI". Resellers keep their own name.
+const PLATFORM_WORDMARK = "Dailzero"
+
 /** Logo + app name for the current tenant (custom logo image if provided). */
 export function BrandWordmark({ size = 32 }: { size?: number }) {
   const brand = useBrand()
+  const name = brand.isPlatform ? PLATFORM_WORDMARK : brand.appName
   return (
     <>
       {brand.logoUrl
-        ? <img src={brand.logoUrl} alt={brand.appName} style={{ height: size, width: "auto", objectFit: "contain" }} />
+        ? <img src={brand.logoUrl} alt={name} style={{ height: size, width: "auto", objectFit: "contain" }} />
         : <LogoIcon size={size} />}
-      {brand.appName}
+      {name}
     </>
   )
 }
