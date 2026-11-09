@@ -171,7 +171,7 @@ export function Navbar() {
           {theme === "dark" ? <SunIcon width={18} height={18} /> : <MoonIcon width={18} height={18} />}
         </button>
         <Link href="/login" className={styles.signIn}>Sign in</Link>
-        <Link href="/signup" className={styles.getAccess}>Get Access</Link>
+        <Link href="/signup" className={styles.getAccess}>Start free trial</Link>
       </div>
 
       {/* Hamburger */}
@@ -256,7 +256,7 @@ export function Navbar() {
             {/* CTA buttons */}
             <div className={styles.mobileActions}>
               <Link href="/login" className={styles.mobileSignIn} onClick={closeMenu}>Sign in</Link>
-              <Link href="/signup" className={styles.mobileGetAccess} onClick={closeMenu}>Get Access</Link>
+              <Link href="/signup" className={styles.mobileGetAccess} onClick={closeMenu}>Start free trial</Link>
             </div>
           </div>
         </div>

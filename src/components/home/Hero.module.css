@@ -1,0 +1,442 @@
+.hero {
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid var(--h-line);
+}
+
+.wave {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.inner {
+  position: relative;
+  max-width: var(--h-max);
+  margin: 0 auto;
+  min-height: min(100dvh, 820px);
+  padding: 136px 48px 88px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  align-items: center;
+  gap: 48px;
+  border-inline: 1px solid var(--h-line);
+}
+
+.copy {
+  max-width: 600px;
+}
+
+.live {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 28px;
+  padding: 6px 12px 6px 10px;
+  border: 1px solid var(--h-line);
+  border-radius: 999px;
+  background: var(--h-surface);
+  font-size: 13px;
+  color: var(--h-muted);
+}
+
+.liveDot {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--h-accent);
+}
+
+.liveDot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--h-accent);
+  animation: ping 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.liveCount {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--h-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.h1 {
+  margin: 0;
+  font-size: clamp(38px, 4.6vw, 58px);
+  line-height: 1.04;
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  color: var(--h-text);
+}
+
+/* One line on desktop so "answered." never moves while the word types. */
+.line1 {
+  white-space: nowrap;
+}
+
+.typed {
+  color: var(--h-text);
+}
+
+.caret {
+  display: inline-block;
+  width: 0.06em;
+  height: 0.9em;
+  margin-left: 0.06em;
+  vertical-align: -0.08em;
+  background: var(--h-accent);
+  animation: blink 1s steps(1) infinite;
+}
+
+.dot {
+  color: var(--h-accent);
+}
+
+.sub {
+  margin: 24px 0 0;
+  max-width: 46ch;
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--h-muted);
+}
+
+.ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 36px;
+}
+
+.primary,
+.secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 20px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.primary {
+  background: var(--h-ink);
+  color: var(--h-on-ink);
+}
+
+.primary:hover {
+  background: var(--h-ink-hover);
+}
+
+.primary svg {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.primary:hover svg {
+  transform: translateX(3px);
+}
+
+.secondary {
+  border: 1px solid var(--h-line-strong);
+  background: var(--h-surface);
+  color: var(--h-text);
+}
+
+.secondary:hover {
+  border-color: var(--h-muted);
+}
+
+.primary:active,
+.secondary:active {
+  transform: scale(0.98);
+}
+
+.primary:focus-visible,
+.secondary:focus-visible {
+  outline: 2px solid var(--h-accent);
+  outline-offset: 3px;
+}
+
+/* Chat story */
+
+.chat {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 380px;
+  min-height: 430px;
+  justify-self: end;
+}
+
+.bubbleIn,
+.bubbleOut,
+.order,
+.saved,
+.typing {
+  opacity: 0;
+  transform: translateY(10px) scale(0.98);
+  transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-shown="true"].bubbleIn,
+[data-shown="true"].bubbleOut,
+[data-shown="true"].order,
+[data-shown="true"].saved,
+[data-shown="true"].typing {
+  opacity: 1;
+  transform: none;
+}
+
+.bubbleIn,
+.bubbleOut {
+  position: relative;
+  max-width: 85%;
+  padding: 10px 14px 22px;
+  border: 1px solid var(--h-line);
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--h-text);
+  box-shadow: var(--h-shadow);
+}
+
+.bubbleIn {
+  align-self: flex-start;
+  border-radius: 14px 14px 14px 4px;
+  background: var(--h-surface);
+}
+
+.bubbleOut {
+  align-self: flex-end;
+  border-radius: 14px 14px 4px 14px;
+  background: var(--h-bubble-out);
+}
+
+.agent {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--h-accent-ink);
+}
+
+.time {
+  position: absolute;
+  right: 10px;
+  bottom: 5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 10px;
+  color: var(--h-faint);
+}
+
+.time svg {
+  color: var(--h-accent);
+}
+
+/* Takes no space when hidden, so the AI reply lands where the dots were. */
+.typing {
+  display: flex;
+  gap: 4px;
+  align-self: flex-end;
+  height: 0;
+  padding: 0 14px;
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--h-bubble-out);
+}
+
+[data-shown="true"].typing {
+  height: 34px;
+  align-items: center;
+}
+
+.typing span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--h-muted);
+  animation: bounce 1s ease-in-out infinite;
+}
+
+.typing span:nth-child(2) { animation-delay: 0.15s; }
+.typing span:nth-child(3) { animation-delay: 0.3s; }
+
+.order {
+  margin-top: 6px;
+  padding: 14px;
+  border: 1px solid var(--h-line);
+  border-radius: 14px;
+  background: var(--h-surface);
+  box-shadow: var(--h-shadow);
+}
+
+.orderTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.orderId {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 11px;
+  color: var(--h-faint);
+}
+
+.orderPrice {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--h-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.orderItem {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--h-muted);
+}
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: 1px solid var(--h-line);
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--h-faint);
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+.pill svg {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.pill[data-on="true"] {
+  border-color: transparent;
+  background: var(--h-accent-soft);
+  color: var(--h-accent-ink);
+}
+
+.pill[data-on="true"] svg {
+  opacity: 1;
+}
+
+.saved {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid var(--h-line);
+  border-radius: 12px;
+  background: var(--h-surface);
+  font-size: 13px;
+  color: var(--h-text);
+}
+
+.savedIcon {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--h-accent);
+  color: var(--h-on-accent);
+}
+
+@keyframes ping {
+  75%, 100% { transform: scale(2.4); opacity: 0; }
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+@keyframes bounce {
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-3px); }
+}
+
+@media (max-width: 960px) {
+  .inner {
+    grid-template-columns: 1fr;
+    min-height: 0;
+    padding: 112px 24px 64px;
+    gap: 40px;
+  }
+
+  .chat {
+    justify-self: start;
+    min-height: 410px;
+  }
+
+  .wave {
+    top: auto;
+    height: 480px;
+  }
+}
+
+@media (max-width: 640px) {
+  .inner {
+    padding: 104px 16px 56px;
+    border-inline: 0;
+  }
+
+  /* The longest phrase wraps on a phone; reserve three lines so the text
+     below doesn't jump as words type and delete. */
+  .h1 {
+    min-height: 3.12em;
+  }
+
+  .line1 {
+    white-space: normal;
+  }
+
+  .sub {
+    font-size: 16px;
+  }
+
+  .primary,
+  .secondary {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .liveDot::after,
+  .caret,
+  .typing span {
+    animation: none;
+  }
+
+  .bubbleIn,
+  .bubbleOut,
+  .order,
+  .saved,
+  .typing,
+  .pill,
+  .pill svg {
+    transition: none;
+  }
+}
