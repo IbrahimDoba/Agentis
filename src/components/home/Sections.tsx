@@ -1,9 +1,10 @@
 import Link from "next/link"
 import {
-  ArrowRight, BookOpen, Brain, Check, Code2, Globe, Hand, Megaphone, Repeat, ShieldCheck, Target, UserPlus, Users,
+  ArrowRight, BookOpen, Brain, Check, CircleDashed, Code2, Globe, Hand, Megaphone, Repeat, ShieldCheck, Target, UserPlus, Users,
 } from "lucide-react"
 import { formatCount } from "@/lib/odometer"
-import { PLAN_PRICES, formatNaira } from "@/lib/plans"
+import { PLAN_PRICES, PLAN_CREDIT_LIMITS, estimatedAiMessages, formatNaira } from "@/lib/plans"
+import { STATUS_RECIPIENT_CAPS } from "@/lib/status-post"
 import { PAYG_DEFAULT_NGN_PER_CREDIT } from "@/lib/credits"
 import type { PublicStats } from "@/lib/queries/publicStats"
 import { LineWave } from "./LineWave"
@@ -211,23 +212,51 @@ export function Steps() {
   )
 }
 
-const STARTER = [
-  "1 AI WhatsApp agent",
-  "60,000 credits a month (about 12,000 AI messages)",
-  "Text and image replies",
-  "Advanced FAQ handling",
-  "Conversation dashboard",
-  "Lead detection and customer memory",
+interface PlanCard {
+  id: "basic" | "starter" | "pro"
+  name: string
+  desc: string
+  agents: string
+  features: string[]
+  popular?: boolean
+}
+
+const PLANS: PlanCard[] = [
+  {
+    id: "basic",
+    name: "Basic",
+    desc: "For small shops starting out with one WhatsApp number.",
+    agents: "1 AI WhatsApp agent",
+    features: ["Text and image replies", "FAQ handling", "Lead detection and customer memory", "Email support"],
+  },
+  {
+    id: "starter",
+    name: "Starter",
+    desc: "For small businesses putting their WhatsApp on autopilot.",
+    agents: "1 AI WhatsApp agent",
+    features: ["Text and image replies", "Advanced FAQ handling", "Conversation dashboard and analytics", "Lead detection and customer memory"],
+  },
+  {
+    id: "pro",
+    name: "Pro",
+    desc: "For growing businesses with more chats and more than one number.",
+    agents: "2 AI WhatsApp agents",
+    features: ["Text, image and media sending", "Automated follow-ups", "Multi-language support", "Priority support and analytics"],
+    popular: true,
+  },
 ]
 
-const PRO = [
-  "2 AI WhatsApp agents",
-  "100,000 credits a month (about 20,000 AI messages)",
-  "Text, image and media sending",
-  "Automated follow-ups",
-  "Multi-language support",
-  "Priority support and analytics",
-]
+// Credits, AI-message estimates and Status reach come from the same constants
+// billing and the worker use, so this card can't promise more than the plan gets.
+function planLines(plan: PlanCard) {
+  const credits = PLAN_CREDIT_LIMITS[plan.id]
+  const messages = estimatedAiMessages(credits)
+  return [
+    plan.agents,
+    `${credits.toLocaleString("en-NG")} credits a month${messages ? ` (about ${messages.toLocaleString("en-NG")} AI messages)` : ""}`,
+    ...plan.features,
+  ]
+}
 
 export function Pricing() {
   return (
@@ -239,25 +268,28 @@ export function Pricing() {
           lead="Every plan comes with monthly credits. A typical AI reply uses about 5 credits, and your AI simply pauses if they run out."
         />
         <Reveal className={styles.plans}>
-          <div className={styles.plan}>
-            <div className={styles.planName}>Starter</div>
-            <div className={styles.planPrice}>{formatNaira(PLAN_PRICES.starter)}<span> / month</span></div>
-            <p className={styles.planDesc}>For small businesses putting their WhatsApp on autopilot.</p>
-            <ul className={styles.planList}>
-              {STARTER.map((f) => <li key={f} className={styles.planItem}><Check size={14} aria-hidden="true" />{f}</li>)}
-            </ul>
-            <Link href="/signup" className={styles.planBtn}>Start free trial</Link>
-          </div>
-          <div className={`${styles.plan} ${styles.planPro}`}>
-            <span className={styles.planBadge}>Most popular</span>
-            <div className={styles.planName}>Pro</div>
-            <div className={styles.planPrice}>{formatNaira(PLAN_PRICES.pro)}<span> / month</span></div>
-            <p className={styles.planDesc}>For growing businesses with more chats and more than one number.</p>
-            <ul className={styles.planList}>
-              {PRO.map((f) => <li key={f} className={styles.planItem}><Check size={14} aria-hidden="true" />{f}</li>)}
-            </ul>
-            <Link href="/signup" className={`${styles.planBtn} ${styles.planBtnSolid}`}>Start free trial</Link>
-          </div>
+          {PLANS.map((plan) => (
+            <div key={plan.id} className={`${styles.plan} ${plan.popular ? styles.planPro : ""}`}>
+              {plan.popular && <span className={styles.planBadge}>Most popular</span>}
+              <div className={styles.planName}>{plan.name}</div>
+              <div className={styles.planPrice}>{formatNaira(PLAN_PRICES[plan.id])}<span> / month</span></div>
+              <p className={styles.planDesc}>{plan.desc}</p>
+              <ul className={styles.planList}>
+                {planLines(plan).map((f) => <li key={f} className={styles.planItem}><Check size={14} aria-hidden="true" />{f}</li>)}
+              </ul>
+              <div className={styles.planStatus}>
+                <div className={styles.planStatusHead}>
+                  <CircleDashed size={14} aria-hidden="true" />
+                  WhatsApp Status
+                </div>
+                <div className={styles.planStatusLine}>
+                  Each post reaches up to <b>{STATUS_RECIPIENT_CAPS[plan.id].toLocaleString("en-NG")}</b> contacts
+                </div>
+                <div className={styles.planStatusLine}>Autopilot posts from your gallery daily</div>
+              </div>
+              <Link href="/signup" className={`${styles.planBtn} ${plan.popular ? styles.planBtnSolid : ""}`}>Start free trial</Link>
+            </div>
+          ))}
         </Reveal>
         <p className={styles.payg}>
           Prefer no subscription? Pay as you go from ₦{PAYG_DEFAULT_NGN_PER_CREDIT.toFixed(2)} a credit, valid for 12 months.
