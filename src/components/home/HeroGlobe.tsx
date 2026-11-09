@@ -2,25 +2,36 @@
 import { useEffect, useRef } from "react"
 import { LAND_DOTS } from "./globe-land"
 
-// A dotted globe behind the hero, turning slowly, with messages arcing out of
-// Lagos. Canvas 2D on purpose: the old three.js globe cost a WebGL
+// A dotted globe behind the hero, turning slowly, with messages flying between
+// cities on the side facing the viewer. Canvas 2D on purpose: the old three.js globe cost a WebGL
 // context and a texture download for what is meant to be background.
 
 const DEG = Math.PI / 180
 const TILT = 18 * DEG
 const SPIN = 0.05 // radians a second
-const ARC_SECONDS = 1.6
+const FLIGHTS = 4
 
-const LAGOS: [number, number] = [6.52, 3.38]
+// Lagos first: it is the hub, so half of all flights start or end there.
 const CITIES: [number, number][] = [
+  [6.52, 3.38], // Lagos
   [9.06, 7.5], // Abuja
+  [12.0, 8.52], // Kano
+  [4.82, 7.03], // Port Harcourt
   [5.6, -0.19], // Accra
+  [14.72, -17.47], // Dakar
+  [5.36, -4.01], // Abidjan
   [-1.29, 36.82], // Nairobi
   [-26.2, 28.05], // Johannesburg
+  [-33.92, 18.42], // Cape Town
+  [30.04, 31.24], // Cairo
+  [33.57, -7.59], // Casablanca
+  [-4.32, 15.31], // Kinshasa
   [51.51, -0.13], // London
+  [48.86, 2.35], // Paris
   [25.2, 55.27], // Dubai
   [40.71, -74.0], // New York
-  [30.04, 31.24], // Cairo
+  [-23.55, -46.63], // Sao Paulo
+  [19.08, 72.88], // Mumbai
 ]
 
 type Vec = [number, number, number]
@@ -131,66 +142,111 @@ export function HeroGlobe({ className }: { className?: string }) {
       ctx.globalAlpha = 1
     }
 
-    const origin = toVec(...LAGOS)
-    const targets = CITIES.map((c) => toVec(...c))
+    const cities = CITIES.map((c) => toVec(...c))
+    const angle = (a: Vec, b: Vec) => Math.acos(Math.min(1, Math.max(-1, a[0] * b[0] + a[1] * b[1] + a[2] * b[2])))
+    const ease = (u: number) => (u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2)
+    const clamp = (u: number) => Math.min(1, Math.max(0, u))
+
+    type Flight = { from: number; to: number; start: number; duration: number; rgb: "color" | "tint" }
+    const flights: (Flight | null)[] = Array(FLIGHTS).fill(null)
+
+    // Only routes between cities on the near side, so every flight is seen
+    // from take-off to landing instead of vanishing behind the globe.
+    const pickFlight = (rot: number, t: number, slot: number): Flight | null => {
+      const near = cities.map((c, i) => (project(c, rot).z > 0.3 ? i : -1)).filter((i) => i >= 0)
+      if (near.length < 2) return null
+      for (let tries = 0; tries < 12; tries++) {
+        const from = Math.random() < 0.5 && near.includes(0) ? 0 : near[Math.floor(Math.random() * near.length)]
+        const to = near[Math.floor(Math.random() * near.length)]
+        const gap = angle(cities[from], cities[to])
+        const busy = flights.some((f) => f && ((f.from === from && f.to === to) || (f.from === to && f.to === from)))
+        if (from === to || busy || gap < 8 * DEG || gap > 75 * DEG) continue
+        return { from, to, start: t, duration: 1.6 + gap * 1.6, rgb: slot % 2 ? "tint" : "color" }
+      }
+      return null
+    }
+
+    // Reduced motion: a still picture of Lagos already connected.
+    const still: Flight[] = [7, 13, 15, 8].map((to, i) => ({ from: 0, to, start: 0, duration: 1, rgb: i % 2 ? "tint" : "color" }))
+
+    const point = (f: Flight, u: number, rot: number) => {
+      const lift = 1 + Math.sin(Math.PI * u) * (0.04 + angle(cities[f.from], cities[f.to]) * 0.22)
+      return project(slerp(cities[f.from], cities[f.to], u), rot, lift)
+    }
+
+    const drawFlight = (f: Flight, rot: number, t: number) => {
+      // The head flies out first, the tail follows and reels the line in.
+      const p = reduce ? 0.66 : (t - f.start) / (f.duration * 1.5)
+      const head = ease(clamp(p / 0.66))
+      const tail = reduce ? 0 : ease(clamp((p - 0.4) / 0.6))
+      const rgb = f.rgb === "tint" ? tint : color
+      const steps = 28
+
+      // Drawn as short segments so the trail can fade out behind the head.
+      let prev = point(f, tail, rot)
+      for (let k = 1; k <= steps; k++) {
+        const u = tail + (head - tail) * (k / steps)
+        const s = point(f, u, rot)
+        ctx.beginPath()
+        ctx.moveTo(prev.x, prev.y)
+        ctx.lineTo(s.x, s.y)
+        ctx.strokeStyle = `rgba(${rgb}, ${(0.1 + 0.75 * (k / steps)) * strength})`
+        ctx.stroke()
+        prev = s
+      }
+
+      if (head < 1) {
+        const glow = ctx.createRadialGradient(prev.x, prev.y, 0, prev.x, prev.y, 9)
+        glow.addColorStop(0, `rgba(${rgb}, ${0.55 * strength})`)
+        glow.addColorStop(1, `rgba(${rgb}, 0)`)
+        ctx.fillStyle = glow
+        ctx.fillRect(prev.x - 9, prev.y - 9, 18, 18)
+        ctx.beginPath()
+        ctx.arc(prev.x, prev.y, 2.2, 0, Math.PI * 2)
+        ctx.fillStyle = `rgba(${rgb}, ${strength})`
+        ctx.fill()
+      } else if (!reduce) {
+        // Landing ring at the destination.
+        const ring = clamp((p - 0.66) / 0.4)
+        const end = project(cities[f.to], rot)
+        ctx.beginPath()
+        ctx.arc(end.x, end.y, 3 + ring * 12, 0, Math.PI * 2)
+        ctx.strokeStyle = `rgba(${rgb}, ${(1 - ring) * 0.7 * strength})`
+        ctx.stroke()
+      }
+    }
 
     const drawArcs = (rot: number, t: number) => {
       ctx.lineWidth = 1.25
       ctx.lineCap = "round"
-      targets.forEach((target, i) => {
-        // Staggered so one or two messages are always in flight, never all.
-        const cycle = ((t / ARC_SECONDS + i) % CITIES.length) / 2
-        const head = reduce ? 1 : Math.min(1, cycle)
-        const tail = reduce ? 0 : Math.max(0, Math.min(1, cycle - 0.35))
-        if (!reduce && (head <= tail || cycle > 1.35)) return
 
-        const rgb = i % 2 ? tint : color
+      for (const [i, c] of cities.entries()) {
+        const s = project(c, rot)
+        if (s.z <= 0.05) continue
         ctx.beginPath()
-        let pen = false
-        for (let k = 0; k <= 40; k++) {
-          const u = tail + (head - tail) * (k / 40)
-          const s = project(slerp(origin, target, u), rot, 1 + Math.sin(Math.PI * u) * 0.18)
-          // Hidden only where the sphere is in front of it.
-          if (s.z < 0 && s.r < 1) {
-            pen = false
-            continue
-          }
-          if (pen) ctx.lineTo(s.x, s.y)
-          else ctx.moveTo(s.x, s.y)
-          pen = true
-        }
-        ctx.strokeStyle = `rgba(${rgb}, ${0.75 * strength})`
-        ctx.stroke()
-
-        if (head === 1) {
-          const end = project(target, rot)
-          if (end.z > 0) {
-            ctx.beginPath()
-            ctx.arc(end.x, end.y, 2.5, 0, Math.PI * 2)
-            ctx.fillStyle = `rgba(${rgb}, ${0.9 * strength})`
-            ctx.fill()
-          }
-        }
-      })
-
-      const home = project(origin, rot)
-      if (home.z > 0) {
-        const pulse = reduce ? 0 : (t % 2) / 2
-        ctx.beginPath()
-        ctx.arc(home.x, home.y, 3 + pulse * 10, 0, Math.PI * 2)
-        ctx.strokeStyle = `rgba(${color}, ${(1 - pulse) * 0.6 * strength})`
-        ctx.stroke()
-        ctx.beginPath()
-        ctx.arc(home.x, home.y, 3, 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(${color}, ${strength})`
+        ctx.arc(s.x, s.y, i === 0 ? 3 : 1.8, 0, Math.PI * 2)
+        ctx.fillStyle = `rgba(${color}, ${(i === 0 ? 1 : 0.35 + 0.4 * s.z) * strength})`
         ctx.fill()
       }
+
+      if (reduce) {
+        still.forEach((f) => drawFlight(f, rot, t))
+        return
+      }
+
+      flights.forEach((f, slot) => {
+        if (f && t - f.start > f.duration * 1.5) flights[slot] = null
+        // First flights take off one after another rather than all at once.
+        if (!flights[slot] && t > slot * 0.9) flights[slot] = pickFlight(rot, t, slot)
+        const live = flights[slot]
+        if (live) drawFlight(live, rot, t)
+      })
     }
 
     const draw = (now: number) => {
       const t = reduce ? 0 : (now - start) / 1000
       // Starts with West Africa facing the viewer, then turns east.
-      const rot = -LAGOS[1] * DEG - 0.35 - t * SPIN
+      const rot = -CITIES[0][1] * DEG - 0.35 - t * SPIN
       ctx.clearRect(0, 0, width, height)
       drawGlobe(rot)
       drawArcs(rot, t)
