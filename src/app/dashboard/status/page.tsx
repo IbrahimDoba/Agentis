@@ -11,6 +11,7 @@ import { GalleryTab } from "@/components/dashboard/status/GalleryTab"
 import { AutopilotTab } from "@/components/dashboard/status/AutopilotTab"
 import type { StatusDraft } from "@/lib/status-post"
 import styles from "./page.module.css"
+import { TutorialLink } from "@/components/dashboard/Tutorials"
 
 interface Agent {
   id: string
@@ -98,6 +99,7 @@ export default function StatusPage() {
         <div>
           <h1 className={styles.title}>Status</h1>
           <p className={styles.subtitle}>Reach your customers on WhatsApp status, and let the AI answer whoever replies.</p>
+          <TutorialLink id="status" />
         </div>
         <Link href="/dashboard/channels/whatsapp-web" className={styles.linkCard}>
           <DevicePhoneMobileIcon width={16} height={16} />

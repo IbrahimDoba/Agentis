@@ -10,6 +10,7 @@ import { Modal } from "@/components/ui/Modal"
 import Button from "@/components/ui/Button"
 import { PAIRING_COUNTRIES } from "@/lib/pairingCountries"
 import styles from "./page.module.css"
+import { TutorialLink } from "@/components/dashboard/Tutorials"
 
 
 const DEFAULT_PAIRING_COUNTRY = "NG"
@@ -322,6 +323,7 @@ export default function WhatsAppWebPage() {
         <div>
           <h1 className={styles.title}>WhatsApp Web</h1>
           <p className={styles.subtitle}>Connect any WhatsApp number to your AI agent in seconds</p>
+          <TutorialLink id="channels" />
         </div>
         <Link href="/dashboard/channels/whatsapp-web/guide" className={styles.guideLink}>
           📖 Guide

@@ -4,6 +4,7 @@ import { db } from "@/lib/db"
 import { getWorkspaceContext } from "@/lib/workspace"
 import { AppointmentsClient } from "@/components/dashboard/AppointmentsClient"
 import styles from "./page.module.css"
+import { TutorialLink } from "@/components/dashboard/Tutorials"
 
 export default async function AppointmentsPage() {
   const session = await auth()
@@ -32,6 +33,7 @@ export default async function AppointmentsPage() {
         <p className={styles.subtitle}>
           Meetings, inspections and calls the AI or your team booked — you and your team get an email reminder before each one.
         </p>
+        <TutorialLink id="appointments" />
       </div>
       <AppointmentsClient
         agents={agents}

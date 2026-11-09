@@ -7,6 +7,7 @@ import { PAYG_TIERS } from "@/lib/credits"
 import { formatNaira } from "@/lib/plans"
 import { useBrand } from "@/components/BrandProvider"
 import styles from "./page.module.css"
+import { TutorialLink } from "@/components/dashboard/Tutorials"
 
 interface BalanceResp {
   creditBalance: number
@@ -126,6 +127,7 @@ function CreditsPageInner() {
           Top up your wallet for AI usage. Credits drain only after your monthly plan allowance is exhausted —
           and never expire as long as you keep using {brand.appName} (top-up extends the wallet by 12 months).
         </p>
+        <TutorialLink id="billing" />
       </header>
 
       <section className={styles.balanceCard}>

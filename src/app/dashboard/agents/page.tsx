@@ -7,6 +7,7 @@ import { useDashboardData } from "@/hooks/useDashboardData"
 import { AgentListCard } from "@/components/dashboard/AgentListCard"
 import Button from "@/components/ui/Button"
 import { LockClosedIcon, PlusIcon } from "@heroicons/react/24/outline"
+import { TutorialLink } from "@/components/dashboard/Tutorials"
 
 function Skeleton() {
   return (
@@ -37,6 +38,7 @@ export default function AgentsPage() {
           <p className={styles.subtitle}>
             {agents.length} of {maxAgents} agent{maxAgents !== 1 ? "s" : ""} used
           </p>
+          <TutorialLink id="create-agent" />
         </div>
         <div className={styles.headerRight}>
           {atLimit ? (

@@ -22,6 +22,8 @@ import Button from "@/components/ui/Button"
 import { useAgent } from "@/hooks/useAgent"
 import { useBrand } from "@/components/BrandProvider"
 import { cn } from "@/lib/utils"
+import { TutorialLink } from "@/components/dashboard/Tutorials"
+import type { TutorialId } from "@/lib/tutorial-videos"
 
 const TABS = (agentRuntime: string) => [
   { id: "profile", label: "Profile" },
@@ -35,6 +37,13 @@ const TABS = (agentRuntime: string) => [
   { id: "embed", label: "Embed" },
   { id: "settings", label: "Settings" },
 ]
+
+const TAB_TUTORIALS: Partial<Record<string, TutorialId>> = {
+  profile: "create-agent",
+  configuration: "agent-configuration",
+  documents: "agent-documents",
+  settings: "agent-settings",
+}
 
 const VALID_TABS = new Set(["profile", "configuration", "documents", "knowledge-base", "tools", "labels", "groups", "embed", "settings"])
 
@@ -196,6 +205,11 @@ export default function AgentDetailPage() {
 
       {/* Tab content */}
       <div className={styles.tabContent}>
+        {TAB_TUTORIALS[activeTab] && (
+          <div className={styles.tabTutorial}>
+            <TutorialLink id={TAB_TUTORIALS[activeTab]} label="Watch how this tab works" />
+          </div>
+        )}
         {activeTab === "profile" && (
           <AgentProfileForm agent={agent} onDirtyChange={handleProfileDirty} />
         )}

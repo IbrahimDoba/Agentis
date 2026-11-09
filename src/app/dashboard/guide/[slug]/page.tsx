@@ -10,6 +10,8 @@ import {
 import { getTenantBranding } from "@/lib/tenant"
 import styles from "../guide.module.css"
 import { renderGuideMarkdown } from "./renderer"
+import { getTutorialForGuide } from "@/lib/tutorial-videos"
+import { TutorialFeature } from "@/components/dashboard/Tutorials"
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -38,6 +40,7 @@ export default async function GuideTopicPage({ params }: PageProps) {
   const topic = getGuideBySlug(slug)
   if (!topic) notFound()
 
+  const video = branding.isPlatform ? getTutorialForGuide(topic.slug) : undefined
   const related = (topic.related ?? [])
     .map((s) => getGuideBySlug(s))
     .filter((t): t is GuideTopic => Boolean(t))
@@ -53,6 +56,8 @@ export default async function GuideTopicPage({ params }: PageProps) {
         <h1 className={styles.detailTitle}>{brandify(topic.title)}</h1>
         <p className={styles.detailIntro}>{brandify(topic.intro)}</p>
       </header>
+
+      {video && <TutorialFeature video={video} />}
 
       <article className={styles.body}>
         {renderGuideMarkdown(brandify(topic.body))}

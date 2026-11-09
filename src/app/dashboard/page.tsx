@@ -16,6 +16,7 @@ import { hasUsableWallet } from "@/lib/walletStatus"
 import { useRuntimePreference, type RuntimePreference } from "@/hooks/useRuntimePreference"
 import { useBrand } from "@/components/BrandProvider"
 import type { AgentPublic } from "@/types"
+import { TutorialLink } from "@/components/dashboard/Tutorials"
 
 async function fetchAgents(): Promise<AgentPublic[]> {
   const res = await fetch("/api/agents")
@@ -96,6 +97,7 @@ export default function DashboardPage() {
         <p className={styles.subtitle}>
           Here&apos;s an overview of your {brand.appName} account — {formatDate(new Date().toISOString())}
         </p>
+        <TutorialLink id="dashboard-tour" label="Take the 1-minute tour" />
         {overageActive && (
           <Link href="/dashboard/billing" className={styles.overageBadge}>
             Overage Active · {overageCredits.toLocaleString()} credits · {formatNaira(overageCharge)} due
