@@ -1,8 +1,9 @@
 "use client"
 import { useEffect, useRef } from "react"
+import { LAND_DOTS } from "./globe-land"
 
-// A thin wireframe globe behind the hero, turning slowly, with messages arcing
-// out of Lagos. Canvas 2D on purpose: the old three.js globe cost a WebGL
+// A dotted globe behind the hero, turning slowly, with messages arcing out of
+// Lagos. Canvas 2D on purpose: the old three.js globe cost a WebGL
 // context and a texture download for what is meant to be background.
 
 const DEG = Math.PI / 180
@@ -101,43 +102,33 @@ export function HeroGlobe({ className }: { className?: string }) {
       return { x: cx + x * radius * lift, y: cy - y * radius * lift, z, r: Math.hypot(x, y) * lift }
     }
 
-    const drawGrid = (rot: number) => {
+    const land: Vec[] = []
+    for (let k = 0; k < LAND_DOTS.length; k += 2) land.push(toVec(LAND_DOTS[k] / 10, LAND_DOTS[k + 1] / 10))
+
+    const drawGlobe = (rot: number) => {
+      // A faint body and rim so the oceans still read as part of a sphere.
+      const body = ctx.createRadialGradient(cx - radius * 0.3, cy - radius * 0.35, 0, cx, cy, radius)
+      body.addColorStop(0, `rgba(${color}, ${0.07 * strength})`)
+      body.addColorStop(1, `rgba(${color}, ${0.015 * strength})`)
       ctx.beginPath()
-      const trace = (points: Vec[]) => {
-        let pen = false
-        for (const p of points) {
-          const s = project(p, rot)
-          if (s.z < 0) {
-            pen = false
-            continue
-          }
-          if (pen) ctx.lineTo(s.x, s.y)
-          else ctx.moveTo(s.x, s.y)
-          pen = true
-        }
-      }
-      for (let lng = 0; lng < 360; lng += 15) {
-        const line: Vec[] = []
-        for (let lat = -90; lat <= 90; lat += 3) line.push(toVec(lat, lng))
-        trace(line)
-      }
-      for (let lat = -75; lat <= 75; lat += 15) {
-        const line: Vec[] = []
-        for (let lng = 0; lng <= 360; lng += 3) line.push(toVec(lat, lng))
-        trace(line)
-      }
-      // Lines fade towards the rim so the sphere reads as round, not a net.
-      const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius)
-      grad.addColorStop(0, `rgba(${color}, ${0.2 * strength})`)
-      grad.addColorStop(1, `rgba(${color}, ${0.04 * strength})`)
-      ctx.strokeStyle = grad
+      ctx.arc(cx, cy, radius, 0, Math.PI * 2)
+      ctx.fillStyle = body
+      ctx.fill()
+      ctx.strokeStyle = `rgba(${color}, ${0.16 * strength})`
       ctx.lineWidth = 1
       ctx.stroke()
 
-      ctx.beginPath()
-      ctx.arc(cx, cy, radius, 0, Math.PI * 2)
-      ctx.strokeStyle = `rgba(${color}, ${0.22 * strength})`
-      ctx.stroke()
+      // Dots fade and shrink towards the rim, which is what makes it look round.
+      const size = Math.max(1.1, radius / 230)
+      ctx.fillStyle = `rgb(${color})`
+      for (const v of land) {
+        const s = project(v, rot)
+        if (s.z <= 0.02) continue
+        ctx.globalAlpha = (0.12 + 0.5 * s.z) * strength
+        const d = size * (0.55 + 0.45 * s.z)
+        ctx.fillRect(s.x - d / 2, s.y - d / 2, d, d)
+      }
+      ctx.globalAlpha = 1
     }
 
     const origin = toVec(...LAGOS)
@@ -201,7 +192,7 @@ export function HeroGlobe({ className }: { className?: string }) {
       // Starts with West Africa facing the viewer, then turns east.
       const rot = -LAGOS[1] * DEG - 0.35 - t * SPIN
       ctx.clearRect(0, 0, width, height)
-      drawGrid(rot)
+      drawGlobe(rot)
       drawArcs(rot, t)
     }
 
