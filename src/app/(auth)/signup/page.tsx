@@ -188,7 +188,7 @@ function SignupForm() {
               autoComplete="tel"
             />
             <p className={styles.tooltip}>
-              📞 We&apos;ll use this number to confirm and activate your AI agent on WhatsApp.
+              📞 Optional. Our team uses it to reach you on WhatsApp if you need help getting set up.
             </p>
           </div>
 
