@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { SparklesIcon } from "@heroicons/react/24/outline"
-import { KnowledgeBaseTab } from "@/components/dashboard/KnowledgeBaseTab"
+import { DocumentsTab } from "@/components/dashboard/DocumentsTab"
 import { useBrand } from "@/components/BrandProvider"
 import styles from "./OnboardingFlow.module.css"
 
@@ -242,7 +242,7 @@ export function OnboardingFlow({ agentId, businessName }: Props) {
               <label className={styles.label}>
                 Upload a document <span className={styles.optional}>(optional)</span>
               </label>
-              <KnowledgeBaseTab agentId={agentId} />
+              <DocumentsTab agentId={agentId} />
             </div>
 
             <div className={styles.actions}>
