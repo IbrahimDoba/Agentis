@@ -295,7 +295,7 @@ export function Pricing() {
 export function ClosingCta() {
   return (
     <section className={`${styles.section} ${styles.cta}`}>
-      <LineWave variant="band" className={styles.ctaWave} />
+      <LineWave className={styles.ctaWave} />
       <div className={styles.frame}>
         <div className={styles.ctaRow}>
           <Head

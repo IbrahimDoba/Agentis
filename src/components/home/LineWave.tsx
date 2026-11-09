@@ -1,22 +1,14 @@
 "use client"
 import { useEffect, useRef } from "react"
 
-// Dailzero's signature: a ribbon of thin lines that slowly ripples. Drawn on a
-// 2D canvas (not three.js) so it costs a few hundred strokes a frame and stays
-// smooth on cheap Android phones.
-//
-// "sweep" is a twisted ribbon behind the hero: narrow at the left edge, the
-// lines cross over each other mid-way, then fan out wide and leave through the
-// top-right. "band" is a flat lens-shaped ribbon used lower on the page.
+// A lens-shaped ribbon of thin lines that slowly ripples, used behind the
+// closing call to action. Drawn on a 2D canvas (not three.js) so it costs a few
+// hundred strokes a frame and stays smooth on cheap Android phones.
 
-type Variant = "sweep" | "band"
-
-const LINES = { sweep: 44, band: 40 }
+const LINES = 40
 const STEP_PX = 5
 
-const sigmoid = (v: number) => 1 / (1 + Math.exp(-v))
-
-export function LineWave({ variant = "sweep", className }: { variant?: Variant; className?: string }) {
+export function LineWave({ className }: { className?: string }) {
   const ref = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
@@ -52,24 +44,6 @@ export function LineWave({ variant = "sweep", className }: { variant?: Variant; 
       readColor()
     }
 
-    // y for line i at horizontal position x (0..1), time t in seconds.
-    const sweepY = (x: number, i: number, n: number, t: number) => {
-      // Small per-line jitter so the lines never look ruled.
-      const s = (i / (n - 1) - 0.5) * 2 + Math.sin(i * 1.7) * 0.035
-      // Spine: low on the left, climbing steeply after the middle and out
-      // through the top-right.
-      const spine = height * (0.86 - 0.3 * x - 0.6 * sigmoid((x - 0.72) / 0.1))
-      // Ribbon width grows towards the right.
-      const span = height * (0.045 + 0.24 * x * x)
-      // The twist: cos(phase) passes through zero around x = 0.58, where the
-      // lines cross, then flips so the ribbon turns over. Each line's phase is
-      // offset a little so they cross one after another, not at one point.
-      const phase = (Math.PI / 2) * (x / 0.58) + s * 0.45 + 0.22 * Math.sin(t * 0.35)
-      const twist = s * span * Math.cos(phase) + s * height * 0.012
-      const ripple = Math.sin(x * 6 + t * 0.6 + s * 2) * height * 0.012 * (0.4 + x)
-      return spine + twist + ripple
-    }
-
     const bandY = (x: number, i: number, n: number, t: number) => {
       const spread = (i / (n - 1) - 0.5) * 2
       // Lens: thin at both ends, widest in the middle.
@@ -80,8 +54,7 @@ export function LineWave({ variant = "sweep", className }: { variant?: Variant; 
 
     const draw = (now: number) => {
       const t = reduce ? 4 : (now - start) / 1000
-      const n = LINES[variant]
-      const yAt = variant === "sweep" ? sweepY : bandY
+      const n = LINES
       ctx.clearRect(0, 0, width, height)
       ctx.lineWidth = 1
       for (let i = 0; i < n; i++) {
@@ -92,13 +65,13 @@ export function LineWave({ variant = "sweep", className }: { variant?: Variant; 
         const rgb = i % 3 === 0 ? tint : color
         const grad = ctx.createLinearGradient(0, 0, width, 0)
         grad.addColorStop(0, `rgba(${rgb}, 0)`)
-        grad.addColorStop(variant === "sweep" ? 0.3 : 0.15, `rgba(${rgb}, ${alpha})`)
-        grad.addColorStop(variant === "sweep" ? 0.92 : 0.85, `rgba(${rgb}, ${alpha})`)
+        grad.addColorStop(0.15, `rgba(${rgb}, ${alpha})`)
+        grad.addColorStop(0.85, `rgba(${rgb}, ${alpha})`)
         grad.addColorStop(1, `rgba(${rgb}, 0)`)
         ctx.strokeStyle = grad
         ctx.beginPath()
         for (let px = 0; px <= width; px += STEP_PX) {
-          const y = yAt(px / width, i, n, t)
+          const y = bandY(px / width, i, n, t)
           if (px === 0) ctx.moveTo(px, y)
           else ctx.lineTo(px, y)
         }
@@ -121,7 +94,7 @@ export function LineWave({ variant = "sweep", className }: { variant?: Variant; 
     sizeObserver.observe(canvas)
 
     // Off screen it stops drawing entirely, so a long page isn't animating
-    // three canvases at once.
+    // two canvases at once.
     const viewObserver = new IntersectionObserver(([entry]) => {
       visible = entry.isIntersecting
       cancelAnimationFrame(frame)
@@ -143,7 +116,7 @@ export function LineWave({ variant = "sweep", className }: { variant?: Variant; 
       viewObserver.disconnect()
       themeObserver.disconnect()
     }
-  }, [variant])
+  }, [])
 
   return <canvas ref={ref} className={className} aria-hidden="true" />
 }

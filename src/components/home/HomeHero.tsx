@@ -2,7 +2,7 @@ import Link from "next/link"
 import { ArrowRight, Play } from "lucide-react"
 import { formatCount } from "@/lib/odometer"
 import type { PublicStats } from "@/lib/queries/publicStats"
-import { LineWave } from "./LineWave"
+import { HeroGlobe } from "./HeroGlobe"
 import { TypedWord } from "./TypedWord"
 import { HeroChat } from "./HeroChat"
 import styles from "./Hero.module.css"
@@ -12,7 +12,7 @@ const WORDS = ["customer message", "11pm enquiry", "price question", "new order"
 export function HomeHero({ stats }: { stats: PublicStats | null }) {
   return (
     <section className={styles.hero}>
-      <LineWave className={styles.wave} />
+      <HeroGlobe className={styles.globe} />
       <div className={styles.inner}>
         <div className={styles.copy}>
           {stats && stats.aiMessages > 0 && (

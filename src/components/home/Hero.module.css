@@ -4,7 +4,7 @@
   border-bottom: 1px solid var(--h-line);
 }
 
-.wave {
+.globe {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -388,11 +388,6 @@
   .chat {
     justify-self: start;
     min-height: 410px;
-  }
-
-  .wave {
-    top: auto;
-    height: 480px;
   }
 }
 
