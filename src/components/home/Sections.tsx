@@ -1,14 +1,15 @@
 import Link from "next/link"
 import {
-  ArrowRight, BookOpen, Brain, Check, CircleDashed, Code2, Globe, Hand, Megaphone, Repeat, ShieldCheck, Target, UserPlus, Users,
+  ArrowRight, BookOpen, Brain, Code2, Globe, Hand, Megaphone, Repeat, ShieldCheck, Target, UserPlus, Users,
 } from "lucide-react"
 import { formatCount } from "@/lib/odometer"
-import { PLAN_PRICES, PLAN_CREDIT_LIMITS, estimatedAiMessages, formatNaira } from "@/lib/plans"
+import { PLAN_PRICES, PLAN_PRICES_USD, PLAN_CREDIT_LIMITS, estimatedAiMessages } from "@/lib/plans"
 import { STATUS_RECIPIENT_CAPS } from "@/lib/status-post"
 import { PAYG_DEFAULT_NGN_PER_CREDIT } from "@/lib/credits"
 import type { PublicStats } from "@/lib/queries/publicStats"
 import { LineWave } from "./LineWave"
 import { Reveal } from "./Reveal"
+import { PricingPlans } from "./PricingPlans"
 import styles from "./Home.module.css"
 import hero from "./Hero.module.css"
 
@@ -255,6 +256,7 @@ function planLines(plan: PlanCard) {
     plan.agents,
     `${credits.toLocaleString("en-NG")} credits a month${messages ? ` (about ${messages.toLocaleString("en-NG")} AI messages)` : ""}`,
     ...plan.features,
+    `WhatsApp Status to up to ${STATUS_RECIPIENT_CAPS[plan.id].toLocaleString("en-NG")} contacts a post, with Autopilot`,
   ]
 }
 
@@ -267,30 +269,17 @@ export function Pricing() {
           quiet="Start with 7 days free."
           lead="Every plan comes with monthly credits. A typical AI reply uses about 5 credits, and your AI simply pauses if they run out."
         />
-        <Reveal className={styles.plans}>
-          {PLANS.map((plan) => (
-            <div key={plan.id} className={`${styles.plan} ${plan.popular ? styles.planPro : ""}`}>
-              {plan.popular && <span className={styles.planBadge}>Most popular</span>}
-              <div className={styles.planName}>{plan.name}</div>
-              <div className={styles.planPrice}>{formatNaira(PLAN_PRICES[plan.id])}<span> / month</span></div>
-              <p className={styles.planDesc}>{plan.desc}</p>
-              <ul className={styles.planList}>
-                {planLines(plan).map((f) => <li key={f} className={styles.planItem}><Check size={14} aria-hidden="true" />{f}</li>)}
-              </ul>
-              <div className={styles.planStatus}>
-                <div className={styles.planStatusHead}>
-                  <CircleDashed size={14} aria-hidden="true" />
-                  WhatsApp Status
-                </div>
-                <div className={styles.planStatusLine}>
-                  Each post reaches up to <b>{STATUS_RECIPIENT_CAPS[plan.id].toLocaleString("en-NG")}</b> contacts
-                </div>
-                <div className={styles.planStatusLine}>Autopilot posts from your gallery daily</div>
-              </div>
-              <Link href="/signup" className={`${styles.planBtn} ${plan.popular ? styles.planBtnSolid : ""}`}>Start free trial</Link>
-            </div>
-          ))}
-        </Reveal>
+        <PricingPlans
+          plans={PLANS.map((plan) => ({
+            id: plan.id,
+            name: plan.name,
+            desc: plan.desc,
+            popular: plan.popular,
+            naira: PLAN_PRICES[plan.id],
+            usd: PLAN_PRICES_USD[plan.id],
+            lines: planLines(plan),
+          }))}
+        />
         <p className={styles.payg}>
           Prefer no subscription? Pay as you go from ₦{PAYG_DEFAULT_NGN_PER_CREDIT.toFixed(2)} a credit, valid for 12 months.
         </p>
