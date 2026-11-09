@@ -5,13 +5,16 @@ import { useEffect, useRef } from "react"
 // 2D canvas (not three.js) so it costs a few hundred strokes a frame and stays
 // smooth on cheap Android phones.
 //
-// "sweep" rises from bottom-left to top-right behind the hero; "band" is a flat
-// lens-shaped ribbon used as a divider lower on the page.
+// "sweep" is a twisted ribbon behind the hero: narrow at the left edge, the
+// lines cross over each other mid-way, then fan out wide and leave through the
+// top-right. "band" is a flat lens-shaped ribbon used lower on the page.
 
 type Variant = "sweep" | "band"
 
-const LINES = { sweep: 64, band: 40 }
-const STEP_PX = 6
+const LINES = { sweep: 44, band: 40 }
+const STEP_PX = 5
+
+const sigmoid = (v: number) => 1 / (1 + Math.exp(-v))
 
 export function LineWave({ variant = "sweep", className }: { variant?: Variant; className?: string }) {
   const ref = useRef<HTMLCanvasElement>(null)
@@ -29,12 +32,13 @@ export function LineWave({ variant = "sweep", className }: { variant?: Variant; 
     let start = performance.now()
     // Read once per resize, not per frame: getComputedStyle forces style recalc.
     let color = "0, 220, 130"
+    let tint = "120, 235, 150"
     let strength = 1
 
     const readColor = () => {
       const style = getComputedStyle(canvas)
-      const raw = style.getPropertyValue("--wave-rgb").trim()
-      if (raw) color = raw
+      color = style.getPropertyValue("--wave-rgb").trim() || color
+      tint = style.getPropertyValue("--wave-tint").trim() || tint
       strength = Number(style.getPropertyValue("--wave-strength")) || 1
     }
 
@@ -50,14 +54,20 @@ export function LineWave({ variant = "sweep", className }: { variant?: Variant; 
 
     // y for line i at horizontal position x (0..1), time t in seconds.
     const sweepY = (x: number, i: number, n: number, t: number) => {
-      const spread = (i / (n - 1) - 0.5) * 2
-      // Smooth S-curve from the bottom-left corner up to the top-right.
-      const rise = 1 / (1 + Math.exp(-9 * (x - 0.62)))
-      const base = height * (0.92 - 0.95 * rise)
-      // Lines bunch together on the left and fan out to the right.
-      const fan = spread * height * 0.16 * (0.15 + x * x)
-      const ripple = Math.sin(x * 5.2 + t * 0.55 + i * 0.045) * height * 0.025 * (0.3 + x)
-      return base + fan + ripple
+      // Small per-line jitter so the lines never look ruled.
+      const s = (i / (n - 1) - 0.5) * 2 + Math.sin(i * 1.7) * 0.035
+      // Spine: low on the left, climbing steeply after the middle and out
+      // through the top-right.
+      const spine = height * (0.86 - 0.3 * x - 0.6 * sigmoid((x - 0.72) / 0.1))
+      // Ribbon width grows towards the right.
+      const span = height * (0.045 + 0.24 * x * x)
+      // The twist: cos(phase) passes through zero around x = 0.58, where the
+      // lines cross, then flips so the ribbon turns over. Each line's phase is
+      // offset a little so they cross one after another, not at one point.
+      const phase = (Math.PI / 2) * (x / 0.58) + s * 0.45 + 0.22 * Math.sin(t * 0.35)
+      const twist = s * span * Math.cos(phase) + s * height * 0.012
+      const ripple = Math.sin(x * 6 + t * 0.6 + s * 2) * height * 0.012 * (0.4 + x)
+      return spine + twist + ripple
     }
 
     const bandY = (x: number, i: number, n: number, t: number) => {
@@ -75,9 +85,17 @@ export function LineWave({ variant = "sweep", className }: { variant?: Variant; 
       ctx.clearRect(0, 0, width, height)
       ctx.lineWidth = 1
       for (let i = 0; i < n; i++) {
-        // Centre lines strongest; the edges fade out.
+        // Centre lines strongest, every third line in the lighter tint, and
+        // each line fades in from the left edge.
         const edge = 1 - Math.abs(i / (n - 1) - 0.5) * 2
-        ctx.strokeStyle = `rgba(${color}, ${(0.06 + edge * 0.3) * strength})`
+        const alpha = (0.18 + edge * 0.55) * strength
+        const rgb = i % 3 === 0 ? tint : color
+        const grad = ctx.createLinearGradient(0, 0, width, 0)
+        grad.addColorStop(0, `rgba(${rgb}, 0)`)
+        grad.addColorStop(variant === "sweep" ? 0.3 : 0.15, `rgba(${rgb}, ${alpha})`)
+        grad.addColorStop(variant === "sweep" ? 0.92 : 0.85, `rgba(${rgb}, ${alpha})`)
+        grad.addColorStop(1, `rgba(${rgb}, 0)`)
+        ctx.strokeStyle = grad
         ctx.beginPath()
         for (let px = 0; px <= width; px += STEP_PX) {
           const y = yAt(px / width, i, n, t)

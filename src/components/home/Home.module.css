@@ -21,7 +21,8 @@
   --h-bubble-out: #10291c;
   --h-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.22);
   --wave-rgb: 0, 220, 130;
-  --wave-strength: 1;
+  --wave-tint: 150, 240, 120;
+  --wave-strength: 0.8;
 
   --bg-primary: var(--h-bg);
   --bg-card: var(--h-surface);
@@ -65,7 +66,8 @@
   --h-bubble-out: #e6f7ee;
   --h-shadow: 0 1px 2px rgba(16, 40, 28, 0.05), 0 8px 24px rgba(16, 40, 28, 0.06);
   --wave-rgb: 0, 184, 107;
-  --wave-strength: 0.55;
+  --wave-tint: 110, 214, 70;
+  --wave-strength: 0.85;
 }
 
 /* Sections are cells in one framed column, like a ruled page. */
