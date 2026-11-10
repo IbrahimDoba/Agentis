@@ -69,6 +69,8 @@ export interface WorkerContactsSummary {
   syncing: boolean
   dailyCap: number
   creditsPerContact: number
+  // null for paying accounts. Optional because an older worker doesn't send it.
+  freeLimit?: { limit: number; used: number; left: number } | null
 }
 
 export type WorkerReply<T> = { ok: true; status: number; data: T } | { ok: false; status: number; error: string }

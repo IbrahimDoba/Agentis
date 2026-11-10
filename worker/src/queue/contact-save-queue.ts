@@ -3,7 +3,7 @@ import type { WASocket } from "@whiskeysockets/baileys"
 import { getRedis } from "./redis.js"
 import { isLeader } from "../lib/leader.js"
 import { sessionManager } from "../baileys/session-manager.js"
-import { getSessionByAgentId } from "../db/queries.js"
+import { getSessionByAgentId, getAgentBillingInfo } from "../db/queries.js"
 import {
   getRun,
   listCandidateChats,
@@ -14,9 +14,11 @@ import {
   setRunStatus,
   setRunWaiting,
   getContactSaveSettings,
+  countSavedByDailzeroForUser,
 } from "../db/queries/contacts.js"
-import { contactSaveArgs, isJunkName, capDay, DAILY_SAVE_CAP, CREDITS_PER_CONTACT, SAVEABLE_PHONE } from "../baileys/contact-save.js"
+import { contactSaveArgs, isJunkName, capDay, DAILY_SAVE_CAP, CREDITS_PER_CONTACT, SAVEABLE_PHONE, isFreeAccount, freeSavesLeft } from "../baileys/contact-save.js"
 import { chargeIncurredCredits, hasCreditHeadroom } from "../billing/charge.js"
+import { getWalletBalance } from "../billing/wallet.js"
 import { truncatedNormal } from "../anti-ban/distribution.js"
 import { recordEvent } from "../lib/event-log.js"
 import { logger as rootLogger } from "../lib/logger.js"
@@ -80,6 +82,16 @@ async function charge(agentId: string): Promise<number> {
   }
 }
 
+// Read fresh before every save, so a top-up or upgrade lifts the limit on the
+// next save. A run and an auto-save racing can overshoot by one; not worth a lock.
+export async function freeSavesLeftFor(agentId: string): Promise<{ left: number | null; used: number }> {
+  const billing = await getAgentBillingInfo(agentId)
+  if (!billing) return { left: 0, used: 0 }
+  const [wallet, used] = await Promise.all([getWalletBalance(billing.userId), countSavedByDailzeroForUser(billing.userId)])
+  const isFree = isFreeAccount({ plan: billing.plan, subscriptionExpiresAt: billing.subscriptionExpiresAt, wallet })
+  return { left: freeSavesLeft(isFree, used), used }
+}
+
 async function scheduleNext(runId: string, agentId: string, token: string, delayMs: number): Promise<void> {
   await queue.add("save", { kind: "run", runId, agentId, token }, { delay: Math.max(0, delayMs) })
 }
@@ -109,6 +121,12 @@ async function processRun(job: ContactSaveJob & { kind: "run" }): Promise<void> 
   if (!(await hasCreditHeadroom(agentId))) {
     await setRunStatus(runId, ["running"], "paused", "no_credits")
     void recordEvent({ level: "warn", category: "contacts.save_paused", agentId, message: "Contact save paused — insufficient credits", detail: { runId } })
+    return
+  }
+
+  if ((await freeSavesLeftFor(agentId)).left === 0) {
+    await setRunStatus(runId, ["running"], "paused", "free_limit")
+    logger.info({ runId, agentId }, "Contact save paused — free plan limit reached")
     return
   }
 
@@ -159,6 +177,7 @@ async function processAuto(job: ContactSaveJob & { kind: "auto" }): Promise<void
   if ((await countAddressBook(agentId)).total === 0) return
   if ((await usedToday(agentId)) >= DAILY_SAVE_CAP) return
   if (!(await hasCreditHeadroom(agentId))) return
+  if ((await freeSavesLeftFor(agentId)).left === 0) return
   const sock = await connectedSocket(agentId)
   if (!sock) return
 

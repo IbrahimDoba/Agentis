@@ -7,6 +7,24 @@
 export const DAILY_SAVE_CAP = 1000
 export const CREDITS_PER_CONTACT = 1
 
+// Free (trial) accounts can save this many contacts in total, across all their
+// agents. Paying accounts (a live subscription or a usable PAYG wallet) have no
+// total limit, only the daily cap above.
+export const FREE_SAVE_LIMIT = 200
+
+// "Free" means nothing is paying: no live paid subscription and an empty or
+// expired wallet. PAYG users keep plan "free", so the plan name alone isn't enough.
+export function isFreeAccount(opts: { plan: string | null; subscriptionExpiresAt: string | Date | null; wallet: number; now?: number }): boolean {
+  if (opts.wallet > 0) return false
+  const lapsed = opts.subscriptionExpiresAt !== null && new Date(opts.subscriptionExpiresAt).getTime() <= (opts.now ?? Date.now())
+  return (opts.plan ?? "free") === "free" || lapsed
+}
+
+// Saves left before the free limit; null when the account has no total limit.
+export function freeSavesLeft(isFree: boolean, savedSoFar: number): number | null {
+  return isFree ? Math.max(0, FREE_SAVE_LIMIT - savedSoFar) : null
+}
+
 // Nigerian and most international numbers. LIDs (14-15 digit privacy ids that
 // sometimes land in Conversation.phoneNumber) are not dialable, so they're out.
 export const SAVEABLE_PHONE = /^[0-9]{10,13}$/

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useToast } from "@/context/ToastContext"
 import Button from "@/components/ui/Button"
@@ -21,6 +22,7 @@ const PAUSE_REASONS: Record<string, string> = {
   disconnected: "Paused: WhatsApp disconnected. Reconnect your number, then resume.",
   owner: "Paused.",
   failing: "Paused after several saves failed in a row. Check the connection, then resume.",
+  free_limit: "Paused: you've reached the free plan's contact limit. Subscribe or top up, then resume.",
 }
 
 async function fetchSummary(agentId: string): Promise<Summary> {
@@ -92,6 +94,8 @@ export function ContactsTab({ agentId, isConnected }: { agentId: string; isConne
   if (error || !data) return <div className={styles.empty}>{(error as Error)?.message ?? "Couldn't load contacts."}</div>
 
   const { addressBook, unsaved, run, settings, syncing, dailyCap, creditsPerContact } = data
+  const free = data.freeLimit ?? null
+  const toSave = free ? Math.min(unsaved, free.left) : unsaved
   const activeRun = run && (run.status === "running" || run.status === "paused") ? run : null
   const tag = settings.contactNameTag
   const draft = customTag ?? tag ?? ""
@@ -104,7 +108,9 @@ export function ContactsTab({ agentId, isConnected }: { agentId: string; isConne
         <div className={styles.stat}>
           <div className={styles.statValue}>{addressBook.total.toLocaleString()}</div>
           <div className={styles.statLabel}>In your phone&apos;s contacts</div>
-          {addressBook.byDailzero > 0 && (
+          {free ? (
+            <div className={styles.statHint}>{free.used.toLocaleString()} of {free.limit} free saves used</div>
+          ) : addressBook.byDailzero > 0 && (
             <div className={styles.statHint}>{addressBook.byDailzero.toLocaleString()} saved from here</div>
           )}
         </div>
@@ -125,14 +131,26 @@ export function ContactsTab({ agentId, isConnected }: { agentId: string; isConne
 
       {activeRun ? (
         <RunCard run={activeRun} busy={busy} onAction={(a) => void runAction(activeRun, a)} />
+      ) : free && free.left === 0 && unsaved > 0 ? (
+        <section className={styles.card}>
+          <div className={styles.cardRow}>
+            <div>
+              <div className={styles.cardTitle}>You&apos;ve used all {free.limit} free contact saves</div>
+              <div className={styles.cardDesc}>
+                Subscribe to a plan or top up credits to save your other {unsaved.toLocaleString()} chats.
+              </div>
+            </div>
+            <Link href="/dashboard/billing" className={styles.link}>See plans</Link>
+          </div>
+        </section>
       ) : unsaved > 0 ? (
         <section className={styles.card}>
           {!confirming ? (
             <div className={styles.cardRow}>
               <div>
-                <div className={styles.cardTitle}>Save {unsaved.toLocaleString()} chats to your contacts</div>
+                <div className={styles.cardTitle}>Save {toSave.toLocaleString()} chats to your contacts</div>
                 <div className={styles.cardDesc}>
-                  {(unsaved * creditsPerContact).toLocaleString()} credits · {duration(unsaved * SECONDS_PER_SAVE)}
+                  {(toSave * creditsPerContact).toLocaleString()} credits · {duration(toSave * SECONDS_PER_SAVE)}
                 </div>
               </div>
               <Button type="button" disabled={!isConnected} onClick={() => setConfirming(true)}>
@@ -141,20 +159,26 @@ export function ContactsTab({ agentId, isConnected }: { agentId: string; isConne
             </div>
           ) : (
             <div>
-              <div className={styles.cardTitle}>Save {unsaved.toLocaleString()} chats?</div>
+              <div className={styles.cardTitle}>Save {toSave.toLocaleString()} chats?</div>
               <ul className={styles.facts}>
+                {free && toSave < unsaved && (
+                  <li>
+                    The free plan saves up to {free.limit} contacts, so {toSave.toLocaleString()} of your{" "}
+                    {unsaved.toLocaleString()} chats will be saved. Subscribe or top up to save the rest.
+                  </li>
+                )}
                 <li>
-                  Costs <strong>{(unsaved * creditsPerContact).toLocaleString()} credits</strong> ({creditsPerContact} per contact
+                  Costs <strong>{(toSave * creditsPerContact).toLocaleString()} credits</strong> ({creditsPerContact} per contact
                   saved). Failed saves are free.
                 </li>
-                <li>Saved one at a time for safety, {duration(unsaved * SECONDS_PER_SAVE)}. Up to {dailyCap} a day; the rest continue tomorrow.</li>
+                <li>Saved one at a time for safety, {duration(toSave * SECONDS_PER_SAVE)}. Up to {dailyCap} a day; the rest continue tomorrow.</li>
                 <li>
                   Names look like <strong>{previewSavedName(SAMPLE_NAME, tag)}</strong>. Contacts already in your phone are never renamed.
                 </li>
               </ul>
               <div className={styles.actions}>
                 <Button type="button" loading={busy} onClick={() => void startRun()}>
-                  Save {unsaved.toLocaleString()} contacts
+                  Save {toSave.toLocaleString()} contacts
                 </Button>
                 <Button type="button" variant="ghost" onClick={() => setConfirming(false)}>
                   Cancel
@@ -249,7 +273,7 @@ export function ContactsTab({ agentId, isConnected }: { agentId: string; isConne
             <div className={styles.cardTitle}>Auto-save new chats</div>
             <div className={styles.cardDesc}>
               When someone messages you and isn&apos;t in your contacts yet, save them automatically.{" "}
-              {creditsPerContact} credit each. Off by default.
+              {creditsPerContact} credit each.{free && ` Counts toward the free plan's ${free.limit}.`} Off by default.
             </div>
           </div>
         </div>
