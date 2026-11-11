@@ -18,13 +18,17 @@ export interface PlanView {
 
 type Cycle = "monthly" | "yearly"
 
+// Checkout only charges monthly today. The switch stays hidden until yearly
+// checkout ships, so the page never shows a price nobody can pay.
+const YEARLY_CHECKOUT_LIVE = false
+
 export function PricingPlans({ plans }: { plans: PlanView[] }) {
   const [cycle, setCycle] = useState<Cycle>("monthly")
   const months = cycle === "yearly" ? ANNUAL_MONTHS_CHARGED : 1
 
   return (
     <>
-      <div className={styles.cycle} role="radiogroup" aria-label="Billing period">
+      {YEARLY_CHECKOUT_LIVE && <div className={styles.cycle} role="radiogroup" aria-label="Billing period">
         {(["monthly", "yearly"] as const).map((c) => (
           <button
             key={c}
@@ -38,7 +42,7 @@ export function PricingPlans({ plans }: { plans: PlanView[] }) {
             {c === "yearly" && <span className={styles.cycleSave}>2 months free</span>}
           </button>
         ))}
-      </div>
+      </div>}
 
       <Reveal className={styles.plans}>
         {plans.map((plan) => (
