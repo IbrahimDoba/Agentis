@@ -1,6 +1,6 @@
 import Link from "next/link"
 import {
-  ArrowRight, BookOpen, Brain, Code2, Globe, Hand, Megaphone, Repeat, ShieldCheck, Target, UserPlus, Users,
+  ArrowRight, BookOpen, Code2, Globe, Hand, Megaphone, ShieldCheck, UserPlus, Users,
 } from "lucide-react"
 import { formatCount } from "@/lib/odometer"
 import { PLAN_PRICES, PLAN_PRICES_USD, PLAN_CREDIT_LIMITS, estimatedAiMessages } from "@/lib/plans"
@@ -10,6 +10,7 @@ import type { PublicStats } from "@/lib/queries/publicStats"
 import { LineWave } from "./LineWave"
 import { Reveal } from "./Reveal"
 import { PricingPlans } from "./PricingPlans"
+import { AgentRadar, BroadcastDemo, FollowUpDemo, MemoryDemo, PipelineDemo, RepliesDemo, StatusDemo } from "./Demos"
 import styles from "./Home.module.css"
 import hero from "./Hero.module.css"
 
@@ -58,10 +59,7 @@ export function NumbersStrip({ stats }: { stats: PublicStats | null }) {
 }
 
 const CAPABILITIES = [
-  { icon: Repeat, name: "Follow-ups", desc: "Finds chats that went quiet and sends each customer a message written for them." },
-  { icon: Target, name: "Lead pipeline", desc: "Spots buying intent in every chat and moves leads from New to Contacted to Won." },
   { icon: BookOpen, name: "Your documents", desc: "Upload price lists and files, or add your website. The AI answers from them." },
-  { icon: Brain, name: "Customer memory", desc: "Remembers what each customer bought and asked, so new chats pick up where they left off." },
   { icon: Megaphone, name: "Ad context", desc: "Knows which Meta ad a customer clicked and greets them about that product." },
   { icon: ShieldCheck, name: "Anti-ban pacing", desc: "Warm-up tiers and human-like send delays keep your WhatsApp number safe." },
   { icon: Code2, name: "Your own tools", desc: "Connect your order lookup or booking system and the AI calls it when needed." },
@@ -90,17 +88,7 @@ export function Products() {
               <span className={styles.tag}>day and night</span>
             </div>
             <div className={styles.demo}>
-              <div className={styles.miniChat}>
-                <div className={styles.miniIn}>Good evening, do you deliver to Abuja?</div>
-                <div className={styles.miniOut}>Yes we do. Delivery to Abuja takes 2-3 days and costs ₦3,500. Which item would you like?</div>
-                <div className={styles.miniIn}>The brown leather bag</div>
-                <div className={styles.miniOut}>Great choice. It&apos;s ₦28,000. Shall I send you the account details?</div>
-                <div className={styles.miniMeta}>example chat</div>
-              </div>
-              <div className={styles.handover}>
-                Customer wants a discount
-                <span className={styles.handoverBtn}>Take over</span>
-              </div>
+              <RepliesDemo />
             </div>
             <div className={styles.cardBody}>
               <h3 className={styles.cardTitle}>Every message answered, from your own prices</h3>
@@ -116,16 +104,7 @@ export function Products() {
               <span className={styles.tag}>safe pacing</span>
             </div>
             <div className={styles.demo}>
-              <div className={styles.bcRow}>
-                <span>Weekend sale</span>
-                <span className={styles.mono}>sending</span>
-              </div>
-              <div className={styles.bcSub}>To customers who already chatted with you</div>
-              <div className={styles.bar}><div className={styles.barFill} /></div>
-              <div className={styles.bcStats}>
-                <span><b>Paced</b> like a person</span>
-                <span><b>Replies</b> go to your AI</span>
-              </div>
+              <BroadcastDemo />
             </div>
             <div className={styles.cardBody}>
               <h3 className={styles.cardTitle}>Message all your customers at once</h3>
@@ -139,21 +118,89 @@ export function Products() {
               <span className={styles.tag}>autopilot</span>
             </div>
             <div className={styles.demo}>
-              <div className={styles.statusRow}>
-                <span className={styles.ring}><span className={styles.ringInner}>You</span></span>
-                <div>
-                  <div className={styles.bcRow}>New arrivals this week</div>
-                  <div className={styles.bcSub}>Posted to your WhatsApp Status</div>
-                </div>
-              </div>
-              <div className={styles.queue}>
-                <div className={styles.queueItem}>Ankara sets, new stock <span className={styles.queueTime}>7:00pm</span></div>
-                <div className={styles.queueItem}>Customer review video <span className={styles.queueTime}>tomorrow 9:00am</span></div>
-              </div>
+              <StatusDemo />
             </div>
             <div className={styles.cardBody}>
               <h3 className={styles.cardTitle}>Your Status, posted on schedule</h3>
               <p className={styles.cardDesc}>Save your posts once and Autopilot keeps your Status fresh every day. The AI answers whoever replies.</p>
+            </div>
+          </article>
+        </Reveal>
+
+      </div>
+    </section>
+  )
+}
+
+const SMARTS = [
+  {
+    name: "Follow-ups",
+    tag: "after 24h quiet",
+    demo: <FollowUpDemo />,
+    title: "Quiet chats, brought back",
+    desc: "Finds customers who stopped replying and sends each one a message written for their chat.",
+  },
+  {
+    name: "Lead pipeline",
+    tag: "New to Won",
+    demo: <PipelineDemo />,
+    title: "Every lead, sorted for you",
+    desc: "Spots buying intent in every chat and moves leads along, so you know who is ready to pay.",
+  },
+  {
+    name: "Customer memory",
+    tag: "every chat",
+    demo: <MemoryDemo />,
+    title: "Regulars never repeat themselves",
+    desc: "Remembers what each customer bought and asked, so a new chat picks up where the last one ended.",
+  },
+]
+
+export function Smarts() {
+  return (
+    <section className={styles.section}>
+      <div className={styles.frame}>
+        <Head
+          title="It does the follow-through."
+          quiet="Like staff who never forget."
+          lead="Beyond answering, your agent chases quiet chats, sorts your leads and remembers your regulars."
+        />
+
+        <Reveal className={styles.trio}>
+          {SMARTS.map((c) => (
+            <article key={c.name} className={styles.card}>
+              <div className={styles.cardTop}>
+                <span className={styles.cardName}>{c.name}</span>
+                <span className={styles.tag}>{c.tag}</span>
+              </div>
+              <div className={styles.demo}>{c.demo}</div>
+              <div className={styles.cardBody}>
+                <h3 className={styles.cardTitle}>{c.title}</h3>
+                <p className={styles.cardDesc}>{c.desc}</p>
+              </div>
+            </article>
+          ))}
+        </Reveal>
+
+        <Reveal>
+          <article className={styles.agentCard}>
+            <div className={styles.agentVisual}>
+              <AgentRadar />
+            </div>
+            <div className={styles.agentCopy}>
+              <div className={styles.agentTop}>
+                <span className={styles.agentName}>Your AI agent</span>
+                <span className={styles.tag}>trained on your business</span>
+              </div>
+              <h3 className={styles.agentTitle}>The brain behind every reply</h3>
+              <p className={styles.cardDesc}>
+                Before it answers, it checks your documents, your prices, your own tools and the ad the customer clicked.
+                When it isn&apos;t sure, it hands the chat to you instead of guessing.
+              </p>
+              <div className={styles.powers}>
+                <span className={styles.powersLabel}>Powers</span>
+                {["Replies", "Broadcasts", "Status", "Follow-ups"].map((p) => <span key={p} className={styles.industry}>{p}</span>)}
+              </div>
             </div>
           </article>
         </Reveal>
@@ -166,13 +213,11 @@ export function Products() {
               <p className={styles.capDesc}>{desc}</p>
             </div>
           ))}
-          <div className={styles.cap}>
-            <Link href="/features" className={styles.textLink} style={{ marginTop: 0 }}>
-              See every feature
-              <ArrowRight size={16} aria-hidden="true" />
-            </Link>
-          </div>
         </Reveal>
+        <Link href="/features" className={styles.textLink}>
+          See every feature
+          <ArrowRight size={16} aria-hidden="true" />
+        </Link>
 
         <div className={styles.industries}>
           <span className={styles.industriesLabel}>Used by businesses in</span>

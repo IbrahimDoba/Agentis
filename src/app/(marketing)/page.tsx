@@ -4,7 +4,7 @@ import { getPublicStats } from "@/lib/queries/publicStats"
 import { Navbar } from "@/components/landing/Navbar"
 import { Footer } from "@/components/landing/Footer"
 import { HomeHero } from "@/components/home/HomeHero"
-import { NumbersStrip, Products, Steps, Pricing, ClosingCta } from "@/components/home/Sections"
+import { NumbersStrip, Products, Smarts, Steps, Pricing, ClosingCta } from "@/components/home/Sections"
 import { Testimonials } from "@/components/home/Testimonials"
 import { geist, geistMono } from "@/components/home/fonts"
 import styles from "@/components/home/Home.module.css"
@@ -46,6 +46,7 @@ export default async function LandingPage() {
       <HomeHero stats={stats} />
       <NumbersStrip stats={stats} />
       <Products />
+      <Smarts />
       <Steps />
       <Testimonials items={testimonials} />
       <Pricing />

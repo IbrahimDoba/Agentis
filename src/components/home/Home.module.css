@@ -265,171 +265,71 @@
   color: var(--h-muted);
 }
 
-/* Demo: chat */
+/* Follow-through row: three demo cards, then one wide card for the agent */
 
-.miniChat {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.miniIn,
-.miniOut {
-  max-width: 82%;
-  padding: 8px 12px;
-  border-radius: 12px;
-  font-size: 13px;
-  line-height: 1.45;
-  color: var(--h-text);
-}
-
-.miniIn {
-  align-self: flex-start;
-  border: 1px solid var(--h-line);
-  background: var(--h-surface);
-  border-bottom-left-radius: 4px;
-}
-
-.miniOut {
-  align-self: flex-end;
-  background: var(--h-bubble-out);
-  border-bottom-right-radius: 4px;
-}
-
-.miniMeta {
-  align-self: flex-end;
-  font-family: var(--font-geist-mono), ui-monospace, monospace;
-  font-size: 11px;
-  color: var(--h-faint);
-}
-
-.handover {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 8px;
-  padding: 10px 12px;
-  border: 1px dashed var(--h-line-strong);
-  border-radius: 10px;
-  font-size: 12px;
-  color: var(--h-muted);
-}
-
-.handoverBtn {
-  padding: 4px 10px;
-  border-radius: 6px;
-  background: var(--h-ink);
-  color: var(--h-on-ink);
-  font-size: 12px;
-  font-weight: 500;
-}
-
-/* Demo: broadcast */
-
-.bcRow {
-  display: flex;
-  justify-content: space-between;
-  font-size: 13px;
-  color: var(--h-text);
-}
-
-.bcSub {
-  margin-top: 2px;
-  font-size: 12px;
-  color: var(--h-faint);
-}
-
-.bar {
-  position: relative;
-  height: 6px;
-  margin-top: 14px;
-  border-radius: 999px;
-  background: var(--h-line);
-  overflow: hidden;
-}
-
-.barFill {
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: var(--h-accent);
-  transform-origin: left;
-  animation: fill 6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-}
-
-.bcStats {
-  display: flex;
-  gap: 16px;
-  margin-top: 12px;
-  font-size: 12px;
-  color: var(--h-muted);
-}
-
-.bcStats b {
-  font-weight: 500;
-  color: var(--h-text);
-  font-variant-numeric: tabular-nums;
-}
-
-/* Demo: status */
-
-.statusRow {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.ring {
-  position: relative;
-  width: 44px;
-  height: 44px;
-  flex-shrink: 0;
-  border-radius: 50%;
-  padding: 3px;
-  background: conic-gradient(var(--h-accent) 0 30%, transparent 30% 34%, var(--h-accent) 34% 64%, transparent 64% 68%, var(--h-line-strong) 68% 96%, transparent 96%);
-}
-
-.ringInner {
+.trio {
   display: grid;
-  place-items: center;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  border: 2px solid var(--h-surface-2);
-  background: var(--h-surface);
-  font-size: 11px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+/* Same number of description lines, so the titles line up across the row. */
+.trio .cardDesc {
+  min-height: calc(1.55em * 3);
+}
+
+.agentCard {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  align-items: center;
+  gap: 48px;
+  margin-top: 16px;
+  padding: 40px 48px;
+  border: 1px solid var(--h-line);
+  border-radius: 16px;
+  background:
+    radial-gradient(ellipse 60% 90% at 18% 50%, var(--h-accent-soft), transparent 70%),
+    var(--h-surface);
+}
+
+.agentTop {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.agentName {
+  font-size: 15px;
   font-weight: 500;
   color: var(--h-accent-ink);
 }
 
-.queue {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-top: 14px;
-}
-
-.queueItem {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 7px 10px;
-  border: 1px solid var(--h-line);
-  border-radius: 8px;
-  background: var(--h-surface);
-  font-size: 12px;
-  color: var(--h-muted);
-}
-
-.queueItem:first-child {
-  border-color: var(--h-accent-soft);
+.agentTitle {
+  margin: 16px 0 0;
+  font-size: clamp(22px, 2.4vw, 28px);
+  font-weight: 500;
+  letter-spacing: -0.02em;
   color: var(--h-text);
 }
 
-.queueTime {
+.agentCopy .cardDesc {
+  margin-top: 10px;
+  max-width: 58ch;
+  font-size: 15px;
+}
+
+.powers {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.powersLabel {
+  margin-right: 4px;
   font-family: var(--font-geist-mono), ui-monospace, monospace;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--h-faint);
 }
 
@@ -516,6 +416,8 @@
 /* How it works: one ruled row of steps that light up in turn */
 
 .steps {
+  position: relative;
+  overflow: hidden;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   margin: 0 -48px;
@@ -553,6 +455,19 @@
 .steps[data-reveal="in"] .step:nth-child(2)::before { animation-delay: 0.5s; }
 .steps[data-reveal="in"] .step:nth-child(3)::before { animation-delay: 1s; }
 .steps[data-reveal="in"] .step:nth-child(4)::before { animation-delay: 1.5s; }
+
+/* A spark that keeps running along the top rule, from sign-up to live. */
+.steps::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: -1px;
+  width: 120px;
+  height: 2px;
+  background: linear-gradient(to right, transparent, var(--h-accent-ink), transparent);
+  animation: spark 4.5s cubic-bezier(0.65, 0, 0.35, 1) 2s infinite;
+  transform: translateX(-120px);
+}
 
 .steps[data-reveal="idle"] .step::before {
   transform: none;
@@ -633,6 +548,12 @@
 
 .quoteTab[aria-selected="true"]::before {
   transform: scaleX(1);
+}
+
+/* While it advances by itself, the active name's rule fills up as a timer. */
+.quoteTabs[data-auto="true"] .quoteTab[aria-selected="true"]::before {
+  transform-origin: left;
+  animation: timer 7s linear;
 }
 
 .quoteTab:focus-visible {
@@ -884,13 +805,16 @@
   to { transform: translateX(-50%); }
 }
 
-@keyframes fill {
-  0% { transform: scaleX(0.08); }
-  70%, 100% { transform: scaleX(0.82); }
-}
-
 @keyframes stepOn {
   to { transform: scaleX(1); }
+}
+
+@keyframes timer {
+  from { transform: scaleX(0); }
+}
+
+@keyframes spark {
+  to { transform: translateX(calc(var(--h-max) + 120px)); }
 }
 
 @keyframes quoteIn {
@@ -912,6 +836,16 @@
 
   .cardTall {
     grid-row: auto;
+  }
+
+  .trio {
+    grid-template-columns: 1fr;
+  }
+
+  .agentCard {
+    grid-template-columns: 1fr;
+    gap: 32px;
+    padding: 32px 24px;
   }
 
   .caps {
@@ -984,17 +918,17 @@
 
 @media (prefers-reduced-motion: reduce) {
   .stripTrack,
-  .barFill,
   .quote {
     animation: none;
   }
 
-  .barFill {
-    transform: scaleX(0.82);
-  }
-
   .steps .step::before {
     transform: none;
+    animation: none !important;
+  }
+
+  .steps::after,
+  .quoteTabs .quoteTab::before {
     animation: none !important;
   }
 
