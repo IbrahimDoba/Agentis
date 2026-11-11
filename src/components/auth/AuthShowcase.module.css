@@ -70,106 +70,166 @@
   white-space: nowrap;
 }
 
-/* Sign-up: question, logo core, answer, stacked down the panel */
+/* Sign-up: night shop illustration */
 
-.flow {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-}
-
-.lane {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.art {
   width: 100%;
-  height: 92px;
+  max-width: 520px;
+  max-height: 56vh;
+  margin: 0 auto;
+  overflow: visible;
 }
 
-.bubble {
-  max-width: 340px;
-  padding: 12px 16px;
-  border-radius: 16px;
-  font-size: 15px;
-  line-height: 1.45;
-  color: var(--h-text);
-  box-shadow: var(--h-shadow);
+.line,
+.lineFaint,
+.lineAccent {
+  fill: none;
+  stroke: var(--h-line-strong);
+  stroke-width: 1.5;
+  stroke-linecap: round;
 }
 
-.q {
-  border: 1px solid var(--h-line-strong);
-  background: var(--h-surface);
-  border-bottom-left-radius: 5px;
+.lineFaint {
+  stroke: var(--h-line);
 }
 
-.a {
-  background: var(--h-bubble-out);
-  border-bottom-right-radius: 5px;
+.lineAccent {
+  stroke: var(--h-accent);
+  stroke-width: 3;
 }
 
-.stamp {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  margin-top: 6px;
+.lineFill {
+  fill: var(--h-line-strong);
+}
+
+.body,
+.roof,
+.scallop,
+.phoneBody {
+  fill: var(--h-surface);
+  stroke: var(--h-line-strong);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+.roof {
+  fill: var(--h-surface-2);
+}
+
+.scallopAccent {
+  fill: var(--h-accent-soft);
+  stroke: var(--h-accent);
+  stroke-width: 1.5;
+}
+
+.glass {
+  fill: var(--h-surface-2);
+  stroke: var(--h-line-strong);
+  stroke-width: 1.5;
+}
+
+.item {
+  fill: var(--h-line-strong);
+}
+
+.fillAccent {
+  fill: var(--h-accent);
+}
+
+.fillAccentSoft {
+  fill: var(--h-accent-soft);
+}
+
+.signText {
   font-family: var(--font-geist-mono), ui-monospace, monospace;
-  font-size: 11px;
-  color: var(--h-accent-ink);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  fill: var(--h-muted);
 }
 
-.flow[data-moving="true"] .q {
-  animation: dropIn 3.6s cubic-bezier(0.65, 0, 0.35, 1) both;
+.sign {
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+  animation: sway 5s ease-in-out infinite;
 }
 
-.flow[data-moving="true"] .a {
-  animation: comeOut 3.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+.moon {
+  animation: bobMoon 7s ease-in-out infinite;
 }
 
-.core {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 150px;
-  height: 150px;
+.star {
+  fill: var(--h-accent-ink);
+  animation: twinkle 3.2s ease-in-out infinite;
 }
 
-.mark {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 84px;
-  height: 84px;
-  border: 1px solid var(--h-line-strong);
-  border-radius: 24px;
-  background: var(--h-surface);
-  box-shadow: 0 0 0 8px var(--h-accent-soft), 0 0 48px rgba(var(--wave-rgb), 0.35);
-}
-
-.ring,
-.ripple {
-  position: absolute;
-  inset: 0;
-  border: 1px solid rgba(var(--wave-rgb), 0.3);
-  border-radius: 50%;
-}
-
-.ring {
-  animation: breathe 4s ease-in-out infinite;
-}
-
-.ring + .ring {
-  inset: 18px;
-  animation-delay: -2s;
-}
-
-/* One ring fires outward as each question lands in the logo. */
-.ripple {
+.zzz {
+  font-family: var(--font-geist), sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  fill: var(--h-faint);
   opacity: 0;
+  animation: zzz 4.5s ease-in-out infinite;
 }
 
-.flow[data-moving="true"] .ripple {
-  animation: ripple 1.4s cubic-bezier(0.16, 1, 0.3, 1) 1.35s both;
+.z2 { font-size: 22px; animation-delay: 0.6s; }
+.z3 { font-size: 28px; animation-delay: 1.2s; }
+
+.screen {
+  fill: var(--h-bg);
+  stroke: var(--h-accent);
+  stroke-width: 1;
+  filter: drop-shadow(0 0 14px rgba(var(--wave-rgb), 0.5));
+}
+
+.phone {
+  animation: bobPhone 5s ease-in-out infinite;
+}
+
+.msgIn {
+  fill: var(--h-line-strong);
+}
+
+.msgOut {
+  fill: var(--h-accent);
+}
+
+/* The chat on the phone fills up message by message, then starts again. */
+.msgIn,
+.msgOut {
+  opacity: 0;
+  animation: msg 7.2s ease infinite;
+}
+
+.m2 { animation-delay: 0.8s; }
+.m3 { animation-delay: 1.8s; }
+.m4 { animation-delay: 2.6s; }
+.m5 { animation-delay: 3.6s; }
+.m6 { animation-delay: 4.4s; }
+
+.reply {
+  opacity: 0;
+  animation: floatUp 7.2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+.replyBox {
+  fill: var(--h-surface);
+  stroke: var(--h-line-strong);
+  stroke-width: 1;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.18));
+}
+
+.replyText {
+  font-family: var(--font-geist), sans-serif;
+  font-size: 12.5px;
+  fill: var(--h-text);
+}
+
+.tick {
+  fill: none;
+  stroke: var(--h-on-accent);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 /* Sign-in: activity feed */
@@ -259,26 +319,42 @@
   white-space: nowrap;
 }
 
-@keyframes dropIn {
-  0% { opacity: 0; transform: translateY(-36px); }
-  14%, 30% { opacity: 1; transform: none; }
-  44%, 100% { opacity: 0; transform: translateY(84px) scale(0.5); }
+@keyframes twinkle {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
 }
 
-@keyframes comeOut {
-  0%, 44% { opacity: 0; transform: translateY(-84px) scale(0.5); }
-  60%, 90% { opacity: 1; transform: none; }
-  100% { opacity: 0; transform: translateY(20px); }
+@keyframes sway {
+  0%, 100% { transform: rotate(-4deg); }
+  50% { transform: rotate(4deg); }
 }
 
-@keyframes ripple {
-  0% { opacity: 0.9; transform: scale(0.55); }
-  100% { opacity: 0; transform: scale(1.5); }
+@keyframes bobMoon {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
 }
 
-@keyframes breathe {
-  0%, 100% { transform: scale(1); opacity: 0.5; }
-  50% { transform: scale(1.06); opacity: 1; }
+@keyframes bobPhone {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes zzz {
+  0% { opacity: 0; transform: translate(0, 8px); }
+  30%, 60% { opacity: 1; }
+  100% { opacity: 0; transform: translate(6px, -12px); }
+}
+
+@keyframes msg {
+  0% { opacity: 0; transform: translateY(4px); }
+  6%, 88% { opacity: 1; transform: none; }
+  96%, 100% { opacity: 0; }
+}
+
+@keyframes floatUp {
+  0% { opacity: 0; transform: translateY(30px); }
+  8%, 26% { opacity: 1; transform: translateY(0); }
+  38%, 100% { opacity: 0; transform: translateY(-46px); }
 }
 
 @keyframes rowIn {
@@ -300,22 +376,32 @@
     padding: 40px 48px 32px;
   }
 
-  .lane {
-    height: 76px;
-  }
-
-  .core {
-    width: 120px;
-    height: 120px;
-  }
-
   .rows {
     height: 232px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ring {
+  .sign,
+  .moon,
+  .star,
+  .phone,
+  .zzz {
     animation: none;
+  }
+
+  .zzz,
+  .msgIn,
+  .msgOut {
+    opacity: 1;
+    animation: none;
+  }
+
+  .reply {
+    animation: none;
+  }
+
+  .reply:first-of-type {
+    opacity: 1;
   }
 }
