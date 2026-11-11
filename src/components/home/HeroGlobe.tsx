@@ -9,9 +9,9 @@ import { LAND_DOTS } from "./globe-land"
 const DEG = Math.PI / 180
 const TILT = 18 * DEG
 const SPIN = 0.05 // radians a second
-const FLIGHTS = 4
+const FLIGHTS = 10
 
-// Lagos first: it is the hub, so half of all flights start or end there.
+// Lagos first: it is the hub, so a third of all flights start there.
 const CITIES: [number, number][] = [
   [6.52, 3.38], // Lagos
   [9.06, 7.5], // Abuja
@@ -32,6 +32,22 @@ const CITIES: [number, number][] = [
   [40.71, -74.0], // New York
   [-23.55, -46.63], // Sao Paulo
   [19.08, 72.88], // Mumbai
+  [6.34, 5.63], // Benin City
+  [7.38, 3.95], // Ibadan
+  [9.03, 38.74], // Addis Ababa
+  [-6.79, 39.21], // Dar es Salaam
+  [0.35, 32.58], // Kampala
+  [-8.84, 13.23], // Luanda
+  [36.75, 3.06], // Algiers
+  [15.5, 32.56], // Khartoum
+  [40.42, -3.7], // Madrid
+  [52.52, 13.4], // Berlin
+  [41.01, 28.98], // Istanbul
+  [24.71, 46.68], // Riyadh
+  [38.91, -77.04], // Washington
+  [-34.6, -58.38], // Buenos Aires
+  [1.35, 103.82], // Singapore
+  [39.9, 116.4], // Beijing
 ]
 
 type Vec = [number, number, number]
@@ -156,7 +172,7 @@ export function HeroGlobe({ className }: { className?: string }) {
       const near = cities.map((c, i) => (project(c, rot).z > 0.3 ? i : -1)).filter((i) => i >= 0)
       if (near.length < 2) return null
       for (let tries = 0; tries < 12; tries++) {
-        const from = Math.random() < 0.5 && near.includes(0) ? 0 : near[Math.floor(Math.random() * near.length)]
+        const from = Math.random() < 0.33 && near.includes(0) ? 0 : near[Math.floor(Math.random() * near.length)]
         const to = near[Math.floor(Math.random() * near.length)]
         const gap = angle(cities[from], cities[to])
         const busy = flights.some((f) => f && ((f.from === from && f.to === to) || (f.from === to && f.to === from)))
@@ -237,7 +253,7 @@ export function HeroGlobe({ className }: { className?: string }) {
       flights.forEach((f, slot) => {
         if (f && t - f.start > f.duration * 1.5) flights[slot] = null
         // First flights take off one after another rather than all at once.
-        if (!flights[slot] && t > slot * 0.9) flights[slot] = pickFlight(rot, t, slot)
+        if (!flights[slot] && t > slot * 0.45) flights[slot] = pickFlight(rot, t, slot)
         const live = flights[slot]
         if (live) drawFlight(live, rot, t)
       })
