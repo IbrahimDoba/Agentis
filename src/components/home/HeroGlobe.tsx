@@ -92,9 +92,11 @@ export function HeroGlobe({ className }: { className?: string }) {
 
     const readColor = () => {
       const style = getComputedStyle(canvas)
-      color = style.getPropertyValue("--wave-rgb").trim() || color
+      // The globe can override the shared wave colours: fine dots on a light
+      // page need a darker green and more weight than the line ribbon does.
+      color = style.getPropertyValue("--globe-rgb").trim() || style.getPropertyValue("--wave-rgb").trim() || color
       tint = style.getPropertyValue("--wave-tint").trim() || tint
-      strength = Number(style.getPropertyValue("--wave-strength")) || 1
+      strength = Number(style.getPropertyValue("--globe-strength")) || Number(style.getPropertyValue("--wave-strength")) || 1
     }
 
     const resize = () => {
