@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { isJunkName, savedName, contactSaveArgs, addressBookEntries, capDay } from "./contact-save.js"
+import { isJunkName, savedName, contactSaveArgs, addressBookEntries, capDay, isFreeAccount, freeSavesLeft, FREE_SAVE_LIMIT } from "./contact-save.js"
 
 describe("isJunkName", () => {
   it("rejects names that aren't names", () => {
@@ -82,5 +82,42 @@ describe("capDay", () => {
     expect(capDay(late)).toEqual({ key: "2026-11-01", endsAt: Date.UTC(2026, 10, 1, 23, 0) })
     // 23:30 UTC = 00:30 Lagos, already 2 Nov
     expect(capDay(Date.UTC(2026, 10, 1, 23, 30)).key).toBe("2026-11-02")
+  })
+})
+
+describe("isFreeAccount", () => {
+  const now = Date.UTC(2026, 10, 10)
+  const future = new Date(now + 86_400_000)
+  const past = new Date(now - 86_400_000)
+
+  it("treats a trial with no wallet as free, active or not started", () => {
+    expect(isFreeAccount({ plan: "free", subscriptionExpiresAt: future, wallet: 0, now })).toBe(true)
+    expect(isFreeAccount({ plan: "free", subscriptionExpiresAt: null, wallet: 0, now })).toBe(true)
+    expect(isFreeAccount({ plan: null, subscriptionExpiresAt: null, wallet: 0, now })).toBe(true)
+  })
+
+  it("treats a funded pay-as-you-go wallet as paying, even on plan free", () => {
+    expect(isFreeAccount({ plan: "free", subscriptionExpiresAt: past, wallet: 50, now })).toBe(false)
+  })
+
+  it("treats a live paid or reseller plan as paying", () => {
+    expect(isFreeAccount({ plan: "basic", subscriptionExpiresAt: future, wallet: 0, now })).toBe(false)
+    expect(isFreeAccount({ plan: "reseller", subscriptionExpiresAt: null, wallet: 0, now })).toBe(false)
+  })
+
+  it("treats a lapsed paid plan with no wallet as free", () => {
+    expect(isFreeAccount({ plan: "starter", subscriptionExpiresAt: past, wallet: 0, now })).toBe(true)
+  })
+})
+
+describe("freeSavesLeft", () => {
+  it("counts down to zero and never goes negative", () => {
+    expect(freeSavesLeft(true, 0)).toBe(FREE_SAVE_LIMIT)
+    expect(freeSavesLeft(true, 150)).toBe(50)
+    expect(freeSavesLeft(true, 260)).toBe(0)
+  })
+
+  it("has no limit for paying accounts", () => {
+    expect(freeSavesLeft(false, 5000)).toBeNull()
   })
 })
