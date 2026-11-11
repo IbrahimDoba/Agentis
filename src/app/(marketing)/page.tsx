@@ -6,6 +6,7 @@ import { Footer } from "@/components/landing/Footer"
 import { HomeHero } from "@/components/home/HomeHero"
 import { NumbersStrip, Products, Smarts, Steps, Pricing, ClosingCta } from "@/components/home/Sections"
 import { Testimonials } from "@/components/home/Testimonials"
+import { LiveCounters } from "@/components/home/LiveCounters"
 import { geist, geistMono } from "@/components/home/fonts"
 import styles from "@/components/home/Home.module.css"
 
@@ -36,15 +37,22 @@ export default async function LandingPage() {
   const tenant = await getTenant()
   if (tenant.id !== "platform") redirect("/signup")
 
-  // Server-rendered so the hero and strip numbers are right on first paint.
+  // Server-rendered so the live counters are right on first paint.
   // Same 60s cache as /api/public/stats, so not a query per visitor.
-  const stats = await getPublicStats()
+  const counted = await getPublicStats()
+  // A local database has no traffic, which hides the counters. Sample numbers
+  // in development only, so the row can still be reviewed.
+  const empty = !counted || counted.aiMessages + counted.leads + counted.conversations === 0
+  const stats = process.env.NODE_ENV === "development" && empty
+    ? { aiMessages: 184_392, conversations: 21_847, leads: 6_215 }
+    : counted
 
   return (
     <div className={`${styles.page} ${geist.variable} ${geistMono.variable}`}>
       <Navbar />
-      <HomeHero stats={stats} />
-      <NumbersStrip stats={stats} />
+      <HomeHero />
+      <LiveCounters initial={stats} />
+      <NumbersStrip />
       <Products />
       <Smarts />
       <Steps />

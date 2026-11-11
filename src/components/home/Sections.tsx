@@ -2,11 +2,9 @@ import Link from "next/link"
 import {
   ArrowRight, BookOpen, Code2, Globe, Hand, Megaphone, ShieldCheck, UserPlus, Users,
 } from "lucide-react"
-import { formatCount } from "@/lib/odometer"
 import { PLAN_PRICES, PLAN_PRICES_USD, PLAN_CREDIT_LIMITS, estimatedAiMessages } from "@/lib/plans"
 import { STATUS_RECIPIENT_CAPS } from "@/lib/status-post"
 import { PAYG_DEFAULT_NGN_PER_CREDIT } from "@/lib/credits"
-import type { PublicStats } from "@/lib/queries/publicStats"
 import { LineWave } from "./LineWave"
 import { Reveal } from "./Reveal"
 import { PricingPlans } from "./PricingPlans"
@@ -26,15 +24,8 @@ function Head({ title, quiet, lead }: { title: string; quiet: string; lead?: str
   )
 }
 
-export function NumbersStrip({ stats }: { stats: PublicStats | null }) {
+export function NumbersStrip() {
   const items = [
-    ...(stats
-      ? [
-        { value: formatCount(stats.aiMessages), label: "AI replies sent" },
-        { value: formatCount(stats.conversations), label: "conversations handled" },
-        { value: formatCount(stats.leads), label: "leads captured" },
-      ].filter((s) => s.value !== "0")
-      : []),
     { value: "24/7", label: "replies, nights and weekends included" },
     { value: "1 tap", label: "to take over any chat" },
     { value: "7 days", label: "free trial, no card needed" },

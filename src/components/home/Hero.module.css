@@ -29,43 +29,6 @@
   max-width: 600px;
 }
 
-.live {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 28px;
-  padding: 6px 12px 6px 10px;
-  border: 1px solid var(--h-line);
-  border-radius: 999px;
-  background: var(--h-surface);
-  font-size: 13px;
-  color: var(--h-muted);
-}
-
-.liveDot {
-  position: relative;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--h-accent);
-}
-
-.liveDot::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background: var(--h-accent);
-  animation: ping 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
-}
-
-.liveCount {
-  font-family: var(--font-geist-mono), ui-monospace, monospace;
-  font-size: 12px;
-  color: var(--h-text);
-  font-variant-numeric: tabular-nums;
-}
-
 .h1 {
   margin: 0;
   font-size: clamp(38px, 4.6vw, 58px);
@@ -364,10 +327,6 @@
   color: var(--h-on-accent);
 }
 
-@keyframes ping {
-  75%, 100% { transform: scale(2.4); opacity: 0; }
-}
-
 @keyframes blink {
   50% { opacity: 0; }
 }
@@ -419,7 +378,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .liveDot::after,
   .caret,
   .typing span {
     animation: none;
