@@ -72,6 +72,17 @@ export async function countAddressBook(agentId: string): Promise<{ total: number
   return row ?? { total: 0, byDailzero: 0 }
 }
 
+// Across every agent the owner has, so a second agent doesn't reset the free limit.
+export async function countSavedByDailzeroForUser(userId: string): Promise<number> {
+  const [row] = await sql<{ n: number }[]>`
+    SELECT count(*)::int AS "n"
+    FROM "WhatsAppContact" w
+    JOIN "Agent" a ON a."id" = w."agentId"
+    WHERE a."userId" = ${userId} AND w."savedBy" = 'dailzero'
+  `
+  return row?.n ?? 0
+}
+
 // Chats with a usable name whose number isn't in the address book yet, in id
 // order from `afterId` — the run's cursor. Junk names are filtered here rather
 // than in SQL; the caller advances the cursor past them so they're never retried.

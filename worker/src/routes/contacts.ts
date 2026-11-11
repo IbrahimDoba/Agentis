@@ -13,12 +13,13 @@ import {
   getContactSaveSettings,
   invalidateContactSaveSettings,
 } from "../db/queries/contacts.js"
-import { startRunChain, stopRunChain } from "../queue/contact-save-queue.js"
+import { startRunChain, stopRunChain, freeSavesLeftFor } from "../queue/contact-save-queue.js"
 import { hasCreditHeadroom } from "../billing/charge.js"
-import { DAILY_SAVE_CAP, CREDITS_PER_CONTACT } from "../baileys/contact-save.js"
+import { DAILY_SAVE_CAP, CREDITS_PER_CONTACT, FREE_SAVE_LIMIT } from "../baileys/contact-save.js"
 import { logger as rootLogger } from "../lib/logger.js"
 
 const logger = rootLogger.child({ module: "routes/contacts" })
+const FREE_LIMIT_ERROR = `The free plan saves up to ${FREE_SAVE_LIMIT} contacts. Subscribe or top up to save more.`
 const syncedKey = (agentId: string, kind: "auto" | "manual") => `cs:synced:${kind}:${agentId}`
 
 // Contacts live in the critical_unblock_low app-state collection. Re-reading
@@ -49,11 +50,12 @@ export const contactRoutes: FastifyPluginAsync = async (app) => {
     const { agentId } = z.object({ agentId: z.string().min(1) }).parse(req.query)
     const sock = sessionManager.get(agentId)
     const syncing = sock ? await syncAddressBook(sock, agentId, "auto", 60 * 60 * 24) : false
-    const [addressBook, unsaved, run, settings] = await Promise.all([
+    const [addressBook, unsaved, run, settings, free] = await Promise.all([
       countAddressBook(agentId),
       countSaveableChats(agentId),
       getLatestRun(agentId),
       getContactSaveSettings(agentId),
+      freeSavesLeftFor(agentId),
     ])
     return reply.send({
       addressBook,
@@ -63,6 +65,7 @@ export const contactRoutes: FastifyPluginAsync = async (app) => {
       settings,
       dailyCap: DAILY_SAVE_CAP,
       creditsPerContact: CREDITS_PER_CONTACT,
+      freeLimit: free.left === null ? null : { limit: FREE_SAVE_LIMIT, used: free.used, left: free.left },
     })
   })
 
@@ -84,6 +87,8 @@ export const contactRoutes: FastifyPluginAsync = async (app) => {
     const { agentId } = z.object({ agentId: z.string().min(1) }).parse(req.body)
     if (!sessionManager.get(agentId)) return reply.code(409).send({ error: "WhatsApp is not connected" })
     if (!(await hasCreditHeadroom(agentId))) return reply.code(402).send({ error: "Not enough credits to save contacts" })
+    const { left } = await freeSavesLeftFor(agentId)
+    if (left === 0) return reply.code(402).send({ error: FREE_LIMIT_ERROR })
 
     // An empty mirror means we haven't read the phone's address book yet, not
     // that it's empty — saving now would rename every contact the owner has.
@@ -91,7 +96,9 @@ export const contactRoutes: FastifyPluginAsync = async (app) => {
       return reply.code(409).send({ error: "Still reading your phone's contacts. Try again in a minute." })
     }
 
-    const total = await countSaveableChats(agentId)
+    const saveable = await countSaveableChats(agentId)
+    // A free run is sized to what's left, so its progress bar ends at the limit.
+    const total = left === null ? saveable : Math.min(saveable, left)
     if (total === 0) return reply.code(409).send({ error: "Every chat with a name is already in your contacts" })
 
     // The tag is fixed per run: changing it mid-run would leave half the batch
@@ -125,6 +132,7 @@ export const contactRoutes: FastifyPluginAsync = async (app) => {
     } else {
       if (!sessionManager.get(agentId)) return reply.code(409).send({ error: "WhatsApp is not connected" })
       if (!(await hasCreditHeadroom(agentId))) return reply.code(402).send({ error: "Not enough credits to save contacts" })
+      if ((await freeSavesLeftFor(agentId)).left === 0) return reply.code(402).send({ error: FREE_LIMIT_ERROR })
       if (!(await setRunStatus(runId, ["paused"], "running"))) return reply.code(409).send({ error: "Run is not paused" })
       await startRunChain(runId, agentId)
     }

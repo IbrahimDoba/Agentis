@@ -221,7 +221,7 @@ export function DocumentsTab({ agentId }: DocumentsTabProps) {
         <div className={styles.root}>
             <div className={styles.header}>
                 <div>
-                    <div className={styles.title}>Documents / RAG</div>
+                    <div className={styles.title}>Documents</div>
                     <div className={styles.subtitle}>
                         Upload PDFs, DOCX and text files, or point the agent at your website. It reads all of
                         this to answer questions.

@@ -136,7 +136,7 @@ export function EmbedTab({ agentId, onDirtyChange }: EmbedTabProps) {
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Embed widget</h2>
         <p className={styles.sectionDesc}>
-          Drop a small <code>&lt;script&gt;</code> snippet on any website and visitors can chat with this agent directly from the page. The widget will be live once Batch 3 ships — for now you can configure the settings here.
+          Drop a small <code>&lt;script&gt;</code> snippet on any website and visitors can chat with this agent directly from the page.
         </p>
 
         <div className={styles.row}>
@@ -190,7 +190,7 @@ export function EmbedTab({ agentId, onDirtyChange }: EmbedTabProps) {
       {/* Theme */}
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Theme</h2>
-        <p className={styles.sectionDesc}>How the widget appears on the visitor&apos;s site. More options ship in Batch 4.</p>
+        <p className={styles.sectionDesc}>How the widget appears on the visitor&apos;s site.</p>
 
         <div className={styles.fieldRow}>
           <label className={styles.fieldLabel} htmlFor="embed-greeting">Greeting</label>
