@@ -105,7 +105,7 @@ export default function InvitePage() {
   if (error) {
     return (
       <div className={styles.container}>
-        <Link href="/" className={styles.logo}><LogoIcon size={30} /> D-Zero AI</Link>
+        <Link href="/" className={styles.logo}><LogoIcon size={30} /> Dailzero</Link>
         <div className={styles.card}>
           <div className={styles.errorIcon}>⚠️</div>
           <h1 className={styles.title}>Invite unavailable</h1>
@@ -120,7 +120,7 @@ export default function InvitePage() {
 
   return (
     <div className={styles.container}>
-      <Link href="/" className={styles.logo}><LogoIcon size={30} /> D-Zero AI</Link>
+      <Link href="/" className={styles.logo}><LogoIcon size={30} /> Dailzero</Link>
 
       <div className={styles.card}>
         <div className={styles.workspaceBadge}>

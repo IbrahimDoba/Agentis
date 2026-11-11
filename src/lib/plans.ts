@@ -7,6 +7,17 @@ export const PLAN_PRICES: Record<string, number> = {
   reseller: 0, // white-label tenant users — billed via the reseller's pool, not self-pay
 }
 
+// Display-only dollar prices for visitors outside Nigeria. Set by hand and
+// rounded (about ₦1,550 to $1 in Nov 2026); checkout still charges Naira.
+export const PLAN_PRICES_USD: Record<string, number> = {
+  basic: 13,
+  starter: 26,
+  pro: 49,
+}
+
+// Yearly billing charges 10 months for 12 ("2 months free").
+export const ANNUAL_MONTHS_CHARGED = 10
+
 // Monthly Dailzero AI credit allowances per plan
 export const PLAN_CREDIT_LIMITS: Record<string, number> = {
   free: 1000,

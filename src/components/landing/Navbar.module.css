@@ -101,8 +101,10 @@
   align-items: center;
   font-size: 0.9rem;
   font-weight: 600;
-  color: #050c08;
-  background: var(--accent);
+  /* The home page re-points these at its own palette; elsewhere they fall
+     back to the neon accent. */
+  color: var(--nav-cta-text, #050c08);
+  background: var(--nav-cta-bg, var(--accent));
   padding: 0.5rem 1.25rem;
   border-radius: var(--radius-md);
   border: none;
@@ -113,10 +115,10 @@
 }
 
 .getAccess:hover {
-  background: var(--accent-hover);
+  background: var(--nav-cta-bg-hover, var(--accent-hover));
   box-shadow: 0 0 30px var(--accent-glow);
   transform: translateY(-1px);
-  color: #050c08;
+  color: var(--nav-cta-text, #050c08);
 }
 
 /* ─── Hamburger button ─── */
@@ -251,8 +253,8 @@
   display: block;
   text-align: center;
   padding: 0.75rem;
-  background: var(--accent);
-  color: #050c08;
+  background: var(--nav-cta-bg, var(--accent));
+  color: var(--nav-cta-text, #050c08);
   font-size: 0.95rem;
   font-weight: 600;
   border-radius: var(--radius-md);

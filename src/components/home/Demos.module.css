@@ -1,0 +1,503 @@
+/* Looping card demos. Colours come from the home palette tokens on .page.
+   Anything with data-on fades and lifts in; the server render has every
+   piece on, so nothing is hidden without JS. */
+
+.mono {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 11px;
+  color: var(--h-faint);
+}
+
+.fx [data-on] {
+  transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fx [data-on="false"] {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--h-text);
+}
+
+.sub {
+  font-size: 12px;
+  color: var(--h-faint);
+}
+
+.sub b {
+  font-weight: 500;
+  color: var(--h-text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Chat bubbles, shared by Replies and Memory */
+
+.in,
+.out {
+  max-width: 82%;
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--h-text);
+}
+
+.in {
+  align-self: flex-start;
+  border: 1px solid var(--h-line);
+  background: var(--h-surface);
+  border-bottom-left-radius: 4px;
+}
+
+.out {
+  align-self: flex-end;
+  background: var(--h-bubble-out);
+  border-bottom-right-radius: 4px;
+}
+
+.typing {
+  align-self: flex-end;
+  display: flex;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border-bottom-right-radius: 4px;
+  background: var(--h-bubble-out);
+}
+
+.typing span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--h-accent-ink);
+  animation: bob 1s ease-in-out infinite;
+}
+
+.typing span:nth-child(2) { animation-delay: 0.15s; }
+.typing span:nth-child(3) { animation-delay: 0.3s; }
+
+/* Replies */
+
+.replies {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+  height: 100%;
+}
+
+.chat {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 380px;
+}
+
+.handover {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px dashed var(--h-line-strong);
+  border-radius: 10px;
+  font-size: 12px;
+  color: var(--h-muted);
+}
+
+.handoverBtn {
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: var(--h-ink);
+  color: var(--h-on-ink);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.pulse {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: #f5a524;
+  vertical-align: 1px;
+  box-shadow: 0 0 0 0 rgba(245, 165, 36, 0.5);
+  animation: ping 1.6s ease-out infinite;
+}
+
+/* Broadcast */
+
+.broadcast {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.dots {
+  display: grid;
+  grid-template-columns: repeat(20, 1fr);
+  gap: 6px;
+}
+
+.dots span {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--h-line-strong);
+  transition: background-color 0.3s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dots span[data-state="sent"] {
+  background: var(--h-accent);
+  opacity: 0.55;
+}
+
+.dots span[data-state="replied"] {
+  background: var(--h-accent);
+  transform: scale(1.35);
+  box-shadow: 0 0 0 3px var(--h-accent-soft);
+}
+
+/* Status */
+
+.status {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.statusRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.statusText {
+  flex: 1;
+  min-width: 0;
+  animation: rise 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ring {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+}
+
+.seg {
+  fill: none;
+  stroke: var(--h-line-strong);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 28 72;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.seg[data-on="true"] {
+  stroke: var(--h-accent);
+}
+
+.seg[data-draw="true"] {
+  animation: draw28 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.posted {
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: var(--h-accent-soft);
+  color: var(--h-accent-ink);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 10px;
+}
+
+.queue {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.queueItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border: 1px solid var(--h-line);
+  border-radius: 8px;
+  background: var(--h-surface);
+  font-size: 12px;
+  color: var(--h-muted);
+  animation: rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Follow-up chart */
+
+.chart {
+  position: relative;
+  height: 150px;
+}
+
+.chartSvg {
+  position: absolute;
+  inset: 8px 0 0;
+  width: 100%;
+  height: calc(100% - 8px);
+  overflow: visible;
+}
+
+.line {
+  fill: none;
+  stroke: var(--h-accent);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+  stroke-dasharray: 100;
+}
+
+.chartLine[data-draw="true"] .line {
+  animation: draw100 2s cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+
+.chartLine[data-draw="true"] .area {
+  animation: fade 1.4s ease 0.8s both;
+}
+
+.chartLine[data-draw="false"] .line {
+  stroke-dashoffset: 0;
+}
+
+.marker {
+  stroke: var(--h-line-strong);
+  stroke-dasharray: 3 4;
+  vector-effect: non-scaling-stroke;
+}
+
+.chip {
+  position: absolute;
+  padding: 4px 8px;
+  border: 1px solid var(--h-line);
+  border-radius: 7px;
+  background: var(--h-surface);
+  color: var(--h-accent-ink);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+/* Pipeline */
+
+.pipe {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pipeHead {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  font-size: 12px;
+  color: var(--h-muted);
+}
+
+.pipeHead b {
+  margin-left: 4px;
+  font-weight: 400;
+  color: var(--h-accent-ink);
+}
+
+.pipeBody {
+  position: relative;
+  height: 112px;
+  background-image: linear-gradient(to right, transparent calc(33.33% - 4px), var(--h-line) calc(33.33% - 4px), var(--h-line) calc(33.33% - 3px), transparent calc(33.33% - 3px), transparent calc(66.66% - 4px), var(--h-line) calc(66.66% - 4px), var(--h-line) calc(66.66% - 3px), transparent calc(66.66% - 3px));
+}
+
+.lead {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: calc((100% - 16px) / 3);
+  padding: 7px 8px;
+  border: 1px solid var(--h-line);
+  border-radius: 8px;
+  background: var(--h-surface);
+  font-size: 12px;
+  color: var(--h-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: transform 0.7s cubic-bezier(0.65, 0, 0.35, 1), border-color 0.3s ease, background-color 0.3s ease;
+}
+
+.lead[data-won="true"] {
+  border-color: transparent;
+  background: var(--h-accent-soft);
+  color: var(--h-accent-ink);
+}
+
+/* Memory */
+
+.memory {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 150px;
+}
+
+.recall {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-self: center;
+  padding: 6px 10px;
+  border: 1px dashed var(--h-line-strong);
+  border-radius: 8px;
+  font-size: 12px;
+  color: var(--h-text);
+}
+
+/* Agent radar */
+
+.radar {
+  position: relative;
+  width: 100%;
+  max-width: 300px;
+  aspect-ratio: 1;
+  margin: 0 auto;
+}
+
+.radarRing {
+  position: absolute;
+  border: 1px solid rgba(var(--wave-rgb), 0.22);
+  border-radius: 50%;
+}
+
+.sweep {
+  position: absolute;
+  inset: 6%;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, rgba(var(--wave-rgb), 0.28), transparent 70deg);
+  mask-image: radial-gradient(circle, #000 0 70%, transparent 71%);
+  animation: spin 6s linear infinite;
+  animation-play-state: paused;
+}
+
+.links {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.links line {
+  stroke: rgba(var(--wave-rgb), 0.35);
+  stroke-width: 0.4;
+  stroke-dasharray: 1.2 1.6;
+  animation: flow 2.4s linear infinite;
+  animation-play-state: paused;
+}
+
+.source {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transform: translate(-5px, -50%);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 11px;
+  color: var(--h-muted);
+  white-space: nowrap;
+  animation: glow 3.5s ease-in-out infinite;
+  animation-play-state: paused;
+}
+
+.source i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--h-accent);
+}
+
+.core {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border-radius: 50%;
+  background: var(--h-accent);
+  box-shadow: 0 0 0 6px var(--h-accent-soft), 0 0 24px rgba(var(--wave-rgb), 0.6);
+}
+
+.radar[data-live="true"] .sweep,
+.radar[data-live="true"] .links line,
+.radar[data-live="true"] .source {
+  animation-play-state: running;
+}
+
+@keyframes bob {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+  30% { transform: translateY(-3px); opacity: 1; }
+}
+
+@keyframes ping {
+  0% { box-shadow: 0 0 0 0 rgba(245, 165, 36, 0.5); }
+  100% { box-shadow: 0 0 0 8px rgba(245, 165, 36, 0); }
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(8px); }
+}
+
+@keyframes draw28 {
+  from { stroke-dashoffset: 28; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes draw100 {
+  from { stroke-dashoffset: 100; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes fade {
+  from { opacity: 0; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes flow {
+  to { stroke-dashoffset: -5.6; }
+}
+
+@keyframes glow {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .typing span,
+  .pulse,
+  .statusText,
+  .queueItem,
+  .sweep,
+  .links line,
+  .source {
+    animation: none;
+  }
+
+  .fx [data-on],
+  .lead,
+  .dots span {
+    transition: none;
+  }
+}

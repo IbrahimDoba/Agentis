@@ -1,0 +1,940 @@
+/* Home page palette. Scoped to .page so the dashboard keeps its own look; the
+   shared Navbar and Footer sit inside .page and pick these up through the
+   global token names re-pointed at the bottom of each block. */
+.page {
+  --h-max: 1200px;
+  --h-bg: #08110c;
+  --h-surface: #0e1a13;
+  --h-surface-2: #122119;
+  --h-line: rgba(226, 244, 233, 0.08);
+  --h-line-strong: rgba(226, 244, 233, 0.16);
+  --h-text: #e6f4ec;
+  --h-muted: #97ae9f;
+  --h-faint: #66806f;
+  --h-accent: #00dc82;
+  --h-accent-ink: #3ee89f;
+  --h-accent-soft: rgba(0, 220, 130, 0.12);
+  --h-on-accent: #04140b;
+  --h-ink: #e6f4ec;
+  --h-ink-hover: #f7fdf9;
+  --h-on-ink: #08110c;
+  --h-bubble-out: #10291c;
+  --h-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.22);
+  --wave-rgb: 0, 220, 130;
+  --wave-tint: 150, 240, 120;
+  --wave-strength: 0.8;
+
+  --bg-primary: var(--h-bg);
+  --bg-card: var(--h-surface);
+  --bg-hover: var(--h-surface-2);
+  --border: var(--h-line-strong);
+  --border-subtle: var(--h-line);
+  --text-primary: var(--h-text);
+  --text-secondary: var(--h-muted);
+  --text-muted: var(--h-faint);
+  --accent: var(--h-accent);
+  --accent-glow: transparent;
+  --bg-secondary: var(--h-surface-2);
+  --nav-cta-bg: var(--h-ink);
+  --nav-cta-bg-hover: var(--h-ink-hover);
+  --nav-cta-text: var(--h-on-ink);
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+
+  min-height: 100dvh;
+  background: var(--h-bg);
+  color: var(--h-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+:global([data-theme="light"]) .page {
+  --h-bg: #fbfcfa;
+  --h-surface: #ffffff;
+  --h-surface-2: #f3f7f4;
+  --h-line: rgba(12, 44, 28, 0.08);
+  --h-line-strong: rgba(12, 44, 28, 0.15);
+  --h-text: #0d2318;
+  --h-muted: #55695d;
+  --h-faint: #7f9186;
+  --h-accent: #00b86b;
+  --h-accent-ink: #00774a;
+  --h-accent-soft: rgba(0, 184, 107, 0.12);
+  --h-on-accent: #fbfffd;
+  --h-ink: #0f3b29;
+  --h-ink-hover: #165238;
+  --h-on-ink: #f4fbf7;
+  --h-bubble-out: #e6f7ee;
+  --h-shadow: 0 1px 2px rgba(16, 40, 28, 0.05), 0 8px 24px rgba(16, 40, 28, 0.06);
+  --wave-rgb: 0, 184, 107;
+  --wave-tint: 110, 214, 70;
+  --wave-strength: 0.85;
+}
+
+/* Sections are cells in one framed column, like a ruled page. */
+.section {
+  border-bottom: 1px solid var(--h-line);
+}
+
+.frame {
+  max-width: var(--h-max);
+  margin: 0 auto;
+  padding: 104px 48px;
+  border-inline: 1px solid var(--h-line);
+}
+
+/* Section heading: a dark line, then a quieter line, marked by a short
+   accent rule sitting on the frame edge. */
+.head {
+  position: relative;
+  max-width: 720px;
+  margin-bottom: 56px;
+}
+
+.head::before {
+  content: "";
+  position: absolute;
+  left: -49px;
+  top: 6px;
+  width: 2px;
+  height: 28px;
+  background: var(--h-accent);
+}
+
+.h2 {
+  margin: 0;
+  font-size: clamp(28px, 3.4vw, 40px);
+  line-height: 1.15;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+  color: var(--h-text);
+}
+
+.h2 span {
+  display: block;
+  color: var(--h-muted);
+}
+
+.lead {
+  margin: 16px 0 0;
+  max-width: 56ch;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--h-muted);
+}
+
+.mono {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+/* Reveal: children fade and lift in, staggered. Hidden only once armed by JS. */
+.reveal[data-reveal="armed"] > *,
+.reveal[data-reveal="in"] > * {
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal[data-reveal="armed"] > * {
+  opacity: 0;
+  transform: translateY(18px);
+}
+
+.reveal > *:nth-child(2) { transition-delay: 70ms; }
+.reveal > *:nth-child(3) { transition-delay: 140ms; }
+.reveal > *:nth-child(4) { transition-delay: 210ms; }
+.reveal > *:nth-child(5) { transition-delay: 280ms; }
+.reveal > *:nth-child(6) { transition-delay: 350ms; }
+.reveal > *:nth-child(7) { transition-delay: 420ms; }
+.reveal > *:nth-child(n + 8) { transition-delay: 490ms; }
+
+/* Numbers strip (the page's one marquee) */
+
+.strip {
+  border-bottom: 1px solid var(--h-line);
+  overflow: hidden;
+  mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+}
+
+.stripTrack {
+  display: flex;
+  width: max-content;
+  animation: marquee 50s linear infinite;
+}
+
+.strip:hover .stripTrack {
+  animation-play-state: paused;
+}
+
+.stripItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 32px;
+  font-size: 14px;
+  color: var(--h-muted);
+  white-space: nowrap;
+}
+
+.stripValue {
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--h-accent-soft);
+  color: var(--h-accent-ink);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Product bento: one tall card, two stacked */
+
+.bento {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  gap: 16px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--h-line);
+  border-radius: 16px;
+  background: var(--h-surface);
+  overflow: hidden;
+  transition: border-color 0.25s ease, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card:hover {
+  border-color: var(--h-line-strong);
+  transform: translateY(-2px);
+}
+
+.cardTall {
+  grid-row: span 2;
+}
+
+.cardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px 0;
+}
+
+.cardName {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--h-text);
+}
+
+.tag {
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--h-accent-soft);
+  color: var(--h-accent-ink);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 11px;
+}
+
+.demo {
+  position: relative;
+  margin: 16px 24px 0;
+  padding: 16px;
+  border: 1px solid var(--h-line);
+  border-radius: 12px;
+  background: var(--h-surface-2);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.cardBody {
+  padding: 20px 24px 24px;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--h-text);
+}
+
+.cardDesc {
+  margin: 6px 0 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--h-muted);
+}
+
+/* Follow-through row: three demo cards, then one wide card for the agent */
+
+.trio {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+/* Same number of description lines, so the titles line up across the row. */
+.trio .cardDesc {
+  min-height: calc(1.55em * 3);
+}
+
+.agentCard {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  align-items: center;
+  gap: 48px;
+  margin-top: 16px;
+  padding: 40px 48px;
+  border: 1px solid var(--h-line);
+  border-radius: 16px;
+  background:
+    radial-gradient(ellipse 60% 90% at 18% 50%, var(--h-accent-soft), transparent 70%),
+    var(--h-surface);
+}
+
+.agentTop {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.agentName {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--h-accent-ink);
+}
+
+.agentTitle {
+  margin: 16px 0 0;
+  font-size: clamp(22px, 2.4vw, 28px);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--h-text);
+}
+
+.agentCopy .cardDesc {
+  margin-top: 10px;
+  max-width: 58ch;
+  font-size: 15px;
+}
+
+.powers {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.powersLabel {
+  margin-right: 4px;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--h-faint);
+}
+
+/* Capabilities */
+
+.caps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 40px 32px;
+  margin-top: 72px;
+}
+
+.cap {
+  padding-top: 20px;
+  border-top: 1px solid var(--h-line);
+}
+
+.capIcon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin-bottom: 14px;
+  border: 1px solid var(--h-line);
+  border-radius: 8px;
+  color: var(--h-accent-ink);
+}
+
+.capName {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--h-text);
+}
+
+.capDesc {
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--h-muted);
+}
+
+.industries {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 64px;
+}
+
+.industriesLabel {
+  margin-right: 8px;
+  font-size: 13px;
+  color: var(--h-faint);
+}
+
+.industry {
+  padding: 6px 12px;
+  border: 1px solid var(--h-line);
+  border-radius: 999px;
+  font-size: 13px;
+  color: var(--h-muted);
+}
+
+.textLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 40px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--h-text);
+  text-decoration: none;
+}
+
+.textLink svg {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.textLink:hover svg {
+  transform: translateX(3px);
+}
+
+/* How it works: one ruled row of steps that light up in turn */
+
+.steps {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0 -48px;
+  padding: 0;
+  border-top: 1px solid var(--h-line);
+  border-bottom: 1px solid var(--h-line);
+  list-style: none;
+}
+
+.step {
+  position: relative;
+  padding: 28px 24px 32px;
+}
+
+.step + .step {
+  border-left: 1px solid var(--h-line);
+}
+
+.step::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -1px;
+  height: 2px;
+  background: var(--h-accent);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.steps[data-reveal="in"] .step::before {
+  animation: stepOn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.steps[data-reveal="in"] .step:nth-child(2)::before { animation-delay: 0.5s; }
+.steps[data-reveal="in"] .step:nth-child(3)::before { animation-delay: 1s; }
+.steps[data-reveal="in"] .step:nth-child(4)::before { animation-delay: 1.5s; }
+
+/* A spark that keeps running along the top rule, from sign-up to live. */
+.steps::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: -1px;
+  width: 120px;
+  height: 2px;
+  background: linear-gradient(to right, transparent, var(--h-accent-ink), transparent);
+  animation: spark 4.5s cubic-bezier(0.65, 0, 0.35, 1) 2s infinite;
+  transform: translateX(-120px);
+}
+
+.steps[data-reveal="idle"] .step::before {
+  transform: none;
+}
+
+.stepNum {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--h-accent-ink);
+}
+
+.stepTitle {
+  margin: 14px 0 0;
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--h-text);
+}
+
+.stepDesc {
+  margin: 6px 0 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--h-muted);
+}
+
+/* Testimonials: one quote at a time, switched by name */
+
+.quoteBox {
+  max-width: 820px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.quote {
+  margin: 0;
+  min-height: 7.5em;
+  font-size: clamp(20px, 2.4vw, 28px);
+  line-height: 1.45;
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  color: var(--h-text);
+  animation: quoteIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.quoteTabs {
+  display: flex;
+  justify-content: center;
+  margin-top: 40px;
+  border-top: 1px solid var(--h-line);
+}
+
+.quoteTab {
+  position: relative;
+  padding: 18px 24px 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  color: var(--h-faint);
+  transition: color 0.2s ease;
+}
+
+.quoteTab::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -1px;
+  height: 2px;
+  background: var(--h-accent);
+  transform: scaleX(0);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.quoteTab[aria-selected="true"] {
+  color: var(--h-text);
+}
+
+.quoteTab[aria-selected="true"]::before {
+  transform: scaleX(1);
+}
+
+/* While it advances by itself, the active name's rule fills up as a timer. */
+.quoteTabs[data-auto="true"] .quoteTab[aria-selected="true"]::before {
+  transform-origin: left;
+  animation: timer 7s linear;
+}
+
+.quoteTab:focus-visible {
+  outline: 2px solid var(--h-accent);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+.quoteName {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.quoteRole {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--h-faint);
+}
+
+/* Pricing */
+
+.plans {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.plan {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 28px;
+  border: 1px solid var(--h-line);
+  border-radius: 16px;
+  background: var(--h-surface);
+}
+
+.planPro {
+  border-color: var(--h-accent);
+  box-shadow: 0 0 0 1px var(--h-accent-soft);
+}
+
+.planBadge {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--h-accent-soft);
+  color: var(--h-accent-ink);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.planName {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--h-muted);
+}
+
+.planPrice {
+  margin-top: 10px;
+  font-size: 36px;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  color: var(--h-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.planPrice span {
+  font-size: 15px;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--h-faint);
+}
+
+.planDesc {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--h-muted);
+}
+
+.planList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 24px 0 28px;
+  padding: 24px 0 0;
+  border-top: 1px solid var(--h-line);
+  list-style: none;
+  flex: 1;
+}
+
+.planItem {
+  display: flex;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--h-text);
+}
+
+.planItem svg {
+  flex-shrink: 0;
+  margin-top: 3px;
+  color: var(--h-accent-ink);
+}
+
+.planBtn {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  height: 44px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: none;
+  border: 1px solid var(--h-line-strong);
+  color: var(--h-text);
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.planBtn:hover {
+  border-color: var(--h-muted);
+}
+
+.planBtnSolid {
+  border-color: transparent;
+  background: var(--h-ink);
+  color: var(--h-on-ink);
+}
+
+.planBtnSolid:hover {
+  border-color: transparent;
+  background: var(--h-ink-hover);
+}
+
+.planBtn:active {
+  transform: scale(0.98);
+}
+
+.planUsd {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--h-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.cycle {
+  display: inline-flex;
+  gap: 4px;
+  margin-bottom: 24px;
+  padding: 4px;
+  border: 1px solid var(--h-line);
+  border-radius: 12px;
+  background: var(--h-surface);
+}
+
+.cycleBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--h-muted);
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.cycleBtn[aria-checked="true"] {
+  background: var(--h-ink);
+  color: var(--h-on-ink);
+}
+
+.cycleBtn:focus-visible {
+  outline: 2px solid var(--h-accent);
+  outline-offset: 2px;
+}
+
+.cycleSave {
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: var(--h-accent-soft);
+  color: var(--h-accent-ink);
+  font-size: 11px;
+}
+
+.cycleBtn[aria-checked="true"] .cycleSave {
+  background: var(--h-accent);
+  color: var(--h-on-accent);
+}
+
+.planNote {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: var(--h-faint);
+}
+
+.payg {
+  margin: 32px 0 0;
+  font-size: 14px;
+  color: var(--h-muted);
+}
+
+/* Closing call to action */
+
+.cta {
+  position: relative;
+  overflow: hidden;
+}
+
+.ctaWave {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 160px;
+  pointer-events: none;
+}
+
+.ctaRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 32px;
+  padding-bottom: 120px;
+}
+
+.ctaRow .head {
+  max-width: 820px;
+  margin-bottom: 0;
+}
+
+.ctaButtons {
+  display: flex;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+@keyframes marquee {
+  to { transform: translateX(-50%); }
+}
+
+@keyframes stepOn {
+  to { transform: scaleX(1); }
+}
+
+@keyframes timer {
+  from { transform: scaleX(0); }
+}
+
+@keyframes spark {
+  to { transform: translateX(calc(var(--h-max) + 120px)); }
+}
+
+@keyframes quoteIn {
+  from { opacity: 0; transform: translateY(8px); }
+}
+
+@media (max-width: 960px) {
+  .frame {
+    padding: 80px 24px;
+  }
+
+  .head::before {
+    left: -25px;
+  }
+
+  .bento {
+    grid-template-columns: 1fr;
+  }
+
+  .cardTall {
+    grid-row: auto;
+  }
+
+  .trio {
+    grid-template-columns: 1fr;
+  }
+
+  .agentCard {
+    grid-template-columns: 1fr;
+    gap: 32px;
+    padding: 32px 24px;
+  }
+
+  .caps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .plans {
+    grid-template-columns: 1fr;
+    max-width: 520px;
+  }
+
+  .steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0 -24px;
+  }
+
+  .step:nth-child(3) {
+    border-left: 0;
+  }
+
+  .step:nth-child(n + 3) {
+    border-top: 1px solid var(--h-line);
+  }
+
+  .ctaRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .frame {
+    padding: 64px 16px;
+    border-inline: 0;
+  }
+
+  .head::before {
+    display: none;
+  }
+
+  .caps,
+  .plans {
+    grid-template-columns: 1fr;
+  }
+
+  .steps {
+    grid-template-columns: 1fr;
+    margin: 0 -16px;
+  }
+
+  .step + .step {
+    border-left: 0;
+    border-top: 1px solid var(--h-line);
+  }
+
+  .quoteTabs {
+    justify-content: flex-start;
+    overflow-x: auto;
+  }
+
+  .quoteTab {
+    padding-inline: 16px;
+  }
+
+  .ctaButtons {
+    width: 100%;
+    flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stripTrack,
+  .quote {
+    animation: none;
+  }
+
+  .steps .step::before {
+    transform: none;
+    animation: none !important;
+  }
+
+  .steps::after,
+  .quoteTabs .quoteTab::before {
+    animation: none !important;
+  }
+
+  .card,
+  .card:hover {
+    transform: none;
+    transition: none;
+  }
+}
