@@ -68,6 +68,8 @@
   --wave-rgb: 0, 184, 107;
   --wave-tint: 110, 214, 70;
   --wave-strength: 0.85;
+  --globe-rgb: 0, 128, 76;
+  --globe-strength: 1.6;
 }
 
 /* Sections are cells in one framed column, like a ruled page. */
