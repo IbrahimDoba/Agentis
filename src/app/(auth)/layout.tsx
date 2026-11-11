@@ -1,6 +1,8 @@
 import type { Metadata } from "next"
 import { getTenantBranding, brandingIcons } from "@/lib/tenant"
 import { BrandProvider } from "@/components/BrandProvider"
+import { AuthShowcase } from "@/components/auth/AuthShowcase"
+import split from "@/components/auth/AuthShowcase.module.css"
 
 // Auth pages are served on the tenant's own domain, so they carry the tenant's
 // brand: app name in the title, logo/name in the form, accent colour, and
@@ -29,6 +31,19 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
   // Override the accent so buttons/links pick up the reseller's colour.
   if (branding.primaryColor) {
     ;(style as Record<string, string>)["--accent"] = branding.primaryColor
+  }
+
+  // The showcase is Dailzero's own artwork, so reseller domains keep the plain
+  // centred form with their brand.
+  if (branding.isPlatform) {
+    return (
+      <BrandProvider branding={branding}>
+        <div className={split.split}>
+          <AuthShowcase />
+          <div className={split.form}>{children}</div>
+        </div>
+      </BrandProvider>
+    )
   }
 
   return (
