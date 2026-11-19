@@ -14,7 +14,7 @@ export const metadata = solutionMetadata({
   description: "Handle appointment booking, patient FAQs, and follow-ups on WhatsApp — so your front desk can focus on patients in the clinic.",
   slug: "healthcare",
   ogImage: "https://images.unsplash.com/photo-1551076805-e1869033e561?auto=format&fit=crop&w=1600&q=80",
-  ogImageAlt: "Modern clinic — D-Zero AI for Healthcare",
+  ogImageAlt: "Modern clinic — Dailzero for Healthcare",
   keywords: ["healthcare whatsapp bot", "clinic appointment booking", "patient AI assistant", "medical chatbot", "whatsapp appointment reminder"],
 })
 
@@ -27,7 +27,7 @@ export default function HealthcareSolutionPage() {
       heroImage="https://images.unsplash.com/photo-1551076805-e1869033e561?auto=format&fit=crop&w=1600&q=80"
       heroImageAlt="Modern clinic interior"
       heroTitle={<>Give Every Patient an<br />Instant, Helpful Response</>}
-      heroSub="D-Zero AI handles appointment booking, FAQs, and follow-ups on WhatsApp — so your front desk can focus on patients in the clinic, not messages on a phone."
+      heroSub="Dailzero handles appointment booking, FAQs, and follow-ups on WhatsApp — so your front desk can focus on patients in the clinic, not messages on a phone."
       floatingBadges={[
         { text: "Appointment Confirmed", Icon: CheckIcon },
         { text: "50% Fewer No-Shows", dot: true },
@@ -40,7 +40,7 @@ export default function HealthcareSolutionPage() {
       ]}
       chatBotName="ClinicBot AI"
       chatTitle={<>From patient message to<br />confirmed appointment instantly</>}
-      chatDesc="When a patient messages your clinic, D-Zero AI responds immediately — booking appointments, answering questions about services, and sending reminders to cut no-shows."
+      chatDesc="When a patient messages your clinic, Dailzero responds immediately — booking appointments, answering questions about services, and sending reminders to cut no-shows."
       chatPoints={[
         "Books, reschedules, and cancels appointments automatically",
         "Answers questions about services, pricing, and doctors",
@@ -80,7 +80,7 @@ export default function HealthcareSolutionPage() {
       ]}
       showcaseQuote="Our receptionist used to spend 3 hours a day just on WhatsApp messages. Now the AI handles them and she can actually focus on the patients in front of her."
       ctaTitle="Ready to give every patient an instant response?"
-      ctaDesc="Join clinics using D-Zero AI to handle WhatsApp bookings and patient queries 24/7 — without adding to your front desk."
+      ctaDesc="Join clinics using Dailzero to handle WhatsApp bookings and patient queries 24/7 — without adding to your front desk."
     />
   )
 }

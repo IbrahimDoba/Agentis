@@ -14,7 +14,7 @@ export const metadata = solutionMetadata({
   description: "Answer every customer query, capture every lead, and qualify prospects automatically on WhatsApp.",
   slug: "finance",
   ogImage: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=1600&q=80",
-  ogImageAlt: "Financial services — D-Zero AI for Finance",
+  ogImageAlt: "Financial services — Dailzero for Finance",
   keywords: ["financial services whatsapp bot", "loan lead qualification AI", "fintech chatbot", "whatsapp banking assistant", "financial product Q&A"],
 })
 
@@ -27,7 +27,7 @@ export default function FinanceSolutionPage() {
       heroImage="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=1600&q=80"
       heroImageAlt="Financial trading and analytics"
       heroTitle={<>Answer Every Query.<br />Capture Every Lead. Securely.</>}
-      heroSub="D-Zero AI handles product enquiries, account FAQs, and lead qualification for financial services businesses on WhatsApp — compliantly and at scale."
+      heroSub="Dailzero handles product enquiries, account FAQs, and lead qualification for financial services businesses on WhatsApp — compliantly and at scale."
       floatingBadges={[
         { text: "Lead Qualified", Icon: CheckIcon },
         { text: "Response < 1s", dot: true },
@@ -40,7 +40,7 @@ export default function FinanceSolutionPage() {
       ]}
       chatBotName="FinanceBot AI"
       chatTitle={<>From first enquiry to<br />qualified lead in minutes</>}
-      chatDesc="When a prospect asks about a financial product, D-Zero AI responds instantly — explaining options, qualifying intent and eligibility, and handing off warm leads to your advisors."
+      chatDesc="When a prospect asks about a financial product, Dailzero responds instantly — explaining options, qualifying intent and eligibility, and handing off warm leads to your advisors."
       chatPoints={[
         "Answers product questions, rates, and eligibility instantly",
         "Qualifies income, product interest, and timeline automatically",
@@ -80,7 +80,7 @@ export default function FinanceSolutionPage() {
       ]}
       showcaseQuote="Our advisors now spend their time closing deals, not answering basic product questions. The AI handles the top of the funnel — perfectly."
       ctaTitle="Ready to qualify every lead before your team gets involved?"
-      ctaDesc="Join financial services businesses using D-Zero AI to handle WhatsApp enquiries 24/7 — compliantly and at scale."
+      ctaDesc="Join financial services businesses using Dailzero to handle WhatsApp enquiries 24/7 — compliantly and at scale."
     />
   )
 }

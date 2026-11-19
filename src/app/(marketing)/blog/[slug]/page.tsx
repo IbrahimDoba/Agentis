@@ -6,6 +6,8 @@ import { Footer } from "@/components/landing/Footer"
 import { blogPosts, getBlogPost } from "@/data/blog-posts"
 import { getArticleContent } from "@/lib/blog-content"
 import { renderMarkdown } from "@/lib/markdown"
+import { JsonLd } from "@/components/JsonLd"
+import { pageMetadata, articleJsonLd, metaDescription } from "@/lib/seo"
 import styles from "./page.module.css"
 
 interface Props {
@@ -16,21 +18,22 @@ export async function generateStaticParams() {
   return blogPosts.map((post) => ({ slug: post.slug }))
 }
 
+// The stored metaDescription fields were generated from a template and cut
+// off mid-word, so the description comes from the article's own opening lines.
+const describe = (post: { excerpt: string }) => metaDescription(post.excerpt)
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const post = getBlogPost(slug)
   if (!post) return {}
-  return {
-    title: `${post.title} — D-Zero AI Blog`,
-    description: post.metaDescription,
-    keywords: [post.primaryKeyword, "WhatsApp AI Nigeria", "D-Zero AI"],
-    openGraph: {
-      title: post.title,
-      description: post.metaDescription,
-      type: "article",
-      publishedTime: post.publishedAt,
-    },
-  }
+  return pageMetadata({
+    title: post.title,
+    description: describe(post),
+    path: `/blog/${post.slug}`,
+    type: "article",
+    publishedTime: post.publishedAt,
+    keywords: [post.primaryKeyword, "WhatsApp AI Nigeria", "Dailzero"],
+  })
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -64,6 +67,15 @@ export default async function BlogPostPage({ params }: Props) {
 
   return (
     <>
+      <JsonLd
+        data={articleJsonLd({
+          title: post.title,
+          description: describe(post),
+          slug: post.slug,
+          publishedAt: post.publishedAt,
+          category: post.category,
+        })}
+      />
       <Navbar />
       <main className={styles.page}>
         {/* Back */}
@@ -102,7 +114,7 @@ export default async function BlogPostPage({ params }: Props) {
               <div className={styles.ctaGlow} />
               <h2 className={styles.ctaTitle}>Ready to automate your WhatsApp?</h2>
               <p className={styles.ctaDesc}>
-                Join Nigerian businesses using D-Zero AI to handle customer inquiries 24/7 — automatically.
+                Join Nigerian businesses using Dailzero to handle customer inquiries 24/7 — automatically.
               </p>
               <div className={styles.ctaBtns}>
                 <Link href="/signup" className={styles.ctaBtnPrimary}>
@@ -118,9 +130,9 @@ export default async function BlogPostPage({ params }: Props) {
           {/* Sidebar */}
           <aside className={styles.sidebar}>
             <div className={styles.sideCard}>
-              <div className={styles.sideTitle}>About D-Zero AI</div>
+              <div className={styles.sideTitle}>About Dailzero</div>
               <p className={styles.sideDesc}>
-                D-Zero AI helps Nigerian businesses automate WhatsApp customer service using AI agents — 24/7, no extra staff needed.
+                Dailzero helps Nigerian businesses automate WhatsApp customer service using AI agents — 24/7, no extra staff needed.
               </p>
               <Link href="/signup" className={styles.sideBtn}>
                 Start Free Trial →

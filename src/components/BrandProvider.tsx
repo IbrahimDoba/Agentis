@@ -10,7 +10,7 @@ import type { Branding } from "@/lib/tenant"
 const PLATFORM_FALLBACK: Branding = {
   resellerId: "platform",
   isPlatform: true,
-  appName: "D-Zero AI",
+  appName: "Dailzero",
   logoUrl: null,
   primaryColor: null,
   supportEmail: "support@dailzero.com",
@@ -27,8 +27,7 @@ export function useBrand(): Branding {
   return useContext(BrandContext)
 }
 
-// The platform's logo reads "Dailzero" while its product name (titles, emails,
-// copy) is still "D-Zero AI". Resellers keep their own name.
+// The platform is "Dailzero" everywhere; resellers keep their own name.
 const PLATFORM_WORDMARK = "Dailzero"
 
 /** Logo + app name for the current tenant (custom logo image if provided). */

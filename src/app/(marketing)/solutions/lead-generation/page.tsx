@@ -11,10 +11,10 @@ import { SolutionPageLayout } from "@/components/landing/SolutionPageLayout"
 
 export const metadata = solutionMetadata({
   title: "Lead Generation",
-  description: "Never miss a lead again. D-Zero AI captures, qualifies, and logs every inbound WhatsApp lead automatically.",
+  description: "Never miss a lead again. Dailzero captures, qualifies, and logs every inbound WhatsApp lead automatically.",
   slug: "lead-generation",
   ogImage: "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1600&q=80",
-  ogImageAlt: "Lead generation — D-Zero AI for Sales Teams",
+  ogImageAlt: "Lead generation — Dailzero for Sales Teams",
   keywords: ["whatsapp lead generation", "AI lead qualification", "sales automation chatbot", "inbound lead capture", "whatsapp sales bot"],
 })
 
@@ -27,7 +27,7 @@ export default function LeadGenerationSolutionPage() {
       heroImage="https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1600&q=80"
       heroImageAlt="Sales team in a business meeting"
       heroTitle={<>Never Miss a Lead Again.</>}
-      heroSub="D-Zero AI captures, qualifies, and logs every inbound WhatsApp lead — so your sales team only talks to prospects who are ready to buy."
+      heroSub="Dailzero captures, qualifies, and logs every inbound WhatsApp lead — so your sales team only talks to prospects who are ready to buy."
       floatingBadges={[
         { text: "Lead Captured", Icon: CheckIcon },
         { text: "5× More Leads", dot: true },
@@ -40,11 +40,11 @@ export default function LeadGenerationSolutionPage() {
       ]}
       chatBotName="LeadBot AI"
       chatTitle={<>From first message to<br />qualified lead in seconds</>}
-      chatDesc="The moment a prospect messages you on WhatsApp, D-Zero AI responds, qualifies their intent, and logs them as a lead — all before your sales team has even seen the notification."
+      chatDesc="The moment a prospect messages you on WhatsApp, Dailzero responds, qualifies their intent, and logs them as a lead — all before your sales team has even seen the notification."
       chatPoints={[
         "Responds to every inbound message in under a second",
         "Qualifies budget, interest, and buying timeline automatically",
-        "Logs every lead to your D-Zero dashboard with full context",
+        "Logs every lead to your Dailzero dashboard with full context",
         "Sends follow-up sequences to keep warm leads engaged",
       ]}
       conversation={[
@@ -65,7 +65,7 @@ export default function LeadGenerationSolutionPage() {
       benefits={[
         { Icon: ClockIcon, title: "Instant Lead Response", desc: "Every enquiry gets an immediate, intelligent reply — capturing interest before it fades to a competitor." },
         { Icon: FunnelIcon, title: "Automatic Qualification", desc: "The AI asks the right questions and scores leads before passing them to your team — ready to close." },
-        { Icon: UserPlusIcon, title: "Lead Logging", desc: "Every qualified lead is captured in your D-Zero dashboard automatically — no manual CRM entry needed." },
+        { Icon: UserPlusIcon, title: "Lead Logging", desc: "Every qualified lead is captured in your Dailzero dashboard automatically — no manual CRM entry needed." },
         { Icon: ArrowPathIcon, title: "Follow-Up Sequences", desc: "Automated follow-ups keep warm leads engaged until they're ready to speak to your sales team." },
       ]}
       stepsTitle="Up and running in minutes"
@@ -80,7 +80,7 @@ export default function LeadGenerationSolutionPage() {
       ]}
       showcaseQuote="Our sales team used to waste 40% of their time on tyre-kickers. Now the AI pre-qualifies everyone — they only speak to people who are genuinely ready to buy."
       ctaTitle="Ready to capture every lead the moment it arrives?"
-      ctaDesc="Join sales teams using D-Zero AI to qualify WhatsApp leads 24/7 — automatically and at scale."
+      ctaDesc="Join sales teams using Dailzero to qualify WhatsApp leads 24/7 — automatically and at scale."
     />
   )
 }

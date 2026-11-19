@@ -11,19 +11,20 @@ export async function generateMetadata(): Promise<Metadata> {
   const { appName, isPlatform } = branding
   const description = `Every update, improvement, and new feature shipped to ${appName} — documented as we build the future of WhatsApp AI agents for business.`
   return {
-    title: `Changelog — ${appName}`,
+    title: `Changelog | ${appName}`,
     description,
+    ...(isPlatform ? { alternates: { canonical: "https://www.dailzero.com/changelog" } } : {}),
     icons: brandingIcons(branding),
     openGraph: {
-      title: `Changelog — ${appName}`,
+      title: `Changelog | ${appName}`,
       description,
-      url: isPlatform ? "https://dailzero.com/changelog" : undefined,
+      url: isPlatform ? "https://www.dailzero.com/changelog" : undefined,
       siteName: appName,
       type: "website",
     },
     twitter: {
       card: "summary_large_image",
-      title: `Changelog — ${appName}`,
+      title: `Changelog | ${appName}`,
       description,
     },
   }

@@ -23,7 +23,7 @@ export type Branding = {
   supportWhatsapp: string | null
 }
 
-const PLATFORM_APP_NAME = "D-Zero AI"
+const PLATFORM_APP_NAME = "Dailzero"
 const PLATFORM_SUPPORT_EMAIL = "support@dailzero.com"
 
 function normalizeHost(host: string | null | undefined): string {
@@ -89,10 +89,13 @@ export const getTenant = cache(async (): Promise<Reseller> => {
 })
 
 export function getBranding(reseller: Reseller): Branding {
+  const isPlatform = reseller.id === PLATFORM_RESELLER_ID
   return {
     resellerId: reseller.id,
-    isPlatform: reseller.id === PLATFORM_RESELLER_ID,
-    appName: reseller.appName || PLATFORM_APP_NAME,
+    isPlatform,
+    // The platform's name is fixed in code: its database row still holds the
+    // old "D-Zero AI", and a stale row must not bring that name back.
+    appName: isPlatform ? PLATFORM_APP_NAME : reseller.appName || PLATFORM_APP_NAME,
     logoUrl: reseller.logoUrl,
     primaryColor: reseller.primaryColor,
     supportEmail: reseller.supportEmail || PLATFORM_SUPPORT_EMAIL,

@@ -5,6 +5,7 @@ import { Navbar } from "@/components/landing/Navbar"
 import { Footer } from "@/components/landing/Footer"
 import { PLAN_PRICES, PLAN_CREDIT_LIMITS, CREDITS_NOTE, estimatedAiMessages, formatNaira } from "@/lib/plans"
 import { PAYG_DEFAULT_NGN_PER_CREDIT } from "@/lib/credits"
+import { PRICING_FAQS } from "./faqs"
 import styles from "./page.module.css"
 
 // Pay-as-you-go retail rate (₦/credit), shown as an alternative to subscriptions.
@@ -87,36 +88,7 @@ const proFeatures = [
   { text: "Pay-as-you-go top-ups when you exceed your plan", included: true },
 ]
 
-const faqs = [
-  {
-    q: "Is there a free trial?",
-    a: "Yes! Both the Starter and Pro plans come with a 7-day free trial. Basic is billed monthly without a trial so you can start quickly at a lower entry point.",
-  },
-  {
-    q: "Can I switch plans?",
-    a: "Absolutely. You can move between Basic, Starter, and Pro at any time. Upgrades take effect immediately, while downgrades apply at the start of your next billing cycle.",
-  },
-  {
-    q: "What happens if I exceed my credit limit?",
-    a: `Your plan's monthly credits are used first. Beyond that, sends draw from your pay-as-you-go balance, which you can top up anytime. When both your monthly credits and your pay-as-you-go balance run out, your agent pauses until your next renewal or top-up — there are no surprise overage charges.`,
-  },
-  {
-    q: "Do I have to subscribe to a monthly plan?",
-    a: `No — you can pay as you go. Buy a credit pack from ₦1,000 (${PAYG_RATE_FMT}/credit, cheaper in bulk) and spend it whenever you like; credits stay valid for 12 months and work across all your agents. Monthly plans give you more credits at a lower per-credit rate if you have steady volume.`,
-  },
-  {
-    q: "Do you offer custom plans?",
-    a: "Yes! If your business needs a higher message volume, multiple agents, or custom integrations, we offer enterprise plans. Book a call with our team to discuss your requirements.",
-  },
-  {
-    q: "What payment methods do you accept?",
-    a: "We accept all major Nigerian bank transfers, Paystack, and Flutterwave. Monthly billing happens automatically on your chosen payment method.",
-  },
-  {
-    q: "Can I get a refund?",
-    a: "If you're not satisfied within your first 7 days of a paid plan, we offer a full refund, no questions asked.",
-  },
-]
+const faqs = PRICING_FAQS
 
 export default function PricingPage() {
   const [annual, setAnnual] = useState(false)
@@ -322,13 +294,23 @@ export default function PricingPage() {
                 <div
                   key={i}
                   className={`${styles.faqItem} ${openFaq === i ? styles.faqItemOpen : ""}`}
-                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
                 >
-                  <div className={styles.faqQ}>
-                    {faq.q}
-                    <span className={styles.faqChevron}>{openFaq === i ? "−" : "+"}</span>
-                  </div>
-                  {openFaq === i && <div className={styles.faqA}>{faq.a}</div>}
+                  <h3 className={styles.faqHeading}>
+                    <button
+                      type="button"
+                      className={styles.faqQ}
+                      aria-expanded={openFaq === i}
+                      aria-controls={`pricing-faq-${i}`}
+                      onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                    >
+                      {faq.q}
+                      <span className={styles.faqChevron} aria-hidden="true">{openFaq === i ? "−" : "+"}</span>
+                    </button>
+                  </h3>
+                  {/* Always in the HTML, hidden when closed: crawlers and AI
+                      assistants do not click, so an answer rendered only on
+                      open was invisible to them. */}
+                  <div id={`pricing-faq-${i}`} className={styles.faqA} hidden={openFaq !== i}>{faq.a}</div>
                 </div>
               ))}
             </div>

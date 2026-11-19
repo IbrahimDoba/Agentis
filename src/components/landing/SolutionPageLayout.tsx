@@ -128,7 +128,7 @@ export function SolutionPageLayout({
     { text: "24/7 Active", dot: true },
   ]
 
-  const pageUrl = `https://dailzero.com/solutions/${slug}`
+  const pageUrl = `https://www.dailzero.com/solutions/${slug}`
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -136,12 +136,12 @@ export function SolutionPageLayout({
       {
         "@type": "Service",
         "@id": `${pageUrl}#service`,
-        name: `D-Zero AI for ${badge}`,
+        name: `Dailzero for ${badge}`,
         description: heroSub,
         provider: {
           "@type": "Organization",
-          name: "D-Zero AI",
-          url: "https://dailzero.com",
+          name: "Dailzero",
+          url: "https://www.dailzero.com",
         },
         serviceType: "AI WhatsApp Automation",
         url: pageUrl,
@@ -149,8 +149,8 @@ export function SolutionPageLayout({
       {
         "@type": "BreadcrumbList",
         itemListElement: [
-          { "@type": "ListItem", position: 1, name: "Home", item: "https://dailzero.com" },
-          { "@type": "ListItem", position: 2, name: "Solutions", item: "https://dailzero.com/solutions" },
+          { "@type": "ListItem", position: 1, name: "Home", item: "https://www.dailzero.com" },
+          { "@type": "ListItem", position: 2, name: "Solutions", item: "https://www.dailzero.com/solutions" },
           { "@type": "ListItem", position: 3, name: badge, item: pageUrl },
         ],
       },
@@ -297,7 +297,7 @@ export function SolutionPageLayout({
               <div className={styles.sectionLabel}>The Challenge</div>
               <h2 className={styles.sectionTitle}>{painTitle}</h2>
               <p className={styles.painSubtitle}>
-                These are the problems your competitors haven&apos;t solved yet. D-Zero AI handles all of them.
+                These are the problems your competitors haven&apos;t solved yet. Dailzero handles all of them.
               </p>
             </div>
             <div className={styles.painGrid}>
@@ -378,7 +378,7 @@ export function SolutionPageLayout({
               <p className={styles.showcaseQuote}>&ldquo;{showcaseQuote}&rdquo;</p>
               <div className={styles.showcaseAuthor}>
                 <div className={styles.showcaseAuthorDot} />
-                <span>D-Zero AI customer</span>
+                <span>Dailzero customer</span>
               </div>
             </div>
           </div>

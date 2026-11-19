@@ -14,7 +14,7 @@ export const metadata = solutionMetadata({
   description: "24/7 automated customer support on WhatsApp — resolving queries instantly, escalating when needed, zero extra headcount.",
   slug: "customer-support",
   ogImage: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&w=1600&q=80",
-  ogImageAlt: "Customer support — D-Zero AI for Support Teams",
+  ogImageAlt: "Customer support — Dailzero for Support Teams",
   keywords: ["whatsapp customer support bot", "automated support AI", "24/7 chatbot", "customer service automation", "whatsapp helpdesk"],
 })
 
@@ -27,7 +27,7 @@ export default function CustomerSupportSolutionPage() {
       heroImage="https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&w=1600&q=80"
       heroImageAlt="Person getting support on laptop"
       heroTitle={<>24/7 Customer Support.<br />Zero Extra Headcount.</>}
-      heroSub="D-Zero AI answers every WhatsApp message instantly — resolving common queries, escalating complex ones, and keeping your customers happy around the clock."
+      heroSub="Dailzero answers every WhatsApp message instantly — resolving common queries, escalating complex ones, and keeping your customers happy around the clock."
       floatingBadges={[
         { text: "Issue Resolved", Icon: CheckIcon },
         { text: "90% Auto-Resolved", dot: true },
@@ -40,7 +40,7 @@ export default function CustomerSupportSolutionPage() {
       ]}
       chatBotName="SupportBot AI"
       chatTitle={<>From issue raised to<br />resolved in seconds</>}
-      chatDesc="When a customer messages with a problem, D-Zero AI resolves it immediately — no queue, no wait. Only truly complex issues are escalated to your team, saving hours of handling time every day."
+      chatDesc="When a customer messages with a problem, Dailzero resolves it immediately — no queue, no wait. Only truly complex issues are escalated to your team, saving hours of handling time every day."
       chatPoints={[
         "Resolves common issues instantly without human involvement",
         "Answers from your knowledge base and FAQs accurately",
@@ -80,7 +80,7 @@ export default function CustomerSupportSolutionPage() {
       ]}
       showcaseQuote="We cut our support response time from 4 hours to under 2 seconds. Customers are happier, and our team actually has time to handle the cases that matter."
       ctaTitle="Ready to resolve 90% of support queries automatically?"
-      ctaDesc="Join businesses using D-Zero AI to handle WhatsApp support 24/7 — without adding headcount."
+      ctaDesc="Join businesses using Dailzero to handle WhatsApp support 24/7 — without adding headcount."
     />
   )
 }

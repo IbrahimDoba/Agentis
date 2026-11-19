@@ -1,6 +1,5 @@
 import type { Metadata } from "next"
-
-const BASE_URL = "https://dailzero.com"
+import { SITE_URL as BASE_URL } from "@/lib/seo"
 
 interface SolutionMetadataInput {
   title: string
@@ -20,7 +19,7 @@ export function solutionMetadata({
   keywords,
 }: SolutionMetadataInput): Metadata {
   const url = `${BASE_URL}/solutions/${slug}`
-  const fullTitle = `${title} | D-Zero AI`
+  const fullTitle = `${title} | Dailzero`
 
   return {
     title: fullTitle,
@@ -29,7 +28,7 @@ export function solutionMetadata({
       "WhatsApp AI",
       "WhatsApp automation",
       "AI agent",
-      "D-Zero AI",
+      "Dailzero",
       ...keywords,
     ],
     alternates: {
@@ -39,7 +38,7 @@ export function solutionMetadata({
       title: fullTitle,
       description,
       url,
-      siteName: "D-Zero AI",
+      siteName: "Dailzero",
       type: "website",
       images: [
         {

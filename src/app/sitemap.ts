@@ -1,9 +1,6 @@
 import { MetadataRoute } from "next"
 import { blogPosts } from "@/data/blog-posts"
-
-const BASE_URL = process.env.NEXTAUTH_URL?.startsWith("http://localhost")
-  ? "https://www.dailzero.com"
-  : (process.env.NEXTAUTH_URL ?? "https://www.dailzero.com")
+import { SITE_URL as BASE_URL } from "@/lib/seo"
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date()
@@ -29,6 +26,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     {
       url: `${BASE_URL}/features`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
+      url: `${BASE_URL}/developers`,
       lastModified: now,
       changeFrequency: "monthly",
       priority: 0.8,
@@ -76,22 +79,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.3,
     },
     {
-      url: `${BASE_URL}/login`,
-      lastModified: now,
-      changeFrequency: "yearly",
-      priority: 0.5,
-    },
-    {
       url: `${BASE_URL}/signup`,
       lastModified: now,
       changeFrequency: "yearly",
       priority: 0.7,
-    },
-    {
-      url: `${BASE_URL}/forgot-password`,
-      lastModified: now,
-      changeFrequency: "yearly",
-      priority: 0.3,
     },
     {
       url: `${BASE_URL}/changelog`,

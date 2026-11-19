@@ -10,10 +10,10 @@ import { SolutionPageLayout } from "@/components/landing/SolutionPageLayout"
 
 export const metadata = solutionMetadata({
   title: "Appointment Booking",
-  description: "Let customers book directly on WhatsApp. D-Zero AI handles your entire booking flow — no forms, no phone tag.",
+  description: "Let customers book directly on WhatsApp. Dailzero handles your entire booking flow — no forms, no phone tag.",
   slug: "appointment-booking",
   ogImage: "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?auto=format&fit=crop&w=1600&q=80",
-  ogImageAlt: "Appointment booking — D-Zero AI for Service Businesses",
+  ogImageAlt: "Appointment booking — Dailzero for Service Businesses",
   keywords: ["whatsapp appointment booking", "automated scheduling bot", "booking chatbot", "no-show reduction AI", "whatsapp calendar booking"],
 })
 
@@ -26,7 +26,7 @@ export default function AppointmentBookingSolutionPage() {
       heroImage="https://images.unsplash.com/photo-1506784983877-45594efa4cbe?auto=format&fit=crop&w=1600&q=80"
       heroImageAlt="Calendar and appointment planning"
       heroTitle={<>Let Customers Book<br />Directly on WhatsApp.</>}
-      heroSub="D-Zero AI handles your entire booking flow on WhatsApp — no forms, no phone tag, no back-and-forth. Customers book in seconds, you focus on delivering great service."
+      heroSub="Dailzero handles your entire booking flow on WhatsApp — no forms, no phone tag, no back-and-forth. Customers book in seconds, you focus on delivering great service."
       floatingBadges={[
         { text: "Appointment Booked", Icon: CheckIcon },
         { text: "40% Fewer No-Shows", dot: true },
@@ -39,7 +39,7 @@ export default function AppointmentBookingSolutionPage() {
       ]}
       chatBotName="BookBot AI"
       chatTitle={<>From first message to<br />confirmed booking in seconds</>}
-      chatDesc="When a customer wants to book, D-Zero AI handles the entire flow — checking availability, confirming details, and sending a reminder — without anyone on your team lifting a finger."
+      chatDesc="When a customer wants to book, Dailzero handles the entire flow — checking availability, confirming details, and sending a reminder — without anyone on your team lifting a finger."
       chatPoints={[
         "Handles bookings, reschedules, and cancellations automatically",
         "Only offers genuinely available slots from your live schedule",
@@ -79,7 +79,7 @@ export default function AppointmentBookingSolutionPage() {
       ]}
       showcaseQuote="We went from 30% no-show rates to under 8% in the first month. The automated reminders alone paid for the tool ten times over."
       ctaTitle="Ready to fill your calendar without the back-and-forth?"
-      ctaDesc="Join service businesses using D-Zero AI to handle WhatsApp bookings 24/7 — effortlessly."
+      ctaDesc="Join service businesses using Dailzero to handle WhatsApp bookings 24/7 — effortlessly."
     />
   )
 }

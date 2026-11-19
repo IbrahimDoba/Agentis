@@ -10,10 +10,10 @@ import { SolutionPageLayout } from "@/components/landing/SolutionPageLayout"
 
 export const metadata = solutionMetadata({
   title: "E-commerce & Retail",
-  description: "Turn every WhatsApp message into a sale. D-Zero AI answers product questions, tracks orders, and converts browsers into buyers — 24/7, without a support team.",
+  description: "Turn every WhatsApp message into a sale. Dailzero answers product questions, tracks orders, and converts browsers into buyers — 24/7, without a support team.",
   slug: "ecommerce",
   ogImage: "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1600&q=80",
-  ogImageAlt: "Retail shopping scene — D-Zero AI for E-commerce",
+  ogImageAlt: "Retail shopping scene — Dailzero for E-commerce",
   keywords: ["ecommerce whatsapp bot", "retail AI agent", "whatsapp sales automation", "abandoned cart recovery", "product Q&A chatbot"],
 })
 
@@ -26,7 +26,7 @@ export default function EcommerceSolutionPage() {
       heroImage="https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1600&q=80"
       heroImageAlt="Retail shopping scene"
       heroTitle={<>Turn Every WhatsApp Message<br />Into a Sale</>}
-      heroSub="Your customers are already on WhatsApp. D-Zero AI answers product questions, tracks orders, and converts browsers into buyers — 24/7, without a support team."
+      heroSub="Your customers are already on WhatsApp. Dailzero answers product questions, tracks orders, and converts browsers into buyers — 24/7, without a support team."
       floatingBadges={[
         { text: "Response < 1s", dot: true },
         { text: "Lead Captured", Icon: CheckIcon },
@@ -39,7 +39,7 @@ export default function EcommerceSolutionPage() {
       ]}
       chatBotName="ShopBot AI"
       chatTitle={<>From first message to<br />captured lead in seconds</>}
-      chatDesc="The moment a customer reaches out on WhatsApp, D-Zero AI steps in — answering questions, building rapport, and capturing lead details automatically. Your team wakes up to qualified prospects, not unanswered chats."
+      chatDesc="The moment a customer reaches out on WhatsApp, Dailzero steps in — answering questions, building rapport, and capturing lead details automatically. Your team wakes up to qualified prospects, not unanswered chats."
       chatPoints={[
         "Responds instantly — even at 2am",
         "Knows your full product catalogue",
@@ -125,7 +125,7 @@ export default function EcommerceSolutionPage() {
       ]}
       showcaseQuote="We went from missing half our after-hours enquiries to capturing every single one — without hiring anyone."
       ctaTitle="Ready to turn WhatsApp into your top sales channel?"
-      ctaDesc="Join retailers using D-Zero AI to handle WhatsApp conversations 24/7 — without adding headcount."
+      ctaDesc="Join retailers using Dailzero to handle WhatsApp conversations 24/7 — without adding headcount."
     />
   )
 }

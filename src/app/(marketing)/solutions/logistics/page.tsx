@@ -14,7 +14,7 @@ export const metadata = solutionMetadata({
   description: "Keep every customer informed with real-time delivery updates on WhatsApp — without adding to your support load.",
   slug: "logistics",
   ogImage: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1600&q=80",
-  ogImageAlt: "Logistics warehouse — D-Zero AI for Logistics",
+  ogImageAlt: "Logistics warehouse — Dailzero for Logistics",
   keywords: ["logistics whatsapp bot", "delivery tracking AI", "order status chatbot", "last mile delivery updates", "whatsapp shipping notifications"],
 })
 
@@ -27,7 +27,7 @@ export default function LogisticsSolutionPage() {
       heroImage="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1600&q=80"
       heroImageAlt="Logistics warehouse"
       heroTitle={<>Keep Every Customer Informed.<br />Every Step of the Way.</>}
-      heroSub="D-Zero AI gives your customers real-time delivery updates and handles tracking queries on WhatsApp — without adding a single person to your support team."
+      heroSub="Dailzero gives your customers real-time delivery updates and handles tracking queries on WhatsApp — without adding a single person to your support team."
       floatingBadges={[
         { text: "Delivery Tracked", Icon: CheckIcon },
         { text: "75% Fewer Tickets", dot: true },
@@ -40,7 +40,7 @@ export default function LogisticsSolutionPage() {
       ]}
       chatBotName="TrackBot AI"
       chatTitle={<>From tracking query to<br />instant answer in seconds</>}
-      chatDesc="When a customer messages about their delivery, D-Zero AI pulls the live status instantly — no queue, no wait, no support agent needed. Your team handles the exceptions, not the routine."
+      chatDesc="When a customer messages about their delivery, Dailzero pulls the live status instantly — no queue, no wait, no support agent needed. Your team handles the exceptions, not the routine."
       chatPoints={[
         "Gives live delivery status the moment a customer asks",
         "Sends proactive dispatch and delivery notifications",
@@ -80,7 +80,7 @@ export default function LogisticsSolutionPage() {
       ]}
       showcaseQuote="Our support volume dropped by 70% in the first month. Customers love getting instant tracking updates — and our team can actually focus on the issues that matter."
       ctaTitle="Ready to stop answering the same tracking questions all day?"
-      ctaDesc="Join logistics companies using D-Zero AI to handle WhatsApp delivery queries 24/7 — automatically."
+      ctaDesc="Join logistics companies using Dailzero to handle WhatsApp delivery queries 24/7 — automatically."
     />
   )
 }

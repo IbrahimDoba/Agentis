@@ -11,10 +11,10 @@ import { SolutionPageLayout } from "@/components/landing/SolutionPageLayout"
 
 export const metadata = solutionMetadata({
   title: "Broadcasts & Campaigns",
-  description: "Reach your entire contact base on WhatsApp and let D-Zero AI handle every reply automatically.",
+  description: "Reach your entire contact base on WhatsApp and let Dailzero handle every reply automatically.",
   slug: "broadcasts",
   ogImage: "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?auto=format&fit=crop&w=1600&q=80",
-  ogImageAlt: "WhatsApp broadcast campaigns — D-Zero AI",
+  ogImageAlt: "WhatsApp broadcast campaigns — Dailzero",
   keywords: ["whatsapp broadcast campaign", "bulk whatsapp messaging AI", "whatsapp marketing automation", "campaign reply bot", "whatsapp bulk sender"],
 })
 
@@ -27,7 +27,7 @@ export default function BroadcastsSolutionPage() {
       heroImage="https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?auto=format&fit=crop&w=1600&q=80"
       heroImageAlt="Digital marketing and social media"
       heroTitle={<>Reach Your Entire Customer<br />Base on WhatsApp.</>}
-      heroSub="Send targeted broadcast messages and promotions to your WhatsApp contacts — and let D-Zero AI handle every reply automatically, at any scale."
+      heroSub="Send targeted broadcast messages and promotions to your WhatsApp contacts — and let Dailzero handle every reply automatically, at any scale."
       floatingBadges={[
         { text: "98% Open Rate", dot: true },
         { text: "Campaign Live", Icon: CheckIcon },
@@ -40,7 +40,7 @@ export default function BroadcastsSolutionPage() {
       ]}
       chatBotName="CampaignBot AI"
       chatTitle={<>From broadcast sent to<br />sale closed automatically</>}
-      chatDesc="When you send a campaign, D-Zero AI handles every reply that comes back — answering product questions, checking stock, and converting interested customers into buyers, automatically."
+      chatDesc="When you send a campaign, Dailzero handles every reply that comes back — answering product questions, checking stock, and converting interested customers into buyers, automatically."
       chatPoints={[
         "Sends personalised messages to your full contact list",
         "Handles every campaign reply without your team getting involved",
@@ -66,7 +66,7 @@ export default function BroadcastsSolutionPage() {
         { Icon: MegaphoneIcon, title: "Broadcast Campaigns", desc: "Send targeted messages to your opted-in WhatsApp audience in minutes — to thousands of contacts at once." },
         { Icon: ChatBubbleLeftRightIcon, title: "AI-Handled Replies", desc: "Every reply to your broadcast is handled automatically — answering questions and converting interest into sales." },
         { Icon: UserGroupIcon, title: "Personalisation at Scale", desc: "Messages personalised with customer name, product interest, and purchase history — for every contact." },
-        { Icon: ChartBarIcon, title: "Campaign Analytics", desc: "Track delivery, open rates, and conversions from your D-Zero dashboard in real time." },
+        { Icon: ChartBarIcon, title: "Campaign Analytics", desc: "Track delivery, open rates, and conversions from your Dailzero dashboard in real time." },
       ]}
       stepsTitle="Up and running in minutes"
       steps={[
@@ -80,7 +80,7 @@ export default function BroadcastsSolutionPage() {
       ]}
       showcaseQuote="We sent our first WhatsApp campaign to 2,000 contacts and the AI handled all 340 replies automatically. We woke up to 67 new orders."
       ctaTitle="Ready to make WhatsApp your highest-converting channel?"
-      ctaDesc="Join businesses using D-Zero AI to run WhatsApp campaigns that actually convert — at any scale."
+      ctaDesc="Join businesses using Dailzero to run WhatsApp campaigns that actually convert — at any scale."
     />
   )
 }

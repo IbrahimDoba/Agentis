@@ -5,12 +5,14 @@ import { Footer } from "@/components/landing/Footer"
 import { CodeTabs, type CodeSample } from "./CodeTabs"
 import { AI_CREDIT_COSTS } from "@/lib/plans"
 import styles from "./page.module.css"
+import { pageMetadata } from "@/lib/seo"
 
-export const metadata: Metadata = {
-  title: "Developer API — Agentis",
+export const metadata = pageMetadata({
+  title: "WhatsApp API for developers",
   description:
-    "Run, manage, and message your Agentis AI agents from your own apps. Chat completions, agent management, and outbound WhatsApp — billed against your existing credits. cURL, JavaScript & Python examples.",
-}
+    "Send WhatsApp messages and run an AI agent from your own code with the Dailzero API. Text, image, video and document sends, chat completions and webhook tools, with cURL, JavaScript and Python examples.",
+  path: "/developers",
+})
 
 const BASE = "https://www.dailzero.com"
 
@@ -335,7 +337,7 @@ export default function DevelopersPage() {
           <span className={styles.eyebrow}>Developer API</span>
           <h1 className={styles.title}>Run your AI agents from your own code</h1>
           <p className={styles.lead}>
-            Call an Agentis agent over HTTP and get a reply with its full brain — system prompt, knowledge
+            Call a Dailzero agent over HTTP and get a reply with its full brain — system prompt, knowledge
             base, and tools — manage the agent programmatically, or send outbound WhatsApp messages. Billed
             against the same credits as WhatsApp. Examples in cURL, JavaScript &amp; Python.
           </p>

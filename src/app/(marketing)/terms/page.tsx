@@ -2,11 +2,14 @@ import { Navbar } from "@/components/landing/Navbar"
 import { Footer } from "@/components/landing/Footer"
 import { PLAN_PRICES, formatNaira } from "@/lib/plans"
 import styles from "./page.module.css"
+import { pageMetadata } from "@/lib/seo"
 
-export const metadata = {
-  title: "Terms of Service — D-Zero AI",
-  description: "Read the D-Zero AI Terms of Service governing use of our WhatsApp AI agent platform.",
-}
+export const metadata = pageMetadata({
+  title: "Terms of service",
+  description:
+    "The Dailzero terms of service: plans, payments and acceptable use of the WhatsApp AI agent platform.",
+  path: "/terms",
+})
 
 const sections = [
   { id: "acceptance", title: "1. Acceptance of Terms" },
@@ -55,17 +58,17 @@ export default function TermsPage() {
           <div className={styles.doc}>
             <div className={styles.highlight}>
               <p>
-                Please read these Terms of Service carefully before using the D-Zero AI platform operated by Dailzero Technologies. By accessing or using our service, you agree to be bound by these terms. Our platform operates on Meta&apos;s WhatsApp Business Platform; your use is also subject to Meta&apos;s applicable policies referenced herein.
+                Please read these Terms of Service carefully before using the Dailzero platform operated by Dailzero Technologies. By accessing or using our service, you agree to be bound by these terms. Our platform operates on Meta&apos;s WhatsApp Business Platform; your use is also subject to Meta&apos;s applicable policies referenced herein.
               </p>
             </div>
 
             <div className={styles.section} id="acceptance">
               <h2>1. Acceptance of Terms</h2>
               <p>
-                By registering for, accessing, or using the D-Zero AI platform available at <strong>dailzero.com</strong> (the &quot;Service&quot;), you (&quot;User&quot; or &quot;you&quot;) agree to be legally bound by these Terms of Service (&quot;Terms&quot;). If you do not agree to these Terms, you must not use the Service.
+                By registering for, accessing, or using the Dailzero platform available at <strong>dailzero.com</strong> (the &quot;Service&quot;), you (&quot;User&quot; or &quot;you&quot;) agree to be legally bound by these Terms of Service (&quot;Terms&quot;). If you do not agree to these Terms, you must not use the Service.
               </p>
               <p>
-                These Terms constitute a binding legal agreement between you and Dailzero Technologies (&quot;D-Zero AI,&quot; &quot;we,&quot; &quot;us,&quot; or &quot;our&quot;). We reserve the right to update these Terms at any time. Continued use of the Service after changes are posted constitutes your acceptance of the revised Terms.
+                These Terms constitute a binding legal agreement between you and Dailzero Technologies (&quot;Dailzero,&quot; &quot;we,&quot; &quot;us,&quot; or &quot;our&quot;). We reserve the right to update these Terms at any time. Continued use of the Service after changes are posted constitutes your acceptance of the revised Terms.
               </p>
               <p>
                 Because our Service uses the WhatsApp Business Platform (a Meta product), your use of this Service is also governed by Meta&apos;s <a href="https://www.whatsapp.com/legal/business-terms" target="_blank" rel="noopener noreferrer">WhatsApp Business Terms of Service</a>, <a href="https://developers.facebook.com/terms/" target="_blank" rel="noopener noreferrer">Meta Platform Terms</a>, and <a href="https://www.facebook.com/policies/ads/" target="_blank" rel="noopener noreferrer">Meta&apos;s Acceptable Use Policy</a>. In the event of any conflict between these Terms and Meta&apos;s policies as they relate to WhatsApp usage, Meta&apos;s policies shall prevail.
@@ -75,7 +78,7 @@ export default function TermsPage() {
             <div className={styles.section} id="service">
               <h2>2. Service Description</h2>
               <p>
-                D-Zero AI provides a software-as-a-service (SaaS) platform that enables businesses to deploy AI-powered customer service agents on the WhatsApp Business Platform. The Service includes:
+                Dailzero provides a software-as-a-service (SaaS) platform that enables businesses to deploy AI-powered customer service agents on the WhatsApp Business Platform. The Service includes:
               </p>
               <ul>
                 <li>An online dashboard for managing your AI agent configuration</li>
@@ -86,10 +89,10 @@ export default function TermsPage() {
                 <li>Customer support and onboarding assistance</li>
               </ul>
               <p>
-                The Service is provided on a managed basis. D-Zero AI configures and deploys agents on your behalf following account approval. You acknowledge that the AI-generated responses may not always be perfect and you retain responsibility for monitoring agent performance and ensuring compliance with applicable Meta and WhatsApp policies.
+                The Service is provided on a managed basis. Dailzero configures and deploys agents on your behalf following account approval. You acknowledge that the AI-generated responses may not always be perfect and you retain responsibility for monitoring agent performance and ensuring compliance with applicable Meta and WhatsApp policies.
               </p>
               <p>
-                <strong>Meta Relationship:</strong> D-Zero AI is an independent service provider and is not affiliated with, endorsed by, or a partner of Meta Platforms, Inc. &quot;WhatsApp&quot; and &quot;Meta&quot; are registered trademarks of Meta Platforms, Inc.
+                <strong>Meta Relationship:</strong> Dailzero is an independent service provider and is not affiliated with, endorsed by, or a partner of Meta Platforms, Inc. &quot;WhatsApp&quot; and &quot;Meta&quot; are registered trademarks of Meta Platforms, Inc.
               </p>
             </div>
 
@@ -108,7 +111,7 @@ export default function TermsPage() {
                 <li>Not have been previously banned or suspended from Meta&apos;s platforms</li>
               </ul>
               <p>
-                D-Zero AI reserves the right to reject or terminate any application at our sole discretion. During our MVP phase, we onboard a limited number of businesses. Acceptance is not guaranteed.
+                Dailzero reserves the right to reject or terminate any application at our sole discretion. During our MVP phase, we onboard a limited number of businesses. Acceptance is not guaranteed.
               </p>
             </div>
 
@@ -132,7 +135,7 @@ export default function TermsPage() {
             <div className={styles.section} id="payments">
               <h2>5. Payments & Subscriptions</h2>
               <p>
-                D-Zero AI offers paid subscription plans as described on our Pricing page. By subscribing, you authorise us to charge the applicable fees to your payment method.
+                Dailzero offers paid subscription plans as described on our Pricing page. By subscribing, you authorise us to charge the applicable fees to your payment method.
               </p>
               <ul>
                 <li><strong>Basic Plan:</strong> {formatNaira(PLAN_PRICES.basic)}/month — 25,000 credits, one AI agent, conversation monitoring</li>
@@ -225,7 +228,7 @@ export default function TermsPage() {
                 <li>Discontinue the WhatsApp Business Platform entirely</li>
               </ul>
               <p>
-                D-Zero AI is not liable for any disruption to your Service caused by Meta&apos;s actions. We will make reasonable efforts to notify you of material changes to Meta&apos;s platform that affect our Service.
+                Dailzero is not liable for any disruption to your Service caused by Meta&apos;s actions. We will make reasonable efforts to notify you of material changes to Meta&apos;s platform that affect our Service.
               </p>
 
               <h3>7.6 Business Verification</h3>
@@ -241,7 +244,7 @@ export default function TermsPage() {
               </p>
               <ul>
                 <li>You are the <strong>data controller</strong> responsible for your customers&apos; personal data collected through WhatsApp interactions</li>
-                <li>D-Zero AI acts as a <strong>data processor</strong>, processing end-user data only to provide the Service to you</li>
+                <li>Dailzero acts as a <strong>data processor</strong>, processing end-user data only to provide the Service to you</li>
                 <li>You must maintain a publicly accessible Privacy Policy that discloses your use of automated messaging and AI agents via WhatsApp</li>
                 <li>You must inform your customers that their WhatsApp conversations may be processed by AI, and that conversation data is handled in accordance with Meta&apos;s Privacy Policy</li>
                 <li>You must not instruct us to process personal data in a manner that would violate applicable data protection law or Meta&apos;s policies</li>
@@ -255,16 +258,16 @@ export default function TermsPage() {
             <div className={styles.section} id="ip">
               <h2>9. Intellectual Property</h2>
               <p>
-                The Service, including all software, design, text, graphics, logos, and content, is owned by D-Zero AI or its licensors and is protected by Nigerian and international intellectual property laws.
+                The Service, including all software, design, text, graphics, logos, and content, is owned by Dailzero or its licensors and is protected by Nigerian and international intellectual property laws.
               </p>
               <p>
-                You retain ownership of all business information, content, and data you provide to us (&quot;User Content&quot;). By submitting User Content, you grant D-Zero AI a non-exclusive, royalty-free licence to use, process, and store your User Content solely for the purpose of providing the Service.
+                You retain ownership of all business information, content, and data you provide to us (&quot;User Content&quot;). By submitting User Content, you grant Dailzero a non-exclusive, royalty-free licence to use, process, and store your User Content solely for the purpose of providing the Service.
               </p>
               <p>
                 You may not copy, modify, distribute, sell, or sublicense any part of the Service without our prior written consent.
               </p>
               <p>
-                &quot;WhatsApp,&quot; &quot;Meta,&quot; and &quot;Facebook&quot; are registered trademarks of Meta Platforms, Inc. D-Zero AI&apos;s use of these names is solely for descriptive purposes and does not imply any affiliation, endorsement, or partnership with Meta Platforms, Inc.
+                &quot;WhatsApp,&quot; &quot;Meta,&quot; and &quot;Facebook&quot; are registered trademarks of Meta Platforms, Inc. Dailzero&apos;s use of these names is solely for descriptive purposes and does not imply any affiliation, endorsement, or partnership with Meta Platforms, Inc.
               </p>
             </div>
 
@@ -284,10 +287,10 @@ export default function TermsPage() {
             <div className={styles.section} id="liability">
               <h2>11. Limitation of Liability</h2>
               <p>
-                TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, D-ZERO AI SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING LOSS OF PROFITS, DATA, BUSINESS, OR GOODWILL, ARISING OUT OF OR RELATED TO YOUR USE OF THE SERVICE.
+                TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, DAILZERO SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING LOSS OF PROFITS, DATA, BUSINESS, OR GOODWILL, ARISING OUT OF OR RELATED TO YOUR USE OF THE SERVICE.
               </p>
               <p>
-                Our total liability to you for any claims arising under these Terms shall not exceed the total amount paid by you to D-Zero AI in the three (3) months preceding the event giving rise to the claim.
+                Our total liability to you for any claims arising under these Terms shall not exceed the total amount paid by you to Dailzero in the three (3) months preceding the event giving rise to the claim.
               </p>
               <p>
                 We are not liable for any losses arising from Meta&apos;s suspension, restriction, or termination of your WhatsApp Business Account; changes to the WhatsApp Business Platform; or Meta&apos;s enforcement of its policies.

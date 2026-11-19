@@ -167,7 +167,7 @@ export default function InvitePage() {
 
         {invite.isExistingUser && (
           <p className={styles.existingNote}>
-            You already have a D-Zero AI account. Click below to accept the invite.
+            You already have a Dailzero account. Click below to accept the invite.
           </p>
         )}
 

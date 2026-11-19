@@ -14,7 +14,7 @@ export const metadata = solutionMetadata({
   description: "Fill more tables, answer every order, and handle reservations automatically on WhatsApp — without extra staff.",
   slug: "restaurants",
   ogImage: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1600&q=80",
-  ogImageAlt: "Restaurant dining room — D-Zero AI for Restaurants",
+  ogImageAlt: "Restaurant dining room — Dailzero for Restaurants",
   keywords: ["restaurant whatsapp bot", "table reservation AI", "food ordering chatbot", "restaurant automation", "whatsapp booking system"],
 })
 
@@ -27,7 +27,7 @@ export default function RestaurantsSolutionPage() {
       heroImage="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1600&q=80"
       heroImageAlt="Restaurant dining room"
       heroTitle={<>Fill More Tables.<br />Zero Extra Staff.</>}
-      heroSub="From reservations to menu questions to delivery updates — D-Zero AI handles it all on WhatsApp so your team can focus on the food."
+      heroSub="From reservations to menu questions to delivery updates — Dailzero handles it all on WhatsApp so your team can focus on the food."
       floatingBadges={[
         { text: "Booking Confirmed", Icon: CheckIcon },
         { text: "24/7 Reservations", dot: true },
@@ -40,7 +40,7 @@ export default function RestaurantsSolutionPage() {
       ]}
       chatBotName="TableBot AI"
       chatTitle={<>From first message to<br />confirmed booking in seconds</>}
-      chatDesc="When a customer messages to book a table, D-Zero AI handles the entire reservation flow — picking time, party size, and confirming — without your staff lifting a finger."
+      chatDesc="When a customer messages to book a table, Dailzero handles the entire reservation flow — picking time, party size, and confirming — without your staff lifting a finger."
       chatPoints={[
         "Handles reservations, changes, and cancellations automatically",
         "Knows your menu, allergens, and opening hours",
@@ -80,7 +80,7 @@ export default function RestaurantsSolutionPage() {
       ]}
       showcaseQuote="We used to miss at least 10 bookings a week because of WhatsApp messages we couldn't get to. Now every single one is handled automatically."
       ctaTitle="Ready to fill more tables without the extra workload?"
-      ctaDesc="Join restaurants using D-Zero AI to handle WhatsApp reservations and orders 24/7 — without adding headcount."
+      ctaDesc="Join restaurants using Dailzero to handle WhatsApp reservations and orders 24/7 — without adding headcount."
     />
   )
 }

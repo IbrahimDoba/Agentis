@@ -1,11 +1,14 @@
 import { Navbar } from "@/components/landing/Navbar"
 import { Footer } from "@/components/landing/Footer"
 import styles from "./page.module.css"
+import { pageMetadata } from "@/lib/seo"
 
-export const metadata = {
-  title: "Security — D-Zero AI",
-  description: "How D-Zero AI protects your data and keeps your AI agent platform secure.",
-}
+export const metadata = pageMetadata({
+  title: "Security",
+  description:
+    "How Dailzero protects your data and keeps your AI WhatsApp agent secure.",
+  path: "/security",
+})
 
 const pillars = [
   { icon: "🔒", title: "Encrypted in Transit", desc: "All data transmitted between your browser and our servers uses TLS 1.3 encryption." },
@@ -34,7 +37,7 @@ export default function SecurityPage() {
       <main className={styles.page}>
         <div className={styles.hero}>
           <div className={styles.badge}>🔒 Security</div>
-          <h1 className={styles.title}>Security at D-Zero AI</h1>
+          <h1 className={styles.title}>Security at Dailzero</h1>
           <p className={styles.subtitle}>
             We take the security of your business data seriously. Here&apos;s how we protect it.
           </p>
@@ -67,7 +70,7 @@ export default function SecurityPage() {
             <div className={styles.section} id="overview">
               <h2>1. Security Overview</h2>
               <p>
-                Security is built into every layer of the D-Zero AI platform. We follow industry best practices for application security, data protection, and access management. This page provides transparency about our security posture so you can make informed decisions about using our Service.
+                Security is built into every layer of the Dailzero platform. We follow industry best practices for application security, data protection, and access management. This page provides transparency about our security posture so you can make informed decisions about using our Service.
               </p>
               <p>
                 Our security programme covers: secure development practices, data encryption, access controls, infrastructure hardening, incident response, and regular security reviews.
@@ -85,7 +88,7 @@ export default function SecurityPage() {
             <div className={styles.section} id="auth">
               <h2>3. Authentication & Sessions</h2>
               <p>
-                D-Zero AI uses NextAuth v5 (Auth.js) for authentication. Sessions are implemented as signed JWTs containing only the minimum necessary user information (ID, role, status). Tokens are signed with a secure secret and expire after a limited period.
+                Dailzero uses NextAuth v5 (Auth.js) for authentication. Sessions are implemented as signed JWTs containing only the minimum necessary user information (ID, role, status). Tokens are signed with a secure secret and expire after a limited period.
               </p>
               <p>
                 All dashboard and admin routes are protected by middleware that validates session tokens on every request. Users with a PENDING or REJECTED status cannot access protected routes regardless of token validity.

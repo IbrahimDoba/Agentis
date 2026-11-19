@@ -109,7 +109,7 @@ export function EmbedTab({ agentId, onDirtyChange }: EmbedTabProps) {
 
   const snippet = useMemo(() => {
     const pk = initial?.publicKey ?? "pk_live_loading..."
-    const host = typeof window !== "undefined" ? window.location.origin : "https://app.dailzero.ai"
+    const host = typeof window !== "undefined" ? window.location.origin : "https://www.dailzero.com"
     return `<script>
   window.dz = window.dz || function(...a){(window.dz.q=window.dz.q||[]).push(a)}
   dz('init', { publicKey: '${pk}' })

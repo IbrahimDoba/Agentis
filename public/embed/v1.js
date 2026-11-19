@@ -1,5 +1,5 @@
 /*!
- * D-Zero AI embed widget — v1.
+ * Dailzero embed widget — v1.
  * Vanilla JS, no dependencies. Renders a launcher + chat panel inside a
  * Shadow DOM root so the host site's CSS can never leak in (or out).
  *
@@ -8,7 +8,7 @@
  *     window.dz = window.dz || function(...a){(window.dz.q=window.dz.q||[]).push(a)}
  *     dz('init', { publicKey: 'pk_live_...' })
  *   </script>
- *   <script async src="https://app.dailzero.ai/embed/v1.js"></script>
+ *   <script async src="https://www.dailzero.com/embed/v1.js"></script>
  *
  * Public API:
  *   dz('init', { publicKey })       — required, called once
@@ -643,7 +643,7 @@
     "      <textarea id='dz-input' placeholder='Type a message…' rows='1'></textarea>",
     "      <button id='dz-send' type='submit'>Send</button>",
     "    </form>",
-    "    <div id='dz-footer'>Powered by <a href='https://dailzero.ai' target='_blank' rel='noopener'>D-Zero AI</a></div>",
+    "    <div id='dz-footer'>Powered by <a href='https://www.dailzero.com' target='_blank' rel='noopener'>Dailzero</a></div>",
     "  </div>",
     "</div>",
   ].join("\n")
