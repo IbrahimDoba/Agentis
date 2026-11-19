@@ -91,6 +91,16 @@ White-label reseller accounts: run ${SITE_NAME} for your own clients under your 
 
 ${HOME_FAQS.map((f) => `### ${f.q}\n${f.a}`).join("\n\n")}
 
+## Comparisons and guides
+
+${link("Dailzero vs WATI", "/blog/dailzero-vs-wati", "official-API team inbox against an AI agent on your own number")}
+${link("Dailzero vs Termii", "/blog/dailzero-vs-termii", "messaging and OTP API against an AI WhatsApp agent")}
+${link("Dailzero vs ManyChat", "/blog/dailzero-vs-manychat", "Instagram-first flow builder against a WhatsApp AI agent")}
+${link("How to stop WhatsApp banning your business number", "/blog/how-to-stop-whatsapp-banning-your-business-number", "causes, safe habits and the honest risk of automation")}
+${link("How to get more WhatsApp Status views", "/blog/how-to-get-more-whatsapp-status-views-for-your-business", "why views are low and how saved contacts fix it")}
+${link("Send WhatsApp messages from code without the official API", "/blog/how-to-send-whatsapp-messages-from-code-without-the-official-api", "developer guide with limits and costs")}
+${link("How much WhatsApp AI automation costs in Nigeria", "/blog/how-much-does-whatsapp-ai-automation-cost-for-nigerian-businesses", "prices in Naira and a formula")}
+
 ## Pages
 
 ${link("Home", "/", "product overview")}

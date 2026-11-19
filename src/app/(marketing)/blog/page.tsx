@@ -22,6 +22,8 @@ const CATEGORY_COLORS: Record<string, string> = {
   "E-commerce": "#ec4899",
   "Agencies / Freelancers": "#06b6d4",
   "General SMBs": "#00dc82",
+  "Comparisons": "#f97316",
+  "Guides": "#14b8a6",
 }
 
 export default function BlogPage() {

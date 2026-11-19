@@ -3,8 +3,8 @@ import styles from "@/app/(marketing)/blog/[slug]/page.module.css"
 
 function parseInline(text: string): React.ReactNode[] {
   const parts: React.ReactNode[] = []
-  // Handle **bold**, *italic*, and [link](url)
-  const regex = /(\*\*(.+?)\*\*|\*(.+?)\*|\[(.+?)\]\((.+?)\))/g
+  // Handle **bold**, *italic*, [link](url) and `code`
+  const regex = /(\*\*(.+?)\*\*|\*(.+?)\*|\[(.+?)\]\((.+?)\)|`([^`]+)`)/g
   let lastIndex = 0
   let match: RegExpExecArray | null
 
@@ -29,6 +29,9 @@ function parseInline(text: string): React.ReactNode[] {
           {match[4]}
         </a>
       )
+    }
+    if (match[6]) {
+      parts.push(<code key={match.index} className={styles.code}>{match[6]}</code>)
     }
     lastIndex = match.index + match[0].length
   }
