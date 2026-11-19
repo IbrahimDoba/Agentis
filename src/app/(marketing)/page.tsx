@@ -4,16 +4,25 @@ import { getPublicStats } from "@/lib/queries/publicStats"
 import { Navbar } from "@/components/landing/Navbar"
 import { Footer } from "@/components/landing/Footer"
 import { HomeHero } from "@/components/home/HomeHero"
-import { NumbersStrip, Products, Smarts, Steps, Pricing, ClosingCta } from "@/components/home/Sections"
+import { NumbersStrip, Products, Smarts, Steps, Pricing, Faqs, ClosingCta } from "@/components/home/Sections"
 import { Testimonials } from "@/components/home/Testimonials"
 import { LiveCounters } from "@/components/home/LiveCounters"
 import { geist, geistMono } from "@/components/home/fonts"
 import styles from "@/components/home/Home.module.css"
+import { JsonLd } from "@/components/JsonLd"
+import { pageMetadata, homeJsonLd, HOME_FAQS, SITE_NAME, SITE_DESCRIPTION } from "@/lib/seo"
+
+export const metadata = pageMetadata({
+  title: `${SITE_NAME}: AI WhatsApp Agent for Nigerian Businesses`,
+  description: SITE_DESCRIPTION,
+  path: "/",
+  absoluteTitle: true,
+})
 
 const testimonials = [
   {
     quote:
-      "Before D-Zero AI, we missed dozens of WhatsApp messages every day. Now our agent handles everything while we sleep. Sales have gone up 40% since we launched.",
+      "Before Dailzero, we missed dozens of WhatsApp messages every day. Now our agent handles everything while we sleep. Sales have gone up 40% since we launched.",
     name: "Tunde Adeyemi",
     role: "CEO, QuickStyle Lagos",
   },
@@ -25,7 +34,7 @@ const testimonials = [
   },
   {
     quote:
-      "We run a real estate agency and clients ask lots of questions. D-Zero AI handles the initial enquiries so my team only speaks to serious buyers. Game changer.",
+      "We run a real estate agency and clients ask lots of questions. Dailzero handles the initial enquiries so my team only speaks to serious buyers. Game changer.",
     name: "Emeka Okafor",
     role: "MD, HomeFind Realty",
   },
@@ -49,6 +58,7 @@ export default async function LandingPage() {
 
   return (
     <div className={`${styles.page} ${geist.variable} ${geistMono.variable}`}>
+      <JsonLd data={homeJsonLd()} />
       <Navbar />
       <HomeHero />
       <LiveCounters initial={stats} />
@@ -58,6 +68,7 @@ export default async function LandingPage() {
       <Steps />
       <Testimonials items={testimonials} />
       <Pricing />
+      <Faqs items={HOME_FAQS} />
       <ClosingCta />
       <Footer />
     </div>

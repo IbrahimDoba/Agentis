@@ -1,10 +1,11 @@
 import Link from "next/link"
 import {
-  ArrowRight, BookOpen, Code2, Globe, Hand, Megaphone, ShieldCheck, UserPlus, Users,
+  ArrowRight, BookOpen, Code2, Globe, Hand, Megaphone, Plus, ShieldCheck, UserPlus, Users,
 } from "lucide-react"
 import { PLAN_PRICES, PLAN_PRICES_USD, PLAN_CREDIT_LIMITS, estimatedAiMessages } from "@/lib/plans"
 import { STATUS_RECIPIENT_CAPS } from "@/lib/status-post"
 import { PAYG_DEFAULT_NGN_PER_CREDIT } from "@/lib/credits"
+import type { Faq } from "@/lib/seo"
 import { LineWave } from "./LineWave"
 import { Reveal } from "./Reveal"
 import { PricingPlans } from "./PricingPlans"
@@ -323,6 +324,29 @@ export function Pricing() {
           Compare all plans
           <ArrowRight size={16} aria-hidden="true" />
         </Link>
+      </div>
+    </section>
+  )
+}
+
+// Plain <details>, so every answer is in the server HTML with no script:
+// that is what search engines and AI assistants read and quote.
+export function Faqs({ items }: { items: Faq[] }) {
+  return (
+    <section className={styles.section}>
+      <div className={styles.frame}>
+        <Head title="Questions," quiet="answered plainly." />
+        <div className={styles.faqs}>
+          {items.map((f) => (
+            <details key={f.q} className={styles.faq}>
+              <summary className={styles.faqQ}>
+                <h3 className={styles.faqTitle}>{f.q}</h3>
+                <Plus size={18} aria-hidden="true" className={styles.faqIcon} />
+              </summary>
+              <p className={styles.faqA}>{f.a}</p>
+            </details>
+          ))}
+        </div>
       </div>
     </section>
   )

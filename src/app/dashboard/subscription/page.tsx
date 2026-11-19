@@ -222,7 +222,7 @@ export default function SubscriptionPage() {
                 {isCurrent ? (
                   <div className={styles.currentPlanBtn}>Current Plan</div>
                 ) : isEnterprise ? (
-                  <a href="mailto:hello@dzeroai.com" className={styles.contactBtn}>Contact Sales</a>
+                  <a href="mailto:support@dailzero.com" className={styles.contactBtn}>Contact Sales</a>
                 ) : isUpgrade ? (
                   <button className={`${styles.upgradeBtn} ${isPopular ? styles.upgradeBtnPopular : ""}`} onClick={() => choosePlan(plan)} disabled={busy !== null}>
                     {busy === plan ? "Processing…" : `Upgrade to ${PLAN_LABELS[plan]}`}

@@ -99,7 +99,7 @@
     "tag": "New",
     "tagColor": "green",
     "title": "Developer API",
-    "description": "Build D-Zero into your own tools. Send WhatsApp messages, verify numbers, and manage your agents programmatically with API keys you control.",
+    "description": "Build Dailzero into your own tools. Send WhatsApp messages, verify numbers, and manage your agents programmatically with API keys you control.",
     "bullets": [
       "Send outbound messages with POST /v1/messages",
       "Check whether a number is on WhatsApp with POST /v1/contacts/check",
@@ -301,7 +301,7 @@
     "tag": "Improvement",
     "tagColor": "blue",
     "title": "Reply Anywhere — AI Pauses Automatically",
-    "description": "Take over a customer conversation instantly without touching any toggle. Whenever you reply — from the D-Zero dashboard or directly from your linked WhatsApp on your phone — the AI pauses for that conversation until you switch it back on. Manual replies are now free too.",
+    "description": "Take over a customer conversation instantly without touching any toggle. Whenever you reply — from the Dailzero dashboard or directly from your linked WhatsApp on your phone — the AI pauses for that conversation until you switch it back on. Manual replies are now free too.",
     "bullets": [
       "Reply from the dashboard chat input — conversation switches to Human mode automatically",
       "Reply directly from your phone via WhatsApp — same auto-switch, no dashboard required",
@@ -468,7 +468,7 @@
     "tag": "New",
     "tagColor": "green",
     "title": "Sign in with Google",
-    "description": "You can now create an account or sign in to D-Zero AI using your Google account — no password required.",
+    "description": "You can now create an account or sign in to Dailzero using your Google account — no password required.",
     "bullets": [
       "One-click sign in from the login and signup pages",
       "Existing accounts are automatically linked if the email matches",
@@ -600,7 +600,7 @@
       "Live email preview before sending",
       "Send to newsletter subscribers, active users, or both",
       "Batch sending via Resend — handles large lists reliably",
-      "Branded dark email design consistent with the D-Zero AI identity"
+      "Branded dark email design consistent with the Dailzero identity"
     ]
   },
   {

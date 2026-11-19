@@ -2,7 +2,7 @@ import { Resend, type CreateEmailOptions } from "resend"
 import { newsletterUnsubToken } from "@/lib/outreach/unsubToken"
 
 const FROM_ADDRESS = "noreply@dailzero.com"
-const FROM = `D-Zero AI <${FROM_ADDRESS}>`
+const FROM = `Dailzero <${FROM_ADDRESS}>`
 const ADMIN_EMAIL = process.env.DEMO_EMAIL!
 const APP_URL = process.env.NEXTAUTH_URL?.startsWith("http://localhost")
   ? "https://www.dailzero.com"
@@ -36,7 +36,7 @@ function senderFrom(brand?: EmailBrand): string {
 // ---------------------------------------------------------------------------
 
 function baseTemplate(content: string, brand?: EmailBrand): string {
-  const appName = brand?.appName ?? "D-Zero AI"
+  const appName = brand?.appName ?? "Dailzero"
   const appUrl = brand?.appUrl ?? APP_URL
   const appHost = appUrl.replace(/^https?:\/\//, "").replace(/\/+$/, "")
   return `<!DOCTYPE html>
@@ -107,7 +107,7 @@ function infoRow(label: string, value: string): string {
 // ---------------------------------------------------------------------------
 
 export async function sendVerificationCode(data: { name: string; email: string; code: string }, brand?: EmailBrand) {
-  const appName = brand?.appName ?? "D-Zero AI"
+  const appName = brand?.appName ?? "Dailzero"
   await resend().emails.send({
     from: senderFrom(brand),
     to: data.email,
@@ -136,7 +136,7 @@ export async function sendVerificationCode(data: { name: string; email: string; 
 // ---------------------------------------------------------------------------
 
 export async function sendWelcomeEmail(user: { name: string; email: string }, brand?: EmailBrand) {
-  const appName = brand?.appName ?? "D-Zero AI"
+  const appName = brand?.appName ?? "Dailzero"
   await resend().emails.send({
     from: senderFrom(brand),
     to: user.email,
@@ -275,11 +275,11 @@ export async function sendAccountSuspendedEmail(user: { name: string; email: str
   await resend().emails.send({
     from: FROM,
     to: user.email,
-    subject: "Your D-Zero AI account has been suspended",
+    subject: "Your Dailzero account has been suspended",
     html: baseTemplate(`
       <h2 style="margin:0 0 8px;font-size:22px;color:#111111;">Account Suspended</h2>
       <p style="margin:0 0 20px;color:#4b5563;">
-        Hi ${user.name}, your D-Zero AI account has been temporarily suspended.
+        Hi ${user.name}, your Dailzero account has been temporarily suspended.
         You will not be able to access the platform until the suspension is lifted.
       </p>
       ${divider()}
@@ -298,7 +298,7 @@ export async function sendAccountSuspendedEmail(user: { name: string; email: str
 // ---------------------------------------------------------------------------
 
 export async function sendPasswordResetEmail(data: { name: string; email: string; resetLink: string }, brand?: EmailBrand) {
-  const appName = brand?.appName ?? "D-Zero AI"
+  const appName = brand?.appName ?? "Dailzero"
   await resend().emails.send({
     from: senderFrom(brand),
     to: data.email,
@@ -469,7 +469,7 @@ export async function sendNewsletter(data: {
         <!-- Logo bar -->
         <tr>
           <td style="padding:0 0 28px;">
-            <span style="color:#00dc82;font-size:18px;font-weight:800;letter-spacing:-0.5px;">D-Zero AI</span>
+            <span style="color:#00dc82;font-size:18px;font-weight:800;letter-spacing:-0.5px;">Dailzero</span>
           </td>
         </tr>
 
@@ -501,14 +501,14 @@ export async function sendNewsletter(data: {
         <tr>
           <td style="border-top:1px solid #1e3a26;padding-top:24px;">
             <p style="margin:0;font-size:12px;color:#4a6b56;line-height:1.6;">
-              You're receiving this from <strong style="color:#8ab89a;">D-Zero AI</strong> because you subscribed or have an account with us.
+              You're receiving this from <strong style="color:#8ab89a;">Dailzero</strong> because you subscribed or have an account with us.
               &nbsp;·&nbsp;
               <a href="${APP_URL}" style="color:#4a6b56;text-decoration:underline;">dailzero.com</a>
               &nbsp;·&nbsp;
               <a href="${unsubUrl}" style="color:#4a6b56;text-decoration:underline;">Unsubscribe</a>
             </p>
             <p style="margin:6px 0 0;font-size:11px;color:#2d4a38;">
-              © ${new Date().getFullYear()} D-Zero AI. All rights reserved.
+              © ${new Date().getFullYear()} Dailzero. All rights reserved.
             </p>
           </td>
         </tr>
@@ -544,7 +544,7 @@ export async function sendWorkspaceInviteEmail(data: {
   const html = baseTemplate(`
     <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#111111;">You've been invited to join a workspace</h2>
     <p style="margin:0 0 24px;color:#555555;">
-      <strong>${data.ownerName}</strong> has invited you to join their <strong>${data.ownerBusiness}</strong> workspace on D-Zero AI as a <strong>${roleLabel}</strong>.
+      <strong>${data.ownerName}</strong> has invited you to join their <strong>${data.ownerBusiness}</strong> workspace on Dailzero as a <strong>${roleLabel}</strong>.
     </p>
     ${divider()}
     <p style="margin:20px 0 8px;color:#555555;">As a ${roleLabel}, you'll be able to:</p>
@@ -557,7 +557,7 @@ export async function sendWorkspaceInviteEmail(data: {
     ${divider()}
     <p style="margin:20px 0 8px;color:#555555;">
       ${data.isExistingUser
-        ? "Since you already have a D-Zero AI account, just click below to accept:"
+        ? "Since you already have a Dailzero account, just click below to accept:"
         : "Click below to accept the invite and create your account — it only takes a moment:"}
     </p>
     ${btn("Accept Invite", data.inviteLink)}
@@ -569,7 +569,7 @@ export async function sendWorkspaceInviteEmail(data: {
   await resend().emails.send({
     from: FROM,
     to: data.inviteeEmail,
-    subject: `${data.ownerName} invited you to ${data.ownerBusiness} on D-Zero AI`,
+    subject: `${data.ownerName} invited you to ${data.ownerBusiness} on Dailzero`,
     html,
   })
 }
@@ -592,7 +592,7 @@ export async function sendSubscriptionExpiringSoonEmail(data: {
   await resend().emails.send({
     from: FROM,
     to: data.email,
-    subject: `Your D-Zero AI ${data.planLabel} subscription expires in ${data.daysRemaining} ${dayWord}`,
+    subject: `Your Dailzero ${data.planLabel} subscription expires in ${data.daysRemaining} ${dayWord}`,
     html: baseTemplate(`
       <h2 style="margin:0 0 8px;font-size:22px;color:#111111;">Heads up — your subscription expires soon</h2>
       <p style="margin:0 0 20px;color:#4b5563;">
@@ -626,7 +626,7 @@ export async function sendSubscriptionExpiredEmail(data: {
   await resend().emails.send({
     from: FROM,
     to: data.email,
-    subject: `Your D-Zero AI subscription has expired`,
+    subject: `Your Dailzero subscription has expired`,
     html: baseTemplate(`
       <h2 style="margin:0 0 8px;font-size:22px;color:#111111;">Your subscription has expired</h2>
       <p style="margin:0 0 20px;color:#4b5563;">
@@ -682,7 +682,7 @@ export async function sendCreditPurchaseReceipt(data: {
         </table>
       </div>
       <p style="margin:0 0 20px;color:#6b7280;font-size:13px;">
-        Credits don't expire as long as you keep using D-Zero — every top-up
+        Credits don't expire as long as you keep using Dailzero — every top-up
         extends your wallet's expiry by 12 months.
       </p>
       ${btn("Go to dashboard", `${APP_URL}/dashboard`)}
@@ -712,7 +712,7 @@ export async function sendSubscriptionActivatedEmail(data: {
   await resend().emails.send({
     from: FROM,
     to: data.email,
-    subject: `Your D-Zero AI ${data.planLabel} plan is active`,
+    subject: `Your Dailzero ${data.planLabel} plan is active`,
     html: baseTemplate(`
       <h2 style="margin:0 0 8px;font-size:22px;color:#111111;">You're on ${data.planLabel} 🎉</h2>
       <p style="margin:0 0 20px;color:#4b5563;">Hi ${data.name}, your subscription is active and your AI agents are live.</p>
@@ -743,7 +743,7 @@ export async function sendSubscriptionRenewedEmail(data: {
   await resend().emails.send({
     from: FROM,
     to: data.email,
-    subject: `Receipt — D-Zero AI ${data.planLabel} renewed`,
+    subject: `Receipt — Dailzero ${data.planLabel} renewed`,
     html: baseTemplate(`
       <h2 style="margin:0 0 8px;font-size:22px;color:#111111;">Subscription renewed</h2>
       <p style="margin:0 0 20px;color:#4b5563;">Hi ${data.name}, your ${data.planLabel} plan renewed successfully.</p>
@@ -772,7 +772,7 @@ export async function sendSubscriptionPaymentFailedEmail(data: {
   await resend().emails.send({
     from: FROM,
     to: data.email,
-    subject: `Action needed — your D-Zero AI ${data.planLabel} payment failed`,
+    subject: `Action needed — your Dailzero ${data.planLabel} payment failed`,
     html: baseTemplate(`
       <h2 style="margin:0 0 8px;font-size:22px;color:#111111;">We couldn't renew your subscription</h2>
       <p style="margin:0 0 16px;color:#4b5563;">
@@ -798,7 +798,7 @@ export async function sendSubscriptionCancelledEmail(data: {
   await resend().emails.send({
     from: FROM,
     to: data.email,
-    subject: `Your D-Zero AI subscription is cancelled`,
+    subject: `Your Dailzero subscription is cancelled`,
     html: baseTemplate(`
       <h2 style="margin:0 0 8px;font-size:22px;color:#111111;">Auto-renew turned off</h2>
       <p style="margin:0 0 16px;color:#4b5563;">

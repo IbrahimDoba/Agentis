@@ -2,11 +2,14 @@ import Link from "next/link"
 import { Navbar } from "@/components/landing/Navbar"
 import { Footer } from "@/components/landing/Footer"
 import styles from "./page.module.css"
+import { pageMetadata } from "@/lib/seo"
 
-export const metadata = {
-  title: "About Us — D-Zero AI",
-  description: "Learn about D-Zero AI — who we are, our mission, and the team building AI customer service for African businesses.",
-}
+export const metadata = pageMetadata({
+  title: "About us",
+  description:
+    "Dailzero builds AI WhatsApp agents for Nigerian and African businesses. Who we are, why we started and what we are building.",
+  path: "/about",
+})
 
 const stats = [
   { num: "24/7", label: "Agent Uptime" },
@@ -42,7 +45,7 @@ export default function AboutPage() {
             <span>faster, smarter</span> customer service
           </h1>
           <p className={styles.heroDesc}>
-            D-Zero AI was built to solve a simple but painful problem: businesses across Nigeria are losing customers because they can&apos;t respond to WhatsApp messages fast enough. We&apos;re here to change that.
+            Dailzero was built to solve a simple but painful problem: businesses across Nigeria are losing customers because they can&apos;t respond to WhatsApp messages fast enough. We&apos;re here to change that.
           </p>
         </section>
 
@@ -67,7 +70,7 @@ export default function AboutPage() {
               Every day, thousands of Nigerian businesses lose potential customers to slow response times on WhatsApp. A customer sends a message, doesn&apos;t hear back for hours, and goes to a competitor.
             </p>
             <p className={styles.sectionDesc}>
-              D-Zero AI deploys intelligent AI agents that handle customer conversations instantly — 24 hours a day, 7 days a week. Your customers get the instant response they expect. You get to focus on growing your business.
+              Dailzero deploys intelligent AI agents that handle customer conversations instantly — 24 hours a day, 7 days a week. Your customers get the instant response they expect. You get to focus on growing your business.
             </p>
           </div>
           <div className={styles.missionVisual}>
@@ -106,7 +109,7 @@ export default function AboutPage() {
         <section className={styles.team}>
           <div className={styles.teamHeader}>
             <div className={styles.sectionBadge}>The Team</div>
-            <h2 className={styles.sectionTitle}>The people behind D-Zero AI</h2>
+            <h2 className={styles.sectionTitle}>The people behind Dailzero</h2>
           </div>
           <div className={styles.teamGrid}>
             {/* Founder */}
@@ -115,7 +118,7 @@ export default function AboutPage() {
               <div className={styles.teamName}>Ibrahim Doba</div>
               <div className={styles.teamRole}>Founder & CEO</div>
               <div className={styles.teamBio}>
-                Ibrahim built D-Zero AI after watching businesses across Nigeria struggle to keep up with customer messages on WhatsApp. He&apos;s obsessed with making AI accessible to every African business owner.
+                Ibrahim built Dailzero after watching businesses across Nigeria struggle to keep up with customer messages on WhatsApp. He&apos;s obsessed with making AI accessible to every African business owner.
               </div>
               <div className={styles.teamLinks}>
                 <a href="https://x.com/DobaIbrahim" target="_blank" rel="noopener noreferrer" className={styles.teamLink}>
@@ -145,7 +148,7 @@ export default function AboutPage() {
               <div className={styles.teamName}>Customer Success</div>
               <div className={styles.teamRole}>We&apos;re Hiring</div>
               <div className={styles.teamBio}>
-                Be the first point of contact for our growing list of business clients. Help them succeed with D-Zero AI.
+                Be the first point of contact for our growing list of business clients. Help them succeed with Dailzero.
               </div>
               <Link href="/careers" className={styles.openRoleLink}>
                 View open roles →
@@ -159,7 +162,7 @@ export default function AboutPage() {
           <div className={styles.ctaInner}>
             <h2 className={styles.ctaTitle}>Ready to automate your customer service?</h2>
             <p className={styles.ctaDesc}>
-              Join businesses across Nigeria using D-Zero AI to handle WhatsApp conversations 24/7.
+              Join businesses across Nigeria using Dailzero to handle WhatsApp conversations 24/7.
             </p>
             <div className={styles.ctaButtons}>
               <Link href="/signup" className={styles.ctaPrimary}>Get Started →</Link>

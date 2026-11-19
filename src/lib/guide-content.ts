@@ -42,15 +42,15 @@ export const GUIDE_TOPICS: GuideTopic[] = [
   // ── Getting Started ──────────────────────────────────────────────────────
   {
     slug: "welcome",
-    title: "Welcome to D-Zero AI",
+    title: "Welcome to Dailzero",
     category: "getting-started",
     emoji: "👋",
-    intro: "What D-Zero AI is, what it isn't, and how the moving parts fit together.",
-    body: `> **Quick version:** D-Zero AI is an assistant that answers your WhatsApp customers for you. You teach it about your business, connect your WhatsApp number, and it handles incoming chats — and you can step in whenever you want.
+    intro: "What Dailzero is, what it isn't, and how the moving parts fit together.",
+    body: `> **Quick version:** Dailzero is an assistant that answers your WhatsApp customers for you. You teach it about your business, connect your WhatsApp number, and it handles incoming chats — and you can step in whenever you want.
 
 ### What it is
 
-D-Zero AI is an AI agent platform for WhatsApp. You configure an agent that knows your business, link a WhatsApp number to it, and the agent handles incoming customer conversations on your behalf — answering questions, recommending products, capturing leads, taking orders, and more.
+Dailzero is an AI agent platform for WhatsApp. You configure an agent that knows your business, link a WhatsApp number to it, and the agent handles incoming customer conversations on your behalf — answering questions, recommending products, capturing leads, taking orders, and more.
 
 ### How the pieces fit
 
@@ -63,7 +63,7 @@ There are three things to know about:
 ### What it is *not*
 
 - Not a CRM replacement — we capture leads but you'll still want a real CRM for long-term customer history.
-- Not a payment processor — the agent can hand a customer a payment link via tools, but D-Zero doesn't move money.
+- Not a payment processor — the agent can hand a customer a payment link via tools, but Dailzero doesn't move money.
 - Not a magic content generator — the agent only knows what you tell it. Garbage in, garbage out.
 
 ### What to do next
@@ -150,7 +150,7 @@ WhatsApp invalidates a linked device after about 14 days of inactivity, or if yo
 
 ### What about WhatsApp Business API?
 
-D-Zero AI uses **WhatsApp Web** (the same Linked Devices feature your personal WhatsApp uses). For higher-volume / enterprise use cases the official Business API tier is more reliable. Contact us about it.`,
+Dailzero uses **WhatsApp Web** (the same Linked Devices feature your personal WhatsApp uses). For higher-volume / enterprise use cases the official Business API tier is more reliable. Contact us about it.`,
     related: ["warmup-tiers", "first-agent"],
   },
 
@@ -521,7 +521,7 @@ These rules are in the orchestrator's system prompt; you don't need to repeat th
 
 ### Security
 
-Your tool URLs are public from D-Zero's side. If your webhook is sensitive, validate the requests on your end — IP-allowlist our servers, or include a shared secret in a header you check.`,
+Your tool URLs are public from Dailzero's side. If your webhook is sensitive, validate the requests on your end — IP-allowlist our servers, or include a shared secret in a header you check.`,
     related: ["configuration-tab", "documents-tab"],
   },
   {

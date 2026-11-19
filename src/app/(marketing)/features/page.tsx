@@ -2,6 +2,14 @@ import Link from "next/link"
 import { Navbar } from "@/components/landing/Navbar"
 import { Footer } from "@/components/landing/Footer"
 import styles from "./page.module.css"
+import { pageMetadata } from "@/lib/seo"
+
+export const metadata = pageMetadata({
+  title: "Features: what the AI WhatsApp agent can do",
+  description:
+    "Everything the Dailzero AI WhatsApp agent does: instant replies from your own prices, product photos, orders, appointments, human takeover, broadcasts, scheduled Status and a developer API.",
+  path: "/features",
+})
 
 function ChatIllustration() {
   return (
@@ -483,7 +491,7 @@ export default function FeaturesPage() {
               <span>never miss a customer</span>
             </h1>
             <p className={styles.heroSubtitle}>
-              From instant responses to deep analytics, D-Zero AI gives you the complete toolkit
+              From instant responses to deep analytics, Dailzero gives you the complete toolkit
               to automate your WhatsApp customer service and grow your business on autopilot.
             </p>
             <Link href="/signup" className={styles.heroCta}>
@@ -526,7 +534,7 @@ export default function FeaturesPage() {
           <div className={styles.ctaInner}>
             <h2 className={styles.ctaTitle}>Ready to automate your customer service?</h2>
             <p className={styles.ctaDesc}>
-              Join businesses across Nigeria using D-Zero AI to handle WhatsApp conversations 24/7.
+              Join businesses across Nigeria using Dailzero to handle WhatsApp conversations 24/7.
             </p>
             <div className={styles.ctaButtons}>
               <Link href="/signup" className={styles.ctaPrimary}>Start Free Trial</Link>

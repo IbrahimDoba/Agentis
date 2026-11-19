@@ -220,7 +220,7 @@ export default function DataDeletionPage() {
                         onChange={e => update("phone", e.target.value)}
                       />
                       <span className={styles.hint}>
-                        If you messaged a business using D-Zero AI on WhatsApp and want your conversation data deleted, provide the phone number you used.
+                        If you messaged a business using Dailzero on WhatsApp and want your conversation data deleted, provide the phone number you used.
                       </span>
                     </div>
 

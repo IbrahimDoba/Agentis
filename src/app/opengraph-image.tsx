@@ -3,7 +3,7 @@ import { readFileSync } from "fs"
 import { join } from "path"
 
 export const runtime = "nodejs"
-export const alt = "D-Zero AI — WhatsApp AI Agents for Business"
+export const alt = "Dailzero — WhatsApp AI Agents for Business"
 export const size = { width: 1200, height: 630 }
 export const contentType = "image/png"
 
@@ -60,7 +60,7 @@ export default function OGImage() {
             display: "flex",
           }}
         >
-          D-Zero AI
+          Dailzero
         </div>
 
         {/* Tagline */}

@@ -1,11 +1,14 @@
 import { Navbar } from "@/components/landing/Navbar"
 import { Footer } from "@/components/landing/Footer"
 import styles from "./page.module.css"
+import { pageMetadata } from "@/lib/seo"
 
-export const metadata = {
-  title: "Privacy Policy — D-Zero AI",
-  description: "Learn how D-Zero AI collects, uses, and protects your personal data in compliance with the NDPR and Meta's WhatsApp Business Platform requirements.",
-}
+export const metadata = pageMetadata({
+  title: "Privacy policy",
+  description:
+    "How Dailzero collects, uses and protects personal data, in line with the NDPR and Meta's WhatsApp Business Platform requirements.",
+  path: "/privacy",
+})
 
 const sections = [
   { id: "overview", title: "1. Overview" },
@@ -53,17 +56,17 @@ export default function PrivacyPage() {
           <div className={styles.doc}>
             <div className={styles.highlight}>
               <p>
-                D-Zero AI is committed to protecting your privacy. This policy explains how we collect, use, and safeguard your information in compliance with the Nigerian Data Protection Regulation (NDPR) 2019, applicable international standards, and Meta&apos;s WhatsApp Business Platform requirements. Because our Service operates on WhatsApp — a Meta product — some data handling is also governed by <a href="https://www.whatsapp.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer">Meta&apos;s Privacy Policy</a>.
+                Dailzero is committed to protecting your privacy. This policy explains how we collect, use, and safeguard your information in compliance with the Nigerian Data Protection Regulation (NDPR) 2019, applicable international standards, and Meta&apos;s WhatsApp Business Platform requirements. Because our Service operates on WhatsApp — a Meta product — some data handling is also governed by <a href="https://www.whatsapp.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer">Meta&apos;s Privacy Policy</a>.
               </p>
             </div>
 
             <div className={styles.section} id="overview">
               <h2>1. Overview</h2>
               <p>
-                Dailzero Technologies (&quot;D-Zero AI,&quot; &quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) operates <strong>dailzero.com</strong> and related services. This Privacy Policy describes how we handle personal data of:
+                Dailzero Technologies (&quot;Dailzero,&quot; &quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) operates <strong>dailzero.com</strong> and related services. This Privacy Policy describes how we handle personal data of:
               </p>
               <ul>
-                <li><strong>Business users</strong> — companies and individuals who register for and use the D-Zero AI platform</li>
+                <li><strong>Business users</strong> — companies and individuals who register for and use the Dailzero platform</li>
                 <li><strong>End users</strong> — customers of our business users who interact with AI agents via WhatsApp</li>
               </ul>
               <p>
@@ -111,7 +114,7 @@ export default function PrivacyPage() {
 
               <h3>3.1 How WhatsApp Data Flows</h3>
               <p>
-                When an end user sends a WhatsApp message to a business using D-Zero AI:
+                When an end user sends a WhatsApp message to a business using Dailzero:
               </p>
               <ul>
                 <li>The message is transmitted through Meta&apos;s WhatsApp servers in accordance with Meta&apos;s Privacy Policy</li>
@@ -123,7 +126,7 @@ export default function PrivacyPage() {
 
               <h3>3.2 Meta&apos;s Independent Data Processing</h3>
               <p>
-                Meta independently processes data transmitted through WhatsApp under its own Privacy Policy. D-Zero AI does not control Meta&apos;s data practices. Meta may collect, process, and use data in accordance with its own policies, which may include:
+                Meta independently processes data transmitted through WhatsApp under its own Privacy Policy. Dailzero does not control Meta&apos;s data practices. Meta may collect, process, and use data in accordance with its own policies, which may include:
               </p>
               <ul>
                 <li>Storing message metadata for delivery, security, and anti-abuse purposes</li>
@@ -230,7 +233,7 @@ export default function PrivacyPage() {
 
               <h3>7.3 Meta&apos;s Independent Rights</h3>
               <p>
-                Meta has independent rights to data transmitted through the WhatsApp Business Platform as described in their own policies. D-Zero AI does not control Meta&apos;s data practices. For details on how Meta uses data, please review:
+                Meta has independent rights to data transmitted through the WhatsApp Business Platform as described in their own policies. Dailzero does not control Meta&apos;s data practices. For details on how Meta uses data, please review:
               </p>
               <ul>
                 <li><a href="https://www.whatsapp.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer">WhatsApp Privacy Policy</a></li>

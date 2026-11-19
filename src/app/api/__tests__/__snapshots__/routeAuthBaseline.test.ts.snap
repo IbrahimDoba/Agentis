@@ -1465,7 +1465,7 @@ exports[`unauthenticated response baseline > matches the recorded responses 1`] 
   },
   "site-info": {
     "GET": {
-      "body": "{"product":{"name":"D-Zero AI","tagline":"Your Business, Always Responding","description":"D-Zero AI deploys an AI agent that handles WhatsApp conversations 24/7. It answers questions, captures leads,…",
+      "body": "{"product":{"name":"Dailzero","tagline":"Your Business, Always Responding","description":"Dailzero deploys an AI agent that handles WhatsApp conversations 24/7. It answers questions, captures leads,…",
       "contentType": "application/json",
       "status": 200,
     },

@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { Space_Grotesk } from "next/font/google"
 import { ThemeProvider } from "@/components/ThemeProvider"
 import { QueryProvider } from "@/components/QueryProvider"
+import { SITE_URL, SITE_NAME, SITE_TAGLINE, SITE_DESCRIPTION } from "@/lib/seo"
 import "./globals.css"
 
 const spaceGrotesk = Space_Grotesk({
@@ -11,28 +12,30 @@ const spaceGrotesk = Space_Grotesk({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://dailzero.com"),
-  title: "D-Zero AI — WhatsApp AI Agents for Business",
-  description:
-    "Automate your customer conversations on WhatsApp with AI. Never miss a lead, always respond instantly.",
+  metadataBase: new URL(SITE_URL),
+  // Deliberately no title template: reseller domains render through this same
+  // layout, and a template would append our name to their white-label titles.
+  // Marketing pages get their brand suffix from pageMetadata instead.
+  title: `${SITE_NAME}: ${SITE_TAGLINE}`,
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
   icons: {
     icon: "/icon.svg",
     shortcut: "/icon.svg",
     apple: "/icon.svg",
   },
   openGraph: {
-    title: "D-Zero AI — WhatsApp AI Agents for Business",
-    description:
-      "Automate your customer conversations on WhatsApp with AI. Never miss a lead, always respond instantly.",
-    url: "https://dailzero.com",
-    siteName: "D-Zero AI",
+    title: `${SITE_NAME}: ${SITE_TAGLINE}`,
+    description: SITE_DESCRIPTION,
+    url: SITE_URL,
+    siteName: SITE_NAME,
     type: "website",
+    locale: "en_NG",
   },
   twitter: {
     card: "summary_large_image",
-    title: "D-Zero AI — WhatsApp AI Agents for Business",
-    description:
-      "Automate your customer conversations on WhatsApp with AI. Never miss a lead, always respond instantly.",
+    title: `${SITE_NAME}: ${SITE_TAGLINE}`,
+    description: SITE_DESCRIPTION,
   },
 }
 

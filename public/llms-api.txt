@@ -1,6 +1,6 @@
-# Agentis / D-Zero AI — Developer API
+# Dailzero — Developer API
 
-> Agentis lets businesses run AI agents on WhatsApp. The Developer API exposes
+> Dailzero lets businesses run AI agents on WhatsApp. The Developer API exposes
 > those agents over HTTP so you can run them, configure them, and send outbound
 > WhatsApp messages from your own code. Usage is billed against the same credit
 > pool as the dashboard/WhatsApp. This file is a complete reference for LLMs and

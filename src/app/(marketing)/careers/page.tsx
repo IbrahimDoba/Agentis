@@ -1,11 +1,14 @@
 import { Navbar } from "@/components/landing/Navbar"
 import { Footer } from "@/components/landing/Footer"
 import styles from "./page.module.css"
+import { pageMetadata } from "@/lib/seo"
 
-export const metadata = {
-  title: "Careers — D-Zero AI",
-  description: "Join D-Zero AI and help build AI customer service for African businesses.",
-}
+export const metadata = pageMetadata({
+  title: "Careers",
+  description:
+    "Join Dailzero and help build AI customer service for African businesses.",
+  path: "/careers",
+})
 
 const benefits = [
   { icon: "🌍", title: "Remote-First", desc: "Work from anywhere in Africa. We believe great work happens anywhere." },
@@ -39,8 +42,8 @@ export default function CareersPage() {
         <section className={styles.benefits}>
           <div className={styles.benefitsInner}>
             <div className={styles.benefitsHeader}>
-              <div className={styles.sectionBadge}>Why D-Zero AI</div>
-              <h2 className={styles.sectionTitle}>Life at D-Zero AI</h2>
+              <div className={styles.sectionBadge}>Why Dailzero</div>
+              <h2 className={styles.sectionTitle}>Life at Dailzero</h2>
             </div>
             <div className={styles.benefitsGrid}>
               {benefits.map((b) => (
@@ -67,7 +70,7 @@ export default function CareersPage() {
               We don&apos;t have any active listings at the moment, but we&apos;re always interested in talented people. Send us a general application and we&apos;ll keep you in mind.
             </p>
             <a
-              href="mailto:support@dailzero.com?subject=General Application — D-Zero AI"
+              href="mailto:support@dailzero.com?subject=General Application — Dailzero"
               className={styles.generalBtn}
             >
               Send a General Application

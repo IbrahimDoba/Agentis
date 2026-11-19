@@ -14,7 +14,7 @@ export const metadata = solutionMetadata({
   description: "Qualify every lead and book every viewing automatically on WhatsApp — so you focus on closing deals.",
   slug: "real-estate",
   ogImage: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1600&q=80",
-  ogImageAlt: "Modern property — D-Zero AI for Real Estate",
+  ogImageAlt: "Modern property — Dailzero for Real Estate",
   keywords: ["real estate whatsapp bot", "property lead qualification", "viewing booking AI", "estate agent automation", "whatsapp property enquiry"],
 })
 
@@ -27,7 +27,7 @@ export default function RealEstateSolutionPage() {
       heroImage="https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1600&q=80"
       heroImageAlt="Modern property exterior"
       heroTitle={<>Qualify Every Lead.<br />Book Every Viewing.</>}
-      heroSub="D-Zero AI responds to property enquiries instantly, qualifies buyers and renters, and schedules viewings — so you focus on closing deals, not chasing replies."
+      heroSub="Dailzero responds to property enquiries instantly, qualifies buyers and renters, and schedules viewings — so you focus on closing deals, not chasing replies."
       floatingBadges={[
         { text: "Viewing Booked", Icon: CheckIcon },
         { text: "Lead Qualified", dot: true },
@@ -40,7 +40,7 @@ export default function RealEstateSolutionPage() {
       ]}
       chatBotName="PropertyBot AI"
       chatTitle={<>From enquiry to booked<br />viewing in minutes</>}
-      chatDesc="When a buyer messages about a property at 10pm, D-Zero AI responds instantly — answering questions, qualifying budget and timeline, and booking a viewing on the spot."
+      chatDesc="When a buyer messages about a property at 10pm, Dailzero responds instantly — answering questions, qualifying budget and timeline, and booking a viewing on the spot."
       chatPoints={[
         "Responds to every listing enquiry in under a second",
         "Qualifies budget, timeline, and location preference",
@@ -80,7 +80,7 @@ export default function RealEstateSolutionPage() {
       ]}
       showcaseQuote="Our agents used to spend half their day chasing leads. Now the AI qualifies them first — we only step in when someone is genuinely ready to view."
       ctaTitle="Ready to respond to every lead the moment it arrives?"
-      ctaDesc="Join estate agencies using D-Zero AI to handle WhatsApp enquiries 24/7 — without adding to your team."
+      ctaDesc="Join estate agencies using Dailzero to handle WhatsApp enquiries 24/7 — without adding to your team."
     />
   )
 }

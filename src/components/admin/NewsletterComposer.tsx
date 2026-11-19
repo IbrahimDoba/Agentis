@@ -12,7 +12,7 @@ const TEMPLATES = [
     label: "Announcement",
     emoji: "📣",
     defaults: {
-      title: "Big news from D-Zero AI",
+      title: "Big news from Dailzero",
       body: "We have something exciting to share with you.\n\nWe've been working hard behind the scenes and we're thrilled to announce...",
     },
   },
@@ -69,7 +69,7 @@ function PreviewModal({ subject, title, body, ctaText, ctaUrl, onClose }: {
 
   const html = `<div style="background:#0d0d0d;padding:32px 16px;min-height:100%;font-family:Segoe UI,Arial,sans-serif;">
     <div style="max-width:560px;margin:0 auto;">
-      <p style="color:#00dc82;font-size:16px;font-weight:800;margin:0 0 24px;">D-Zero AI</p>
+      <p style="color:#00dc82;font-size:16px;font-weight:800;margin:0 0 24px;">Dailzero</p>
       <div style="background:#0f1e15;border:1px solid #1e3a26;border-radius:16px;overflow:hidden;">
         <div style="background:linear-gradient(90deg,#00dc82,#00a862);height:4px;"></div>
         <div style="padding:36px 40px 40px;">
@@ -78,7 +78,7 @@ function PreviewModal({ subject, title, body, ctaText, ctaUrl, onClose }: {
           ${ctaBlock}
         </div>
       </div>
-      <p style="margin:24px 0 0;font-size:12px;color:#4a6b56;">You're receiving this from D-Zero AI · dailzero.com</p>
+      <p style="margin:24px 0 0;font-size:12px;color:#4a6b56;">You're receiving this from Dailzero · dailzero.com</p>
     </div>
   </div>`
 
@@ -172,7 +172,7 @@ export function NewsletterComposer({ subscriberCount, userCount, recentSubs }: P
           <div className={styles.sectionTitle}>Subject Line</div>
           <input
             className={styles.input}
-            placeholder="e.g. Exciting news from D-Zero AI 🚀"
+            placeholder="e.g. Exciting news from Dailzero 🚀"
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
           />

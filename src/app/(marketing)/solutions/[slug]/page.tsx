@@ -11,7 +11,7 @@ const SOLUTIONS = {
     emoji: "🛍️",
     headline: "Turn Every WhatsApp Message Into a Sale",
     subheadline:
-      "Your customers are already on WhatsApp. D-Zero AI answers product questions, tracks orders, and converts browsers into buyers — 24/7, without a support team.",
+      "Your customers are already on WhatsApp. Dailzero answers product questions, tracks orders, and converts browsers into buyers — 24/7, without a support team.",
     painPoints: [
       {
         title: "Abandoned carts from slow replies",
@@ -55,7 +55,7 @@ const SOLUTIONS = {
     emoji: "🍽️",
     headline: "Fill More Tables. Answer Every Order. Zero Extra Staff.",
     subheadline:
-      "From reservations to menu questions to delivery updates — D-Zero AI handles it all on WhatsApp so your team can focus on the food.",
+      "From reservations to menu questions to delivery updates — Dailzero handles it all on WhatsApp so your team can focus on the food.",
     painPoints: [
       {
         title: "Missed reservations and calls",
@@ -99,7 +99,7 @@ const SOLUTIONS = {
     emoji: "🏠",
     headline: "Qualify Every Lead. Book Every Viewing. Sleep at Night.",
     subheadline:
-      "D-Zero AI responds to property enquiries instantly, qualifies buyers and renters, and schedules viewings — so you focus on closing deals.",
+      "Dailzero responds to property enquiries instantly, qualifies buyers and renters, and schedules viewings — so you focus on closing deals.",
     painPoints: [
       {
         title: "Leads going cold overnight",
@@ -143,7 +143,7 @@ const SOLUTIONS = {
     emoji: "🏥",
     headline: "Give Every Patient an Instant, Helpful Response",
     subheadline:
-      "D-Zero AI handles appointment booking, FAQs, and follow-ups on WhatsApp — so your front desk can focus on patients in the clinic.",
+      "Dailzero handles appointment booking, FAQs, and follow-ups on WhatsApp — so your front desk can focus on patients in the clinic.",
     painPoints: [
       {
         title: "Overloaded receptionists",
@@ -187,7 +187,7 @@ const SOLUTIONS = {
     emoji: "🚚",
     headline: "Keep Every Customer Informed. Every Step of the Way.",
     subheadline:
-      "D-Zero AI gives your customers real-time delivery updates and handles tracking queries on WhatsApp — without adding to your support load.",
+      "Dailzero gives your customers real-time delivery updates and handles tracking queries on WhatsApp — without adding to your support load.",
     painPoints: [
       {
         title: "High volume of 'where is my order?' queries",
@@ -231,7 +231,7 @@ const SOLUTIONS = {
     emoji: "💰",
     headline: "Answer Every Customer Query. Capture Every Lead. Securely.",
     subheadline:
-      "D-Zero AI handles product enquiries, account FAQs, and lead qualification for financial services businesses on WhatsApp.",
+      "Dailzero handles product enquiries, account FAQs, and lead qualification for financial services businesses on WhatsApp.",
     painPoints: [
       {
         title: "High volume of repetitive queries",
@@ -275,7 +275,7 @@ const SOLUTIONS = {
     emoji: "💬",
     headline: "24/7 Customer Support. Zero Extra Headcount.",
     subheadline:
-      "D-Zero AI answers every WhatsApp message instantly — resolving common queries, escalating complex ones, and keeping your customers happy around the clock.",
+      "Dailzero answers every WhatsApp message instantly — resolving common queries, escalating complex ones, and keeping your customers happy around the clock.",
     painPoints: [
       {
         title: "Support team overwhelmed",
@@ -305,7 +305,7 @@ const SOLUTIONS = {
       },
       {
         title: "Conversation history",
-        desc: "Every interaction is logged and searchable from your D-Zero dashboard.",
+        desc: "Every interaction is logged and searchable from your Dailzero dashboard.",
       },
     ],
     stats: [
@@ -319,7 +319,7 @@ const SOLUTIONS = {
     emoji: "🔥",
     headline: "Never Miss a Lead Again.",
     subheadline:
-      "D-Zero AI captures, qualifies, and logs every inbound WhatsApp lead — so your sales team only talks to prospects who are ready to buy.",
+      "Dailzero captures, qualifies, and logs every inbound WhatsApp lead — so your sales team only talks to prospects who are ready to buy.",
     painPoints: [
       {
         title: "Leads going cold from slow replies",
@@ -345,7 +345,7 @@ const SOLUTIONS = {
       },
       {
         title: "Lead logging",
-        desc: "Every qualified lead is captured in your D-Zero dashboard automatically.",
+        desc: "Every qualified lead is captured in your Dailzero dashboard automatically.",
       },
       {
         title: "Follow-up sequences",
@@ -363,7 +363,7 @@ const SOLUTIONS = {
     emoji: "📅",
     headline: "Let Customers Book Directly on WhatsApp.",
     subheadline:
-      "D-Zero AI handles your entire booking flow on WhatsApp — no forms, no phone tag, no back-and-forth.",
+      "Dailzero handles your entire booking flow on WhatsApp — no forms, no phone tag, no back-and-forth.",
     painPoints: [
       {
         title: "Bookings lost to friction",
@@ -407,7 +407,7 @@ const SOLUTIONS = {
     emoji: "📢",
     headline: "Reach Your Entire Customer Base on WhatsApp.",
     subheadline:
-      "Send targeted broadcast messages, promotions, and updates to your WhatsApp contacts — and let D-Zero AI handle every reply automatically.",
+      "Send targeted broadcast messages, promotions, and updates to your WhatsApp contacts — and let Dailzero handle every reply automatically.",
     painPoints: [
       {
         title: "Email open rates are terrible",
@@ -437,7 +437,7 @@ const SOLUTIONS = {
       },
       {
         title: "Campaign analytics",
-        desc: "Track delivery, opens, and conversions from your D-Zero dashboard.",
+        desc: "Track delivery, opens, and conversions from your Dailzero dashboard.",
       },
     ],
     stats: [
@@ -467,7 +467,7 @@ export async function generateMetadata({
   const solution = SOLUTIONS[slug as Slug]
   if (!solution) return {}
   return {
-    title: `${solution.label} | D-Zero AI`,
+    title: `${solution.label} | Dailzero`,
     description: solution.subheadline,
   }
 }
@@ -538,7 +538,7 @@ export default async function SolutionPage({
       <section className={styles.featuresSection}>
         <div className={styles.sectionInner}>
           <div className={styles.sectionLabel}>The Solution</div>
-          <h2 className={styles.sectionTitle}>How D-Zero AI helps</h2>
+          <h2 className={styles.sectionTitle}>How Dailzero helps</h2>
           <div className={styles.featuresGrid}>
             {solution.features.map((feat) => (
               <div key={feat.title} className={styles.featureCard}>
@@ -579,7 +579,7 @@ export default async function SolutionPage({
             Ready to automate your {solution.label.toLowerCase()} support?
           </h2>
           <p className={styles.ctaDesc}>
-            Join businesses using D-Zero AI to handle WhatsApp conversations 24/7 — without adding headcount.
+            Join businesses using Dailzero to handle WhatsApp conversations 24/7 — without adding headcount.
           </p>
           <div className={styles.ctaButtons}>
             <Link href="/signup" className={styles.ctaPrimary}>

@@ -2,10 +2,10 @@ import { NextResponse } from "next/server"
 
 const siteInfo = {
   product: {
-    name: "D-Zero AI",
+    name: "Dailzero",
     tagline: "Your Business, Always Responding",
     description:
-      "D-Zero AI deploys an AI agent that handles WhatsApp conversations 24/7. It answers questions, captures leads, and delights customers — automatically. No human intervention needed for routine queries.",
+      "Dailzero deploys an AI agent that handles WhatsApp conversations 24/7. It answers questions, captures leads, and delights customers — automatically. No human intervention needed for routine queries.",
     stats: {
       conversationsHandled: "1,200+",
       responseTime: "Under 2 seconds",
@@ -55,7 +55,7 @@ const siteInfo = {
       step: 1,
       title: "Sign Up & Apply",
       description:
-        "Create your D-Zero AI account and submit basic business information. Approval takes less than 24 hours.",
+        "Create your Dailzero account and submit basic business information. Approval takes less than 24 hours.",
     },
     {
       step: 2,
@@ -170,9 +170,9 @@ const siteInfo = {
         "If you're not satisfied within your first 7 days of a paid plan, we offer a full refund, no questions asked.",
     },
     {
-      question: "What industries does D-Zero AI work for?",
+      question: "What industries does Dailzero work for?",
       answer:
-        "D-Zero AI works for any business that receives customer messages on WhatsApp. Industries include e-commerce, fashion retail, real estate, healthcare, food & beverage, education, logistics, beauty & wellness, auto dealerships, travel & tourism, event planning, professional services, financial services, and hospitality.",
+        "Dailzero works for any business that receives customer messages on WhatsApp. Industries include e-commerce, fashion retail, real estate, healthcare, food & beverage, education, logistics, beauty & wellness, auto dealerships, travel & tourism, event planning, professional services, financial services, and hospitality.",
     },
     {
       question: "How long does setup take?",
@@ -184,7 +184,7 @@ const siteInfo = {
   testimonials: [
     {
       quote:
-        "Before D-Zero AI, we missed dozens of WhatsApp messages every day. Now our agent handles everything while we sleep. Sales have gone up 40% since we launched.",
+        "Before Dailzero, we missed dozens of WhatsApp messages every day. Now our agent handles everything while we sleep. Sales have gone up 40% since we launched.",
       name: "Tunde Adeyemi",
       role: "CEO, QuickStyle Lagos",
     },
@@ -196,7 +196,7 @@ const siteInfo = {
     },
     {
       quote:
-        "We run a real estate agency and clients ask lots of questions. D-Zero AI handles the initial enquiries so my team only speaks to serious buyers. Game changer.",
+        "We run a real estate agency and clients ask lots of questions. Dailzero handles the initial enquiries so my team only speaks to serious buyers. Game changer.",
       name: "Emeka Okafor",
       role: "MD, HomeFind Realty",
     },

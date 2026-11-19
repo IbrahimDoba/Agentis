@@ -70,7 +70,7 @@ export default function ContactPage() {
               Let&apos;s <span>start a conversation</span>
             </h1>
             <p className={styles.subtitle}>
-              Have questions about D-Zero AI? Want to see it in action? Reach out and we&apos;ll get back to you within 24 hours.
+              Have questions about Dailzero? Want to see it in action? Reach out and we&apos;ll get back to you within 24 hours.
             </p>
           </div>
 
@@ -105,7 +105,7 @@ export default function ContactPage() {
               </div>
 
               <div className={styles.demoBanner}>
-                <div className={styles.demoBannerTitle}>Want to see D-Zero AI in action?</div>
+                <div className={styles.demoBannerTitle}>Want to see Dailzero in action?</div>
                 <div className={styles.demoBannerText}>
                   Book a free 30-minute demo and watch an AI agent handle real customer conversations live.
                 </div>
