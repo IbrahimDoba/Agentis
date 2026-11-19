@@ -72,6 +72,33 @@ export function renderMarkdown(markdown: string): React.ReactNode[] {
       i++; continue
     }
 
+    // Table: a header row, a |---| divider, then data rows
+    if (line.trim().startsWith("|") && i + 1 < lines.length && /^\s*\|[\s:|-]+\|\s*$/.test(lines[i + 1])) {
+      const cells = (row: string) => row.trim().replace(/^\||\|$/g, "").split("|").map((c) => c.trim())
+      const head = cells(line)
+      i += 2
+      const rows: string[][] = []
+      while (i < lines.length && lines[i].trim().startsWith("|")) {
+        rows.push(cells(lines[i]))
+        i++
+      }
+      nodes.push(
+        <div key={key++} className={styles.tableWrap}>
+          <table className={styles.table}>
+            <thead>
+              <tr>{head.map((c, n) => <th key={n} scope="col">{parseInline(c)}</th>)}</tr>
+            </thead>
+            <tbody>
+              {rows.map((r, n) => (
+                <tr key={n}>{r.map((c, m) => <td key={m}>{parseInline(c)}</td>)}</tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )
+      continue
+    }
+
     // Unordered list
     if (line.startsWith("- ") || line.startsWith("* ")) {
       const items: React.ReactNode[] = []
@@ -111,7 +138,7 @@ export function renderMarkdown(markdown: string): React.ReactNode[] {
 
     // Regular paragraph - collect multi-line
     const paraLines: string[] = []
-    while (i < lines.length && lines[i].trim() !== "" && !lines[i].startsWith("#") && !lines[i].startsWith("- ") && !lines[i].startsWith("* ") && !/^\d+\. /.test(lines[i]) && !/^---+$/.test(lines[i].trim()) && !lines[i].startsWith(">")) {
+    while (i < lines.length && lines[i].trim() !== "" && !lines[i].startsWith("#") && !lines[i].startsWith("- ") && !lines[i].startsWith("* ") && !/^\d+\. /.test(lines[i]) && !/^---+$/.test(lines[i].trim()) && !lines[i].startsWith(">") && !lines[i].trim().startsWith("|")) {
       paraLines.push(lines[i])
       i++
     }
