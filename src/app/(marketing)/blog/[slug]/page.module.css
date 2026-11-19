@@ -121,6 +121,17 @@
   margin-bottom: 1.125rem;
 }
 
+.code {
+  padding: 0.1em 0.35em;
+  border: 1px solid var(--border-subtle);
+  border-radius: 5px;
+  background: var(--bg-secondary);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.88em;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
 /* Wide tables scroll inside their own box instead of the page. */
 .tableWrap {
   margin: 1.25rem 0 1.5rem;

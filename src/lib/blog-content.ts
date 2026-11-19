@@ -56,6 +56,7 @@ function plain(text: string): string {
     .replace(/\[(.+?)\]\((.+?)\)/g, "$1")
     .replace(/\*\*(.+?)\*\*/g, "$1")
     .replace(/\*(.+?)\*/g, "$1")
+    .replace(/`([^`]+)`/g, "$1")
     .replace(/\s+/g, " ")
     .trim()
 }

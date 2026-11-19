@@ -14,6 +14,66 @@ export interface BlogPost {
 
 export const blogPosts: BlogPost[] = [
   {
+    "id": 101,
+    "slug": "dailzero-vs-wati",
+    "title": "Dailzero vs WATI: Which WhatsApp Tool Fits a Nigerian Business?",
+    "category": "Comparisons",
+    "metaDescription": "Dailzero vs WATI compared for Nigerian businesses: how each connects to WhatsApp, Naira vs dollar pricing, Meta fees, and who should pick which.",
+    "primaryKeyword": "dailzero vs wati",
+    "excerpt": "WATI runs on Meta's official WhatsApp platform and is priced in dollars. Dailzero puts an AI agent on your existing number, in Naira, with no Meta fees. Here is who should pick which.",
+    "publishedAt": "2026-11-19"
+  },
+  {
+    "id": 102,
+    "slug": "dailzero-vs-termii",
+    "title": "Dailzero vs Termii: AI WhatsApp Agent or Messaging API?",
+    "category": "Comparisons",
+    "metaDescription": "Dailzero vs Termii: Termii is a messaging and OTP API for developers, Dailzero is an AI agent that answers customers on WhatsApp. When to use each, or both.",
+    "primaryKeyword": "dailzero vs termii",
+    "excerpt": "Termii sends SMS, OTPs and alerts from your software. Dailzero answers and sells to customers on your WhatsApp number. They do different jobs, and some businesses use both.",
+    "publishedAt": "2026-11-19"
+  },
+  {
+    "id": 103,
+    "slug": "dailzero-vs-manychat",
+    "title": "Dailzero vs ManyChat: Which Is Better for WhatsApp Sales in Nigeria?",
+    "category": "Comparisons",
+    "metaDescription": "Dailzero vs ManyChat for Nigerian sellers: flows on Instagram and the official API against an AI agent on your own WhatsApp number, priced in Naira.",
+    "primaryKeyword": "dailzero vs manychat",
+    "excerpt": "Choose ManyChat if your leads start in Instagram comments and DMs. Choose Dailzero if sales happen in WhatsApp chats and you want an AI to answer in plain conversation.",
+    "publishedAt": "2026-11-19"
+  },
+  {
+    "id": 104,
+    "slug": "how-to-stop-whatsapp-banning-your-business-number",
+    "title": "How to Stop WhatsApp Banning Your Business Number",
+    "category": "Guides",
+    "metaDescription": "Why WhatsApp bans business numbers and nine habits that keep yours safe, plus an honest look at the risk of automation and what to do if you are restricted.",
+    "primaryKeyword": "whatsapp business number banned",
+    "excerpt": "WhatsApp restricts numbers for blocks and reports, messaging strangers, and activity that looks automated. Nine habits keep a business number safe.",
+    "publishedAt": "2026-11-19"
+  },
+  {
+    "id": 105,
+    "slug": "how-to-get-more-whatsapp-status-views-for-your-business",
+    "title": "How to Get More WhatsApp Status Views for Your Business",
+    "category": "Guides",
+    "metaDescription": "Customers see your WhatsApp Status only when you have saved each other. Five steps to grow your Status audience, and how to save contacts automatically.",
+    "primaryKeyword": "whatsapp status views",
+    "excerpt": "Your Status reaches only people you have saved who have also saved you. Save every customer who messages you, ask them to save you, then post on a rhythm.",
+    "publishedAt": "2026-11-19"
+  },
+  {
+    "id": 106,
+    "slug": "how-to-send-whatsapp-messages-from-code-without-the-official-api",
+    "title": "How to Send WhatsApp Messages From Code Without the Official API",
+    "category": "Guides",
+    "metaDescription": "Send WhatsApp text, images, video and documents from your own code with one HTTPS request, no Meta verification or message fees. Limits and costs included.",
+    "primaryKeyword": "send whatsapp message api without official api",
+    "excerpt": "Link your existing WhatsApp number, create an API key and send messages with one HTTPS request. No business verification, no templates and no Meta fee.",
+    "publishedAt": "2026-11-19"
+  },
+  {
     "id": 1,
     "slug": "how-nigerian-fintechs-can-automate-customer-support-on-whatsapp",
     "title": "How Nigerian Fintechs Can Automate Customer Support on WhatsApp",

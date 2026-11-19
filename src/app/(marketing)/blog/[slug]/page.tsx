@@ -42,6 +42,8 @@ const CATEGORY_COLORS: Record<string, string> = {
   "E-commerce": "#ec4899",
   "Agencies / Freelancers": "#06b6d4",
   "General SMBs": "#00dc82",
+  "Comparisons": "#f97316",
+  "Guides": "#14b8a6",
 }
 
 function formatDate(dateStr: string) {
@@ -120,7 +122,7 @@ export default async function BlogPostPage({ params }: Props) {
               <div className={styles.ctaGlow} />
               <h2 className={styles.ctaTitle}>Ready to automate your WhatsApp?</h2>
               <p className={styles.ctaDesc}>
-                Join Nigerian businesses using Dailzero to handle customer inquiries 24/7 — automatically.
+                Join Nigerian businesses using Dailzero to answer customers on WhatsApp day and night.
               </p>
               <div className={styles.ctaBtns}>
                 <Link href="/signup" className={styles.ctaBtnPrimary}>
@@ -138,7 +140,7 @@ export default async function BlogPostPage({ params }: Props) {
             <div className={styles.sideCard}>
               <div className={styles.sideTitle}>About Dailzero</div>
               <p className={styles.sideDesc}>
-                Dailzero helps Nigerian businesses automate WhatsApp customer service using AI agents — 24/7, no extra staff needed.
+                Dailzero helps Nigerian businesses answer WhatsApp customers with an AI agent, day and night, on the number they already use.
               </p>
               <Link href="/signup" className={styles.sideBtn}>
                 Start Free Trial →
