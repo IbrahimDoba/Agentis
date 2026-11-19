@@ -4,7 +4,7 @@ import type { Metadata } from "next"
 import { Navbar } from "@/components/landing/Navbar"
 import { Footer } from "@/components/landing/Footer"
 import { blogPosts, getBlogPost } from "@/data/blog-posts"
-import { getArticleContent } from "@/lib/blog-content"
+import { getArticleContent, getArticleFaqs } from "@/lib/blog-content"
 import { renderMarkdown } from "@/lib/markdown"
 import { JsonLd } from "@/components/JsonLd"
 import { pageMetadata, articleJsonLd, metaDescription } from "@/lib/seo"
@@ -18,9 +18,7 @@ export async function generateStaticParams() {
   return blogPosts.map((post) => ({ slug: post.slug }))
 }
 
-// The stored metaDescription fields were generated from a template and cut
-// off mid-word, so the description comes from the article's own opening lines.
-const describe = (post: { excerpt: string }) => metaDescription(post.excerpt)
+const describe = (post: { metaDescription: string }) => metaDescription(post.metaDescription)
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
@@ -32,6 +30,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     path: `/blog/${post.slug}`,
     type: "article",
     publishedTime: post.publishedAt,
+    modifiedTime: post.updatedAt,
     keywords: [post.primaryKeyword, "WhatsApp AI Nigeria", "Dailzero"],
   })
 }
@@ -59,7 +58,9 @@ export default async function BlogPostPage({ params }: Props) {
   if (!post) notFound()
 
   const content = getArticleContent(post.id)
+  if (!content) notFound()
   const rendered = renderMarkdown(content)
+  const faqs = getArticleFaqs(content)
 
   const related = blogPosts
     .filter((p) => p.category === post.category && p.id !== post.id)
@@ -73,7 +74,9 @@ export default async function BlogPostPage({ params }: Props) {
           description: describe(post),
           slug: post.slug,
           publishedAt: post.publishedAt,
+          updatedAt: post.updatedAt,
           category: post.category,
+          faqs,
         })}
       />
       <Navbar />
@@ -98,10 +101,13 @@ export default async function BlogPostPage({ params }: Props) {
               {post.category}
             </span>
             <span className={styles.dot}>·</span>
-            <span className={styles.date}>{formatDate(post.publishedAt)}</span>
+            <span className={styles.date}>
+              {post.updatedAt
+                ? <>Updated <time dateTime={post.updatedAt}>{formatDate(post.updatedAt)}</time></>
+                : <time dateTime={post.publishedAt}>{formatDate(post.publishedAt)}</time>}
+            </span>
           </div>
           <h1 className={styles.title}>{post.title}</h1>
-          <p className={styles.excerpt}>{post.excerpt}</p>
         </div>
 
         {/* Layout */}

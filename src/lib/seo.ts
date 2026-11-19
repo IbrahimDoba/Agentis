@@ -32,12 +32,13 @@ interface PageMetadataInput {
   absoluteTitle?: boolean
   type?: "website" | "article"
   publishedTime?: string
+  modifiedTime?: string
   keywords?: string[]
 }
 
 /** Title, description, canonical and share tags for one page, from one place. */
 export function pageMetadata({
-  title, description, path, absoluteTitle, type = "website", publishedTime, keywords,
+  title, description, path, absoluteTitle, type = "website", publishedTime, modifiedTime, keywords,
 }: PageMetadataInput): Metadata {
   const url = absoluteUrl(path)
   const shareTitle = absoluteTitle ? title : `${title} | ${SITE_NAME}`
@@ -54,6 +55,7 @@ export function pageMetadata({
       type,
       locale: "en_NG",
       ...(publishedTime ? { publishedTime } : {}),
+      ...(modifiedTime ? { modifiedTime } : {}),
     },
     twitter: { card: "summary_large_image", title: shareTitle, description },
   }
@@ -245,7 +247,9 @@ export function pageJsonLd(name: string, path: string, faqs?: Faq[]) {
   )
 }
 
-export function articleJsonLd(post: { title: string; description: string; slug: string; publishedAt: string; category: string }) {
+export function articleJsonLd(post: {
+  title: string; description: string; slug: string; publishedAt: string; updatedAt?: string; category: string; faqs?: Faq[]
+}) {
   const url = absoluteUrl(`/blog/${post.slug}`)
   return graph(
     organization(),
@@ -257,7 +261,7 @@ export function articleJsonLd(post: { title: string; description: string; slug: 
       url,
       mainEntityOfPage: url,
       datePublished: post.publishedAt,
-      dateModified: post.publishedAt,
+      dateModified: post.updatedAt ?? post.publishedAt,
       articleSection: post.category,
       inLanguage: "en-NG",
       author: { "@id": ORG_ID },
@@ -268,6 +272,7 @@ export function articleJsonLd(post: { title: string; description: string; slug: 
       { name: "Blog", path: "/blog" },
       { name: post.title, path: `/blog/${post.slug}` },
     ]),
+    ...(post.faqs?.length ? [faqPage(post.faqs)] : []),
   )
 }
 

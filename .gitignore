@@ -56,6 +56,8 @@ next-env.d.ts
 *.md
 !README.md
 !CLAUDE.md
+# Blog articles are content the app reads at runtime, not planning docs.
+!src/content/**/*.md
 
 # manual migration backups
 prisma/migrations_manual_backup/

@@ -7,6 +7,9 @@ export interface BlogPost {
   primaryKeyword: string
   excerpt: string
   publishedAt: string
+  // Set when the article body was last rewritten; shown in place of the
+  // original date and reported as dateModified.
+  updatedAt?: string
 }
 
 export const blogPosts: BlogPost[] = [
@@ -15,1000 +18,1100 @@ export const blogPosts: BlogPost[] = [
     "slug": "how-nigerian-fintechs-can-automate-customer-support-on-whatsapp",
     "title": "How Nigerian Fintechs Can Automate Customer Support on WhatsApp",
     "category": "Fintech / Finance",
-    "metaDescription": "Discover how whatsapp automation fintech nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversations and bo",
+    "metaDescription": "A five-step rollout for automating fintech support on WhatsApp in Nigeria: what an AI agent can answer alone and what must go to a human.",
     "primaryKeyword": "whatsapp automation fintech nigeria",
-    "excerpt": "Nigerian fintechs are growing fast, but customer support is becoming a bottleneck. When customers have questions about transfers, loans, or account issues, they want answers immediately. Waiting hours for a response is...",
-    "publishedAt": "2025-01-01"
+    "excerpt": "Automate general questions like fees, limits and requirements with an AI agent, and route account-specific and fraud cases to people. Here is a five-step rollout.",
+    "publishedAt": "2025-01-01",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 2,
     "slug": "best-whatsapp-ai-agents-for-nigerian-banks-and-fintechs-in-2025",
-    "title": "Best WhatsApp AI Agents for Nigerian Banks and Fintechs in 2025",
+    "title": "Best WhatsApp AI Agents for Nigerian Banks and Fintechs",
     "category": "Fintech / Finance",
-    "metaDescription": "Discover how whatsapp ai agent fintech nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversations and boos",
+    "metaDescription": "Three types of WhatsApp AI agent for Nigerian banks and fintechs, who each one suits, honest limits, and the questions to ask any vendor.",
     "primaryKeyword": "whatsapp ai agent fintech nigeria",
-    "excerpt": "The Nigerian fintech revolution is here, but many companies are still struggling with one critical challenge: scaling customer support. As transaction volumes grow, so do customer inquiries, and hiring more staff is not ...",
-    "publishedAt": "2025-01-02"
+    "excerpt": "There is no single best tool. Banks and large wallets need the official WhatsApp API. Small lenders, cooperatives and startups can use a linked-device agent.",
+    "publishedAt": "2025-01-02",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 3,
     "slug": "how-to-reduce-customer-service-costs-for-nigerian-fintechs-using-ai",
     "title": "How to Reduce Customer Service Costs for Nigerian Fintechs Using AI",
     "category": "Fintech / Finance",
-    "metaDescription": "Discover how reduce customer service costs fintech nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversati",
+    "metaDescription": "A worked calculation for cutting fintech support costs with AI in Nigeria: cost per chat on each plan, what AI can close, and where savings are false.",
     "primaryKeyword": "reduce customer service costs fintech nigeria",
-    "excerpt": "If you run a fintech in Lagos or Abuja, you already know the pain. Customers expect instant responses on WhatsApp, but your team can only handle so many conversations at once. Missed messages mean missed opportunities,...",
-    "publishedAt": "2025-01-03"
+    "excerpt": "Lower your cost per resolved chat. An AI-handled WhatsApp chat of six replies costs about ₦20 to ₦25 on Dailzero. Compare that with your own human cost per chat.",
+    "publishedAt": "2025-01-03",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 4,
     "slug": "whatsapp-lead-generation-for-fintech-companies-in-nigeria",
     "title": "WhatsApp Lead Generation for Fintech Companies in Nigeria",
     "category": "Fintech / Finance",
-    "metaDescription": "Discover how whatsapp lead generation fintech nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversations a",
+    "metaDescription": "How Nigerian fintechs generate leads on WhatsApp: click-to-WhatsApp ads, QR codes, Status, instant AI replies and a leads list for your sales team.",
     "primaryKeyword": "whatsapp lead generation fintech nigeria",
-    "excerpt": "Nigerian fintechs are growing fast, but customer support is becoming a bottleneck. When customers have questions about transfers, loans, or account issues, they want answers immediately. Waiting hours for a response is...",
-    "publishedAt": "2025-01-04"
+    "excerpt": "Give prospects reasons to message you first, through ads, QR codes, your app and Status, then let an AI agent reply in seconds and capture the lead's details.",
+    "publishedAt": "2025-01-04",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 5,
     "slug": "how-to-handle-1000-customer-inquiries-daily-without-hiring-more-staff",
     "title": "How to Handle 1,000+ Customer Inquiries Daily Without Hiring More Staff",
     "category": "Fintech / Finance",
-    "metaDescription": "Discover how handle high volume customer inquiries nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversati",
+    "metaDescription": "A four-move plan for handling 1,000+ WhatsApp inquiries a day in Nigeria without hiring, with the credit maths and the honest limits at that volume.",
     "primaryKeyword": "handle high volume customer inquiries nigeria",
-    "excerpt": "The Nigerian fintech revolution is here, but many companies are still struggling with one critical challenge: scaling customer support. As transaction volumes grow, so do customer inquiries, and hiring more staff is not ...",
-    "publishedAt": "2025-01-05"
+    "excerpt": "Cut repeat inquiries at the source, let AI answer the common questions, collect details before handover and keep staff for hard cases. 1,000 chats a day needs Enterprise.",
+    "publishedAt": "2025-01-05",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 6,
     "slug": "ai-customer-service-vs-human-agents-what-nigerian-fintechs-should-know",
     "title": "AI Customer Service vs Human Agents: What Nigerian Fintechs Should Know",
     "category": "Fintech / Finance",
-    "metaDescription": "Discover how ai vs human customer service nigeria fintech can transform your Nigerian business. Learn proven strategies to automate customer conversatio",
+    "metaDescription": "AI vs human customer service for Nigerian fintechs, compared task by task: what to automate, what to keep with people, and how to compare cost.",
     "primaryKeyword": "ai vs human customer service nigeria fintech",
-    "excerpt": "If you run a fintech in Lagos or Abuja, you already know the pain. Customers expect instant responses on WhatsApp, but your team can only handle so many conversations at once. Missed messages mean missed opportunities,...",
-    "publishedAt": "2025-01-06"
+    "excerpt": "AI wins on speed, availability and consistency. Humans win on judgement, verification and lost-money cases. Let AI answer first and people own the risky chats.",
+    "publishedAt": "2025-01-06",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 7,
     "slug": "how-to-set-up-247-customer-support-for-your-nigerian-fintech-on-whatsapp",
     "title": "How to Set Up 24/7 Customer Support for Your Nigerian Fintech on WhatsApp",
     "category": "Fintech / Finance",
-    "metaDescription": "Discover how 24/7 customer support fintech nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversations and",
+    "metaDescription": "Set up 24/7 WhatsApp support for a Nigerian fintech in six steps, with an after-hours rulebook, on-call plan and what it costs to cover nights.",
     "primaryKeyword": "24/7 customer support fintech nigeria",
-    "excerpt": "Nigerian fintechs are growing fast, but customer support is becoming a bottleneck. When customers have questions about transfers, loans, or account issues, they want answers immediately. Waiting hours for a response is...",
-    "publishedAt": "2025-01-07"
+    "excerpt": "Connect an AI agent to your support number so every message gets a reply in seconds, then write clear after-hours rules for cases that need a person.",
+    "publishedAt": "2025-01-07",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 8,
     "slug": "whatsapp-automation-for-loan-inquiry-responses-in-nigeria",
     "title": "WhatsApp Automation for Loan Inquiry Responses in Nigeria",
     "category": "Fintech / Finance",
-    "metaDescription": "Discover how whatsapp automation loan inquiries nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversations",
+    "metaDescription": "How Nigerian lenders can automate loan inquiry replies on WhatsApp: what to load into an AI agent, rules to follow, and the cost per inquiry.",
     "primaryKeyword": "whatsapp automation loan inquiries nigeria",
-    "excerpt": "The Nigerian fintech revolution is here, but many companies are still struggling with one critical challenge: scaling customer support. As transaction volumes grow, so do customer inquiries, and hiring more staff is not ...",
-    "publishedAt": "2025-01-08"
+    "excerpt": "Automate the first reply to loan inquiries: amounts, interest, requirements and timelines from your published terms. Approval decisions stay with your credit officer.",
+    "publishedAt": "2025-01-08",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 9,
     "slug": "how-ai-agents-are-changing-customer-experience-in-nigerian-banking",
     "title": "How AI Agents Are Changing Customer Experience in Nigerian Banking",
     "category": "Fintech / Finance",
-    "metaDescription": "Discover how ai agents nigerian banking customer experience can transform your Nigerian business. Learn proven strategies to automate customer conversat",
+    "metaDescription": "What AI agents have changed in Nigerian banking customer experience, what they have not, and what smaller institutions can now do on WhatsApp.",
     "primaryKeyword": "ai agents nigerian banking customer experience",
-    "excerpt": "If you run a fintech in Lagos or Abuja, you already know the pain. Customers expect instant responses on WhatsApp, but your team can only handle so many conversations at once. Missed messages mean missed opportunities,...",
-    "publishedAt": "2025-01-09"
+    "excerpt": "Customers can now ask their bank a question in their own words at any hour and get a direct answer. Money movement, identity checks and disputes still need the bank.",
+    "publishedAt": "2025-01-09",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 10,
     "slug": "top-ways-nigerian-fintechs-use-whatsapp-to-qualify-leads-faster",
     "title": "Top Ways Nigerian Fintechs Use WhatsApp to Qualify Leads Faster",
     "category": "Fintech / Finance",
-    "metaDescription": "Discover how lead qualification whatsapp fintech nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversation",
+    "metaDescription": "Six ways Nigerian fintechs can qualify WhatsApp leads faster: knockout questions, early disqualification, document checklists and a leads list.",
     "primaryKeyword": "lead qualification whatsapp fintech nigeria",
-    "excerpt": "Nigerian fintechs are growing fast, but customer support is becoming a bottleneck. When customers have questions about transfers, loans, or account issues, they want answers immediately. Waiting hours for a response is...",
-    "publishedAt": "2025-01-10"
+    "excerpt": "Ask three or four deciding questions in the first chat, automatically, so sales only calls leads who fit. Six methods, from ad source to a timed follow-up.",
+    "publishedAt": "2025-01-10",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 11,
     "slug": "how-to-automate-faq-responses-for-nigerian-fintech-apps-on-whatsapp",
     "title": "How to Automate FAQ Responses for Nigerian Fintech Apps on WhatsApp",
     "category": "Fintech / Finance",
-    "metaDescription": "Discover how automate faq responses fintech nigeria whatsapp can transform your Nigerian business. Learn proven strategies to automate customer conversa",
+    "metaDescription": "Automate fintech FAQs on WhatsApp in five steps: gather real questions, sort them, write approved answers, set handover rules and test.",
     "primaryKeyword": "automate faq responses fintech nigeria whatsapp",
-    "excerpt": "The Nigerian fintech revolution is here, but many companies are still struggling with one critical challenge: scaling customer support. As transaction volumes grow, so do customer inquiries, and hiring more staff is not ...",
-    "publishedAt": "2025-01-11"
+    "excerpt": "Collect the questions customers already send, write one approved answer for each, load them into an AI agent on your support number, and send account-specific issues to a person.",
+    "publishedAt": "2025-01-11",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 12,
     "slug": "whatsapp-business-api-for-nigerian-payment-companies-a-complete-guide",
     "title": "WhatsApp Business API for Nigerian Payment Companies: A Complete Guide",
     "category": "Fintech / Finance",
-    "metaDescription": "Discover how whatsapp business api payment companies nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversa",
+    "metaDescription": "What the official WhatsApp Business API is, how it differs from a linked-device AI agent, and which one a Nigerian payment company needs.",
     "primaryKeyword": "whatsapp business api payment companies nigeria",
-    "excerpt": "If you run a fintech in Lagos or Abuja, you already know the pain. Customers expect instant responses on WhatsApp, but your team can only handle so many conversations at once. Missed messages mean missed opportunities,...",
-    "publishedAt": "2025-01-12"
+    "excerpt": "The WhatsApp Business API is Meta's official platform for OTPs, alerts and high volume. A linked-device AI agent like Dailzero is for conversations. Here is when you need each.",
+    "publishedAt": "2025-01-12",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 13,
     "slug": "how-nigerian-fintechs-can-use-ai-to-respond-to-fraud-inquiries-on-whatsapp",
     "title": "How Nigerian Fintechs Can Use AI to Respond to Fraud Inquiries on WhatsApp",
     "category": "Fintech / Finance",
-    "metaDescription": "Discover how ai fraud inquiry response whatsapp nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversations",
+    "metaDescription": "How a Nigerian fintech can use WhatsApp AI for fraud inquiries: a first-response script, firm limits, and when a human must take over.",
     "primaryKeyword": "ai fraud inquiry response whatsapp nigeria",
-    "excerpt": "Nigerian fintechs are growing fast, but customer support is becoming a bottleneck. When customers have questions about transfers, loans, or account issues, they want answers immediately. Waiting hours for a response is...",
-    "publishedAt": "2025-01-13"
+    "excerpt": "Use AI for the first response to a fraud report: reply in seconds, give the securing steps, collect the facts and hand over to your fraud team. It should never investigate or promise refunds.",
+    "publishedAt": "2025-01-13",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 14,
     "slug": "the-roi-of-whatsapp-automation-for-nigerian-financial-services",
     "title": "The ROI of WhatsApp Automation for Nigerian Financial Services",
     "category": "Fintech / Finance",
-    "metaDescription": "Discover how roi whatsapp automation financial services nigeria can transform your Nigerian business. Learn proven strategies to automate customer conve",
+    "metaDescription": "A formula and worked example for the ROI of WhatsApp automation in Nigerian financial services, using your own staff cost and customer value.",
     "primaryKeyword": "roi whatsapp automation financial services nigeria",
-    "excerpt": "The Nigerian fintech revolution is here, but many companies are still struggling with one critical challenge: scaling customer support. As transaction volumes grow, so do customer inquiries, and hiring more staff is not ...",
-    "publishedAt": "2025-01-14"
+    "excerpt": "ROI comes from staff hours saved on repeat questions and inquiries that no longer go unanswered. Work out your own figure with five numbers and Dailzero's Naira prices.",
+    "publishedAt": "2025-01-14",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 15,
     "slug": "how-ai-agents-help-nigerian-fintechs-convert-more-whatsapp-leads",
     "title": "How AI Agents Help Nigerian Fintechs Convert More WhatsApp Leads",
     "category": "Fintech / Finance",
-    "metaDescription": "Discover how ai lead conversion whatsapp fintech nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversation",
+    "metaDescription": "Five places Nigerian fintechs lose WhatsApp leads, how an AI agent fixes each, and what it cannot do for conversion.",
     "primaryKeyword": "ai lead conversion whatsapp fintech nigeria",
-    "excerpt": "If you run a fintech in Lagos or Abuja, you already know the pain. Customers expect instant responses on WhatsApp, but your team can only handle so many conversations at once. Missed messages mean missed opportunities,...",
-    "publishedAt": "2025-01-15"
+    "excerpt": "AI agents convert more fintech leads by fixing five leaks: slow replies, vague answers, missing details, clumsy handovers and no follow-up after a customer goes quiet.",
+    "publishedAt": "2025-01-15",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 16,
     "slug": "whatsapp-chatbot-vs-ai-agent-which-is-better-for-nigerian-fintechs",
     "title": "WhatsApp Chatbot vs AI Agent: Which Is Better for Nigerian Fintechs?",
     "category": "Fintech / Finance",
-    "metaDescription": "Discover how whatsapp chatbot vs ai agent nigeria fintech can transform your Nigerian business. Learn proven strategies to automate customer conversatio",
+    "metaDescription": "WhatsApp chatbot vs AI agent for Nigerian fintechs: how each handles a real customer message, a side-by-side table and when to use which.",
     "primaryKeyword": "whatsapp chatbot vs ai agent nigeria fintech",
-    "excerpt": "Nigerian fintechs are growing fast, but customer support is becoming a bottleneck. When customers have questions about transfers, loans, or account issues, they want answers immediately. Waiting hours for a response is...",
-    "publishedAt": "2025-01-16"
+    "excerpt": "An AI agent is better for free-typed customer questions and sales inquiries. A menu chatbot is better for fixed, regulated flows. Many fintechs use each for what it does well.",
+    "publishedAt": "2025-01-16",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 17,
     "slug": "how-opay-kuda-and-moniepoint-can-cut-support-costs-with-whatsapp-ai",
-    "title": "How Opay, Kuda and Moniepoint Can Cut Support Costs With WhatsApp AI",
+    "title": "How Nigerian Fintechs Can Cut Support Costs With WhatsApp AI",
     "category": "Fintech / Finance",
-    "metaDescription": "Discover how whatsapp ai for nigerian neobanks can transform your Nigerian business. Learn proven strategies to automate customer conversations and boos",
+    "metaDescription": "Four places WhatsApp AI cuts fintech support costs in Nigeria, what an AI reply costs in Naira, and a four-week rollout plan.",
     "primaryKeyword": "whatsapp ai for nigerian neobanks",
-    "excerpt": "The Nigerian fintech revolution is here, but many companies are still struggling with one critical challenge: scaling customer support. As transaction volumes grow, so do customer inquiries, and hiring more staff is not ...",
-    "publishedAt": "2025-01-17"
+    "excerpt": "Let AI close repeat questions, night-time first replies, spike days and fact-gathering at about ₦3 to ₦4 a reply, and keep disputes, fraud and credit decisions with staff.",
+    "publishedAt": "2025-01-17",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 18,
     "slug": "how-nigerian-real-estate-agents-can-use-whatsapp-ai-to-close-more-deals",
     "title": "How Nigerian Real Estate Agents Can Use WhatsApp AI to Close More Deals",
     "category": "Real Estate",
-    "metaDescription": "Discover how whatsapp ai for real estate nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversations and bo",
+    "metaDescription": "A day in the life of a Nigerian estate agent using WhatsApp AI: instant replies, booked inspections, a leads list and follow-ups.",
     "primaryKeyword": "whatsapp ai for real estate nigeria",
-    "excerpt": "As a real estate agent in Nigeria, you know the drill. A property listing goes live, and your phone explodes with WhatsApp messages. 'Is this still available?' 'What is the price?' 'Can I schedule a viewing?' By the...",
-    "publishedAt": "2025-01-18"
+    "excerpt": "WhatsApp AI answers every property inquiry in seconds, books inspections, sends reminders and follows up, so clients reach you ready to talk terms. You still negotiate and close.",
+    "publishedAt": "2025-01-18",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 19,
     "slug": "whatsapp-automation-for-real-estate-lead-generation-in-nigeria",
     "title": "WhatsApp Automation for Real Estate Lead Generation in Nigeria",
     "category": "Real Estate",
-    "metaDescription": "Discover how real estate lead generation whatsapp nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversatio",
+    "metaDescription": "Five WhatsApp lead sources for Nigerian real estate, how to automate each, what to capture from every inquiry and mistakes to avoid.",
     "primaryKeyword": "real estate lead generation whatsapp nigeria",
-    "excerpt": "Property buyers in Lagos and Abuja are impatient. When they see a listing they like, they want information immediately. If you do not respond within minutes, they have already contacted three other agents.",
-    "publishedAt": "2025-01-19"
+    "excerpt": "Point every lead source at one WhatsApp number, then let an AI agent reply at once and capture name, budget and location. Five sources to automate and what to collect.",
+    "publishedAt": "2025-01-19",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 20,
     "slug": "how-to-handle-hundreds-of-property-inquiries-daily-using-ai-on-whatsapp",
     "title": "How to Handle Hundreds of Property Inquiries Daily Using AI on WhatsApp",
     "category": "Real Estate",
-    "metaDescription": "Discover how handle property inquiries automatically nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversa",
+    "metaDescription": "How to handle hundreds of property inquiries a day on WhatsApp with AI: credit budgeting, a strong first reply, three lanes and number safety.",
     "primaryKeyword": "handle property inquiries automatically nigeria",
-    "excerpt": "The Nigerian real estate market moves fast. Properties get snapped up within days, sometimes hours. But if you are stuck manually responding to every WhatsApp inquiry, you are losing deals before you even know they...",
-    "publishedAt": "2025-01-20"
+    "excerpt": "An AI agent can answer hundreds of property chats at once. At 200 inquiries a day, budget about 180,000 credits a month, keep availability current and staff the handovers.",
+    "publishedAt": "2025-01-20",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 21,
     "slug": "best-ai-tools-for-nigerian-real-estate-agencies-in-2025",
-    "title": "Best AI Tools for Nigerian Real Estate Agencies in 2025",
+    "title": "Best AI Tools for Nigerian Real Estate Agencies",
     "category": "Real Estate",
-    "metaDescription": "Discover how best ai tools real estate nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversations and boos",
+    "metaDescription": "The AI tools worth using in a Nigerian real estate agency, sorted by job: WhatsApp enquiries, listing copy, flyers, tour videos and ads.",
     "primaryKeyword": "best ai tools real estate nigeria",
-    "excerpt": "As a real estate agent in Nigeria, you know the drill. A property listing goes live, and your phone explodes with WhatsApp messages. 'Is this still available?' 'What is the price?' 'Can I schedule a viewing?' By the...",
-    "publishedAt": "2025-01-21"
+    "excerpt": "There is no single best AI tool for a Nigerian estate agency. Match the tool to the job: a WhatsApp agent for enquiries, an assistant for listings, design and video tools for marketing.",
+    "publishedAt": "2025-01-21",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 22,
     "slug": "how-to-use-whatsapp-ai-to-qualify-property-buyers-in-nigeria",
     "title": "How to Use WhatsApp AI to Qualify Property Buyers in Nigeria",
     "category": "Real Estate",
-    "metaDescription": "Discover how lead qualification real estate nigeria whatsapp can transform your Nigerian business. Learn proven strategies to automate customer conversa",
+    "metaDescription": "How to qualify property buyers on WhatsApp with AI: the five questions to ask, the order to ask them, and how to sort the answers.",
     "primaryKeyword": "lead qualification real estate nigeria whatsapp",
-    "excerpt": "Property buyers in Lagos and Abuja are impatient. When they see a listing they like, they want information immediately. If you do not respond within minutes, they have already contacted three other agents.",
-    "publishedAt": "2025-01-22"
+    "excerpt": "Give the AI five things to find out from every enquiry: purpose, location, budget, payment method and timeline. It asks in the chat, and you call the serious buyers first.",
+    "publishedAt": "2025-01-22",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 23,
     "slug": "how-to-respond-to-property-inquiries-247-without-extra-staff-in-nigeria",
     "title": "How to Respond to Property Inquiries 24/7 Without Extra Staff in Nigeria",
     "category": "Real Estate",
-    "metaDescription": "Discover how 24/7 property inquiry response nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversations and",
+    "metaDescription": "Answer property enquiries 24/7 in Nigeria without night staff. A walkthrough of one night, what to load, the limits and the cost in Naira.",
     "primaryKeyword": "24/7 property inquiry response nigeria",
-    "excerpt": "The Nigerian real estate market moves fast. Properties get snapped up within days, sometimes hours. But if you are stuck manually responding to every WhatsApp inquiry, you are losing deals before you even know they...",
-    "publishedAt": "2025-01-23"
+    "excerpt": "Link an AI agent to your existing WhatsApp number. It answers property enquiries in seconds at any hour and leaves negotiation and payment for you in the morning.",
+    "publishedAt": "2025-01-23",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 24,
     "slug": "whatsapp-business-for-nigerian-property-developers-everything-you-need-to-know",
     "title": "WhatsApp Business for Nigerian Property Developers: Everything You Need to Know",
     "category": "Real Estate",
-    "metaDescription": "Discover how whatsapp business for property developers nigeria can transform your Nigerian business. Learn proven strategies to automate customer conver",
+    "metaDescription": "WhatsApp Business for Nigerian property developers: app vs API vs a linked AI agent, how to set up the app, and what buyers and subscribers ask.",
     "primaryKeyword": "whatsapp business for property developers nigeria",
-    "excerpt": "As a real estate agent in Nigeria, you know the drill. A property listing goes live, and your phone explodes with WhatsApp messages. 'Is this still available?' 'What is the price?' 'Can I schedule a viewing?' By the...",
-    "publishedAt": "2025-01-24"
+    "excerpt": "Developers have three options: the free WhatsApp Business app, the official API, or the app with an AI agent linked to it. For most estates, the third fits best.",
+    "publishedAt": "2025-01-24",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 25,
     "slug": "how-to-never-miss-a-property-lead-on-whatsapp-again",
     "title": "How to Never Miss a Property Lead on WhatsApp Again",
     "category": "Real Estate",
-    "metaDescription": "Discover how never miss property lead whatsapp nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversations",
+    "metaDescription": "The five places property leads get lost on WhatsApp and how to close each one, by hand or with an AI agent, plus a ten minute daily routine.",
     "primaryKeyword": "never miss property lead whatsapp nigeria",
-    "excerpt": "Property buyers in Lagos and Abuja are impatient. When they see a listing they like, they want information immediately. If you do not respond within minutes, they have already contacted three other agents.",
-    "publishedAt": "2025-01-25"
+    "excerpt": "Property leads leak at five points: slow first replies, offline hours, forgotten callbacks, buyers who go quiet and chats nobody recorded. Here is the fix for each.",
+    "publishedAt": "2025-01-25",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 26,
     "slug": "how-real-estate-agents-in-lagos-and-abuja-use-ai-for-customer-service",
     "title": "How Real Estate Agents in Lagos and Abuja Use AI for Customer Service",
     "category": "Real Estate",
-    "metaDescription": "Discover how real estate ai customer service lagos abuja can transform your Nigerian business. Learn proven strategies to automate customer conversation",
+    "metaDescription": "How estate agents in Lagos and Abuja can use AI on WhatsApp for customer service: what to teach it in each city and what to hand to a person.",
     "primaryKeyword": "real estate ai customer service lagos abuja",
-    "excerpt": "The Nigerian real estate market moves fast. Properties get snapped up within days, sometimes hours. But if you are stuck manually responding to every WhatsApp inquiry, you are losing deals before you even know they...",
-    "publishedAt": "2025-01-26"
+    "excerpt": "Put an AI agent on the office WhatsApp number so tenants, landlords and buyers get instant answers to routine questions. What you teach it differs between Lagos and Abuja.",
+    "publishedAt": "2025-01-26",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 27,
     "slug": "how-ai-helps-nigerian-real-estate-companies-scale-without-hiring",
     "title": "How AI Helps Nigerian Real Estate Companies Scale Without Hiring",
     "category": "Real Estate",
-    "metaDescription": "Discover how scale real estate business ai nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversations and",
+    "metaDescription": "How a Nigerian real estate company can grow enquiries without adding front desk staff, with a worked cost example in Naira and honest limits.",
     "primaryKeyword": "scale real estate business ai nigeria",
-    "excerpt": "As a real estate agent in Nigeria, you know the drill. A property listing goes live, and your phone explodes with WhatsApp messages. 'Is this still available?' 'What is the price?' 'Can I schedule a viewing?' By the...",
-    "publishedAt": "2025-01-27"
+    "excerpt": "AI takes over the repeated WhatsApp questions that grow with every listing, so your agents keep inspections, negotiation and closing. You hire for deals, not for chats.",
+    "publishedAt": "2025-01-27",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 28,
     "slug": "how-to-automate-property-viewing-scheduling-with-whatsapp-ai-in-nigeria",
     "title": "How to Automate Property Viewing Scheduling With WhatsApp AI in Nigeria",
     "category": "Real Estate",
-    "metaDescription": "Discover how automate property viewing scheduling whatsapp nigeria can transform your Nigerian business. Learn proven strategies to automate customer co",
+    "metaDescription": "Five steps to automate property viewing bookings on WhatsApp in Nigeria: inspection windows, rules, fees, testing, reminders and the limits.",
     "primaryKeyword": "automate property viewing scheduling whatsapp nigeria",
-    "excerpt": "Property buyers in Lagos and Abuja are impatient. When they see a listing they like, they want information immediately. If you do not respond within minutes, they have already contacted three other agents.",
-    "publishedAt": "2025-01-28"
+    "excerpt": "Give an AI agent your fixed inspection windows, the details to collect and your fee rules. It offers a slot, books the viewing in the chat and sends a reminder.",
+    "publishedAt": "2025-01-28",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 29,
     "slug": "whatsapp-drip-campaigns-for-nigerian-real-estate-companies",
     "title": "WhatsApp Drip Campaigns for Nigerian Real Estate Companies",
     "category": "Real Estate",
-    "metaDescription": "Discover how whatsapp drip campaign real estate nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversations",
+    "metaDescription": "How to run a WhatsApp drip campaign for Nigerian real estate: a six week plan, example messages, the cost in credits and number safety rules.",
     "primaryKeyword": "whatsapp drip campaign real estate nigeria",
-    "excerpt": "The Nigerian real estate market moves fast. Properties get snapped up within days, sometimes hours. But if you are stuck manually responding to every WhatsApp inquiry, you are losing deals before you even know they...",
-    "publishedAt": "2025-01-29"
+    "excerpt": "A real estate drip on WhatsApp is built from three parts: follow-ups to quiet buyers, broadcasts to existing contacts and scheduled Status posts. Never use bought lists.",
+    "publishedAt": "2025-01-29",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 30,
     "slug": "ai-agents-for-nigerian-land-and-property-sales-a-complete-guide",
     "title": "AI Agents for Nigerian Land and Property Sales: A Complete Guide",
     "category": "Real Estate",
-    "metaDescription": "Discover how ai agent land sales nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversations and boost sale",
+    "metaDescription": "A guide to AI agents for land and property sales in Nigeria: what to load, the lines it must not cross, a cost example and who should not use one.",
     "primaryKeyword": "ai agent land sales nigeria",
-    "excerpt": "As a real estate agent in Nigeria, you know the drill. A property listing goes live, and your phone explodes with WhatsApp messages. 'Is this still available?' 'What is the price?' 'Can I schedule a viewing?' By the...",
-    "publishedAt": "2025-01-30"
+    "excerpt": "An AI agent answers land buyers on WhatsApp from the facts you load: plot sizes, prices, titles and payment plans. It cannot verify a title, give legal advice or confirm payment.",
+    "publishedAt": "2025-01-30",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 31,
     "slug": "how-to-qualify-real-estate-buyers-automatically-on-whatsapp-in-nigeria",
     "title": "How to Qualify Real Estate Buyers Automatically on WhatsApp in Nigeria",
     "category": "Real Estate",
-    "metaDescription": "Discover how qualify real estate buyers automatically whatsapp can transform your Nigerian business. Learn proven strategies to automate customer conver",
+    "metaDescription": "The five questions to ask property buyers on WhatsApp, how an AI agent sorts them into three groups, and what automatic qualifying cannot do.",
     "primaryKeyword": "qualify real estate buyers automatically whatsapp",
-    "excerpt": "Property buyers in Lagos and Abuja are impatient. When they see a listing they like, they want information immediately. If you do not respond within minutes, they have already contacted three other agents.",
-    "publishedAt": "2025-01-31"
+    "excerpt": "Give an AI agent five questions to ask every inquiry (purpose, location, budget, payment method, timeline), then sort buyers into call today, nurture and brochure only.",
+    "publishedAt": "2025-01-31",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 32,
     "slug": "the-future-of-proptech-in-nigeria-ai-whatsapp-and-automation",
     "title": "The Future of PropTech in Nigeria: AI, WhatsApp and Automation",
     "category": "Real Estate",
-    "metaDescription": "Discover how proptech nigeria future ai can transform your Nigerian business. Learn proven strategies to automate customer conversations and boost sales",
+    "metaDescription": "A plain view of where Nigerian PropTech is heading: AI replies on WhatsApp, chat-first ads and connected records, plus what technology will not fix.",
     "primaryKeyword": "proptech nigeria future ai",
-    "excerpt": "The Nigerian real estate market moves fast. Properties get snapped up within days, sometimes hours. But if you are stuck manually responding to every WhatsApp inquiry, you are losing deals before you even know they...",
-    "publishedAt": "2025-02-01"
+    "excerpt": "Property search, inquiry, inspection booking and follow-up are moving into WhatsApp, with AI doing the first reply. Title checks, site visits and signing stay human.",
+    "publishedAt": "2025-02-01",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 33,
     "slug": "how-spleet-adron-homes-and-nigerian-property-firms-use-whatsapp-ai",
-    "title": "How Spleet, Adron Homes and Nigerian Property Firms Use WhatsApp AI",
+    "title": "How Nigerian Property Firms Use WhatsApp AI",
     "category": "Real Estate",
-    "metaDescription": "Discover how whatsapp automation nigerian property companies can transform your Nigerian business. Learn proven strategies to automate customer conversa",
+    "metaDescription": "How developers, letting agents, shortlet operators and facility managers in Nigeria can use WhatsApp AI, with honest limits and a cost example.",
     "primaryKeyword": "whatsapp automation nigerian property companies",
-    "excerpt": "As a real estate agent in Nigeria, you know the drill. A property listing goes live, and your phone explodes with WhatsApp messages. 'Is this still available?' 'What is the price?' 'Can I schedule a viewing?' By the...",
-    "publishedAt": "2025-02-02"
+    "excerpt": "Nigerian property firms use WhatsApp AI to answer listing questions, send brochures, book inspections and list serious prospects. How it looks depends on the type of firm.",
+    "publishedAt": "2025-02-02",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 34,
     "slug": "how-whatsapp-ai-reduces-no-response-rate-for-nigerian-property-listings",
     "title": "How WhatsApp AI Reduces No-Response Rate for Nigerian Property Listings",
     "category": "Real Estate",
-    "metaDescription": "Discover how reduce no response property listings whatsapp nigeria can transform your Nigerian business. Learn proven strategies to automate customer co",
+    "metaDescription": "Why property listing inquiries go unanswered in Nigeria, how to measure your no-response rate, and what a WhatsApp AI agent does about each cause.",
     "primaryKeyword": "reduce no response property listings whatsapp nigeria",
-    "excerpt": "Property buyers in Lagos and Abuja are impatient. When they see a listing they like, they want information immediately. If you do not respond within minutes, they have already contacted three other agents.",
-    "publishedAt": "2025-02-03"
+    "excerpt": "WhatsApp AI cuts no-response on property listings by answering every inquiry in seconds, at any hour. Measure your own rate first, then fix each cause.",
+    "publishedAt": "2025-02-03",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 35,
     "slug": "how-nigerian-hotels-can-use-whatsapp-ai-to-handle-booking-inquiries",
     "title": "How Nigerian Hotels Can Use WhatsApp AI to Handle Booking Inquiries",
     "category": "Hotels / Hospitality",
-    "metaDescription": "Discover how whatsapp ai hotel booking inquiry nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversations",
+    "metaDescription": "A step-by-step look at how a Nigerian hotel can handle WhatsApp booking inquiries with AI, including the room availability limit and the cost.",
     "primaryKeyword": "whatsapp ai hotel booking inquiry nigeria",
-    "excerpt": "Nigerian hotels face a unique challenge: guests expect personalized service, but they also want instant responses. In an industry where first impressions matter, slow replies can cost you bookings.",
-    "publishedAt": "2025-02-04"
+    "excerpt": "Let the AI answer rates, send room photos, collect guest details and share payment instructions, then hand the chat to the front desk to confirm the room and payment.",
+    "publishedAt": "2025-02-04",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 36,
     "slug": "whatsapp-automation-for-hotel-customer-service-in-nigeria",
     "title": "WhatsApp Automation for Hotel Customer Service in Nigeria",
     "category": "Hotels / Hospitality",
-    "metaDescription": "Discover how hotel customer service whatsapp automation nigeria can transform your Nigerian business. Learn proven strategies to automate customer conve",
+    "metaDescription": "What Nigerian hotels can automate on WhatsApp at each stage of a guest's stay, what must stay with staff, and five rules that protect service.",
     "primaryKeyword": "hotel customer service whatsapp automation nigeria",
-    "excerpt": "Running a hotel in Nigeria means juggling a thousand things at once. Guests are checking in, checking out, asking about amenities, making special requests, and your phone never stops buzzing with WhatsApp inquiries from ...",
-    "publishedAt": "2025-02-05"
+    "excerpt": "An AI agent answers routine guest questions on your hotel's WhatsApp number before, during and after a stay, and passes complaints, refunds and room problems to staff.",
+    "publishedAt": "2025-02-05",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 37,
     "slug": "how-to-increase-hotel-bookings-using-whatsapp-ai-in-nigeria",
     "title": "How to Increase Hotel Bookings Using WhatsApp AI in Nigeria",
     "category": "Hotels / Hospitality",
-    "metaDescription": "Discover how increase hotel bookings whatsapp ai nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversation",
+    "metaDescription": "Six practical ways a Nigerian hotel can win more bookings with WhatsApp AI, a worked broadcast cost in Naira, and a 30-day test to check results.",
     "primaryKeyword": "increase hotel bookings whatsapp ai nigeria",
-    "excerpt": "The hospitality business never sleeps. Guests message at midnight asking about availability. International travelers WhatsApp you at 3 AM from different time zones. Every missed message is a potential booking lost to...",
-    "publishedAt": "2025-02-06"
+    "excerpt": "Reply to every rate inquiry in seconds with the price, room photos and a clear next step, then follow up guests who did not book. The AI stops you losing bookings.",
+    "publishedAt": "2025-02-06",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 38,
     "slug": "best-ai-tools-for-nigerian-hotels-and-guest-houses-in-2025",
-    "title": "Best AI Tools for Nigerian Hotels and Guest Houses in 2025",
+    "title": "Best AI Tools for Nigerian Hotels and Guest Houses",
     "category": "Hotels / Hospitality",
-    "metaDescription": "Discover how best ai tools hotels nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversations and boost sal",
+    "metaDescription": "The AI tools worth considering for Nigerian hotels and guest houses, grouped by job and property size, with questions to ask before you pay.",
     "primaryKeyword": "best ai tools hotels nigeria",
-    "excerpt": "Nigerian hotels face a unique challenge: guests expect personalized service, but they also want instant responses. In an industry where first impressions matter, slow replies can cost you bookings.",
-    "publishedAt": "2025-02-07"
+    "excerpt": "Most Nigerian hotels need four kinds of AI tool: a WhatsApp AI agent, a general AI assistant for writing, a design tool, and hotel software for larger properties.",
+    "publishedAt": "2025-02-07",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 39,
     "slug": "how-to-handle-guest-inquiries-247-at-your-nigerian-hotel-without-extra-staff",
     "title": "How to Handle Guest Inquiries 24/7 at Your Nigerian Hotel Without Extra Staff",
     "category": "Hotels / Hospitality",
-    "metaDescription": "Discover how 24/7 guest inquiry response nigeria hotel can transform your Nigerian business. Learn proven strategies to automate customer conversations",
+    "metaDescription": "How a Nigerian hotel can answer guest inquiries all night without a phone receptionist: a night walkthrough, handoff rules and the cost in Naira.",
     "primaryKeyword": "24/7 guest inquiry response nigeria hotel",
-    "excerpt": "Running a hotel in Nigeria means juggling a thousand things at once. Guests are checking in, checking out, asking about amenities, making special requests, and your phone never stops buzzing with WhatsApp inquiries from ...",
-    "publishedAt": "2025-02-08"
+    "excerpt": "Link an AI agent to your hotel's WhatsApp number. It answers at any hour from your rates and policies and hands night staff only the chats that need a person.",
+    "publishedAt": "2025-02-08",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 40,
     "slug": "whatsapp-lead-generation-for-nigerian-hotels-and-resorts",
     "title": "WhatsApp Lead Generation for Nigerian Hotels and Resorts",
     "category": "Hotels / Hospitality",
-    "metaDescription": "Discover how hotel lead generation whatsapp nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversations and",
+    "metaDescription": "Where hotel and resort leads come from on WhatsApp, what to capture in the chat, how to follow up, and five mistakes that waste them.",
     "primaryKeyword": "hotel lead generation whatsapp nigeria",
-    "excerpt": "The hospitality business never sleeps. Guests message at midnight asking about availability. International travelers WhatsApp you at 3 AM from different time zones. Every missed message is a potential booking lost to...",
-    "publishedAt": "2025-02-09"
+    "excerpt": "Hotel lead generation on WhatsApp means getting event, group, corporate and long-stay prospects to message you, capturing their needs in chat and following up.",
+    "publishedAt": "2025-02-09",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 41,
     "slug": "how-nigerian-airbnb-hosts-can-automate-guest-communication-on-whatsapp",
     "title": "How Nigerian Airbnb Hosts Can Automate Guest Communication on WhatsApp",
     "category": "Hotels / Hospitality",
-    "metaDescription": "Discover how airbnb host automation whatsapp nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversations an",
+    "metaDescription": "How Nigerian short-let hosts can automate guest chats on WhatsApp at each stage of a stay, what it costs, and what an AI agent cannot do.",
     "primaryKeyword": "airbnb host automation whatsapp nigeria",
-    "excerpt": "Nigerian hotels face a unique challenge: guests expect personalized service, but they also want instant responses. In an industry where first impressions matter, slow replies can cost you bookings.",
-    "publishedAt": "2025-02-10"
+    "excerpt": "Link your hosting WhatsApp number to an AI agent that answers guest questions, sends check-in guides and hands unusual issues to you. It cannot reply inside the Airbnb app.",
+    "publishedAt": "2025-02-10",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 42,
     "slug": "how-ai-is-helping-small-nigerian-hotels-compete-with-international-chains",
     "title": "How AI Is Helping Small Nigerian Hotels Compete With International Chains",
     "category": "Hotels / Hospitality",
-    "metaDescription": "Discover how ai nigerian hotels compete international can transform your Nigerian business. Learn proven strategies to automate customer conversations a",
+    "metaDescription": "What a WhatsApp AI agent lets a small Nigerian hotel match from international chains, where you already win, and what AI will not fix.",
     "primaryKeyword": "ai nigerian hotels compete international",
-    "excerpt": "Running a hotel in Nigeria means juggling a thousand things at once. Guests are checking in, checking out, asking about amenities, making special requests, and your phone never stops buzzing with WhatsApp inquiries from ...",
-    "publishedAt": "2025-02-11"
+    "excerpt": "A small hotel cannot outspend a chain, but a WhatsApp AI agent lets it match a chain's reply speed and consistency. The rooms, service and power are still up to you.",
+    "publishedAt": "2025-02-11",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 43,
     "slug": "how-to-collect-guest-reviews-automatically-on-whatsapp-in-nigeria",
     "title": "How to Collect Guest Reviews Automatically on WhatsApp in Nigeria",
     "category": "Hotels / Hospitality",
-    "metaDescription": "Discover how collect hotel reviews whatsapp nigeria automatically can transform your Nigerian business. Learn proven strategies to automate customer con",
+    "metaDescription": "Three honest ways to ask hotel guests for reviews on WhatsApp in Nigeria, what each costs in credits, and the limits of automating it.",
     "primaryKeyword": "collect hotel reviews whatsapp nigeria automatically",
-    "excerpt": "The hospitality business never sleeps. Guests message at midnight asking about availability. International travelers WhatsApp you at 3 AM from different time zones. Every missed message is a potential booking lost to...",
-    "publishedAt": "2025-02-12"
+    "excerpt": "Dailzero has no review feature, but you can automate the asking: an agent instruction, a broadcast with your review link, or an API trigger from your booking system.",
+    "publishedAt": "2025-02-12",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 44,
     "slug": "whatsapp-business-for-nigerian-restaurants-a-complete-guide",
     "title": "WhatsApp Business for Nigerian Restaurants: A Complete Guide",
     "category": "Hotels / Hospitality",
-    "metaDescription": "Discover how whatsapp business restaurants nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversations and",
+    "metaDescription": "A guide to WhatsApp Business for Nigerian restaurants: app setup, taking orders, payment, Status and broadcasts, and when to add an AI agent.",
     "primaryKeyword": "whatsapp business restaurants nigeria",
-    "excerpt": "Nigerian hotels face a unique challenge: guests expect personalized service, but they also want instant responses. In an industry where first impressions matter, slow replies can cost you bookings.",
-    "publishedAt": "2025-02-13"
+    "excerpt": "WhatsApp Business is a free app with a profile, menu catalogue, quick replies and away messages. Add an AI agent to the same number when orders outpace one person.",
+    "publishedAt": "2025-02-13",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 45,
     "slug": "how-to-reduce-hotel-no-shows-with-whatsapp-automation-in-nigeria",
     "title": "How to Reduce Hotel No-Shows With WhatsApp Automation in Nigeria",
     "category": "Hotels / Hospitality",
-    "metaDescription": "Discover how reduce hotel no shows whatsapp automation nigeria can transform your Nigerian business. Learn proven strategies to automate customer conver",
+    "metaDescription": "Why hotel guests in Nigeria do not show up and how a deposit policy plus WhatsApp reminders reduce it. Includes what an AI agent cannot do.",
     "primaryKeyword": "reduce hotel no shows whatsapp automation nigeria",
-    "excerpt": "Running a hotel in Nigeria means juggling a thousand things at once. Guests are checking in, checking out, asking about amenities, making special requests, and your phone never stops buzzing with WhatsApp inquiries from ...",
-    "publishedAt": "2025-02-14"
+    "excerpt": "No-shows fall when guests pay a deposit to hold the room, get a reminder they must answer, and have an easy way to cancel. Automation helps, but you confirm the deposit.",
+    "publishedAt": "2025-02-14",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 46,
     "slug": "ai-concierge-services-for-nigerian-hotels-what-you-need-to-know",
     "title": "AI Concierge Services for Nigerian Hotels: What You Need to Know",
     "category": "Hotels / Hospitality",
-    "metaDescription": "Discover how ai concierge hotel nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversations and boost sales",
+    "metaDescription": "Six things Nigerian hotels should know before setting up an AI concierge on WhatsApp: what it answers, what staff still do, and the cost.",
     "primaryKeyword": "ai concierge hotel nigeria",
-    "excerpt": "The hospitality business never sleeps. Guests message at midnight asking about availability. International travelers WhatsApp you at 3 AM from different time zones. Every missed message is a potential booking lost to...",
-    "publishedAt": "2025-02-15"
+    "excerpt": "An AI concierge answers guests' questions and takes requests during a stay, usually on WhatsApp. It only knows what you load, and your staff still deliver the service.",
+    "publishedAt": "2025-02-15",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 47,
     "slug": "how-whatsapp-ai-helps-nigerian-hotels-upsell-room-upgrades-and-services",
     "title": "How WhatsApp AI Helps Nigerian Hotels Upsell Room Upgrades and Services",
     "category": "Hotels / Hospitality",
-    "metaDescription": "Discover how whatsapp ai hotel upsell nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversations and boost",
+    "metaDescription": "Four moments to offer room upgrades and extras on WhatsApp, how to set an AI agent up for it, and where hotel staff still need to step in.",
     "primaryKeyword": "whatsapp ai hotel upsell nigeria",
-    "excerpt": "Nigerian hotels face a unique challenge: guests expect personalized service, but they also want instant responses. In an industry where first impressions matter, slow replies can cost you bookings.",
-    "publishedAt": "2025-02-16"
+    "excerpt": "A WhatsApp AI agent upsells by offering the upgrade in the chat where the guest asked for the rate, every time, with the price difference. Staff still confirm availability.",
+    "publishedAt": "2025-02-16",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 48,
     "slug": "how-to-automate-room-availability-responses-on-whatsapp-for-nigerian-hotels",
     "title": "How to Automate Room Availability Responses on WhatsApp for Nigerian Hotels",
     "category": "Hotels / Hospitality",
-    "metaDescription": "Discover how automate room availability whatsapp nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversation",
+    "metaDescription": "Three ways to automate room availability replies on WhatsApp for Nigerian hotels, from collect and confirm to a live booking system lookup.",
     "primaryKeyword": "automate room availability whatsapp nigeria",
-    "excerpt": "Running a hotel in Nigeria means juggling a thousand things at once. Guests are checking in, checking out, asking about amenities, making special requests, and your phone never stops buzzing with WhatsApp inquiries from ...",
-    "publishedAt": "2025-02-17"
+    "excerpt": "An AI agent answers availability questions in seconds, but it cannot see your booking system by itself. Use collect and confirm, a daily update, or a developer-built lookup.",
+    "publishedAt": "2025-02-17",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 49,
     "slug": "whatsapp-ai-for-event-and-conference-centers-in-nigeria",
     "title": "WhatsApp AI for Event and Conference Centers in Nigeria",
     "category": "Hotels / Hospitality",
-    "metaDescription": "Discover how whatsapp ai event centers nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversations and boos",
+    "metaDescription": "How Nigerian event and conference centres can use WhatsApp AI to qualify hall enquiries, send rate cards and book inspections, with limits.",
     "primaryKeyword": "whatsapp ai event centers nigeria",
-    "excerpt": "The hospitality business never sleeps. Guests message at midnight asking about availability. International travelers WhatsApp you at 3 AM from different time zones. Every missed message is a potential booking lost to...",
-    "publishedAt": "2025-02-18"
+    "excerpt": "A WhatsApp AI agent turns a bare hall price question into a full enquiry with date, guest count and event type, sends your rate card and books the inspection visit.",
+    "publishedAt": "2025-02-18",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 50,
     "slug": "how-nigerian-spa-and-wellness-centers-use-whatsapp-ai-for-bookings",
     "title": "How Nigerian Spa and Wellness Centers Use WhatsApp AI for Bookings",
     "category": "Hotels / Hospitality",
-    "metaDescription": "Discover how whatsapp ai spa wellness booking nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversations a",
+    "metaDescription": "A day in the life of a Nigerian spa using WhatsApp AI for bookings, reminders and midweek offers, with a monthly cost example and limits.",
     "primaryKeyword": "whatsapp ai spa wellness booking nigeria",
-    "excerpt": "Nigerian hotels face a unique challenge: guests expect personalized service, but they also want instant responses. In an industry where first impressions matter, slow replies can cost you bookings.",
-    "publishedAt": "2025-02-19"
+    "excerpt": "A spa can let a WhatsApp AI agent send the price list, answer treatment questions, book the slot and send a reminder. Payment checks and medical questions stay with staff.",
+    "publishedAt": "2025-02-19",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 51,
     "slug": "the-roi-of-whatsapp-automation-for-nigerian-hospitality-businesses",
     "title": "The ROI of WhatsApp Automation for Nigerian Hospitality Businesses",
     "category": "Hotels / Hospitality",
-    "metaDescription": "Discover how roi whatsapp automation hospitality nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversation",
+    "metaDescription": "A simple formula to work out the return on WhatsApp automation for a Nigerian hotel, guest house or shortlet, using your own numbers and real Naira prices.",
     "primaryKeyword": "roi whatsapp automation hospitality nigeria",
-    "excerpt": "Running a hotel in Nigeria means juggling a thousand things at once. Guests are checking in, checking out, asking about amenities, making special requests, and your phone never stops buzzing with WhatsApp inquiries from ...",
-    "publishedAt": "2025-02-20"
+    "excerpt": "ROI for a hotel or guest house = (extra bookings × profit per booking) + (staff hours saved × hourly cost) − plan cost. On Dailzero the cost starts at ₦20,000 a month.",
+    "publishedAt": "2025-02-20",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 52,
     "slug": "how-nigerian-e-commerce-stores-can-use-whatsapp-ai-to-boost-sales",
     "title": "How Nigerian E-commerce Stores Can Use WhatsApp AI to Boost Sales",
     "category": "E-commerce",
-    "metaDescription": "Discover how whatsapp ai ecommerce boost sales nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversations",
+    "metaDescription": "See how a WhatsApp AI agent wins more orders for a Nigerian online store across one ordinary day, what it costs, and what you still do yourself.",
     "primaryKeyword": "whatsapp ai ecommerce boost sales nigeria",
-    "excerpt": "Cart abandonment is the silent killer of Nigerian e-commerce businesses. Customers add items to their cart, have questions, send a WhatsApp message, and when you finally reply, they have lost interest or found the...",
-    "publishedAt": "2025-02-21"
+    "excerpt": "WhatsApp AI lifts an online store's sales by replying to every buyer in seconds, sending photos and prices at any hour, and following up with customers who went quiet.",
+    "publishedAt": "2025-02-21",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 53,
     "slug": "whatsapp-automation-for-order-inquiries-in-nigerian-online-stores",
     "title": "WhatsApp Automation for Order Inquiries in Nigerian Online Stores",
     "category": "E-commerce",
-    "metaDescription": "Discover how whatsapp automation order inquiries nigeria ecommerce can transform your Nigerian business. Learn proven strategies to automate customer co",
+    "metaDescription": "Which order inquiries a Nigerian online store can automate on WhatsApp, from price and delivery fees to payment and where-is-my-order questions.",
     "primaryKeyword": "whatsapp automation order inquiries nigeria ecommerce",
-    "excerpt": "The Nigerian e-commerce space is more competitive than ever. Customers compare prices across multiple platforms, and the store that responds first usually wins the sale. Manual customer service is no longer sustainable.",
-    "publishedAt": "2025-02-22"
+    "excerpt": "An AI agent can answer pre-order questions and take orders on WhatsApp on its own. Live order tracking needs your order system connected by a developer.",
+    "publishedAt": "2025-02-22",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 54,
     "slug": "how-to-handle-customer-complaints-automatically-on-whatsapp-in-nigeria",
     "title": "How to Handle Customer Complaints Automatically on WhatsApp in Nigeria",
     "category": "E-commerce",
-    "metaDescription": "Discover how handle customer complaints whatsapp automatically nigeria can transform your Nigerian business. Learn proven strategies to automate custome",
+    "metaDescription": "How to handle customer complaints on WhatsApp with AI in Nigeria: what to automate, when to hand over to a person, and the mistakes to avoid.",
     "primaryKeyword": "handle customer complaints whatsapp automatically nigeria",
-    "excerpt": "If you run an online store in Nigeria, you have been there. A customer WhatsApps you about a product, you respond two hours later, and they have already bought from your competitor. Speed is everything in e-commerce,...",
-    "publishedAt": "2025-02-23"
+    "excerpt": "Automate the first half of a complaint: reply at once, collect order details and photos, explain your policy. Leave refunds and replacements to a person.",
+    "publishedAt": "2025-02-23",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 55,
     "slug": "best-whatsapp-ai-tools-for-nigerian-online-sellers-in-2025",
-    "title": "Best WhatsApp AI Tools for Nigerian Online Sellers in 2025",
+    "title": "Best WhatsApp AI Tools for Nigerian Online Sellers",
     "category": "E-commerce",
-    "metaDescription": "Discover how best whatsapp ai tools ecommerce nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversations a",
+    "metaDescription": "Compare the four types of WhatsApp AI tool for Nigerian online sellers, who each one suits, and the questions to ask before you pay for any of them.",
     "primaryKeyword": "best whatsapp ai tools ecommerce nigeria",
-    "excerpt": "Cart abandonment is the silent killer of Nigerian e-commerce businesses. Customers add items to their cart, have questions, send a WhatsApp message, and when you finally reply, they have lost interest or found the...",
-    "publishedAt": "2025-02-24"
+    "excerpt": "There are four types of WhatsApp tool for Nigerian sellers. For one number and no developer, an AI agent on your existing number is usually the quickest to start.",
+    "publishedAt": "2025-02-24",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 56,
     "slug": "how-to-reduce-cart-abandonment-using-whatsapp-ai-in-nigeria",
     "title": "How to Reduce Cart Abandonment Using WhatsApp AI in Nigeria",
     "category": "E-commerce",
-    "metaDescription": "Discover how reduce cart abandonment whatsapp ai nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversation",
+    "metaDescription": "How to win back WhatsApp customers who ask the price and go quiet, with honest notes on what Dailzero can and cannot do for website carts.",
     "primaryKeyword": "reduce cart abandonment whatsapp ai nigeria",
-    "excerpt": "The Nigerian e-commerce space is more competitive than ever. Customers compare prices across multiple platforms, and the store that responds first usually wins the sale. Manual customer service is no longer sustainable.",
-    "publishedAt": "2025-02-25"
+    "excerpt": "On WhatsApp, the abandoned cart is the customer who asked the price and went quiet. Reply in seconds, remove their doubts early, and send one or two polite follow-ups.",
+    "publishedAt": "2025-02-25",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 57,
     "slug": "how-nigerian-fashion-brands-use-whatsapp-ai-to-convert-more-customers",
     "title": "How Nigerian Fashion Brands Use WhatsApp AI to Convert More Customers",
     "category": "E-commerce",
-    "metaDescription": "Discover how nigerian fashion brand whatsapp ai conversion can transform your Nigerian business. Learn proven strategies to automate customer conversati",
+    "metaDescription": "How a Nigerian fashion brand can use WhatsApp AI to answer sizing, price, photo and delivery questions fast, and collect measurements for bespoke orders.",
     "primaryKeyword": "nigerian fashion brand whatsapp ai conversion",
-    "excerpt": "If you run an online store in Nigeria, you have been there. A customer WhatsApps you about a product, you respond two hours later, and they have already bought from your competitor. Speed is everything in e-commerce,...",
-    "publishedAt": "2025-02-26"
+    "excerpt": "Fashion buyers ask five things before paying: availability, fit, price, more photos and delivery date. WhatsApp AI converts more by answering all five in seconds.",
+    "publishedAt": "2025-02-26",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 58,
     "slug": "how-to-follow-up-with-customers-automatically-after-purchase-on-whatsapp",
     "title": "How to Follow Up With Customers Automatically After Purchase on WhatsApp",
     "category": "E-commerce",
-    "metaDescription": "Discover how post purchase follow up whatsapp nigeria ecommerce can transform your Nigerian business. Learn proven strategies to automate customer conve",
+    "metaDescription": "How to follow up with customers after a purchase on WhatsApp in Nigeria: four messages, how each is sent with Dailzero, and what it costs in credits.",
     "primaryKeyword": "post purchase follow up whatsapp nigeria ecommerce",
-    "excerpt": "Cart abandonment is the silent killer of Nigerian e-commerce businesses. Customers add items to their cart, have questions, send a WhatsApp message, and when you finally reply, they have lost interest or found the...",
-    "publishedAt": "2025-02-27"
+    "excerpt": "Plan four messages: confirmation, delivery check, review request and reorder reminder. The AI sends the first; the rest go by broadcast, Status or the API.",
+    "publishedAt": "2025-02-27",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 59,
     "slug": "how-ai-agents-help-nigerian-e-commerce-brands-scale-customer-support",
     "title": "How AI Agents Help Nigerian E-commerce Brands Scale Customer Support",
     "category": "E-commerce",
-    "metaDescription": "Discover how ai scale support ecommerce nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversations and boo",
+    "metaDescription": "How Nigerian e-commerce brands can scale WhatsApp support with an AI agent, with the plan and credit sums for 20, 50, 100 and 300 chats a day.",
     "primaryKeyword": "ai scale support ecommerce nigeria",
-    "excerpt": "The Nigerian e-commerce space is more competitive than ever. Customers compare prices across multiple platforms, and the store that responds first usually wins the sale. Manual customer service is no longer sustainable.",
-    "publishedAt": "2025-02-28"
+    "excerpt": "An AI agent answers the repeat questions for every customer at once, so your team only opens chats that need a decision. Here is the setup at 20, 50, 100 and 300 chats a day.",
+    "publishedAt": "2025-02-28",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 60,
     "slug": "how-to-build-a-whatsapp-sales-funnel-for-your-nigerian-online-store",
     "title": "How to Build a WhatsApp Sales Funnel for Your Nigerian Online Store",
     "category": "E-commerce",
-    "metaDescription": "Discover how whatsapp sales funnel ecommerce nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversations an",
+    "metaDescription": "Build a five-stage WhatsApp sales funnel for a Nigerian online store, from click-to-WhatsApp ads to repeat orders, and measure it with four counts.",
     "primaryKeyword": "whatsapp sales funnel ecommerce nigeria",
-    "excerpt": "If you run an online store in Nigeria, you have been there. A customer WhatsApps you about a product, you respond two hours later, and they have already bought from your competitor. Speed is everything in e-commerce,...",
-    "publishedAt": "2025-02-29"
+    "excerpt": "A WhatsApp sales funnel has five stages: get the click, reply at once, collect the order, take payment, and bring the customer back. Fix the weakest stage first.",
+    "publishedAt": "2025-02-29",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 61,
     "slug": "how-small-nigerian-online-stores-can-afford-ai-customer-service",
     "title": "How Small Nigerian Online Stores Can Afford AI Customer Service",
     "category": "E-commerce",
-    "metaDescription": "Discover how affordable ai customer service online store nigeria can transform your Nigerian business. Learn proven strategies to automate customer conv",
+    "metaDescription": "What AI customer service on WhatsApp costs a small Nigerian online store: from ₦1,000, about ₦24 to ₦50 a chat, and how to pick a level.",
     "primaryKeyword": "affordable ai customer service online store nigeria",
-    "excerpt": "Cart abandonment is the silent killer of Nigerian e-commerce businesses. Customers add items to their cart, have questions, send a WhatsApp message, and when you finally reply, they have lost interest or found the...",
-    "publishedAt": "2025-02-30"
+    "excerpt": "A small online store can start AI customer service on WhatsApp from ₦1,000 pay as you go, or ₦20,000 a month on Dailzero Basic. A six-reply chat costs roughly ₦24 to ₦50.",
+    "publishedAt": "2025-02-30",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 62,
     "slug": "how-to-use-whatsapp-ai-to-upsell-and-cross-sell-in-nigerian-e-commerce",
     "title": "How to Use WhatsApp AI to Upsell and Cross-Sell in Nigerian E-commerce",
     "category": "E-commerce",
-    "metaDescription": "Discover how upsell cross sell whatsapp ai nigeria ecommerce can transform your Nigerian business. Learn proven strategies to automate customer conversa",
+    "metaDescription": "How to upsell and cross-sell on WhatsApp with an AI agent: the four rules to write, when to make the offer, and mistakes that lose the sale.",
     "primaryKeyword": "upsell cross sell whatsapp ai nigeria ecommerce",
-    "excerpt": "The Nigerian e-commerce space is more competitive than ever. Customers compare prices across multiple platforms, and the store that responds first usually wins the sale. Manual customer service is no longer sustainable.",
-    "publishedAt": "2025-02-31"
+    "excerpt": "Write your pairings, bundle prices and upgrade options into the AI agent, and have it make one offer after the customer has chosen. It works only from the prices you give it.",
+    "publishedAt": "2025-02-31",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 63,
     "slug": "how-nigerian-jumia-and-konga-sellers-can-use-whatsapp-ai-to-win-more-orders",
     "title": "How Nigerian Jumia and Konga Sellers Can Use WhatsApp AI to Win More Orders",
     "category": "E-commerce",
-    "metaDescription": "Discover how whatsapp ai for jumia konga sellers nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversation",
+    "metaDescription": "What WhatsApp AI can and cannot do for Jumia and Konga sellers in Nigeria, and how to win the direct orders that come to your own number.",
     "primaryKeyword": "whatsapp ai for jumia konga sellers nigeria",
-    "excerpt": "If you run an online store in Nigeria, you have been there. A customer WhatsApps you about a product, you respond two hours later, and they have already bought from your competitor. Speed is everything in e-commerce,...",
-    "publishedAt": "2025-03-01"
+    "excerpt": "WhatsApp AI cannot work inside Jumia or Konga, and Dailzero has no marketplace integration. It helps with the direct orders that come to your own WhatsApp number.",
+    "publishedAt": "2025-03-01",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 64,
     "slug": "how-to-use-whatsapp-to-automate-product-recommendations-in-nigeria",
     "title": "How to Use WhatsApp to Automate Product Recommendations in Nigeria",
     "category": "E-commerce",
-    "metaDescription": "Discover how automated product recommendations whatsapp nigeria can transform your Nigerian business. Learn proven strategies to automate customer conve",
+    "metaDescription": "Six steps to automate product recommendations on WhatsApp in Nigeria with an AI agent, with example chats and the honest limits.",
     "primaryKeyword": "automated product recommendations whatsapp nigeria",
-    "excerpt": "Cart abandonment is the silent killer of Nigerian e-commerce businesses. Customers add items to their cart, have questions, send a WhatsApp message, and when you finally reply, they have lost interest or found the...",
-    "publishedAt": "2025-03-02"
+    "excerpt": "Give an AI agent your product list with a 'who this is for' note on each item and one or two questions to ask. It then replies with a pick, a price and a photo.",
+    "publishedAt": "2025-03-02",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 65,
     "slug": "whatsapp-ai-vs-instagram-dms-which-is-better-for-nigerian-e-commerce-sales",
     "title": "WhatsApp AI vs Instagram DMs: Which Is Better for Nigerian E-commerce Sales?",
     "category": "E-commerce",
-    "metaDescription": "Discover how whatsapp vs instagram dms ecommerce nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversation",
+    "metaDescription": "WhatsApp AI vs Instagram DMs for Nigerian online stores: a fair comparison, where each wins, and how to connect the two.",
     "primaryKeyword": "whatsapp vs instagram dms ecommerce nigeria",
-    "excerpt": "The Nigerian e-commerce space is more competitive than ever. Customers compare prices across multiple platforms, and the store that responds first usually wins the sale. Manual customer service is no longer sustainable.",
-    "publishedAt": "2025-03-03"
+    "excerpt": "Instagram is better for being discovered; WhatsApp is better for closing the sale and keeping the customer. Dailzero's AI works on WhatsApp only, not Instagram DMs.",
+    "publishedAt": "2025-03-03",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 66,
     "slug": "how-whatsapp-ai-reduces-customer-service-costs-for-nigerian-online-stores",
     "title": "How WhatsApp AI Reduces Customer Service Costs for Nigerian Online Stores",
     "category": "E-commerce",
-    "metaDescription": "Discover how reduce customer service costs ecommerce nigeria whatsapp can transform your Nigerian business. Learn proven strategies to automate customer",
+    "metaDescription": "How WhatsApp AI lowers customer service costs for Nigerian online stores, with a worked calculation and the costs that stay.",
     "primaryKeyword": "reduce customer service costs ecommerce nigeria whatsapp",
-    "excerpt": "If you run an online store in Nigeria, you have been there. A customer WhatsApps you about a product, you respond two hours later, and they have already bought from your competitor. Speed is everything in e-commerce,...",
-    "publishedAt": "2025-03-04"
+    "excerpt": "WhatsApp AI takes repeated price, delivery and payment questions off paid staff for about ₦20 to ₦24 a chat on Dailzero. Complaints, refunds and payment checks still need a person.",
+    "publishedAt": "2025-03-04",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 67,
     "slug": "how-to-track-and-manage-customer-inquiries-on-whatsapp-for-nigerian-stores",
     "title": "How to Track and Manage Customer Inquiries on WhatsApp for Nigerian Stores",
     "category": "E-commerce",
-    "metaDescription": "Discover how track customer inquiries whatsapp nigeria store can transform your Nigerian business. Learn proven strategies to automate customer conversa",
+    "metaDescription": "How Nigerian stores can track WhatsApp customer inquiries: five stages, a manual method, an AI method and a ten-minute daily routine.",
     "primaryKeyword": "track customer inquiries whatsapp nigeria store",
-    "excerpt": "Cart abandonment is the silent killer of Nigerian e-commerce businesses. Customers add items to their cart, have questions, send a WhatsApp message, and when you finally reply, they have lost interest or found the...",
-    "publishedAt": "2025-03-05"
+    "excerpt": "Record three things for every chat: what the customer wants, the stage they are at, and who owns the next reply. Use WhatsApp Business labels by hand, or an AI agent with a leads list.",
+    "publishedAt": "2025-03-05",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 68,
     "slug": "how-nigerian-dropshippers-can-automate-customer-communication-with-whatsapp-ai",
     "title": "How Nigerian Dropshippers Can Automate Customer Communication With WhatsApp AI",
     "category": "E-commerce",
-    "metaDescription": "Discover how whatsapp ai dropshipping nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversations and boost",
+    "metaDescription": "What Nigerian dropshippers can automate on WhatsApp with AI at each stage of an order, and what still needs you.",
     "primaryKeyword": "whatsapp ai dropshipping nigeria",
-    "excerpt": "The Nigerian e-commerce space is more competitive than ever. Customers compare prices across multiple platforms, and the store that responds first usually wins the sale. Manual customer service is no longer sustainable.",
-    "publishedAt": "2025-03-06"
+    "excerpt": "An AI agent can handle a dropshipper's product questions, timelines, order details and payment instructions. It cannot confirm transfers or see where a parcel is.",
+    "publishedAt": "2025-03-06",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 69,
     "slug": "how-nigerian-digital-agencies-can-use-ai-to-handle-client-inquiries-on-whatsapp",
     "title": "How Nigerian Digital Agencies Can Use AI to Handle Client Inquiries on WhatsApp",
     "category": "Agencies / Freelancers",
-    "metaDescription": "Discover how ai client inquiries digital agency nigeria whatsapp can transform your Nigerian business. Learn proven strategies to automate customer conv",
+    "metaDescription": "How Nigerian digital agencies can use WhatsApp AI for new client inquiries, what to load into it, and what to keep with people.",
     "primaryKeyword": "ai client inquiries digital agency nigeria whatsapp",
-    "excerpt": "As a Nigerian agency owner or freelancer, your time is your most valuable asset. Every hour spent answering repetitive client questions on WhatsApp is an hour not spent on billable work. Yet, ignoring those messages...",
-    "publishedAt": "2025-03-07"
+    "excerpt": "Use WhatsApp AI for the first conversation with a prospect: services, starting prices, portfolio, brief and a call booking. Keep live client work with your team.",
+    "publishedAt": "2025-03-07",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 70,
     "slug": "how-freelancers-in-nigeria-can-use-whatsapp-ai-to-qualify-leads",
     "title": "How Freelancers in Nigeria Can Use WhatsApp AI to Qualify Leads",
     "category": "Agencies / Freelancers",
-    "metaDescription": "Discover how whatsapp ai lead qualification freelancer nigeria can transform your Nigerian business. Learn proven strategies to automate customer conver",
+    "metaDescription": "How Nigerian freelancers can qualify leads on WhatsApp with AI: four questions, a sample chat, setup steps and the cost at low volume.",
     "primaryKeyword": "whatsapp ai lead qualification freelancer nigeria",
-    "excerpt": "Client inquiries come at all hours. While you are in a meeting, while you are working on another project, while you are trying to sleep. Each message demands attention, but responding instantly to every inquiry is...",
-    "publishedAt": "2025-03-08"
+    "excerpt": "Have a WhatsApp AI agent ask every enquiry four things: the job, the budget, the deadline and who decides. Serious prospects are listed as leads in your Dailzero dashboard.",
+    "publishedAt": "2025-03-08",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 71,
     "slug": "how-to-automate-your-nigerian-agencys-whatsapp-communication",
     "title": "How to Automate Your Nigerian Agency's WhatsApp Communication",
     "category": "Agencies / Freelancers",
-    "metaDescription": "Discover how automate agency whatsapp communication nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversat",
+    "metaDescription": "Automate your agency's WhatsApp in four streams: enquiries, client questions, scheduling and announcements. What to hand to AI and what to keep human.",
     "primaryKeyword": "automate agency whatsapp communication nigeria",
-    "excerpt": "The feast-or-famine cycle is real for Nigerian agencies and freelancers. When projects are flowing, you are too busy to respond to new inquiries promptly. When work is slow, you wish you had captured those leads you...",
-    "publishedAt": "2025-03-09"
+    "excerpt": "Sort your agency's WhatsApp into four streams: enquiries, routine client questions, scheduling and announcements. Let AI send the first reply and keep scope, money and complaints with a person.",
+    "publishedAt": "2025-03-09",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 72,
     "slug": "best-ai-tools-for-nigerian-marketing-and-advertising-agencies-in-2025",
-    "title": "Best AI Tools for Nigerian Marketing and Advertising Agencies in 2025",
+    "title": "Best AI Tools for Nigerian Marketing and Advertising Agencies",
     "category": "Agencies / Freelancers",
-    "metaDescription": "Discover how best ai tools marketing agency nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversations and",
+    "metaDescription": "The AI tools worth having at a Nigerian marketing agency, by job: copy, design, media buying, meeting notes and WhatsApp enquiries, with limits of each.",
     "primaryKeyword": "best ai tools marketing agency nigeria",
-    "excerpt": "As a Nigerian agency owner or freelancer, your time is your most valuable asset. Every hour spent answering repetitive client questions on WhatsApp is an hour not spent on billable work. Yet, ignoring those messages...",
-    "publishedAt": "2025-03-10"
+    "excerpt": "No single AI tool is best for a Nigerian agency. Pick by job: a writing assistant, design AI, ad platform automation, meeting notes, and a WhatsApp AI agent for enquiries.",
+    "publishedAt": "2025-03-10",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 73,
     "slug": "how-to-scale-a-nigerian-agency-without-hiring-more-customer-service-staff",
     "title": "How to Scale a Nigerian Agency Without Hiring More Customer Service Staff",
     "category": "Agencies / Freelancers",
-    "metaDescription": "Discover how scale nigerian agency without hiring customer service can transform your Nigerian business. Learn proven strategies to automate customer co",
+    "metaDescription": "Scale an agency without more support staff: a worked credit calculation, what a WhatsApp AI agent takes over, and what still needs people.",
     "primaryKeyword": "scale nigerian agency without hiring customer service",
-    "excerpt": "Client inquiries come at all hours. While you are in a meeting, while you are working on another project, while you are trying to sleep. Each message demands attention, but responding instantly to every inquiry is...",
-    "publishedAt": "2025-03-11"
+    "excerpt": "Take repeat messages off your team with a WhatsApp AI agent. In a worked example, doubling an agency's chats moves the Dailzero bill from ₦40,000 to ₦75,000 a month, with no new hire.",
+    "publishedAt": "2025-03-11",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 74,
     "slug": "how-to-offer-whatsapp-ai-as-a-service-to-your-nigerian-business-clients",
     "title": "How to Offer WhatsApp AI as a Service to Your Nigerian Business Clients",
     "category": "Agencies / Freelancers",
-    "metaDescription": "Discover how whatsapp ai as a service nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversations and boost",
+    "metaDescription": "How Nigerian agencies can sell WhatsApp AI to clients: white-label reseller or managed account, what to package, how to price, what to disclose.",
     "primaryKeyword": "whatsapp ai as a service nigeria",
-    "excerpt": "The feast-or-famine cycle is real for Nigerian agencies and freelancers. When projects are flowing, you are too busy to respond to new inquiries promptly. When work is slow, you wish you had captured those leads you...",
-    "publishedAt": "2025-03-12"
+    "excerpt": "Resell an existing platform instead of building one. Dailzero's white-label reseller accounts let you run WhatsApp AI agents for clients under your own brand and domain.",
+    "publishedAt": "2025-03-12",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 75,
     "slug": "how-whatsapp-ai-helps-nigerian-agencies-win-and-retain-more-clients",
     "title": "How WhatsApp AI Helps Nigerian Agencies Win and Retain More Clients",
     "category": "Agencies / Freelancers",
-    "metaDescription": "Discover how whatsapp ai win clients agency nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversations and",
+    "metaDescription": "Five moments where agencies lose prospects and clients on WhatsApp, and what an AI agent does at each one. Includes honest limits and Naira costs.",
     "primaryKeyword": "whatsapp ai win clients agency nigeria",
-    "excerpt": "As a Nigerian agency owner or freelancer, your time is your most valuable asset. Every hour spent answering repetitive client questions on WhatsApp is an hour not spent on billable work. Yet, ignoring those messages...",
-    "publishedAt": "2025-03-13"
+    "excerpt": "WhatsApp AI wins clients by replying to every enquiry in seconds and keeps them by answering small client questions fast. It supports good work; it does not replace it.",
+    "publishedAt": "2025-03-13",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 76,
     "slug": "how-nigerian-recruitment-agencies-use-whatsapp-ai-to-screen-candidates",
     "title": "How Nigerian Recruitment Agencies Use WhatsApp AI to Screen Candidates",
     "category": "Agencies / Freelancers",
-    "metaDescription": "Discover how whatsapp ai recruitment agency nigeria screening can transform your Nigerian business. Learn proven strategies to automate customer convers",
+    "metaDescription": "How a Nigerian recruitment agency can screen candidates on WhatsApp with AI: the question script, interview booking, rules to set and what it costs.",
     "primaryKeyword": "whatsapp ai recruitment agency nigeria screening",
-    "excerpt": "Client inquiries come at all hours. While you are in a meeting, while you are working on another project, while you are trying to sleep. Each message demands attention, but responding instantly to every inquiry is...",
-    "publishedAt": "2025-03-14"
+    "excerpt": "A WhatsApp AI agent can run the first screen: explain the role, ask knockout questions, and book interviews. It should not make hiring decisions or score CVs.",
+    "publishedAt": "2025-03-14",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 77,
     "slug": "how-law-firms-in-nigeria-can-use-ai-to-handle-client-inquiries-on-whatsapp",
     "title": "How Law Firms in Nigeria Can Use AI to Handle Client Inquiries on WhatsApp",
     "category": "Agencies / Freelancers",
-    "metaDescription": "Discover how ai client inquiry law firm nigeria whatsapp can transform your Nigerian business. Learn proven strategies to automate customer conversation",
+    "metaDescription": "What a Nigerian law firm's WhatsApp AI can safely handle, what must go to a lawyer, and how to set guardrails for intake, booking and handover.",
     "primaryKeyword": "ai client inquiry law firm nigeria whatsapp",
-    "excerpt": "The feast-or-famine cycle is real for Nigerian agencies and freelancers. When projects are flowing, you are too busy to respond to new inquiries promptly. When work is slow, you wish you had captured those leads you...",
-    "publishedAt": "2025-03-15"
+    "excerpt": "Use AI on WhatsApp for intake, not legal advice: practice areas, hours, published fees, basic facts and booking a consultation, then hand over to a lawyer.",
+    "publishedAt": "2025-03-15",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 78,
     "slug": "how-to-use-whatsapp-ai-to-automate-client-onboarding-for-nigerian-agencies",
     "title": "How to Use WhatsApp AI to Automate Client Onboarding for Nigerian Agencies",
     "category": "Agencies / Freelancers",
-    "metaDescription": "Discover how whatsapp ai client onboarding agency nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversatio",
+    "metaDescription": "Automate agency client onboarding on WhatsApp in five stages, from welcome pack to kickoff call. What to prepare, where it stops and what it costs.",
     "primaryKeyword": "whatsapp ai client onboarding agency nigeria",
-    "excerpt": "As a Nigerian agency owner or freelancer, your time is your most valuable asset. Every hour spent answering repetitive client questions on WhatsApp is an hour not spent on billable work. Yet, ignoring those messages...",
-    "publishedAt": "2025-03-16"
+    "excerpt": "Give the agent your onboarding sequence: welcome pack, brief questions, payment details, asset checklist and kickoff slots. Contract signing and payment confirmation stay manual.",
+    "publishedAt": "2025-03-16",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 79,
     "slug": "how-nigerian-consultants-respond-faster-to-prospects-using-whatsapp-ai",
     "title": "How Nigerian Consultants Respond Faster to Prospects Using WhatsApp AI",
     "category": "Agencies / Freelancers",
-    "metaDescription": "Discover how ai respond faster prospects consultant nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversat",
+    "metaDescription": "A day-in-the-life look at how a Nigerian consultant uses a WhatsApp AI agent to answer prospects during client work, with setup, limits and costs.",
     "primaryKeyword": "ai respond faster prospects consultant nigeria",
-    "excerpt": "Client inquiries come at all hours. While you are in a meeting, while you are working on another project, while you are trying to sleep. Each message demands attention, but responding instantly to every inquiry is...",
-    "publishedAt": "2025-03-17"
+    "excerpt": "A WhatsApp AI agent sends the first reply in seconds while the consultant is with a client, gathers the prospect's needs and books a call. The consultant takes over from there.",
+    "publishedAt": "2025-03-17",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 80,
     "slug": "how-event-planners-in-nigeria-can-use-whatsapp-ai-to-handle-inquiries",
     "title": "How Event Planners in Nigeria Can Use WhatsApp AI to Handle Inquiries",
     "category": "Agencies / Freelancers",
-    "metaDescription": "Discover how event planner whatsapp ai nigeria inquiries can transform your Nigerian business. Learn proven strategies to automate customer conversation",
+    "metaDescription": "How Nigerian event planners can use WhatsApp AI for enquiries: dates, prices, packages, photos and booking, plus when to take over the chat.",
     "primaryKeyword": "event planner whatsapp ai nigeria inquiries",
-    "excerpt": "The feast-or-famine cycle is real for Nigerian agencies and freelancers. When projects are flowing, you are too busy to respond to new inquiries promptly. When work is slow, you wish you had captured those leads you...",
-    "publishedAt": "2025-03-18"
+    "excerpt": "WhatsApp AI answers the six questions every event enquiry starts with, sends your photos and brochure, collects the event details and hands over for the quote and deposit.",
+    "publishedAt": "2025-03-18",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 81,
     "slug": "how-nigerian-accounting-firms-can-automate-whatsapp-client-support",
     "title": "How Nigerian Accounting Firms Can Automate WhatsApp Client Support",
     "category": "Agencies / Freelancers",
-    "metaDescription": "Discover how accounting firm whatsapp automation nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversation",
+    "metaDescription": "Which WhatsApp client messages a Nigerian accounting firm can hand to an AI agent, which must stay with an accountant, and how to set it up.",
     "primaryKeyword": "accounting firm whatsapp automation nigeria",
-    "excerpt": "As a Nigerian agency owner or freelancer, your time is your most valuable asset. Every hour spent answering repetitive client questions on WhatsApp is an hour not spent on billable work. Yet, ignoring those messages...",
-    "publishedAt": "2025-03-19"
+    "excerpt": "Accounting firms can automate fee questions, document checklists, bookings and deadline reminders on WhatsApp. Tax advice and client-specific questions should go to an accountant.",
+    "publishedAt": "2025-03-19",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 82,
     "slug": "the-best-whatsapp-ai-setup-for-solo-freelancers-in-nigeria",
     "title": "The Best WhatsApp AI Setup for Solo Freelancers in Nigeria",
     "category": "Agencies / Freelancers",
-    "metaDescription": "Discover how best whatsapp ai setup solo freelancer nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversat",
+    "metaDescription": "A lean WhatsApp AI setup for Nigerian freelancers: which number to link, what to pay, what to tell the agent and when it should hand over.",
     "primaryKeyword": "best whatsapp ai setup solo freelancer nigeria",
-    "excerpt": "Client inquiries come at all hours. While you are in a meeting, while you are working on another project, while you are trying to sleep. Each message demands attention, but responding instantly to every inquiry is...",
-    "publishedAt": "2025-03-20"
+    "excerpt": "The best setup for a solo freelancer is one work number, pay as you go credits, a short brief with your rates, and a rule that the AI hands serious leads to you.",
+    "publishedAt": "2025-03-20",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 83,
     "slug": "how-to-handle-late-night-client-messages-automatically-in-nigeria",
     "title": "How to Handle Late Night Client Messages Automatically in Nigeria",
     "category": "Agencies / Freelancers",
-    "metaDescription": "Discover how handle late night client messages automatically nigeria can transform your Nigerian business. Learn proven strategies to automate customer",
+    "metaDescription": "How Nigerian agencies and freelancers can answer late night client messages automatically, with rules for what an AI should and should not do.",
     "primaryKeyword": "handle late night client messages automatically nigeria",
-    "excerpt": "The feast-or-famine cycle is real for Nigerian agencies and freelancers. When projects are flowing, you are too busy to respond to new inquiries promptly. When work is slow, you wish you had captured those leads you...",
-    "publishedAt": "2025-03-21"
+    "excerpt": "Use the free WhatsApp Business away message for a fixed reply, or an AI agent that answers, records the request and hands urgent chats to you by morning.",
+    "publishedAt": "2025-03-21",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 84,
     "slug": "how-nigerian-pr-agencies-can-automate-client-communication-on-whatsapp",
     "title": "How Nigerian PR Agencies Can Automate Client Communication on WhatsApp",
     "category": "Agencies / Freelancers",
-    "metaDescription": "Discover how whatsapp automation pr agency nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversations and",
+    "metaDescription": "What a Nigerian PR agency can safely automate on WhatsApp for journalists, clients and prospects, and what must always stay human.",
     "primaryKeyword": "whatsapp automation pr agency nigeria",
-    "excerpt": "As a Nigerian agency owner or freelancer, your time is your most valuable asset. Every hour spent answering repetitive client questions on WhatsApp is an hour not spent on billable work. Yet, ignoring those messages...",
-    "publishedAt": "2025-03-22"
+    "excerpt": "PR agencies can automate sending approved press materials, new business enquiries and bookings on WhatsApp. Statements and crisis replies must stay with a person.",
+    "publishedAt": "2025-03-22",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 85,
     "slug": "what-is-a-whatsapp-ai-agent-and-how-can-it-help-your-nigerian-business",
     "title": "What Is a WhatsApp AI Agent and How Can It Help Your Nigerian Business?",
     "category": "General SMBs",
-    "metaDescription": "Discover how what is whatsapp ai agent nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversations and boos",
+    "metaDescription": "A plain explanation of what a WhatsApp AI agent is, how it differs from auto-replies and chatbots, and what it can and cannot do in Nigeria.",
     "primaryKeyword": "what is whatsapp ai agent nigeria",
-    "excerpt": "Every Nigerian business owner knows the feeling. You step away from your phone for an hour, and when you return, there are twenty unread WhatsApp messages from potential customers. Some have already moved on to your...",
-    "publishedAt": "2025-03-23"
+    "excerpt": "A WhatsApp AI agent is software that reads customer messages on your business number and writes replies itself, using the prices, hours and policies you give it.",
+    "publishedAt": "2025-03-23",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 86,
     "slug": "how-small-nigerian-businesses-can-afford-ai-customer-service-on-whatsapp",
     "title": "How Small Nigerian Businesses Can Afford AI Customer Service on WhatsApp",
     "category": "General SMBs",
-    "metaDescription": "Discover how affordable ai customer service small business nigeria can transform your Nigerian business. Learn proven strategies to automate customer co",
+    "metaDescription": "How a small Nigerian business can start AI customer service on WhatsApp cheaply: free trial, pay as you go, and which chats to automate first.",
     "primaryKeyword": "affordable ai customer service small business nigeria",
-    "excerpt": "Customer expectations have changed. They want instant responses, 24/7 availability, and personalized service. For small Nigerian businesses with limited staff, meeting these expectations feels like an impossible task.",
-    "publishedAt": "2025-03-24"
+    "excerpt": "Start with a 7-day free trial, then pay as you go from ₦1,000 and automate only your most repeated questions. Move to a ₦20,000 plan when top-ups reach that level.",
+    "publishedAt": "2025-03-24",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 87,
     "slug": "whatsapp-ai-vs-hiring-a-customer-service-rep-what-makes-more-sense-in-nigeria",
     "title": "WhatsApp AI vs Hiring a Customer Service Rep: What Makes More Sense in Nigeria?",
     "category": "General SMBs",
-    "metaDescription": "Discover how whatsapp ai vs customer service rep nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversation",
+    "metaDescription": "Compare a WhatsApp AI agent with a customer service rep using your own numbers: cost, hours, what each does well, and a simple way to decide.",
     "primaryKeyword": "whatsapp ai vs customer service rep nigeria",
-    "excerpt": "Running a small business in Nigeria is not easy. You are the CEO, the sales team, the customer service rep, and sometimes even the delivery person. Your phone buzzes constantly with WhatsApp messages from customers, and ...",
-    "publishedAt": "2025-03-25"
+    "excerpt": "If most chats are repeated questions, start with an AI agent. If most are complaints or negotiations, hire a rep. Many businesses use both.",
+    "publishedAt": "2025-03-25",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 88,
     "slug": "how-to-never-miss-a-business-inquiry-on-whatsapp-again-in-nigeria",
     "title": "How to Never Miss a Business Inquiry on WhatsApp Again in Nigeria",
     "category": "General SMBs",
-    "metaDescription": "Discover how never miss whatsapp business inquiry nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversatio",
+    "metaDescription": "Seven places Nigerian businesses lose WhatsApp inquiries, how an AI agent fixes each, and the gaps you still have to cover yourself.",
     "primaryKeyword": "never miss whatsapp business inquiry nigeria",
-    "excerpt": "Every Nigerian business owner knows the feeling. You step away from your phone for an hour, and when you return, there are twenty unread WhatsApp messages from potential customers. Some have already moved on to your...",
-    "publishedAt": "2025-03-26"
+    "excerpt": "Close the gaps where inquiries get lost: nights, rush hours, ad clicks, unfinished chats. An AI agent covers most of them, and a daily check covers the rest.",
+    "publishedAt": "2025-03-26",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 89,
     "slug": "top-signs-your-nigerian-business-needs-a-whatsapp-ai-agent-right-now",
     "title": "Top Signs Your Nigerian Business Needs a WhatsApp AI Agent Right Now",
     "category": "General SMBs",
-    "metaDescription": "Discover how signs you need whatsapp ai agent nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversations a",
+    "metaDescription": "Seven signs your Nigerian business is ready for a WhatsApp AI agent, plus the signs that you do not need one yet.",
     "primaryKeyword": "signs you need whatsapp ai agent nigeria",
-    "excerpt": "Customer expectations have changed. They want instant responses, 24/7 availability, and personalized service. For small Nigerian businesses with limited staff, meeting these expectations feels like an impossible task.",
-    "publishedAt": "2025-03-27"
+    "excerpt": "You need a WhatsApp AI agent when replying limits your sales: repeated questions, slow replies, unanswered ad clicks and no clear list of leads.",
+    "publishedAt": "2025-03-27",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 90,
     "slug": "how-to-set-up-a-whatsapp-ai-agent-for-your-nigerian-business-in-7-days",
     "title": "How to Set Up a WhatsApp AI Agent for Your Nigerian Business in 7 Days",
     "category": "General SMBs",
-    "metaDescription": "Discover how set up whatsapp ai agent nigeria 7 days can transform your Nigerian business. Learn proven strategies to automate customer conversations an",
+    "metaDescription": "A realistic day-by-day plan to set up a WhatsApp AI agent for a Nigerian business in 7 days, including what to do with a brand-new number.",
     "primaryKeyword": "set up whatsapp ai agent nigeria 7 days",
-    "excerpt": "Running a small business in Nigeria is not easy. You are the CEO, the sales team, the customer service rep, and sometimes even the delivery person. Your phone buzzes constantly with WhatsApp messages from customers, and ...",
-    "publishedAt": "2025-03-28"
+    "excerpt": "Yes, in 7 days: gather your answers, load them, upload media, link and test, set handoff rules, go live quietly, then review. New numbers need two weeks of normal use first.",
+    "publishedAt": "2025-03-28",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 91,
     "slug": "how-nigerian-businesses-are-using-whatsapp-to-qualify-leads-automatically",
     "title": "How Nigerian Businesses Are Using WhatsApp to Qualify Leads Automatically",
     "category": "General SMBs",
-    "metaDescription": "Discover how whatsapp lead qualification nigeria businesses automatically can transform your Nigerian business. Learn proven strategies to automate cust",
+    "metaDescription": "How to qualify leads automatically on WhatsApp in Nigeria: the four questions to ask, example chats, and what an AI agent can and cannot do.",
     "primaryKeyword": "whatsapp lead qualification nigeria businesses automatically",
-    "excerpt": "Every Nigerian business owner knows the feeling. You step away from your phone for an hour, and when you return, there are twenty unread WhatsApp messages from potential customers. Some have already moved on to your...",
-    "publishedAt": "2025-03-29"
+    "excerpt": "Businesses qualify WhatsApp leads automatically by having an AI agent ask each enquirer about need, location, budget and timing, then flag the serious ones for a call.",
+    "publishedAt": "2025-03-29",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 92,
     "slug": "how-much-does-whatsapp-ai-automation-cost-for-nigerian-businesses",
     "title": "How Much Does WhatsApp AI Automation Cost for Nigerian Businesses?",
     "category": "General SMBs",
-    "metaDescription": "Discover how cost whatsapp ai automation nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversations and bo",
+    "metaDescription": "WhatsApp AI automation costs ₦1,000 to ₦75,000 a month in Nigeria. See the plans in Naira and a simple formula to estimate your own monthly bill.",
     "primaryKeyword": "cost whatsapp ai automation nigeria",
-    "excerpt": "Customer expectations have changed. They want instant responses, 24/7 availability, and personalized service. For small Nigerian businesses with limited staff, meeting these expectations feels like an impossible task.",
-    "publishedAt": "2025-03-30"
+    "excerpt": "A WhatsApp AI agent for a Nigerian small business costs between ₦1,000 and ₦75,000 a month, depending on how many customers message you. Here is how to work out your own number.",
+    "publishedAt": "2025-03-30",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 93,
     "slug": "how-whatsapp-ai-helps-nigerian-business-owners-focus-on-growth",
     "title": "How WhatsApp AI Helps Nigerian Business Owners Focus on Growth",
     "category": "General SMBs",
-    "metaDescription": "Discover how whatsapp ai business growth focus nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversations",
+    "metaDescription": "WhatsApp AI answers the repeat questions so Nigerian business owners can focus on growth. Sort your chats into three piles and follow a 20-minute routine.",
     "primaryKeyword": "whatsapp ai business growth focus nigeria",
-    "excerpt": "Running a small business in Nigeria is not easy. You are the CEO, the sales team, the customer service rep, and sometimes even the delivery person. Your phone buzzes constantly with WhatsApp messages from customers, and ...",
-    "publishedAt": "2025-03-31"
+    "excerpt": "WhatsApp AI takes repeat questions like prices, location and delivery fees off the owner's phone, so that attention goes to suppliers, staff and new products.",
+    "publishedAt": "2025-03-31",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 94,
     "slug": "how-to-grow-your-nigerian-business-using-whatsapp-ai-in-2025",
-    "title": "How to Grow Your Nigerian Business Using WhatsApp AI in 2025",
+    "title": "How to Grow Your Nigerian Business Using WhatsApp AI",
     "category": "General SMBs",
-    "metaDescription": "Discover how grow nigerian business whatsapp ai 2025 can transform your Nigerian business. Learn proven strategies to automate customer conversations an",
+    "metaDescription": "Five practical ways to grow a Nigerian business with WhatsApp AI, with broadcast costs worked out in credits and a simple 30-day plan.",
     "primaryKeyword": "grow nigerian business whatsapp ai 2025",
-    "excerpt": "Every Nigerian business owner knows the feeling. You step away from your phone for an hour, and when you return, there are twenty unread WhatsApp messages from potential customers. Some have already moved on to your...",
-    "publishedAt": "2025-03-01"
+    "excerpt": "Grow with WhatsApp AI in five moves: reply to every enquiry in seconds, track click-to-WhatsApp adverts, broadcast to past customers, post Status daily and follow up.",
+    "publishedAt": "2025-03-01",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 95,
     "slug": "whatsapp-business-api-vs-whatsapp-business-app-what-nigerian-smbs-need-to-know",
     "title": "WhatsApp Business API vs WhatsApp Business App: What Nigerian SMBs Need to Know",
     "category": "General SMBs",
-    "metaDescription": "Discover how whatsapp api vs app nigerian smb can transform your Nigerian business. Learn proven strategies to automate customer conversations and boost",
+    "metaDescription": "WhatsApp Business API vs app for Nigerian SMBs: costs, limits, where an AI agent on a linked device fits, and when you truly need the official API.",
     "primaryKeyword": "whatsapp api vs app nigerian smb",
-    "excerpt": "Customer expectations have changed. They want instant responses, 24/7 availability, and personalized service. For small Nigerian businesses with limited staff, meeting these expectations feels like an impossible task.",
-    "publishedAt": "2025-03-02"
+    "excerpt": "The WhatsApp Business app is a free phone app for small teams. The API is a paid connection for software at scale. Most Nigerian SMBs do not need the API.",
+    "publishedAt": "2025-03-02",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 96,
     "slug": "how-nigerian-clinics-and-hospitals-can-use-whatsapp-ai-for-patient-inquiries",
     "title": "How Nigerian Clinics and Hospitals Can Use WhatsApp AI for Patient Inquiries",
     "category": "General SMBs",
-    "metaDescription": "Discover how whatsapp ai clinic hospital patient inquiry nigeria can transform your Nigerian business. Learn proven strategies to automate customer conv",
+    "metaDescription": "How Nigerian clinics and hospitals can use WhatsApp AI for patient enquiries and bookings, with clear clinical limits and patient privacy practices.",
     "primaryKeyword": "whatsapp ai clinic hospital patient inquiry nigeria",
-    "excerpt": "Running a small business in Nigeria is not easy. You are the CEO, the sales team, the customer service rep, and sometimes even the delivery person. Your phone buzzes constantly with WhatsApp messages from customers, and ...",
-    "publishedAt": "2025-03-03"
+    "excerpt": "Clinics can use WhatsApp AI for hours, services, published fees, directions and appointment booking with reminders. It must not diagnose; clinical questions go to staff.",
+    "publishedAt": "2025-03-03",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 97,
     "slug": "how-to-build-customer-loyalty-with-whatsapp-ai-in-nigeria",
     "title": "How to Build Customer Loyalty With WhatsApp AI in Nigeria",
     "category": "General SMBs",
-    "metaDescription": "Discover how customer loyalty whatsapp ai nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversations and b",
+    "metaDescription": "How to build customer loyalty with WhatsApp AI in Nigeria: follow one customer over six months, plus five habits to keep and four mistakes to avoid.",
     "primaryKeyword": "customer loyalty whatsapp ai nigeria",
-    "excerpt": "Every Nigerian business owner knows the feeling. You step away from your phone for an hour, and when you return, there are twenty unread WhatsApp messages from potential customers. Some have already moved on to your...",
-    "publishedAt": "2025-03-04"
+    "excerpt": "Build loyalty on WhatsApp by answering fast, remembering each customer, messaging only with a reason and bringing in a human when something goes wrong.",
+    "publishedAt": "2025-03-04",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 98,
     "slug": "how-nigerian-business-owners-save-10-hours-a-week-with-whatsapp-automation",
     "title": "How Nigerian Business Owners Save 10+ Hours a Week With WhatsApp Automation",
     "category": "General SMBs",
-    "metaDescription": "Discover how save time whatsapp automation nigeria business can transform your Nigerian business. Learn proven strategies to automate customer conversat",
+    "metaDescription": "Will WhatsApp automation save you 10 hours a week? Count it yourself in three steps using your phone's screen time and your last 50 chats.",
     "primaryKeyword": "save time whatsapp automation nigeria business",
-    "excerpt": "Customer expectations have changed. They want instant responses, 24/7 availability, and personalized service. For small Nigerian businesses with limited staff, meeting these expectations feels like an impossible task.",
-    "publishedAt": "2025-03-05"
+    "excerpt": "Your saving depends on how many hours you spend replying now. Multiply your weekly WhatsApp screen time by the share of chats that are repeat questions.",
+    "publishedAt": "2025-03-05",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 99,
     "slug": "the-beginners-guide-to-whatsapp-ai-for-nigerian-business-owners",
     "title": "The Beginner's Guide to WhatsApp AI for Nigerian Business Owners",
     "category": "General SMBs",
-    "metaDescription": "Discover how beginners guide whatsapp ai nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversations and bo",
+    "metaDescription": "A beginner's guide to WhatsApp AI for Nigerian business owners: plain-English terms, what it can and cannot do, and your first hour of setup.",
     "primaryKeyword": "beginners guide whatsapp ai nigeria",
-    "excerpt": "Running a small business in Nigeria is not easy. You are the CEO, the sales team, the customer service rep, and sometimes even the delivery person. Your phone buzzes constantly with WhatsApp messages from customers, and ...",
-    "publishedAt": "2025-03-06"
+    "excerpt": "WhatsApp AI reads customer messages on your business number and replies by itself using the prices and policies you taught it. No new number or coding needed.",
+    "publishedAt": "2025-03-06",
+    "updatedAt": "2026-11-19"
   },
   {
     "id": 100,
     "slug": "why-dailzero-is-the-best-whatsapp-ai-agent-for-nigerian-businesses",
     "title": "Why Dailzero Is the Best WhatsApp AI Agent for Nigerian Businesses",
     "category": "General SMBs",
-    "metaDescription": "Discover how dailzero whatsapp ai agent nigeria can transform your Nigerian business. Learn proven strategies to automate customer conversations and boo",
+    "metaDescription": "An honest case for Dailzero as a WhatsApp AI agent for Nigerian businesses: seven specific reasons, and who should choose a different tool.",
     "primaryKeyword": "dailzero whatsapp ai agent nigeria",
-    "excerpt": "Every Nigerian business owner knows the feeling. You step away from your phone for an hour, and when you return, there are twenty unread WhatsApp messages from potential customers. Some have already moved on to your...",
-    "publishedAt": "2025-03-07"
+    "excerpt": "Dailzero suits Nigerian SMBs that sell on their existing WhatsApp number: no Meta fees, Naira pricing, no code. It is not for businesses that need the official API.",
+    "publishedAt": "2025-03-07",
+    "updatedAt": "2026-11-19"
   }
 ]
 
