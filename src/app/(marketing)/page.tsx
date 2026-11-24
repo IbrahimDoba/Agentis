@@ -20,23 +20,22 @@ export const metadata = pageMetadata({
 })
 
 // Real words from customers, taken from their WhatsApp chats and voice notes
-// with the team. No business is named until its owner has agreed to it, so
-// each quote is labelled by the kind of business and when it was said.
+// with the team. Each business is named with its owner's agreement.
 const testimonials = [
   {
     quote: "It's really, really working now. Wow. I'm going to subscribe. I really love this.",
-    name: "Furniture seller",
-    role: "Voice note, August 2026",
+    name: "Gracious Furniture Hub",
+    role: "Furniture seller",
   },
   {
     quote: "What I love about the system is how natural it is. Nobody is going to know if it's AI or not.",
-    name: "Business owner running ads",
-    role: "Voice note, September 2026",
+    name: "Usama Jibrin",
+    role: "Business owner",
   },
   {
     quote: "So far so good. It's been awesome.",
-    name: "Media agency",
-    role: "Voice note, August 2026",
+    name: "Logion Media",
+    role: "Media agency",
   },
 ]
 
