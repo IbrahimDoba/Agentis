@@ -3,7 +3,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { Navbar } from "@/components/landing/Navbar"
 import { Footer } from "@/components/landing/Footer"
-import { PLAN_PRICES, PLAN_CREDIT_LIMITS, CREDITS_NOTE, estimatedAiMessages, formatNaira } from "@/lib/plans"
+import { PLAN_PRICES, PLAN_CREDIT_LIMITS, CREDITS_NOTE, ANNUAL_MONTHS_CHARGED, YEARLY_CHECKOUT_LIVE, estimatedAiMessages, formatNaira } from "@/lib/plans"
 import { PAYG_DEFAULT_NGN_PER_CREDIT } from "@/lib/credits"
 import { PRICING_FAQS } from "./faqs"
 import styles from "./page.module.css"
@@ -11,13 +11,13 @@ import styles from "./page.module.css"
 // Pay-as-you-go retail rate (₦/credit), shown as an alternative to subscriptions.
 const PAYG_RATE_FMT = `₦${PAYG_DEFAULT_NGN_PER_CREDIT.toFixed(2)}`
 
-// Annual billing = 20% off the monthly rate. Single source of truth for
-// prices is src/lib/plans.ts; this file just formats them.
-const ANNUAL_DISCOUNT = 0.2
+// Yearly billing charges ANNUAL_MONTHS_CHARGED months for 12. This page used
+// to advertise its own "20% off", which matched neither billing nor the home
+// page. Single source of truth for prices is src/lib/plans.ts.
 
 function plan(slug: "basic" | "starter" | "pro") {
   const monthly = PLAN_PRICES[slug]
-  const annualMonthly = Math.round((monthly * (1 - ANNUAL_DISCOUNT)) / 1000) * 1000
+  const annualMonthly = Math.round((monthly * ANNUAL_MONTHS_CHARGED) / 12)
   return {
     price: formatNaira(monthly),
     priceNote: "/month",
@@ -51,6 +51,7 @@ const basicFeatures = [
   { text: "Lead detection", included: true },
   { text: "Customer memory & context", included: true },
   { text: "Email support", included: true },
+  { text: "7-day free trial", included: true },
   { text: "Voice call capability", included: false },
   { text: "Pay-as-you-go top-ups", included: true },
   { text: "Advanced analytics", included: false },
@@ -109,8 +110,8 @@ export default function PricingPage() {
               Start with a 7-day free trial. No credit card required. Cancel anytime.
             </p>
 
-            {/* Toggle */}
-            <div className={styles.toggle}>
+            {/* Toggle: hidden until yearly checkout exists */}
+            {YEARLY_CHECKOUT_LIVE && <div className={styles.toggle}>
               <span className={!annual ? styles.toggleLabelActive : styles.toggleLabel}>Monthly</span>
               <button
                 className={styles.toggleBtn}
@@ -121,9 +122,9 @@ export default function PricingPage() {
               </button>
               <span className={annual ? styles.toggleLabelActive : styles.toggleLabel}>
                 Annual
-                <span className={styles.saveBadge}>Save 20%</span>
+                <span className={styles.saveBadge}>{12 - ANNUAL_MONTHS_CHARGED} months free</span>
               </span>
-            </div>
+            </div>}
           </div>
         </section>
 
@@ -271,7 +272,7 @@ export default function PricingPage() {
                 ["Languages", "English", "English", "English + any language"],
                 ["Dashboard", "✓ Monitoring", "✓ Basic", "✓ Advanced analytics"],
                 ["Support", "Email", "Email (48hr)", "Priority (24hr)"],
-                ["Free Trial", "No", "7 days", "7 days"],
+                ["Free Trial", "7 days", "7 days", "7 days"],
               ].map(([feature, basic, starter, pro]) => (
                 <div key={feature} className={styles.comparisonRow}>
                   <div className={styles.comparisonFeatureCol}>{feature}</div>

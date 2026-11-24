@@ -65,8 +65,8 @@ function ConfigureIllustration() {
           <div className={styles.configAiBox}>
             <div className={styles.configAiIcon}>✨</div>
             <div>
-              <div className={styles.configAiTitle}>AI-generated FAQs ready</div>
-              <div className={styles.configAiSub}>12 questions found from your website</div>
+              <div className={styles.configAiTitle}>FAQs drafted for you</div>
+              <div className={styles.configAiSub}>12 questions found in your recent chats</div>
             </div>
             <div className={styles.configAiArrow}>→</div>
           </div>
@@ -89,11 +89,11 @@ function SetupIllustration() {
         <div className={styles.setupBody}>
           <div className={styles.setupSteps}>
             {[
-              { label: "Agent created", done: true },
-              { label: "Business verified", done: true },
+              { label: "Account created", done: true },
+              { label: "Email confirmed", done: true },
+              { label: "QR code scanned", done: true },
               { label: "WhatsApp linked", done: true },
-              { label: "Test message sent", done: true },
-              { label: "Going live…", done: false, active: true },
+              { label: "Building your agent…", done: false, active: true },
             ].map((s) => (
               <div key={s.label} className={styles.setupStepRow}>
                 <div className={`${styles.setupStepIcon} ${s.done ? styles.setupStepDone : s.active ? styles.setupStepActive : ""}`}>
@@ -106,7 +106,7 @@ function SetupIllustration() {
             ))}
           </div>
           <div className={styles.setupNote}>
-            Our team will notify you by email once your agent is live. Usually takes under 4 hours.
+            Your number stays on your phone. Your agent is drafted from your recent chats in about 5 minutes.
           </div>
         </div>
       </div>
@@ -126,7 +126,7 @@ function LiveIllustration() {
               Live · Handling conversations
             </div>
           </div>
-          <div className={styles.liveUptime}>99.9%</div>
+          <div className={styles.liveUptime}>AI on</div>
         </div>
         <div className={styles.liveMetrics}>
           <div className={styles.liveMetric}>
@@ -134,12 +134,12 @@ function LiveIllustration() {
             <div className={styles.liveMetricLbl}>Today</div>
           </div>
           <div className={styles.liveMetric}>
-            <div className={styles.liveMetricVal}>1.4s</div>
-            <div className={styles.liveMetricLbl}>Avg Reply</div>
+            <div className={styles.liveMetricVal}>12</div>
+            <div className={styles.liveMetricLbl}>Leads</div>
           </div>
           <div className={styles.liveMetric}>
-            <div className={styles.liveMetricVal}>96%</div>
-            <div className={styles.liveMetricLbl}>Resolved</div>
+            <div className={styles.liveMetricVal}>3</div>
+            <div className={styles.liveMetricLbl}>Need you</div>
           </div>
         </div>
         <div className={styles.liveChart}>
@@ -155,53 +155,53 @@ function LiveIllustration() {
 const steps = [
   {
     number: "01",
-    title: "Sign Up & Apply",
+    title: "Create your account",
     description:
-      "Create your Dailzero account in under 2 minutes. Tell us about your business — name, industry, and the WhatsApp number you want to automate. We review applications within 24 hours.",
+      "Sign up with your name, email and a password, then confirm your email with the code we send you. Your 7-day free trial comes with 1,000 credits and needs no card.",
     details: [
-      "Simple signup form — no technical knowledge needed",
-      "Tell us about your business type and goals",
-      "Submit your WhatsApp Business number",
-      "Receive confirmation email within hours",
+      "Takes about 2 minutes",
+      "No approval step and no waiting",
+      "No card needed for the trial",
+      "No technical knowledge needed",
     ],
     illustration: <SignupIllustration />,
   },
   {
     number: "02",
-    title: "Configure Your Agent",
+    title: "Link your WhatsApp",
     description:
-      "Use our guided wizard to set up your AI agent. Describe your business, set response style, define operating hours, and add your FAQs. Our AI can even auto-generate FAQ suggestions from your website.",
+      "Scan a QR code or enter a pairing code on your phone, the same way you link WhatsApp Web. It works with the WhatsApp or WhatsApp Business number you already use, and your customers keep messaging the number they know.",
     details: [
-      "Describe your business in plain English",
-      "Choose your agent's personality and tone",
-      "Set business hours and holiday schedules",
-      "AI auto-generates FAQs from your website",
-    ],
-    illustration: <ConfigureIllustration />,
-  },
-  {
-    number: "03",
-    title: "We Set It Up",
-    description:
-      "Our team handles the technical side. We connect your WhatsApp Business account to the AI agent, run test conversations, and ensure everything is working perfectly before you go live.",
-    details: [
-      "Dedicated setup engineer assigned to your account",
-      "WhatsApp Business API connection handled by us",
-      "Full test suite run before launch",
-      "You get notified by email when ready",
+      "Your number stays on your phone, in your app",
+      "No Meta verification and no Meta message fees",
+      "New numbers are warmed up before they send much",
+      "Need Meta's official API instead? Our team sets it up with you",
     ],
     illustration: <SetupIllustration />,
   },
   {
-    number: "04",
-    title: "Go Live & Monitor",
+    number: "03",
+    title: "Your agent is drafted for you",
     description:
-      "Your agent starts handling conversations instantly. Watch the dashboard in real time, review transcripts, and get weekly performance reports. Improve your agent anytime from your settings.",
+      "Once your number is linked, Dailzero reads your WhatsApp profile and recent chats and drafts your agent in about 5 minutes: what you sell, the questions customers ask and how you like to talk. You review it before it replies to anyone. You can also set it up by hand.",
     details: [
-      "Real-time conversation dashboard",
-      "Full transcript review",
-      "Weekly automated performance reports",
-      "Update FAQs and settings anytime",
+      "Products, prices and FAQs found from your own chats",
+      "Choose the tone: friendly, professional, concise and more",
+      "Add price lists, documents or your website",
+      "The AI stays off until you have reviewed it",
+    ],
+    illustration: <ConfigureIllustration />,
+  },
+  {
+    number: "04",
+    title: "Go live and stay in control",
+    description:
+      "Your agent starts replying to customers in seconds, day and night. Every chat is in your dashboard. Reply from your phone or the dashboard and the AI pauses on that chat until you hand it back.",
+    details: [
+      "Every conversation in one dashboard",
+      "Take over any chat with one reply",
+      "Leads and appointments picked out for you",
+      "Change products, prices and instructions anytime",
     ],
     illustration: <LiveIllustration />,
   },
@@ -210,27 +210,27 @@ const steps = [
 const faqs = [
   {
     q: "Is there a free trial?",
-    a: "Yes! Every plan comes with a 7-day free trial. No credit card required. You can explore all features before committing.",
+    a: "Yes. Every new account gets a 7-day free trial with 1,000 credits, which is about 200 AI replies. No card is needed.",
   },
   {
     q: "How long does setup take?",
-    a: "Most businesses are live within 4–8 hours of completing their configuration. Our team handles the technical WhatsApp connection while you focus on your business.",
+    a: "Most businesses are live the same day. Linking your number takes a few minutes, and your agent is drafted from your recent chats in about 5 minutes. There is no application review and nothing for our team to install.",
   },
   {
     q: "Do I need a WhatsApp Business account?",
-    a: "Yes. You'll need a WhatsApp Business account with a dedicated phone number. If you don't have one, we can guide you through the process of getting approved — it usually takes 1–3 business days.",
+    a: "No. Dailzero works with the WhatsApp or WhatsApp Business number you already use. You link it by QR code or pairing code. If your business needs Meta's official WhatsApp Business Platform, our team can set that route up with you.",
   },
   {
     q: "Can I customise what the AI says?",
-    a: "Absolutely. You define the agent's personality, tone, and exact responses to specific questions. You can also set rules for what topics the agent should or shouldn't discuss.",
+    a: "Yes. You set the agent's tone, its instructions, your products and prices, and the topics it should or should not discuss. You can change any of it at any time.",
   },
   {
     q: "What happens when the AI can't answer?",
-    a: "When the AI encounters a question it can't confidently answer, it politely tells the customer it will connect them with a human team member, then sends you an alert. No customer falls through the cracks.",
+    a: "It hands the chat to you instead of guessing. The AI pauses on that chat and the conversation is marked in your dashboard as needing a person, so you can reply from the dashboard or your phone.",
   },
   {
     q: "Can I switch plans later?",
-    a: "Yes. You can upgrade or downgrade your plan at any time. Changes take effect at the start of your next billing cycle.",
+    a: "Yes. You can move between Basic, Starter and Pro at any time. Upgrades take effect immediately, and downgrades apply at the start of your next billing cycle.",
   },
 ]
 
@@ -251,8 +251,8 @@ export default function HowItWorksPage() {
               <span>Minutes, Not Months</span>
             </h1>
             <p className={styles.heroSubtitle}>
-              Dailzero is designed for busy business owners. No developers, no complex integrations,
-              no long onboarding. Just four simple steps to a fully automated WhatsApp agent.
+              Dailzero is built for busy business owners. No developers, no application to wait on
+              and no long onboarding. Four steps, and most businesses are live the same day.
             </p>
           </div>
         </section>

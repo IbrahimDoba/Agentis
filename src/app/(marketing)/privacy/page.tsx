@@ -6,7 +6,7 @@ import { pageMetadata } from "@/lib/seo"
 export const metadata = pageMetadata({
   title: "Privacy policy",
   description:
-    "How Dailzero collects, uses and protects personal data, in line with the NDPR and Meta's WhatsApp Business Platform requirements.",
+    "How Dailzero collects, uses and protects personal data, in line with Nigerian data protection law and WhatsApp's terms.",
   path: "/privacy",
 })
 
@@ -37,7 +37,7 @@ export default function PrivacyPage() {
           <div className={styles.badge}>Legal</div>
           <h1 className={styles.title}>Privacy Policy</h1>
           <p className={styles.meta}>
-            Last updated: <span>March 2026</span> · NDPR Compliant · Meta WhatsApp Business Platform Compliant
+            Last updated: <span>November 2026</span>
           </p>
         </div>
 
@@ -56,7 +56,7 @@ export default function PrivacyPage() {
           <div className={styles.doc}>
             <div className={styles.highlight}>
               <p>
-                Dailzero is committed to protecting your privacy. This policy explains how we collect, use, and safeguard your information in compliance with the Nigerian Data Protection Regulation (NDPR) 2019, applicable international standards, and Meta&apos;s WhatsApp Business Platform requirements. Because our Service operates on WhatsApp — a Meta product — some data handling is also governed by <a href="https://www.whatsapp.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer">Meta&apos;s Privacy Policy</a>.
+                Dailzero is committed to protecting your privacy. This policy explains how we collect, use, and safeguard your information in compliance with the Nigerian Data Protection Regulation (NDPR) 2019, and applicable international standards. Because our Service operates on WhatsApp, a Meta product, some data handling is also governed by <a href="https://www.whatsapp.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer">Meta&apos;s Privacy Policy</a>.
               </p>
             </div>
 
@@ -73,7 +73,7 @@ export default function PrivacyPage() {
                 By using our Service, you consent to the collection and use of information as described in this policy. If you are a business user deploying our Service to serve your own customers, you are responsible for ensuring your customers are informed about data practices as described in Section 3.
               </p>
               <p>
-                Our Service integrates with the <strong>WhatsApp Business Platform</strong>, operated by Meta Platforms, Inc. (&quot;Meta&quot;). Data transmitted through WhatsApp is also subject to <a href="https://www.whatsapp.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer">Meta&apos;s Privacy Policy</a> and <a href="https://www.whatsapp.com/legal/business-terms" target="_blank" rel="noopener noreferrer">WhatsApp Business Terms</a>.
+                Our Service connects to <strong>WhatsApp</strong>, operated by Meta Platforms, Inc. (&quot;Meta&quot;), in one of two ways chosen by the business: by linking the WhatsApp number the business already uses as a linked device, or through Meta&apos;s WhatsApp Business Platform (Cloud API). Data transmitted through WhatsApp is also subject to <a href="https://www.whatsapp.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer">Meta&apos;s Privacy Policy</a> and <a href="https://www.whatsapp.com/legal/business-terms" target="_blank" rel="noopener noreferrer">WhatsApp Business Terms</a>.
               </p>
             </div>
 
@@ -109,7 +109,7 @@ export default function PrivacyPage() {
             <div className={styles.section} id="meta-data">
               <h2>3. WhatsApp & Meta Data Handling</h2>
               <p>
-                Our Service is built on the <strong>WhatsApp Business Platform API</strong>, a service provided by Meta Platforms, Inc. This section specifically addresses how data flows through Meta&apos;s infrastructure and our obligations in connection with it.
+                Our Service works on <strong>WhatsApp</strong>, a service provided by Meta Platforms, Inc. A business connects either by linking its existing number as a linked device (the same mechanism as WhatsApp Web) or through Meta&apos;s WhatsApp Business Platform (Cloud API). This section explains how data flows on both routes and our obligations in connection with it.
               </p>
 
               <h3>3.1 How WhatsApp Data Flows</h3>
@@ -118,10 +118,10 @@ export default function PrivacyPage() {
               </p>
               <ul>
                 <li>The message is transmitted through Meta&apos;s WhatsApp servers in accordance with Meta&apos;s Privacy Policy</li>
-                <li>Meta delivers the message to our platform via the WhatsApp Business API (via ElevenLabs Conversational AI)</li>
+                <li>The message reaches our platform either through the business&apos;s linked-device session or, for businesses on the official route, through Meta&apos;s WhatsApp Business Platform (Cloud API)</li>
                 <li>Our AI processes the message and generates a response</li>
                 <li>The response is sent back through Meta&apos;s WhatsApp infrastructure to the end user</li>
-                <li>Conversation metadata (timestamps, status, duration) is made available to us via the WhatsApp Business API for analytics and monitoring purposes</li>
+                <li>Conversation metadata (timestamps, delivery and read status) is stored by us for analytics and monitoring purposes</li>
               </ul>
 
               <h3>3.2 Meta&apos;s Independent Data Processing</h3>
@@ -152,7 +152,7 @@ export default function PrivacyPage() {
 
               <h3>3.4 No Data Sale to Meta or Third-Party Advertisers</h3>
               <p>
-                We do not sell, share, or transfer WhatsApp conversation data or end-user personal data to Meta, Facebook, or any third-party advertising network for advertising or marketing purposes. Data processed through the WhatsApp Business API is used solely to operate the Service.
+                We do not sell, share, or transfer WhatsApp conversation data or end-user personal data to Meta, Facebook, or any third-party advertising network for advertising or marketing purposes. Data processed through WhatsApp is used solely to operate the Service.
               </p>
             </div>
 
@@ -161,12 +161,12 @@ export default function PrivacyPage() {
               <p>We use your personal data for the following purposes:</p>
               <ul>
                 <li>To create and manage your account</li>
-                <li>To configure and deploy your AI customer service agent on the WhatsApp Business Platform</li>
-                <li>To generate AI-enhanced response guidelines using OpenAI&apos;s API</li>
-                <li>To process and respond to WhatsApp messages on your behalf through ElevenLabs Conversational AI</li>
-                <li>To provide conversation analytics and monitoring via the WhatsApp Business API</li>
+                <li>To configure and run your AI customer service agent on your WhatsApp number</li>
+                <li>To generate your agent&apos;s instructions and replies using OpenAI&apos;s API</li>
+                <li>To process and respond to WhatsApp messages on your behalf</li>
+                <li>To provide conversation analytics and monitoring in your dashboard</li>
                 <li>To generate conversation summaries using AI</li>
-                <li>To send transactional emails (account updates, approval notifications)</li>
+                <li>To send transactional emails (account updates and notifications)</li>
                 <li>To process subscription payments and send invoices</li>
                 <li>To provide customer support</li>
                 <li>To analyse usage patterns and improve our Service</li>
@@ -195,11 +195,11 @@ export default function PrivacyPage() {
                 We do not sell your personal data. We share data with trusted third parties only as necessary to operate the Service:
               </p>
               <ul>
-                <li><strong>Meta / WhatsApp:</strong> Messages and conversation data are transmitted through Meta&apos;s WhatsApp Business Platform infrastructure as required to deliver the Service. See Section 7 for full details</li>
-                <li><strong>ElevenLabs:</strong> Conversation processing and AI voice/chat agent infrastructure — conversation data is processed on their platform to generate AI responses</li>
-                <li><strong>OpenAI:</strong> AI language model used to generate response guidelines and conversation summaries — data is processed under OpenAI&apos;s API data usage policies</li>
-                <li><strong>Neon / PostgreSQL:</strong> Secure cloud database hosting for account and configuration data</li>
-                <li><strong>Vercel:</strong> Application hosting and edge delivery</li>
+                <li><strong>Meta / WhatsApp:</strong> Messages and conversation data are transmitted through WhatsApp as required to deliver the Service. See Section 7 for full details</li>
+                <li><strong>OpenAI:</strong> AI language models used to generate replies, agent instructions, voice note transcriptions and conversation summaries. Data is processed under OpenAI&apos;s API data usage policies</li>
+                <li><strong>Hetzner:</strong> Hosting for our application servers and PostgreSQL database, in Germany</li>
+                <li><strong>Cloudflare:</strong> Storage and delivery of media files such as product photos, videos and documents</li>
+                <li><strong>Paystack:</strong> Payment processing. Card details are handled by Paystack and are not stored by us</li>
                 <li><strong>Resend:</strong> Transactional email delivery</li>
               </ul>
               <p>
@@ -213,15 +213,15 @@ export default function PrivacyPage() {
             <div className={styles.section} id="meta-sharing">
               <h2>7. Data Shared with Meta</h2>
               <p>
-                Because our Service uses the WhatsApp Business Platform API, certain data is necessarily shared with Meta as part of normal platform operation:
+                Because our Service operates on WhatsApp, certain data necessarily passes through Meta as part of normal operation:
               </p>
 
               <h3>7.1 What We Share with Meta</h3>
               <ul>
-                <li><strong>Business account information:</strong> Business name, phone number, and verification details required to operate a WhatsApp Business Account</li>
-                <li><strong>Message content:</strong> Messages sent and received through WhatsApp are transmitted via Meta&apos;s servers. End-to-end encryption applies in standard WhatsApp; Business API messages are not end-to-end encrypted between business and Meta</li>
+                <li><strong>Business account information:</strong> On the official platform route, the business name, phone number and verification details required to operate a WhatsApp Business Account</li>
+                <li><strong>Message content:</strong> Messages sent and received through WhatsApp are transmitted via Meta&apos;s servers. On the linked-device route, WhatsApp&apos;s end-to-end encryption applies between the customer and the business&apos;s devices, and Dailzero processes messages as one of those linked devices in order to reply. On the official platform route, messages are processed through Meta&apos;s Cloud API and are not end-to-end encrypted between the business and Meta</li>
                 <li><strong>Message metadata:</strong> Delivery status, timestamps, and conversation identifiers necessary for message delivery</li>
-                <li><strong>Message templates:</strong> Template messages submitted for Meta&apos;s review and approval</li>
+                <li><strong>Message templates:</strong> On the official platform route, template messages submitted for Meta&apos;s review and approval</li>
               </ul>
 
               <h3>7.2 What We Do Not Share with Meta for Advertising</h3>
@@ -233,7 +233,7 @@ export default function PrivacyPage() {
 
               <h3>7.3 Meta&apos;s Independent Rights</h3>
               <p>
-                Meta has independent rights to data transmitted through the WhatsApp Business Platform as described in their own policies. Dailzero does not control Meta&apos;s data practices. For details on how Meta uses data, please review:
+                Meta has independent rights to data transmitted through WhatsApp as described in their own policies. Dailzero does not control Meta&apos;s data practices. For details on how Meta uses data, please review:
               </p>
               <ul>
                 <li><a href="https://www.whatsapp.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer">WhatsApp Privacy Policy</a></li>
@@ -271,7 +271,7 @@ export default function PrivacyPage() {
                 <li>Passwords hashed using bcrypt with 12 salt rounds</li>
                 <li>Role-based access control limiting data access to authorised personnel</li>
                 <li>Regular security reviews and monitoring</li>
-                <li>Secure API key management for all third-party integrations including Meta&apos;s WhatsApp Business API</li>
+                <li>Secure API key management for all third-party integrations</li>
               </ul>
               <p>
                 While we take appropriate precautions, no internet transmission is 100% secure. Please refer to our <a href="/security">Security page</a> for more details. Security of data within Meta&apos;s infrastructure is governed by Meta&apos;s own security practices.
@@ -326,17 +326,17 @@ export default function PrivacyPage() {
             <div className={styles.section} id="transfers">
               <h2>13. International Data Transfers</h2>
               <p>
-                Some of our third-party service providers (such as Vercel, ElevenLabs, and OpenAI) may process data outside Nigeria. Where data is transferred internationally, we ensure appropriate safeguards are in place, including contractual data processing agreements that meet the NDPR&apos;s cross-border transfer requirements.
+                Our servers are hosted in Germany, and some of our third-party service providers (such as OpenAI, Cloudflare, Paystack and Resend) may process data outside Nigeria. Where data is transferred internationally, we ensure appropriate safeguards are in place, including contractual data processing agreements that meet the NDPR&apos;s cross-border transfer requirements.
               </p>
               <p>
-                Data transmitted through the WhatsApp Business Platform is processed by Meta globally in accordance with their own data transfer mechanisms. Meta maintains data centres in multiple countries. By using our Service, you acknowledge that WhatsApp conversation data may be processed in countries outside Nigeria, including the United States, in accordance with Meta&apos;s Privacy Policy.
+                Data transmitted through WhatsApp is processed by Meta globally in accordance with their own data transfer mechanisms. Meta maintains data centres in multiple countries. By using our Service, you acknowledge that WhatsApp conversation data may be processed in countries outside Nigeria, including the United States, in accordance with Meta&apos;s Privacy Policy.
               </p>
             </div>
 
             <div className={styles.section} id="changes">
               <h2>14. Changes to This Policy</h2>
               <p>
-                We may update this Privacy Policy from time to time, including when required by changes to Meta&apos;s WhatsApp Business Platform policies. We will notify you of material changes via email or a prominent notice on our website at least 14 days before the changes take effect. The &quot;Last updated&quot; date at the top of this page reflects the most recent revision.
+                We may update this Privacy Policy from time to time, including when required by changes to Meta&apos;s WhatsApp policies. We will notify you of material changes via email or a prominent notice on our website at least 14 days before the changes take effect. The &quot;Last updated&quot; date at the top of this page reflects the most recent revision.
               </p>
             </div>
 

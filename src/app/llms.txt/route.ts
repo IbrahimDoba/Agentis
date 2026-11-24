@@ -1,4 +1,4 @@
-import { PLAN_CREDIT_LIMITS, AI_CREDIT_COSTS } from "@/lib/plans"
+import { PLAN_CREDIT_LIMITS, AI_CREDIT_COSTS, YEARLY_CHECKOUT_LIVE } from "@/lib/plans"
 import { PAYG_TIERS } from "@/lib/credits"
 import { STATUS_RECIPIENT_CAPS } from "@/lib/status-post"
 import { SITE_URL, SITE_NAME, HOME_FAQS, planSummaries, PAYG_SUMMARY } from "@/lib/seo"
@@ -47,8 +47,7 @@ Online shops and fashion vendors, restaurants, real estate agents, clinics, logi
 - Free trial: 7 days, ${n(PLAN_CREDIT_LIMITS.free)} credits, 1 agent, saves up to ${n(FREE_CONTACT_SAVE_LIMIT)} contacts in total
 ${planSummaries().map((s) => `- ${s}`).join("\n")}
 - Enterprise: custom pricing for higher volume and more agents
-- ${PAYG_SUMMARY}. Packs: ${packs}.
-- Yearly billing charges 10 months for 12.
+- ${PAYG_SUMMARY}. Packs: ${packs}.${YEARLY_CHECKOUT_LIVE ? "\n- Yearly billing charges 10 months for 12." : ""}
 
 Credits are what the AI spends to reply. A text message costs about ${AI_CREDIT_COSTS.text} credits, an image ${AI_CREDIT_COSTS.image}, a video ${AI_CREDIT_COSTS.video} and a document ${AI_CREDIT_COSTS.document}. Monthly plan credits are used first, then any pay-as-you-go balance. There are no overage fees: when both run out the agent pauses until the plan renews or credits are added.
 

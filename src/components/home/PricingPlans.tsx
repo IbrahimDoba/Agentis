@@ -2,7 +2,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { Check } from "lucide-react"
-import { ANNUAL_MONTHS_CHARGED, formatNaira } from "@/lib/plans"
+import { ANNUAL_MONTHS_CHARGED, YEARLY_CHECKOUT_LIVE, formatNaira } from "@/lib/plans"
 import { Reveal } from "./Reveal"
 import styles from "./Home.module.css"
 
@@ -17,10 +17,6 @@ export interface PlanView {
 }
 
 type Cycle = "monthly" | "yearly"
-
-// Checkout only charges monthly today. The switch stays hidden until yearly
-// checkout ships, so the page never shows a price nobody can pay.
-const YEARLY_CHECKOUT_LIVE = false
 
 export function PricingPlans({ plans }: { plans: PlanView[] }) {
   const [cycle, setCycle] = useState<Cycle>("monthly")

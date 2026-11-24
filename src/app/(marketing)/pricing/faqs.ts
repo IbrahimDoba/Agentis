@@ -35,6 +35,6 @@ export const PRICING_FAQS: Faq[] = [
   },
   {
     q: "Can I get a refund?",
-    a: "If you're not satisfied within your first 7 days of a paid plan, we offer a full refund, no questions asked.",
+    a: "Yes. If you're not satisfied, ask for a full refund within 7 days of your first payment for a paid plan. After those 7 days, refunds are not given for part of a billing period.",
   },
 ]

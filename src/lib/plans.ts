@@ -18,6 +18,10 @@ export const PLAN_PRICES_USD: Record<string, number> = {
 // Yearly billing charges 10 months for 12 ("2 months free").
 export const ANNUAL_MONTHS_CHARGED = 10
 
+// Checkout only charges monthly today. Every page that could show a yearly
+// price reads this, so the site never advertises a price nobody can pay.
+export const YEARLY_CHECKOUT_LIVE = false
+
 // Monthly Dailzero AI credit allowances per plan
 export const PLAN_CREDIT_LIMITS: Record<string, number> = {
   free: 1000,

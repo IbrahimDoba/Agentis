@@ -37,7 +37,7 @@ export default function TermsPage() {
           <div className={styles.badge}>Legal</div>
           <h1 className={styles.title}>Terms of Service</h1>
           <p className={styles.meta}>
-            Last updated: <span>March 2026</span> · Effective: <span>March 1, 2026</span>
+            Last updated: <span>November 2026</span> · Effective: <span>March 1, 2026</span>
           </p>
         </div>
 
@@ -58,7 +58,7 @@ export default function TermsPage() {
           <div className={styles.doc}>
             <div className={styles.highlight}>
               <p>
-                Please read these Terms of Service carefully before using the Dailzero platform operated by Dailzero Technologies. By accessing or using our service, you agree to be bound by these terms. Our platform operates on Meta&apos;s WhatsApp Business Platform; your use is also subject to Meta&apos;s applicable policies referenced herein.
+                Please read these Terms of Service carefully before using the Dailzero platform operated by Dailzero Technologies. By accessing or using our service, you agree to be bound by these terms. Our platform operates on WhatsApp, a Meta product; your use is also subject to Meta&apos;s applicable policies referenced herein.
               </p>
             </div>
 
@@ -71,25 +71,25 @@ export default function TermsPage() {
                 These Terms constitute a binding legal agreement between you and Dailzero Technologies (&quot;Dailzero,&quot; &quot;we,&quot; &quot;us,&quot; or &quot;our&quot;). We reserve the right to update these Terms at any time. Continued use of the Service after changes are posted constitutes your acceptance of the revised Terms.
               </p>
               <p>
-                Because our Service uses the WhatsApp Business Platform (a Meta product), your use of this Service is also governed by Meta&apos;s <a href="https://www.whatsapp.com/legal/business-terms" target="_blank" rel="noopener noreferrer">WhatsApp Business Terms of Service</a>, <a href="https://developers.facebook.com/terms/" target="_blank" rel="noopener noreferrer">Meta Platform Terms</a>, and <a href="https://www.facebook.com/policies/ads/" target="_blank" rel="noopener noreferrer">Meta&apos;s Acceptable Use Policy</a>. In the event of any conflict between these Terms and Meta&apos;s policies as they relate to WhatsApp usage, Meta&apos;s policies shall prevail.
+                Because our Service operates on WhatsApp (a Meta product), your use of this Service is also governed by Meta&apos;s <a href="https://www.whatsapp.com/legal/business-terms" target="_blank" rel="noopener noreferrer">WhatsApp Business Terms of Service</a>, <a href="https://developers.facebook.com/terms/" target="_blank" rel="noopener noreferrer">Meta Platform Terms</a>, and <a href="https://www.facebook.com/policies/ads/" target="_blank" rel="noopener noreferrer">Meta&apos;s Acceptable Use Policy</a>. In the event of any conflict between these Terms and Meta&apos;s policies as they relate to WhatsApp usage, Meta&apos;s policies shall prevail.
               </p>
             </div>
 
             <div className={styles.section} id="service">
               <h2>2. Service Description</h2>
               <p>
-                Dailzero provides a software-as-a-service (SaaS) platform that enables businesses to deploy AI-powered customer service agents on the WhatsApp Business Platform. The Service includes:
+                Dailzero provides a software-as-a-service (SaaS) platform that enables businesses to run AI-powered customer service agents on WhatsApp. The Service includes:
               </p>
               <ul>
                 <li>An online dashboard for managing your AI agent configuration</li>
                 <li>AI-generated response guidelines powered by third-party language models</li>
-                <li>Conversation monitoring and analytics via the WhatsApp Business Platform API</li>
-                <li>Integration with WhatsApp Business API through ElevenLabs Conversational AI</li>
+                <li>Conversation monitoring and analytics</li>
+                <li>A connection to WhatsApp, either by linking your existing number as a linked device or through Meta&apos;s WhatsApp Business Platform (Cloud API)</li>
                 <li>Automated customer messaging subject to WhatsApp&apos;s messaging policies</li>
                 <li>Customer support and onboarding assistance</li>
               </ul>
               <p>
-                The Service is provided on a managed basis. Dailzero configures and deploys agents on your behalf following account approval. You acknowledge that the AI-generated responses may not always be perfect and you retain responsibility for monitoring agent performance and ensuring compliance with applicable Meta and WhatsApp policies.
+                The Service is self-service: you create an account, link your WhatsApp number and configure your agent from the dashboard. On the linked-device route, Dailzero connects to your number in the same way as WhatsApp Web. That route is not an official Meta integration, and WhatsApp may limit or restrict a number at its own discretion. Businesses that need the official integration can ask us to set up the WhatsApp Business Platform route. You acknowledge that the AI-generated responses may not always be perfect and you retain responsibility for monitoring agent performance and ensuring compliance with applicable Meta and WhatsApp policies.
               </p>
               <p>
                 <strong>Meta Relationship:</strong> Dailzero is an independent service provider and is not affiliated with, endorsed by, or a partner of Meta Platforms, Inc. &quot;WhatsApp&quot; and &quot;Meta&quot; are registered trademarks of Meta Platforms, Inc.
@@ -104,10 +104,10 @@ export default function TermsPage() {
               <ul>
                 <li>Be at least 18 years of age</li>
                 <li>Be a registered business owner or authorised representative of a legal entity</li>
-                <li>Have a valid WhatsApp Business account or be willing to set one up</li>
+                <li>Have a WhatsApp or WhatsApp Business number that you are entitled to use for your business</li>
                 <li>Comply with all applicable laws and regulations in your jurisdiction</li>
                 <li>Not be located in a country subject to international sanctions</li>
-                <li>Be eligible to use the WhatsApp Business Platform under Meta&apos;s terms and policies</li>
+                <li>Be eligible to use WhatsApp under Meta&apos;s terms and policies</li>
                 <li>Not have been previously banned or suspended from Meta&apos;s platforms</li>
               </ul>
               <p>
@@ -143,13 +143,13 @@ export default function TermsPage() {
                 <li><strong>Pro Plan:</strong> {formatNaira(PLAN_PRICES.pro)}/month — 100,000 credits, two AI agents, full analytics, priority support</li>
               </ul>
               <p>
-                All fees are stated in Nigerian Naira (NGN) and are exclusive of applicable taxes. Subscriptions renew automatically unless cancelled at least 5 business days before the renewal date. Refunds are not provided for partial billing periods.
+                All fees are stated in Nigerian Naira (NGN) and are exclusive of applicable taxes. Subscriptions renew automatically unless cancelled at least 5 business days before the renewal date. If you are not satisfied, you may request a full refund within 7 days of your first payment for a paid plan. After those 7 days, refunds are not provided for partial billing periods.
               </p>
               <p>
                 We reserve the right to change pricing with 30 days&apos; written notice. Continued use of the Service after a price change constitutes acceptance of the new pricing.
               </p>
               <p>
-                <strong>Note:</strong> WhatsApp Business API usage may attract separate conversation-based fees charged by Meta. These are not included in our subscription pricing and are your responsibility to understand and manage directly with Meta.
+                <strong>Note:</strong> The linked-device route has no Meta message fees. If you use the official WhatsApp Business Platform route, Meta charges its own message fees. These are not included in our subscription pricing and are your responsibility to understand and manage directly with Meta.
               </p>
             </div>
 
@@ -182,7 +182,7 @@ export default function TermsPage() {
             <div className={styles.section} id="meta">
               <h2>7. Meta & WhatsApp Compliance</h2>
               <p>
-                Our Service is built on the WhatsApp Business Platform, which is owned and operated by Meta Platforms, Inc. By using our Service, you acknowledge and agree to the following:
+                Our Service operates on WhatsApp, which is owned and operated by Meta Platforms, Inc. By using our Service, you acknowledge and agree to the following:
               </p>
 
               <h3>7.1 Meta Platform Terms</h3>
@@ -233,7 +233,7 @@ export default function TermsPage() {
 
               <h3>7.6 Business Verification</h3>
               <p>
-                You may be required to complete Meta&apos;s Business Verification process as a condition of using the WhatsApp Business API. You agree to cooperate fully with this process and to provide accurate business information. Failure to complete verification may result in limitations on your messaging capabilities.
+                If you use the official WhatsApp Business Platform route, you may be required to complete Meta&apos;s Business Verification process. You agree to cooperate fully with this process and to provide accurate business information. Failure to complete verification may result in limitations on your messaging capabilities.
               </p>
             </div>
 

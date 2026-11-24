@@ -12,10 +12,10 @@ export const metadata = pageMetadata({
 
 const pillars = [
   { icon: "🔒", title: "Encrypted in Transit", desc: "All data transmitted between your browser and our servers uses TLS 1.3 encryption." },
-  { icon: "🛡️", title: "Secure at Rest", desc: "Your data is stored in encrypted PostgreSQL databases hosted on Neon's secure infrastructure." },
+  { icon: "🛡️", title: "Hosted in Germany", desc: "Account data and conversations are stored in a PostgreSQL database on servers we manage in a German data centre." },
   { icon: "🔑", title: "Access Controls", desc: "Role-based access ensures only authorised personnel can access your business data." },
-  { icon: "🏗️", title: "Secure Infrastructure", desc: "Deployed on Vercel's edge network with automatic DDoS protection and zero-downtime deploys." },
-  { icon: "🔍", title: "Continuous Monitoring", desc: "Our systems are monitored around the clock for unusual activity and potential threats." },
+  { icon: "🏗️", title: "Secure Infrastructure", desc: "The app, the message workers and the database run as separate services, with HTTPS enforced on every endpoint." },
+  { icon: "🔍", title: "Continuous Monitoring", desc: "Errors, failed sends and WhatsApp connection problems are logged per account and reviewed by our team." },
   { icon: "📋", title: "Responsible Disclosure", desc: "We have a clear process for security researchers to report vulnerabilities responsibly." },
 ]
 
@@ -80,8 +80,8 @@ export default function SecurityPage() {
             <div className={styles.section} id="data">
               <h2>2. Data Protection</h2>
               <p><strong>Data in transit:</strong> All communications between clients and our servers are encrypted using TLS 1.3. We enforce HTTPS across all endpoints and redirect HTTP traffic automatically.</p>
-              <p><strong>Data at rest:</strong> Your business data, conversation records, and account information are stored in PostgreSQL databases hosted on Neon&apos;s serverless platform, which provides encryption at rest by default.</p>
-              <p><strong>Password security:</strong> Passwords are never stored in plaintext. We use bcrypt with 12 salt rounds — a widely-accepted standard that makes brute-force attacks computationally expensive.</p>
+              <p><strong>Data at rest:</strong> Your business data, conversation records, and account information are stored in a PostgreSQL database on servers we manage, hosted with Hetzner in Germany. Media files such as product photos, videos and documents are stored with Cloudflare.</p>
+              <p><strong>Password security:</strong> Passwords are never stored in plaintext. We use bcrypt with 12 salt rounds, a widely accepted standard that makes brute-force attacks computationally expensive.</p>
               <p><strong>Sensitive credentials:</strong> API keys, database connection strings, and third-party service tokens are stored as environment variables, never committed to source code.</p>
             </div>
 
@@ -101,34 +101,25 @@ export default function SecurityPage() {
             <div className={styles.section} id="infra">
               <h2>4. Infrastructure Security</h2>
               <p>
-                Our platform runs on <strong>Vercel</strong>, a production-grade hosting platform that provides:
+                Our platform runs on servers hosted with <strong>Hetzner</strong> in Germany. The web application, the WhatsApp message workers and the PostgreSQL database run as separate services.
               </p>
               <ul>
-                <li>Automatic DDoS mitigation and edge-level protection</li>
-                <li>Isolated serverless function execution environments</li>
-                <li>Automatic TLS certificate provisioning and renewal</li>
-                <li>99.99% uptime SLA with global edge distribution</li>
-                <li>Zero-downtime deployments</li>
-              </ul>
-              <p>
-                Our database is hosted on <strong>Neon</strong>, a serverless PostgreSQL provider with:
-              </p>
-              <ul>
-                <li>Encryption at rest using AES-256</li>
-                <li>Automatic backups with point-in-time recovery</li>
-                <li>Network isolation and VPC-level security</li>
-                <li>SOC 2 Type II compliance</li>
+                <li>HTTPS enforced on every endpoint, with TLS certificates issued and renewed automatically</li>
+                <li>Server access limited to our engineering team, using SSH keys</li>
+                <li>Secrets such as API keys and database credentials kept in server environment settings, never in source code</li>
+                <li>Every WhatsApp message queued and sent at a controlled pace for each number</li>
               </ul>
             </div>
 
             <div className={styles.section} id="third-party">
               <h2>5. Third-Party Services</h2>
-              <p>We rely on the following security-vetted third-party providers:</p>
+              <p>We rely on the following third-party providers:</p>
               <ul>
-                <li><strong>ElevenLabs:</strong> Handles AI conversation processing. Data is processed per their enterprise security policies.</li>
-                <li><strong>OpenAI:</strong> Used for generating response guidelines. Data submitted is governed by OpenAI&apos;s data processing terms.</li>
+                <li><strong>Meta / WhatsApp:</strong> Delivers every message. Businesses connect by linking their existing number as a linked device, or through Meta&apos;s WhatsApp Business Platform (Cloud API).</li>
+                <li><strong>OpenAI:</strong> The AI models that write replies, transcribe voice notes and summarise conversations. Data submitted is governed by OpenAI&apos;s API data processing terms.</li>
+                <li><strong>Cloudflare:</strong> Stores and delivers media files with signed, time-limited links.</li>
+                <li><strong>Paystack:</strong> Processes payments. We never see or store full card details.</li>
                 <li><strong>Resend:</strong> Handles transactional emails with TLS-encrypted delivery.</li>
-                <li><strong>UploadThing:</strong> Manages file uploads with access controls and signed URLs.</li>
               </ul>
               <p>
                 All third-party providers are selected based on their security certifications, data processing agreements, and privacy standards.
