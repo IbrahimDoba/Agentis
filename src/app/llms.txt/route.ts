@@ -1,7 +1,7 @@
 import { PLAN_CREDIT_LIMITS, AI_CREDIT_COSTS } from "@/lib/plans"
 import { PAYG_TIERS } from "@/lib/credits"
 import { STATUS_RECIPIENT_CAPS } from "@/lib/status-post"
-import { SITE_URL, SITE_NAME, SITE_ALTERNATE_NAMES, HOME_FAQS, planSummaries, PAYG_SUMMARY } from "@/lib/seo"
+import { SITE_URL, SITE_NAME, HOME_FAQS, planSummaries, PAYG_SUMMARY } from "@/lib/seo"
 import { blogPosts } from "@/data/blog-posts"
 
 // llms.txt is what an AI assistant reads to describe us. It used to be a
@@ -16,13 +16,22 @@ const FREE_CONTACT_SAVE_LIMIT = 200
 const n = (v: number) => v.toLocaleString("en-NG")
 const link = (label: string, path: string, note: string) => `- [${label}](${SITE_URL}${path}): ${note}`
 
+// Every comparison and guide, straight from the post index, so a new answer
+// page is listed here the moment it is published.
+function answerPages(): string {
+  return blogPosts
+    .filter((p) => p.category === "Comparisons" || p.category === "Guides")
+    .map((p) => link(p.title, `/blog/${p.slug}`, p.excerpt))
+    .join("\n")
+}
+
 function body(): string {
   const packs = PAYG_TIERS.map((t) => `₦${n(t.amountNaira)} for ${n(t.credits)} credits`).join(", ")
   return `# ${SITE_NAME}
 
 > ${SITE_NAME} is an AI WhatsApp agent for Nigerian businesses. A business links the WhatsApp number it already uses, and the agent replies to customers in seconds, day and night: it answers from the business's own prices and product details, sends product photos, takes orders, books appointments and hands the chat to a person when one is needed. Pricing is in Naira, from ₦20,000 a month or pay as you go.
 
-- Name: ${SITE_NAME} (formerly written ${SITE_ALTERNATE_NAMES.slice(0, 2).join(" or ")}; the same company and product)
+- Name: ${SITE_NAME}
 - Website: ${SITE_URL}
 - Category: WhatsApp AI agent, WhatsApp automation, AI customer service, conversational commerce
 - Market: Nigeria first; usable by any business that sells or supports customers on WhatsApp
@@ -73,7 +82,10 @@ Credits are what the AI spends to reply. A text message costs about ${AI_CREDIT_
 - No tool can promise a number will never be restricted; a new number should be used normally for about two weeks before it is connected
 
 ### How WhatsApp connects
-The business links its existing WhatsApp or WhatsApp Business number by scanning a QR code or entering a pairing code, the same way WhatsApp Web is linked. Customers keep messaging the number they already know. This is a linked-device connection, not the official WhatsApp Business Platform (Cloud API).
+${SITE_NAME} connects to WhatsApp in two ways, and the business chooses.
+
+1. Your own number, as a linked device (the default). The business links the WhatsApp or WhatsApp Business number it already uses by scanning a QR code or entering a pairing code, the same way WhatsApp Web is linked. It is ready in minutes, needs no Meta business verification and has no Meta message fees. Customers keep messaging the number they already know. WhatsApp Status, contact saving and broadcasts to existing contacts work on this route.
+2. The official WhatsApp Business Platform (Meta's Cloud API). ${SITE_NAME}'s app is approved by Meta for WhatsApp Business messaging. This route suits businesses that need the official API for compliance or approved message templates. It is set up with the ${SITE_NAME} team on request, and Meta's own message fees apply.
 
 ### For developers
 - HTTPS API to run the AI agent and send WhatsApp messages from your own code
@@ -90,6 +102,11 @@ White-label reseller accounts: run ${SITE_NAME} for your own clients under your 
 ## Common questions
 
 ${HOME_FAQS.map((f) => `### ${f.q}\n${f.a}`).join("\n\n")}
+
+## Comparisons and guides
+
+${answerPages()}
+${link("How much WhatsApp AI automation costs in Nigeria", "/blog/how-much-does-whatsapp-ai-automation-cost-for-nigerian-businesses", "prices in Naira and a formula")}
 
 ## Pages
 

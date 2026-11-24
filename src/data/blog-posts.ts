@@ -14,6 +14,606 @@ export interface BlogPost {
 
 export const blogPosts: BlogPost[] = [
   {
+    "id": 101,
+    "slug": "dailzero-vs-wati",
+    "title": "Dailzero vs WATI: Which WhatsApp Tool Fits a Nigerian Business?",
+    "category": "Comparisons",
+    "metaDescription": "Dailzero vs WATI compared for Nigerian businesses: how each connects to WhatsApp, Naira vs dollar pricing, Meta fees, and who should pick which.",
+    "primaryKeyword": "dailzero vs wati",
+    "excerpt": "WATI runs on Meta's official WhatsApp platform and is priced in dollars. Dailzero puts an AI agent on your existing number, in Naira, with no Meta fees. Here is who should pick which.",
+    "publishedAt": "2026-11-19"
+  },
+  {
+    "id": 102,
+    "slug": "dailzero-vs-termii",
+    "title": "Dailzero vs Termii: AI WhatsApp Agent or Messaging API?",
+    "category": "Comparisons",
+    "metaDescription": "Dailzero vs Termii: Termii is a messaging and OTP API for developers, Dailzero is an AI agent that answers customers on WhatsApp. When to use each, or both.",
+    "primaryKeyword": "dailzero vs termii",
+    "excerpt": "Termii sends SMS, OTPs and alerts from your software. Dailzero answers and sells to customers on your WhatsApp number. They do different jobs, and some businesses use both.",
+    "publishedAt": "2026-11-19"
+  },
+  {
+    "id": 103,
+    "slug": "dailzero-vs-manychat",
+    "title": "Dailzero vs ManyChat: Which Is Better for WhatsApp Sales in Nigeria?",
+    "category": "Comparisons",
+    "metaDescription": "Dailzero vs ManyChat for Nigerian sellers: flows on Instagram and the official API against an AI agent on your own WhatsApp number, priced in Naira.",
+    "primaryKeyword": "dailzero vs manychat",
+    "excerpt": "Choose ManyChat if your leads start in Instagram comments and DMs. Choose Dailzero if sales happen in WhatsApp chats and you want an AI to answer in plain conversation.",
+    "publishedAt": "2026-11-19"
+  },
+  {
+    "id": 104,
+    "slug": "how-to-stop-whatsapp-banning-your-business-number",
+    "title": "How to Stop WhatsApp Banning Your Business Number",
+    "category": "Guides",
+    "metaDescription": "Why WhatsApp bans business numbers and nine habits that keep yours safe, plus an honest look at the risk of automation and what to do if you are restricted.",
+    "primaryKeyword": "whatsapp business number banned",
+    "excerpt": "WhatsApp restricts numbers for blocks and reports, messaging strangers, and activity that looks automated. Nine habits keep a business number safe.",
+    "publishedAt": "2026-11-19"
+  },
+  {
+    "id": 105,
+    "slug": "how-to-get-more-whatsapp-status-views-for-your-business",
+    "title": "How to Get More WhatsApp Status Views for Your Business",
+    "category": "Guides",
+    "metaDescription": "Customers see your WhatsApp Status only when you have saved each other. Five steps to grow your Status audience, and how to save contacts automatically.",
+    "primaryKeyword": "whatsapp status views",
+    "excerpt": "Your Status reaches only people you have saved who have also saved you. Save every customer who messages you, ask them to save you, then post on a rhythm.",
+    "publishedAt": "2026-11-19"
+  },
+  {
+    "id": 106,
+    "slug": "how-to-send-whatsapp-messages-from-code-without-the-official-api",
+    "title": "How to Send WhatsApp Messages From Code Without the Official API",
+    "category": "Guides",
+    "metaDescription": "Send WhatsApp text, images, video and documents from your own code with one HTTPS request, no Meta verification or message fees. Limits and costs included.",
+    "primaryKeyword": "send whatsapp message api without official api",
+    "excerpt": "Link your existing WhatsApp number, create an API key and send messages with one HTTPS request. No business verification, no templates and no Meta fee.",
+    "publishedAt": "2026-11-19"
+  },
+  {
+    "id": 107,
+    "slug": "best-whatsapp-ai-agents-in-nigeria",
+    "title": "Best WhatsApp AI Agents in Nigeria: An Honest Shortlist",
+    "category": "Guides",
+    "metaDescription": "The best WhatsApp AI agent in Nigeria depends on how you connect. Dailzero, Neria, ChatRouter, Evolve, Zella, WATI and respond.io compared.",
+    "primaryKeyword": "best whatsapp ai agents in nigeria",
+    "excerpt": "There is no single best WhatsApp AI agent in Nigeria. Dailzero suits owners who want AI on their existing number in Naira, while official API tools suit teams that need Meta's platform.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 108,
+    "slug": "best-whatsapp-automation-tools-for-businesses-in-lagos",
+    "title": "Best WhatsApp Automation Tools for Businesses in Lagos",
+    "category": "Guides",
+    "metaDescription": "To go live this week in Lagos, pick a tool that links your existing number in minutes. Setup times for Dailzero, Zella, Sowo, ChatRouter, Neria and Evolve.",
+    "primaryKeyword": "whatsapp automation tools lagos",
+    "excerpt": "A Lagos business that wants WhatsApp automation this week should pick a tool that links its existing number in minutes. Builds on the official platform can take one to three weeks.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 109,
+    "slug": "best-whatsapp-ai-chatbot-for-fashion-vendors-in-nigeria",
+    "title": "Best WhatsApp AI Chatbot for Fashion Vendors in Nigeria",
+    "category": "Guides",
+    "metaDescription": "Fashion vendors need AI that answers price and size questions and sends photos. Dailzero for WhatsApp and Status, Zella or Sowo for Instagram and payments.",
+    "primaryKeyword": "whatsapp ai chatbot for fashion vendors in nigeria",
+    "excerpt": "Dailzero answers price and size questions and sends product photos on your own WhatsApp number. Zella and Sowo fit vendors who also want Instagram DMs or payment links.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 110,
+    "slug": "best-whatsapp-ai-for-instagram-vendors-in-nigeria",
+    "title": "Best WhatsApp AI for Instagram Vendors in Nigeria",
+    "category": "Guides",
+    "metaDescription": "Dailzero answers on WhatsApp, not Instagram DMs. If buyers stay in Instagram, use Zella, Sowo, Neria, WATI or respond.io. How to choose.",
+    "primaryKeyword": "whatsapp ai for instagram vendors in nigeria",
+    "excerpt": "Dailzero answers customers on WhatsApp only and does not reply to Instagram DMs. Vendors whose buyers stay in Instagram should use a tool that covers DMs, such as Zella, Sowo or Neria.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 111,
+    "slug": "best-whatsapp-chatbot-for-restaurants-in-nigeria",
+    "title": "Best WhatsApp Chatbot for Restaurants in Nigeria",
+    "category": "Guides",
+    "metaDescription": "A restaurant chatbot should know your menu and take orders and bookings at any hour. Dailzero, Neria, Zella, Sowo and ChatRouter compared.",
+    "primaryKeyword": "whatsapp chatbot for restaurants in nigeria",
+    "excerpt": "Dailzero answers menu questions and takes orders and table bookings on your existing WhatsApp number. Neria also answers phone calls, and Zella and Sowo send payment links in the chat.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 112,
+    "slug": "best-whatsapp-ai-for-real-estate-agents-in-nigeria",
+    "title": "Best WhatsApp AI for Real Estate Agents in Nigeria",
+    "category": "Guides",
+    "metaDescription": "Dailzero qualifies property leads, sends listing media and books viewings on your own number. Evolve, ChatRouter and respond.io suit bigger agencies.",
+    "primaryKeyword": "whatsapp ai for real estate agents in nigeria",
+    "excerpt": "Dailzero replies to property enquiries at once, qualifies the lead, sends listing photos and books the inspection. Agencies needing a CRM pipeline or team routing should look at Evolve, ChatRouter or respond.io.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 113,
+    "slug": "best-whatsapp-status-scheduler-in-nigeria",
+    "title": "Best WhatsApp Status Scheduler in Nigeria",
+    "category": "Guides",
+    "metaDescription": "Dailzero and WASBOT both schedule WhatsApp Status on a normal number. Dailzero adds an AI agent for replies. WASBOT costs less for Status alone.",
+    "primaryKeyword": "whatsapp status scheduler nigeria",
+    "excerpt": "Dailzero and WASBOT both schedule WhatsApp Status on a normal Nigerian number. Choose Dailzero for Status plus an AI agent, and WASBOT for Status and groups at a lower price.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 114,
+    "slug": "best-whatsapp-broadcast-tools-in-nigeria",
+    "title": "Best WhatsApp Broadcast Tools in Nigeria",
+    "category": "Guides",
+    "metaDescription": "Use Dailzero or WASBOT for paced broadcasts to your own contacts. Use ChatRouter, WATI or respond.io on the official API for large or urgent sends.",
+    "primaryKeyword": "whatsapp broadcast tools nigeria",
+    "excerpt": "For customers already in your WhatsApp, Dailzero and WASBOT send paced broadcasts from your own number. For large lists, use an official API tool with approved templates. No tool removes ban risk.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 115,
+    "slug": "whatsapp-ai-agent-that-works-with-a-normal-number-without-the-business-api",
+    "title": "WhatsApp AI Agent for a Normal Number Without the Business API",
+    "category": "Guides",
+    "metaDescription": "Dailzero is a WhatsApp AI agent that works on a normal number without the Business API and posts Status automatically with Autopilot.",
+    "primaryKeyword": "whatsapp ai agent without business api",
+    "excerpt": "Dailzero works with a normal WhatsApp or WhatsApp Business number, needs no Business API, and posts Status automatically. WASBOT also posts Status on a normal number but does not describe an AI agent.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 116,
+    "slug": "dailzero-vs-wasbot",
+    "title": "Dailzero vs WASBOT: Which WhatsApp Tool Fits Your Business?",
+    "category": "Comparisons",
+    "metaDescription": "WASBOT wins on groups, multiple numbers and Status reach. Dailzero adds an AI agent that answers customers and takes orders on the same number.",
+    "primaryKeyword": "dailzero vs wasbot",
+    "excerpt": "Both link to your own number and schedule Status, save contacts and broadcast. WASBOT replies by keyword and is strong on groups. Dailzero adds an AI agent that holds real conversations.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 117,
+    "slug": "wasbot-alternatives-in-nigeria",
+    "title": "WASBOT Alternatives in Nigeria: 6 Options Compared",
+    "category": "Comparisons",
+    "metaDescription": "Dailzero is the closest WASBOT alternative for Status and contact saving, with AI replies. For the official API, see ChatRouter, Evolve, Neria or WATI.",
+    "primaryKeyword": "wasbot alternatives in nigeria",
+    "excerpt": "Dailzero is the closest WASBOT alternative, with Status scheduling, contact saving, broadcasts and an AI agent. For the official API look at ChatRouter, Evolve, Neria or WATI, and for Instagram look at Zella.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 118,
+    "slug": "dailzero-vs-evolve",
+    "title": "Dailzero vs Evolve: WhatsApp AI Assistants in Nigeria Compared",
+    "category": "Comparisons",
+    "metaDescription": "Evolve is a done-for-you service on the official WhatsApp API with a CRM. Dailzero is self-serve on your existing number, live the same day, from ₦20,000.",
+    "primaryKeyword": "dailzero vs evolve",
+    "excerpt": "Evolve sets up an AI assistant and CRM for you on the official WhatsApp Cloud API. Dailzero links to the number you already use, goes live the same day and has no Meta fees on its default route.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 119,
+    "slug": "dailzero-vs-neria",
+    "title": "Dailzero vs Neria: Which WhatsApp AI Agent Should You Choose?",
+    "category": "Comparisons",
+    "metaDescription": "Neria uses the official WhatsApp platform, charges per chat and adds phone calls. Dailzero links your own number and adds Status tools.",
+    "primaryKeyword": "dailzero vs neria",
+    "excerpt": "Neria runs on Meta's official platform, sells packs of chats and offers phone call agents. Dailzero links to your existing number, charges credits per message and adds Status scheduling and contact saving.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 120,
+    "slug": "dailzero-vs-chatrouter",
+    "title": "Dailzero vs ChatRouter: AI Agent or Flow Builder?",
+    "category": "Comparisons",
+    "metaDescription": "ChatRouter offers flows, routing and a team inbox on the official WhatsApp API. Dailzero is an AI agent on your existing number with nothing to build.",
+    "primaryKeyword": "dailzero vs chatrouter",
+    "excerpt": "ChatRouter is built on the official WhatsApp Cloud API with a bot builder, routing and a team inbox. Dailzero is an AI agent that links to your existing number and answers without flows to build.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 121,
+    "slug": "dailzero-vs-respond-io",
+    "title": "Dailzero vs Respond.io: Which Suits a Nigerian Business?",
+    "category": "Comparisons",
+    "metaDescription": "Respond.io is a multi-channel team inbox priced in dollars. Dailzero is an AI WhatsApp agent on your own number, priced in Naira with no Meta fees.",
+    "primaryKeyword": "dailzero vs respond.io",
+    "excerpt": "Respond.io suits teams handling WhatsApp, Instagram, Messenger, TikTok, email and calls in one inbox, billed in dollars. Dailzero suits owners and small teams who sell mainly on WhatsApp and pay in Naira.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 122,
+    "slug": "dailzero-vs-zella",
+    "title": "Dailzero vs Zella: Nigerian WhatsApp AI Sales Assistants Compared",
+    "category": "Comparisons",
+    "metaDescription": "Zella covers WhatsApp and Instagram DMs with receipts and low entry plans. Dailzero gives more volume, Status scheduling and no overage fees.",
+    "primaryKeyword": "dailzero vs zella",
+    "excerpt": "Zella covers WhatsApp and Instagram DMs with automatic receipts and low monthly plans. Dailzero focuses on WhatsApp with larger volumes, Status scheduling, contact saving and no overage fees.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 123,
+    "slug": "wati-alternatives-in-nigeria",
+    "title": "WATI Alternatives in Nigeria: 6 Options Compared",
+    "category": "Comparisons",
+    "metaDescription": "WATI alternatives in Nigeria: Dailzero for an AI agent on your own number in Naira, ChatRouter, Evolve or Neria for the official API, respond.io for teams.",
+    "primaryKeyword": "wati alternatives in nigeria",
+    "excerpt": "The main WATI alternatives in Nigeria are Dailzero, Neria, Zella, ChatRouter, Evolve and respond.io. Dailzero fits businesses leaving dollar pricing and Meta fees, and the others suit those who still need the official API.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 124,
+    "slug": "whatsapp-business-api-providers-in-nigeria-compared",
+    "title": "WhatsApp Business API Providers in Nigeria Compared",
+    "category": "Comparisons",
+    "metaDescription": "The kinds of WhatsApp Business API provider a Nigerian business can choose: Meta directly, developer platforms, team inboxes and local providers.",
+    "primaryKeyword": "whatsapp business api providers in nigeria",
+    "excerpt": "A WhatsApp Business API provider connects you to Meta's official platform and supplies the software to use it. Nigerian businesses can choose Meta directly, developer platforms, team inbox platforms or local providers, and Dailzero offers both the official route and a linked device.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 125,
+    "slug": "whatsapp-chatbot-price-in-nigeria",
+    "title": "WhatsApp Chatbot Price in Nigeria: What Each Type Costs",
+    "category": "Guides",
+    "metaDescription": "A WhatsApp chatbot in Nigeria costs ₦0 for basic app tools, ₦20,000 to ₦75,000 a month for an AI agent, and more for official API or custom builds.",
+    "primaryKeyword": "whatsapp chatbot price in nigeria",
+    "excerpt": "A WhatsApp chatbot in Nigeria costs from ₦0 for the free tools in the WhatsApp Business app to ₦20,000 to ₦75,000 a month for an AI agent. Official API platforms and custom builds cost more.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 126,
+    "slug": "dailzero-pricing-explained",
+    "title": "Dailzero Pricing Explained: Plans, Credits and Pay As You Go",
+    "category": "Guides",
+    "metaDescription": "Dailzero costs ₦20,000 (Basic), ₦40,000 (Starter) or ₦75,000 (Pro) a month, or pay as you go from ₦1,000. 7-day free trial and no overage fees.",
+    "primaryKeyword": "dailzero pricing",
+    "excerpt": "Dailzero has three monthly plans in Naira, Basic at ₦20,000, Starter at ₦40,000 and Pro at ₦75,000, plus pay as you go from ₦1,000. There are no overage fees.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 127,
+    "slug": "what-are-dailzero-credits-and-how-far-do-they-go",
+    "title": "What Are Dailzero Credits and How Far Do They Go?",
+    "category": "Guides",
+    "metaDescription": "A Dailzero AI text reply uses about 5 credits, an image 8 and a video 12. 1,000 credits is about 200 replies. See three worked examples.",
+    "primaryKeyword": "dailzero credits",
+    "excerpt": "Dailzero credits are what your AI agent spends to work on WhatsApp. A text reply uses about 5 credits, an image 8 and a video 12, so 25,000 credits is about 5,000 replies.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 128,
+    "slug": "whatsapp-business-api-cost-in-nigeria",
+    "title": "WhatsApp Business API Cost in Nigeria: Meta Fees Explained",
+    "category": "Guides",
+    "metaDescription": "On the WhatsApp Business API you pay Meta per delivered message, by category and country code, plus a provider fee. Meta does not bill in Naira.",
+    "primaryKeyword": "whatsapp business api cost in nigeria",
+    "excerpt": "On the official WhatsApp Business Platform you pay Meta per delivered message, by category and recipient country code, plus your provider's own fee. Dailzero's linked-device route has no Meta fees.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 129,
+    "slug": "cheapest-way-to-automate-whatsapp-replies-in-nigeria",
+    "title": "The Cheapest Way to Automate WhatsApp Replies in Nigeria",
+    "category": "Guides",
+    "metaDescription": "The cheapest way is free: WhatsApp Business greeting, away message and quick replies. The cheapest AI step up is pay as you go from ₦1,000.",
+    "primaryKeyword": "cheapest way to automate whatsapp replies in nigeria",
+    "excerpt": "The cheapest way to automate WhatsApp replies is free, using the greeting message, away message and quick replies in the WhatsApp Business app. The cheapest AI option is pay as you go from ₦1,000.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 130,
+    "slug": "pay-as-you-go-whatsapp-ai-in-nigeria",
+    "title": "Pay As You Go WhatsApp AI in Nigeria: Packs and Who It Suits",
+    "category": "Guides",
+    "metaDescription": "Dailzero pay as you go packs run from ₦1,000 for 600 credits to ₦200,000 for 140,000, valid 12 months, no subscription. Suits low or seasonal volume.",
+    "primaryKeyword": "pay as you go whatsapp ai nigeria",
+    "excerpt": "Pay as you go WhatsApp AI means buying credits with no subscription. Dailzero packs run from ₦1,000 for 600 credits to ₦200,000 for 140,000 credits, valid for 12 months.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 131,
+    "slug": "whatsapp-ai-agent-vs-virtual-assistant-cost-in-nigeria",
+    "title": "WhatsApp AI Agent vs Virtual Assistant Cost in Nigeria",
+    "category": "Guides",
+    "metaDescription": "A WhatsApp AI agent costs ₦20,000 to ₦75,000 a month on Dailzero. Use this formula to compare it per chat with your own virtual assistant's cost.",
+    "primaryKeyword": "whatsapp ai agent vs virtual assistant cost nigeria",
+    "excerpt": "A WhatsApp AI agent usually costs less per chat than a virtual assistant, but a person still wins on complaints, judgement and work outside WhatsApp. Use the formula to compare with your own figures.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 132,
+    "slug": "is-a-free-whatsapp-chatbot-enough-for-your-business",
+    "title": "Is a Free WhatsApp Chatbot Enough for Your Business?",
+    "category": "Guides",
+    "metaDescription": "Yes, if you get a few simple chats a day and reply within the hour. No, if customers ask specific prices, message at night or come in bursts.",
+    "primaryKeyword": "free whatsapp chatbot for business",
+    "excerpt": "A free WhatsApp chatbot is enough for a few simple chats a day. It is not enough once customers ask specific prices, message at night or arrive faster than you can answer.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 133,
+    "slug": "dailzero-free-trial-what-you-get",
+    "title": "Dailzero Free Trial: What You Get in 7 Days",
+    "category": "Guides",
+    "metaDescription": "The Dailzero free trial is 7 days with 1,000 credits (about 200 AI replies), 1 agent and up to 200 saved contacts. No card, no automatic charge.",
+    "primaryKeyword": "dailzero free trial",
+    "excerpt": "The Dailzero free trial lasts 7 days and includes 1,000 credits, 1 AI agent and up to 200 saved contacts. When it ends the agent stops replying until you choose a plan or buy credits.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 134,
+    "slug": "what-is-dailzero",
+    "title": "What Is Dailzero? The AI WhatsApp Agent Explained",
+    "category": "Guides",
+    "metaDescription": "Dailzero is an AI WhatsApp agent for Nigerian businesses. It replies on your own number, takes orders and costs from ₦20,000 a month or pay as you go.",
+    "primaryKeyword": "what is dailzero",
+    "excerpt": "Dailzero is an AI WhatsApp agent for Nigerian businesses. It replies to customers in seconds on your own number, takes orders and books appointments, from ₦20,000 a month or pay as you go.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 135,
+    "slug": "is-dailzero-legit-and-safe",
+    "title": "Is Dailzero Legit and Safe? What You Can Check Yourself",
+    "category": "Guides",
+    "metaDescription": "Dailzero is a real Nigerian product you can test free for 7 days without a card. It is young, with no review-site ratings yet. Here is what to check.",
+    "primaryKeyword": "is dailzero legit",
+    "excerpt": "Dailzero is a real, working product you can test free for 7 days without card details. It is young and has no public review-site ratings yet, so here are eight things you can verify yourself.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 136,
+    "slug": "how-dailzero-connects-to-whatsapp",
+    "title": "How Dailzero Connects to WhatsApp: The Two Routes",
+    "category": "Guides",
+    "metaDescription": "Dailzero connects two ways: as a linked device by QR or pairing code (the default), or through the official WhatsApp Business Platform on request.",
+    "primaryKeyword": "how dailzero connects to whatsapp",
+    "excerpt": "Dailzero connects to WhatsApp in two ways: as a linked device by QR code or pairing code, which is the default, or through the official WhatsApp Business Platform, set up with the team on request.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 137,
+    "slug": "is-it-safe-to-connect-an-ai-to-your-whatsapp-number",
+    "title": "Is It Safe to Connect an AI to Your WhatsApp Number?",
+    "category": "Guides",
+    "metaDescription": "It is reasonably safe when the AI replies to customers who wrote first and sends at a human pace. The real risks are restriction, wrong answers and data.",
+    "primaryKeyword": "is it safe to connect ai to whatsapp",
+    "excerpt": "Connecting an AI to your WhatsApp number is reasonably safe when it mostly replies to customers who wrote first and sends at a human pace. It is not risk free, and this guide covers the three real risks.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 138,
+    "slug": "official-whatsapp-api-vs-linked-device-which-should-you-use",
+    "title": "Official WhatsApp API vs Linked Device: Which Should You Use?",
+    "category": "Guides",
+    "metaDescription": "Use the official WhatsApp API for compliance, templates and the lowest risk. Use a linked device to automate your existing number fast with no Meta fees.",
+    "primaryKeyword": "official whatsapp api vs linked device",
+    "excerpt": "Use the official WhatsApp API if you need compliance, approved templates or the lowest risk to your number. Use a linked device if you want to automate your existing number quickly with no Meta fees.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 139,
+    "slug": "what-happens-to-your-chats-and-customer-data-on-dailzero",
+    "title": "What Happens to Your Chats and Customer Data on Dailzero",
+    "category": "Guides",
+    "metaDescription": "Dailzero keeps chat transcripts for up to 12 months, does not sell data or use it for adverts, and deletes on request within 30 days of verification.",
+    "primaryKeyword": "dailzero data privacy",
+    "excerpt": "Dailzero keeps conversation transcripts for up to 12 months, then deletes or anonymises them. It does not sell data or use it for advertising, and you can request deletion at any time.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 140,
+    "slug": "can-you-use-dailzero-outside-nigeria",
+    "title": "Can You Use Dailzero Outside Nigeria?",
+    "category": "Guides",
+    "metaDescription": "Yes, any business on WhatsApp can link a number to Dailzero. It is built for Nigeria first and billed in Naira, so check payment with support first.",
+    "primaryKeyword": "dailzero outside nigeria",
+    "excerpt": "Yes, in most cases. Dailzero is built for Nigeria first and billed in Naira, but any business that serves customers on WhatsApp can link a number. Check payment with support before you subscribe.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 141,
+    "slug": "does-dailzero-work-with-whatsapp-business-and-normal-whatsapp",
+    "title": "Does Dailzero Work With WhatsApp Business and Normal WhatsApp?",
+    "category": "Guides",
+    "metaDescription": "Yes. Dailzero works with both WhatsApp Business and normal WhatsApp. You link your existing number by QR code or pairing code, like WhatsApp Web.",
+    "primaryKeyword": "does dailzero work with whatsapp business",
+    "excerpt": "Yes. Dailzero works with both WhatsApp Business and normal WhatsApp. You link the number you already use by QR code or pairing code, and your phone keeps working as before.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 142,
+    "slug": "what-dailzero-cannot-do",
+    "title": "What Dailzero Cannot Do, and What to Use Instead",
+    "category": "Guides",
+    "metaDescription": "Dailzero has no verified badge or templates on its linked-device route, no Instagram DMs and one number per agent. Here is what to use instead.",
+    "primaryKeyword": "dailzero limitations",
+    "excerpt": "Dailzero offers no verified badge or approved templates on its linked-device route, does not answer Instagram DMs and runs one number per agent. Here is each limit and what to use instead.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 143,
+    "slug": "how-to-schedule-whatsapp-status-posts",
+    "title": "How to Schedule WhatsApp Status Posts",
+    "category": "Guides",
+    "metaDescription": "WhatsApp has no Status scheduler. Post by hand with reminders, or in Dailzero open Status, Posts, tick Schedule for later and pick a time.",
+    "primaryKeyword": "how to schedule whatsapp status",
+    "excerpt": "WhatsApp cannot schedule a Status by itself. Post by hand with phone reminders, or use Dailzero's Posts tab and tick \"Schedule for later\" to set a date and time.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 144,
+    "slug": "how-to-put-your-whatsapp-status-on-autopilot",
+    "title": "How to Put Your WhatsApp Status on Autopilot",
+    "category": "Guides",
+    "metaDescription": "Fill a gallery, tag your posts, pick or describe a plan and approve it. Dailzero Autopilot posts up to 6 times a day, at least 2 hours apart.",
+    "primaryKeyword": "whatsapp status autopilot",
+    "excerpt": "Autopilot posts your own photos, videos and text from a gallery on a plan you approve. In Dailzero it posts at most 6 times a day, at least 2 hours apart.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 145,
+    "slug": "how-to-save-all-your-whatsapp-contacts-automatically",
+    "title": "How to Save All Your WhatsApp Contacts Automatically",
+    "category": "Guides",
+    "metaDescription": "WhatsApp does not save new chats for you. Save them by hand, or use Dailzero's Contacts tab to save every chat for 1 credit per contact.",
+    "primaryKeyword": "save whatsapp contacts automatically",
+    "excerpt": "WhatsApp does not save the people who message you, and unsaved numbers cannot see your Status. Dailzero's Contacts tab saves every chat to your phone for 1 credit each.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 146,
+    "slug": "how-to-see-who-viewed-your-whatsapp-status",
+    "title": "How to See Who Viewed Your WhatsApp Status",
+    "category": "Guides",
+    "metaDescription": "Open Updates, tap My status, then the eye icon. The list lasts 24 hours and misses people with read receipts off, so real views are higher.",
+    "primaryKeyword": "how to see who viewed my whatsapp status",
+    "excerpt": "Open Updates, tap My status and tap the eye icon to see your viewers. The list lasts 24 hours and leaves out anyone with read receipts off, so it is a minimum.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 147,
+    "slug": "how-to-send-a-whatsapp-broadcast-without-getting-banned",
+    "title": "How to Send a WhatsApp Broadcast Without Getting Banned",
+    "category": "Guides",
+    "metaDescription": "Message only people who already chat with you, spread sends over hours, personalise and offer an opt out. No method removes the risk fully.",
+    "primaryKeyword": "send whatsapp broadcast without getting banned",
+    "excerpt": "Broadcast only to people who already chat with you, in paced batches, with personal messages and an opt out. That lowers the risk, but no method removes it completely.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 148,
+    "slug": "how-to-take-orders-on-whatsapp-automatically",
+    "title": "How to Take Orders on WhatsApp Automatically",
+    "category": "Guides",
+    "metaDescription": "Use WhatsApp Business catalogue, cart and quick replies for free, or put an AI agent on your number to answer, send photos and collect orders.",
+    "primaryKeyword": "take orders on whatsapp automatically",
+    "excerpt": "WhatsApp Business gives you a catalogue, cart and quick replies for free. An AI agent such as Dailzero goes further: it answers from your prices, sends photos and collects the order details.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 149,
+    "slug": "how-to-book-appointments-on-whatsapp-automatically",
+    "title": "How to Book Appointments on WhatsApp Automatically",
+    "category": "Guides",
+    "metaDescription": "WhatsApp Business cannot book for you. In Dailzero, switch on AI auto-booking and the agent books once the customer confirms a date and time.",
+    "primaryKeyword": "book appointments on whatsapp automatically",
+    "excerpt": "WhatsApp Business cannot agree a time or record a booking by itself. With Dailzero's AI auto-booking, the agent books in the chat once the customer confirms an exact date and time.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 150,
+    "slug": "how-to-make-ai-answer-replies-to-your-whatsapp-status",
+    "title": "How to Make AI Answer Replies to Your WhatsApp Status",
+    "category": "Guides",
+    "metaDescription": "A Status reply arrives as a normal chat. In Dailzero, fill in \"Tell the AI about this post\" and the agent answers with the right details.",
+    "primaryKeyword": "ai reply to whatsapp status",
+    "excerpt": "A reply to your Status arrives as a normal chat with the Status quoted. In Dailzero you add a note under \"Tell the AI about this post\" and the agent answers each reply from it.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 151,
+    "slug": "how-to-connect-click-to-whatsapp-ads-to-an-ai-agent",
+    "title": "How to Connect Click to WhatsApp Ads to an AI Agent",
+    "category": "Guides",
+    "metaDescription": "Point the ad at a number with an AI agent on it. Dailzero reads the ad's headline and description, so the agent greets about that product.",
+    "primaryKeyword": "click to whatsapp ads ai agent",
+    "excerpt": "Point your Click-to-WhatsApp ad at a number with an AI agent on it. Dailzero captures the ad's headline and description, so the agent greets the customer about the product they clicked.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 152,
+    "slug": "what-to-look-for-in-a-whatsapp-ai-agent-in-nigeria",
+    "title": "What to Look for in a WhatsApp AI Agent in Nigeria",
+    "category": "Guides",
+    "metaDescription": "Check eight things: connection method, answers from your prices, human handover, Naira cost, voice notes, number safety, data handling and a trial.",
+    "primaryKeyword": "what to look for in a whatsapp ai agent in nigeria",
+    "excerpt": "Check eight things on any vendor: connection method, answers from your own prices, human handover, total Naira cost, voice notes and images, number safety, data handling and a trial.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 153,
+    "slug": "how-to-set-up-a-whatsapp-ai-agent-in-one-day",
+    "title": "How to Set Up a WhatsApp AI Agent in One Day",
+    "category": "Guides",
+    "metaDescription": "Link your existing number, check the prices the agent will use, test from a second phone and go live. About two to three hours of work in one day.",
+    "primaryKeyword": "how to set up a whatsapp ai agent",
+    "excerpt": "You can be live in one day with a tool that links to your existing number. Most of the time goes into checking your prices and testing, not the connection.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 154,
+    "slug": "whatsapp-ai-agent-vs-keyword-chatbot",
+    "title": "WhatsApp AI Agent vs Keyword Chatbot: Which Do You Need?",
+    "category": "Guides",
+    "metaDescription": "A keyword chatbot replies to words you listed. An AI agent understands the whole message and answers from your details. See when each one is enough.",
+    "primaryKeyword": "whatsapp ai agent vs keyword chatbot",
+    "excerpt": "A keyword chatbot matches words you listed. An AI agent reads the whole message and answers from your business details. A keyword bot is enough for a few fixed questions.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 155,
+    "slug": "can-a-whatsapp-ai-understand-pidgin-and-voice-notes",
+    "title": "Can a WhatsApp AI Understand Pidgin and Voice Notes?",
+    "category": "Guides",
+    "metaDescription": "Usually yes for typed Pidgin, and voice notes work when the tool transcribes them. Results vary by accent and noise, so test with your own customers.",
+    "primaryKeyword": "whatsapp ai pidgin and voice notes",
+    "excerpt": "A modern WhatsApp AI agent can usually read typed Pidgin and can handle voice notes by transcribing them first. Results vary, so test with your own customers' messages.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 156,
+    "slug": "how-to-hand-over-from-ai-to-a-human-on-whatsapp",
+    "title": "How to Hand Over From AI to a Human on WhatsApp",
+    "category": "Guides",
+    "metaDescription": "Reply in the chat from the dashboard or your phone and the AI pauses on that one conversation. Switch it back to AI when you are done.",
+    "primaryKeyword": "hand over from ai to human on whatsapp",
+    "excerpt": "A person replies in the chat and the AI stops on that customer. On Dailzero you can reply from the dashboard or your phone, and other chats keep getting AI replies.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 157,
+    "slug": "whatsapp-ai-for-schools-and-online-trainers-in-nigeria",
+    "title": "WhatsApp AI for Schools and Online Trainers in Nigeria",
+    "category": "Guides",
+    "metaDescription": "An AI agent answers fees, admission and course questions in seconds, records enquiries and books visits. It does not replace your portal or staff.",
+    "primaryKeyword": "whatsapp ai for schools in nigeria",
+    "excerpt": "A WhatsApp AI agent answers fee, admission and course enquiries from your own details, records leads and books visits. It does not replace your school portal or staff.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 158,
+    "slug": "whatsapp-ai-for-logistics-and-dispatch-companies-in-nigeria",
+    "title": "WhatsApp AI for Logistics and Dispatch Companies in Nigeria",
+    "category": "Guides",
+    "metaDescription": "An AI agent quotes from your rate card, takes pickup requests and hands problems to dispatch. Live tracking needs your own system connected by API.",
+    "primaryKeyword": "whatsapp ai for logistics companies in nigeria",
+    "excerpt": "A WhatsApp AI agent can quote from your rate card, take pickup requests and hand problems to a dispatcher. Live tracking answers need your own tracking system connected through an API.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 159,
+    "slug": "how-to-test-a-whatsapp-ai-agent-before-customers-see-it",
+    "title": "How to Test a WhatsApp AI Agent Before Customers See It",
+    "category": "Guides",
+    "metaDescription": "Message your business number from a second phone, ask 20 questions across six types and score each answer. A made-up price is an automatic fail.",
+    "primaryKeyword": "how to test a whatsapp ai agent",
+    "excerpt": "Message your business number from a second phone, ask 20 customer questions across six types and score each answer out of 2. Any invented price or failed handover is a fail.",
+    "publishedAt": "2026-11-24"
+  },
+  {
+    "id": 160,
+    "slug": "questions-to-ask-before-paying-for-a-whatsapp-ai-agent",
+    "title": "12 Questions to Ask Before Paying for a WhatsApp AI Agent",
+    "category": "Guides",
+    "metaDescription": "Ask how it connects to WhatsApp, the total Naira cost, where answers come from, how a human takes over, and what happens to your number and data.",
+    "primaryKeyword": "questions to ask before paying for a whatsapp ai agent",
+    "excerpt": "Ask 12 questions covering connection method, total cost, source of answers, human handover, number safety and data. A good vendor answers each one plainly and in writing.",
+    "publishedAt": "2026-11-24"
+  },
+  {
     "id": 1,
     "slug": "how-nigerian-fintechs-can-automate-customer-support-on-whatsapp",
     "title": "How Nigerian Fintechs Can Automate Customer Support on WhatsApp",

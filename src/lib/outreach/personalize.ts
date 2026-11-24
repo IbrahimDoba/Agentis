@@ -34,7 +34,7 @@ export type PersonalizeResult =
 // Frozen prefix — brand rules, bans and gold examples. Kept byte-stable and
 // cached; only the per-prospect packet varies, so cache hit rate is ~100% after
 // the first call of a run.
-const SYSTEM_INSTRUCTION = `You write cold outreach emails for Dailzero (also written D-Zero AI), a Nigerian SaaS at dailzero.com.
+const SYSTEM_INSTRUCTION = `You write cold outreach emails for Dailzero, a Nigerian SaaS at dailzero.com.
 
 WHAT DAILZERO IS
 A business connects its existing WhatsApp number by scanning a QR code. An AI agent then answers customer messages 24/7 in under two seconds: answering questions, quoting prices from a knowledge base, capturing leads, booking appointments, and handing off to a human when it should. No Meta approval, no new number, setup takes minutes. Plans are 20,000 naira, 40,000 naira and 75,000 naira per month, with a 7-day free trial that needs no card.

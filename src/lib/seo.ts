@@ -7,9 +7,6 @@ import { PAYG_DEFAULT_NGN_PER_CREDIT, PAYG_TIERS, CREDIT_EXPIRY_MONTHS } from "@
 // canonical each page exists twice; www is the host the sitemap and ads use.
 export const SITE_URL = "https://www.dailzero.com"
 export const SITE_NAME = "Dailzero"
-// Earlier names still in circulation. Listed as alternates so mentions under
-// them are credited to the same company instead of a second one.
-export const SITE_ALTERNATE_NAMES = ["D-Zero AI", "DZero AI", "Dail Zero"]
 export const SITE_TAGLINE = "AI WhatsApp agent for Nigerian businesses"
 export const SITE_DESCRIPTION =
   "Dailzero is an AI WhatsApp agent for Nigerian businesses. It replies to customers in seconds on your own number and takes orders. From ₦20,000 a month."
@@ -102,6 +99,10 @@ export const HOME_FAQS: Faq[] = [
     a: "Yes. You link the WhatsApp or WhatsApp Business number you already use by scanning a QR code or entering a pairing code, the same way you link WhatsApp Web. Your customers keep messaging the number they already know.",
   },
   {
+    q: "Does Dailzero use the official WhatsApp API?",
+    a: "Dailzero connects in two ways. Most businesses link the number they already use, by QR code or pairing code like WhatsApp Web, with no Meta verification and no Meta message fees. Businesses that need the official WhatsApp Business Platform (Meta's Cloud API) can be set up on it with the Dailzero team: Dailzero's app is approved by Meta for WhatsApp Business messaging, and Meta's own message fees apply on that route.",
+  },
+  {
     q: "Will using an AI agent get my WhatsApp number banned?",
     a: "Dailzero is built to keep that risk low: every message is queued and sent at a human pace, new numbers go through a warm-up period, and sending slows down automatically when WhatsApp signals a limit. No tool can promise a number will never be restricted, so we recommend using a new number normally for about two weeks before connecting it.",
   },
@@ -128,7 +129,6 @@ function organization() {
     "@type": "Organization",
     "@id": ORG_ID,
     name: SITE_NAME,
-    alternateName: SITE_ALTERNATE_NAMES,
     url: `${SITE_URL}/`,
     logo: `${SITE_URL}/logo-removed-bg.png`,
     description: SITE_DESCRIPTION,
@@ -150,7 +150,6 @@ function website() {
     "@type": "WebSite",
     "@id": WEBSITE_ID,
     name: SITE_NAME,
-    alternateName: SITE_ALTERNATE_NAMES,
     url: `${SITE_URL}/`,
     inLanguage: "en-NG",
     publisher: { "@id": ORG_ID },
@@ -162,7 +161,6 @@ function software() {
     "@type": "SoftwareApplication",
     "@id": APP_ID,
     name: SITE_NAME,
-    alternateName: SITE_ALTERNATE_NAMES,
     applicationCategory: "BusinessApplication",
     applicationSubCategory: "WhatsApp AI agent",
     operatingSystem: "Web",

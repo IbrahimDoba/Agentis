@@ -360,7 +360,7 @@
     "tag": "New",
     "tagColor": "green",
     "title": "Document Knowledge Base (RAG)",
-    "description": "Upload PDFs, Word documents, and text files to your DZero AI agent. The agent reads, chunks, and indexes them automatically — then answers customer questions using your exact content.",
+    "description": "Upload PDFs, Word documents, and text files to your Dailzero agent. The agent reads, chunks, and indexes them automatically — then answers customer questions using your exact content.",
     "bullets": [
       "Upload PDF, DOCX, or TXT files directly from the Documents tab",
       "Files are chunked and embedded with OpenAI text-embedding-3-small",
@@ -406,7 +406,7 @@
     "date": "21 April 2026",
     "tag": "New",
     "tagColor": "green",
-    "title": "DZero AI Messaging Engine",
+    "title": "Dailzero Messaging Engine",
     "description": "A new AI runtime powers text-based WhatsApp conversations end to end — no voice required. The agent reads incoming messages, builds context from memory, and replies instantly using GPT-4o-mini.",
     "bullets": [
       "Fully autonomous text replies over WhatsApp Web",
