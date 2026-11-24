@@ -1,6 +1,6 @@
 import Link from "next/link"
 import {
-  ArrowRight, BookOpen, Code2, Globe, Hand, Megaphone, Plus, ShieldCheck, UserPlus, Users,
+  ArrowRight, BookOpen, CalendarCheck, Check, Code2, Eye, Globe, Hand, Megaphone, Mic, Plus, ShieldCheck, UserCheck, UserPlus, Users,
 } from "lucide-react"
 import { PLAN_PRICES, PLAN_PRICES_USD, PLAN_CREDIT_LIMITS, estimatedAiMessages } from "@/lib/plans"
 import { STATUS_RECIPIENT_CAPS } from "@/lib/status-post"
@@ -58,6 +58,10 @@ const CAPABILITIES = [
   { icon: Globe, name: "Website chat", desc: "Add one line to your site and the same AI talks to visitors there too." },
   { icon: Hand, name: "Take over anytime", desc: "Reply from your phone or the dashboard and the AI pauses for that chat." },
   { icon: Users, name: "Team workspaces", desc: "Several numbers and staff in one workspace, each with the right access." },
+  { icon: UserCheck, name: "Contact saving", desc: "Saves everyone who messages you, so they can see your Status." },
+  { icon: Eye, name: "Status analytics", desc: "See who received, viewed, liked and replied to every Status post." },
+  { icon: Mic, name: "Voice notes and photos", desc: "Understands the voice notes and pictures your customers send." },
+  { icon: CalendarCheck, name: "Appointments", desc: "Books appointments in the chat and keeps them in your dashboard." },
   { icon: UserPlus, name: "Referrals", desc: "Bring other businesses on board and earn credit when they subscribe." },
 ]
 
@@ -243,6 +247,65 @@ export function Steps() {
         </Reveal>
         <Link href="/how-it-works" className={styles.textLink}>
           How it works in detail
+          <ArrowRight size={16} aria-hidden="true" />
+        </Link>
+      </div>
+    </section>
+  )
+}
+
+const ROUTES = [
+  {
+    name: "Your own number",
+    tag: "ready in minutes",
+    title: "Link the WhatsApp you already use",
+    desc: "Scan a QR code, the same way you link WhatsApp Web. No Meta verification and no Meta message fees. Status and contact saving work on this route.",
+    points: ["Every message queued and sent at a human pace", "New numbers warmed up before they send much", "Slows down by itself when WhatsApp signals a limit"],
+  },
+  {
+    name: "Official WhatsApp API",
+    tag: "on request",
+    title: "Meta’s WhatsApp Business Platform",
+    desc: "For businesses that need the official route. Dailzero’s app is approved by Meta for WhatsApp Business messaging, and our team sets it up with you.",
+    points: ["Message templates approved by Meta", "Fits compliance rules and larger teams", "Meta’s own message fees apply"],
+  },
+]
+
+// AI assistants tell buyers to ask how a tool connects to WhatsApp before
+// paying. Both routes are stated here so the answer is on the home page.
+export function Connect() {
+  return (
+    <section id="connect" className={styles.section}>
+      <div className={styles.frame}>
+        <Head
+          title="Two ways to connect."
+          quiet="You choose."
+          lead="Start on the number your customers already know, or go on Meta’s official platform when your business needs it."
+        />
+        <Reveal className={styles.duo}>
+          {ROUTES.map((r) => (
+            <article key={r.name} className={styles.card}>
+              <div className={styles.cardTop}>
+                <span className={styles.cardName}>{r.name}</span>
+                <span className={styles.tag}>{r.tag}</span>
+              </div>
+              <div className={styles.cardBody}>
+                <h3 className={styles.cardTitle}>{r.title}</h3>
+                <p className={styles.cardDesc}>{r.desc}</p>
+                <ul className={styles.routePoints}>
+                  {r.points.map((point) => (
+                    <li key={point}>
+                      <Check size={16} strokeWidth={1.75} aria-hidden="true" />
+                      {point}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </article>
+          ))}
+        </Reveal>
+        <Link href="/blog/how-dailzero-connects-to-whatsapp" className={styles.textLink}>
+          How Dailzero connects to WhatsApp
           <ArrowRight size={16} aria-hidden="true" />
         </Link>
       </div>

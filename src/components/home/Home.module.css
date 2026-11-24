@@ -267,6 +267,38 @@
   color: var(--h-muted);
 }
 
+/* Two ways to connect: a pair of plain cards, no demo */
+
+.duo {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.routePoints {
+  display: grid;
+  gap: 10px;
+  margin: 20px 0 0;
+  padding: 20px 0 0;
+  border-top: 1px solid var(--h-line);
+  list-style: none;
+}
+
+.routePoints li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--h-text);
+}
+
+.routePoints svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--h-accent-ink);
+}
+
 /* Follow-through row: three demo cards, then one wide card for the agent */
 
 .trio {
@@ -911,7 +943,8 @@
     grid-row: auto;
   }
 
-  .trio {
+  .trio,
+  .duo {
     grid-template-columns: 1fr;
   }
 

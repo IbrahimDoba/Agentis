@@ -4,7 +4,7 @@ import { getPublicStats } from "@/lib/queries/publicStats"
 import { Navbar } from "@/components/landing/Navbar"
 import { Footer } from "@/components/landing/Footer"
 import { HomeHero } from "@/components/home/HomeHero"
-import { NumbersStrip, Products, Smarts, Steps, Pricing, Faqs, ClosingCta } from "@/components/home/Sections"
+import { NumbersStrip, Products, Smarts, Steps, Connect, Pricing, Faqs, ClosingCta } from "@/components/home/Sections"
 import { Testimonials } from "@/components/home/Testimonials"
 import { LiveCounters } from "@/components/home/LiveCounters"
 import { geist, geistMono } from "@/components/home/fonts"
@@ -19,24 +19,24 @@ export const metadata = pageMetadata({
   absoluteTitle: true,
 })
 
+// Real words from customers, taken from their WhatsApp chats and voice notes
+// with the team. No business is named until its owner has agreed to it, so
+// each quote is labelled by the kind of business and when it was said.
 const testimonials = [
   {
-    quote:
-      "Before Dailzero, we missed dozens of WhatsApp messages every day. Now our agent handles everything while we sleep. Sales have gone up 40% since we launched.",
-    name: "Tunde Adeyemi",
-    role: "CEO, QuickStyle Lagos",
+    quote: "It's really, really working now. Wow. I'm going to subscribe. I really love this.",
+    name: "Furniture seller",
+    role: "Voice note, August 2026",
   },
   {
-    quote:
-      "Our customers love that they get instant responses even at midnight. The agent knows our entire product catalogue and handles orders perfectly. Worth every kobo.",
-    name: "Ngozi Okonkwo",
-    role: "Founder, Mama's Kitchen Abuja",
+    quote: "What I love about the system is how natural it is. Nobody is going to know if it's AI or not.",
+    name: "Business owner running ads",
+    role: "Voice note, September 2026",
   },
   {
-    quote:
-      "We run a real estate agency and clients ask lots of questions. Dailzero handles the initial enquiries so my team only speaks to serious buyers. Game changer.",
-    name: "Emeka Okafor",
-    role: "MD, HomeFind Realty",
+    quote: "So far so good. It's been awesome.",
+    name: "Media agency",
+    role: "Voice note, August 2026",
   },
 ]
 
@@ -66,6 +66,7 @@ export default async function LandingPage() {
       <Products />
       <Smarts />
       <Steps />
+      <Connect />
       <Testimonials items={testimonials} />
       <Pricing />
       <Faqs items={HOME_FAQS} />
